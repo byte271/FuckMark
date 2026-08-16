@@ -20,12 +20,28 @@ from .records import (
     WatermarkCondition,
     WatermarkLabel,
 )
+from .tiny_dev import (
+    TINY_DEV_CORPUS_ALGORITHM_VERSION,
+    TINY_DEV_DOMAINS,
+    TINY_DEV_PAIRS_PER_CELL,
+    TINY_DEV_SPLITS,
+    TINY_DEV_TARGET_LENGTH,
+    TinyDevCorpusArtifact,
+    TinyDevCorpusCell,
+    TinyDevCorpusError,
+    build_tiny_dev_corpus,
+)
 from .tokenization import GenerationTokenRecord, TextOnlyTokenRecord, TokenTrack
 
 
 __all__ = [
     "CORPUS_MANIFEST_ALGORITHM_VERSION",
     "TARGET_LENGTHS",
+    "TINY_DEV_CORPUS_ALGORITHM_VERSION",
+    "TINY_DEV_DOMAINS",
+    "TINY_DEV_PAIRS_PER_CELL",
+    "TINY_DEV_SPLITS",
+    "TINY_DEV_TARGET_LENGTH",
     "CorpusDomain",
     "CorpusIntegrityError",
     "CorpusLeakageError",
@@ -42,8 +58,12 @@ __all__ = [
     "PromptBoundaryMode",
     "PromptRecord",
     "TextOnlyTokenRecord",
+    "TinyDevCorpusArtifact",
+    "TinyDevCorpusCell",
+    "TinyDevCorpusError",
     "TokenTrack",
     "WatermarkCondition",
     "WatermarkLabel",
     "build_corpus_manifest",
+    "build_tiny_dev_corpus",
 ]
