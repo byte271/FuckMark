@@ -8,7 +8,21 @@ from fuckmark.adapters import (
     HuggingFaceSynthIDAdapter,
     HuggingFaceSynthIDConfig,
 )
-from fuckmark.corpus import ModelTokenizerIdentity, PaddingSide
+from fuckmark.corpus import (
+    TARGET_LENGTHS,
+    CorpusDomain,
+    CorpusSample,
+    CorpusSplit,
+    GenerationParameters,
+    GenerationTokenRecord,
+    KeySplit,
+    ModelTokenizerIdentity,
+    PaddingSide,
+    PromptRecord,
+    WatermarkCondition,
+    WatermarkLabel,
+    build_corpus_manifest,
+)
 from fuckmark.detectors import CalibrationScope, calibrate_detector, mean_evidence
 from fuckmark.experiments.confirmatory import (
     ConfirmatoryBootstrapPlan,
@@ -130,3 +144,81 @@ def preregistration_inputs(
         sealed_test_key_hash=sha256_text("sealed-test-key-commitment"),
         sealed_test_corpus_hash=sha256_text("sealed-test-corpus-commitment"),
     )
+
+
+def confirmatory_manifest(inputs: ConfirmatoryPreregistrationInputs, omit_last_pair: bool = False):
+    cells = [
+        (model_index, model, domain, target_length)
+        for model_index, model in enumerate(inputs.model_tokenizers)
+        for domain in CorpusDomain
+        for target_length in TARGET_LENGTHS
+    ]
+    if omit_last_pair:
+        cells = cells[:-1]
+    prompts = []
+    samples = []
+    for cell_index, (model_index, model, domain, target_length) in enumerate(cells):
+        prompt_id = f"confirmatory-prompt-{cell_index:03d}"
+        family_id = f"confirmatory-family-{cell_index:03d}"
+        prompt = PromptRecord.create(
+            prompt_id=prompt_id,
+            prompt_family_id=family_id,
+            domain=domain,
+            split=CorpusSplit.FINAL_TEST,
+            source_id="confirmatory-test-fixture-prompts",
+            source_hash=sha256_text("confirmatory-test-fixture-source"),
+            license_id="CC0-1.0",
+            provenance="tests/confirmatory_helpers.py",
+            text=f"Confirmatory prompt {cell_index} for {domain.value} at target length {target_length}.",
+        )
+        prompts.append(prompt)
+        generation = GenerationParameters.create(
+            seed=cell_index + 1,
+            seed_policy_id="confirmatory-paired-seed-v1",
+            temperature=0.8,
+            top_k=40,
+            top_p=0.95,
+            max_new_tokens=target_length,
+            do_sample=True,
+            dtype="float16",
+            device="test-device",
+            backend_id="test-backend",
+            backend_version="v1",
+        )
+        watermark = WatermarkCondition.create(
+            sha256_text(f"watermark-config-{model_index}"),
+            KeySplit.TEST,
+            f"test-key-{model_index}",
+        )
+        input_ids = (0, 0, 10_000 + cell_index, 20_000 + cell_index)
+        mask = (0, 0, 1, 1)
+        for label_index, label in enumerate((WatermarkLabel.WATERMARKED, WatermarkLabel.UNWATERMARKED)):
+            serial = cell_index * 2 + label_index
+            continuation = (100_000 + serial, 200_000 + serial)
+            tokens = GenerationTokenRecord.create(
+                input_token_ids=input_ids,
+                attention_mask=mask,
+                generated_sequence_ids=input_ids + continuation,
+                continuation_start_index=len(input_ids),
+                continuation_token_ids=continuation,
+                prompt_length_after_templating=2,
+                model_tokenizer_identity_hash=model.identity_hash,
+            )
+            samples.append(
+                CorpusSample.create(
+                    sample_id=f"confirmatory-sample-{serial:03d}",
+                    match_id=f"confirmatory-match-{cell_index:03d}",
+                    prompt_id=prompt_id,
+                    prompt_family_id=family_id,
+                    domain=domain,
+                    split=CorpusSplit.FINAL_TEST,
+                    label=label,
+                    text=f"Confirmatory output {serial} for {domain.value} length {target_length} label {label.value}.",
+                    model=model,
+                    generation=generation,
+                    watermark=watermark,
+                    target_length=target_length,
+                    generation_tokens=tokens,
+                )
+            )
+    return build_corpus_manifest("confirmatory-test-fixture", prompts, samples)
