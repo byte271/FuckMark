@@ -54,6 +54,12 @@ from .scheduler import (
     SchedulerCandidate,
 )
 from .schema import CandidateRejectionReason, HardInvariantReason, InvariantStatus, ProtectedSpanKind, TransformFamily, TransformTier
+from .syntax_rules import (
+    SYNTAX_TEMPLATE_RULE_ALGORITHM_VERSION,
+    SyntaxConstruction,
+    SyntaxTemplateRule,
+    development_syntax_rules,
+)
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
 
@@ -100,6 +106,9 @@ __all__ = [
     "SchedulePolicy",
     "ScheduleResult",
     "SchedulerCandidate",
+    "SYNTAX_TEMPLATE_RULE_ALGORITHM_VERSION",
+    "SyntaxConstruction",
+    "SyntaxTemplateRule",
     "TRANSFORM_APPLY_ALGORITHM_VERSION",
     "TRANSFORM_REGISTRY_ALGORITHM_VERSION",
     "TransformCandidate",
@@ -116,6 +125,7 @@ __all__ = [
     "default_contraction_rules",
     "default_transform_registry",
     "development_lexical_rules",
+    "development_syntax_rules",
     "development_transform_registry",
     "release_transform_registry",
     "require_release_eligible_lexical_rules",
