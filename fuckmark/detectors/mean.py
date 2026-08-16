@@ -16,8 +16,8 @@ from .types import (
 )
 
 
-MEAN_ALGORITHM_VERSION = "deepmind-mean-score-v1"
-WEIGHTED_MEAN_ALGORITHM_VERSION = "deepmind-weighted-mean-score-v1"
+MEAN_ALGORITHM_VERSION = "deepmind-mean-score-v2"
+WEIGHTED_MEAN_ALGORITHM_VERSION = "deepmind-weighted-mean-score-v2"
 
 
 def _normalize_g_values(g_values: Sequence[Sequence[int]]) -> tuple[tuple[tuple[int, ...], ...], int]:
@@ -83,7 +83,10 @@ def _normalize_weights(weights: Sequence[float | int] | None, depth: int) -> tup
     for value in raw:
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError("weights must contain real numbers")
-        number = float(value)
+        try:
+            number = float(value)
+        except OverflowError as error:
+            raise ValueError("weights must be representable as finite floats") from error
         if not math.isfinite(number):
             raise ValueError("weights must be finite")
         if number < 0.0:
@@ -95,7 +98,11 @@ def _normalize_weights(weights: Sequence[float | int] | None, depth: int) -> tup
     scaled = tuple(value / peak for value in normalized_input)
     total = math.fsum(scaled)
     scale = depth / total
-    return tuple(value * scale for value in scaled)
+    output = [value * scale for value in scaled]
+    correction = float(depth) - math.fsum(output)
+    largest_index = max(range(depth), key=output.__getitem__)
+    output[largest_index] += correction
+    return tuple(output)
 
 
 def _score(
@@ -107,14 +114,16 @@ def _score(
     if valid_count == 0:
         raise ZeroValidObservationsError("detector mask contains zero valid observations")
     depth = len(normalized_weights)
-    numerator = math.fsum(
-        normalized_weights[layer] * row[layer]
+    row_scores = (
+        math.fsum(normalized_weights[layer] * row[layer] for layer in range(depth)) / depth
         for row, valid in zip(rows, mask)
         if valid
-        for layer in range(depth)
     )
-    score = numerator / (depth * valid_count)
-    return score, valid_count
+    score = math.fsum(row_scores) / valid_count
+    tolerance = 1e-12
+    if score < -tolerance or score > 1.0 + tolerance:
+        raise ArithmeticError("detector score escaped its mathematical [0, 1] range")
+    return min(1.0, max(0.0, score)), valid_count
 
 
 def mean_score(
@@ -162,6 +171,7 @@ def _evidence(
         detector_family=detector_family,
         detector_algorithm_version=algorithm_version,
         detector_config_hash=config_hash,
+        observation_batch_hash=sha256_json(batch),
         detector_source_id=DEEPMIND_REFERENCE_SOURCE_PIN.source_id,
         detector_source_commit=DEEPMIND_REFERENCE_SOURCE_PIN.commit,
         adapter_id=batch.adapter_id,

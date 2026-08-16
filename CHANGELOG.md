@@ -4,6 +4,10 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Fixed Weighted Mean floating-point boundary drift that could produce scores slightly above 1.0 or make evidence reject its own mathematically valid score.
+- Changed Mean and Weighted Mean component algorithm identities to v2 because detector result rows and serialized evidence changed while the project version remains v0.1.0.
+- Bound uncalibrated detector evidence to the exact native observation batch with a canonical SHA-256 digest so distinct detector inputs cannot collapse to identical evidence records.
+- Added detector evidence self-validation for detector configuration hashes and controlled rejection of integer weights that cannot be represented as finite floats.
 - Added source-conformant Mean and Weighted Mean detector primitives matching the pinned DeepMind detector formulas on golden and randomized g-value/mask fixtures.
 - Added explicit zero-valid-observation failure behavior so detector runs cannot silently emit NaN scores or disappear from analysis.
 - Added normalized source-defined Weighted Mean layer weights with strict finite, non-negative, non-zero validation.

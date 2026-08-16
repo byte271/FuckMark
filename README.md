@@ -47,7 +47,7 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 26. Source-conformant Mean scoring over valid g-values
 27. Source-conformant Weighted Mean scoring with normalized layer weights
 28. Explicit detector compatibility states with fail-closed Bayesian handling
-29. Immutable uncalibrated detector evidence bound to adapter and detector identity
+29. Immutable uncalibrated detector evidence bound to adapter identity, detector identity, and the exact native observation batch hash
 
 Bayesian checkpoint training, fixed-FPR calibration, transformation rules, experiments, and reporting remain intentionally outside this layer.
 

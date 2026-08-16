@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from .._validation import require_clean_string, require_int, require_sha256
+from ..hashing import sha256_json
 
 
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -74,6 +75,7 @@ class UncalibratedDetectorEvidence:
     detector_family: DetectorFamily
     detector_algorithm_version: str
     detector_config_hash: str
+    observation_batch_hash: str
     detector_source_id: str
     detector_source_commit: str
     adapter_id: str
@@ -95,6 +97,7 @@ class UncalibratedDetectorEvidence:
             raise TypeError("detector_family must be a DetectorFamily")
         require_clean_string("detector_algorithm_version", self.detector_algorithm_version)
         require_sha256("detector_config_hash", self.detector_config_hash)
+        require_sha256("observation_batch_hash", self.observation_batch_hash)
         require_clean_string("detector_source_id", self.detector_source_id)
         require_clean_string("detector_source_commit", self.detector_source_commit)
         if _GIT_SHA_RE.fullmatch(self.detector_source_commit) is None:
@@ -144,7 +147,18 @@ class UncalibratedDetectorEvidence:
             weights.append(number)
         if not math.isclose(math.fsum(weights), float(self.depth), rel_tol=1e-12, abs_tol=1e-12):
             raise ValueError("normalized_weights must sum to depth")
-        object.__setattr__(self, "normalized_weights", tuple(weights))
+        normalized_weights = tuple(weights)
+        object.__setattr__(self, "normalized_weights", normalized_weights)
+        expected_config_hash = sha256_json(
+            {
+                "detector_family": self.detector_family.value,
+                "algorithm_version": self.detector_algorithm_version,
+                "detector_source_commit": self.detector_source_commit,
+                "normalized_weights": normalized_weights,
+            }
+        )
+        if self.detector_config_hash != expected_config_hash:
+            raise ValueError("detector_config_hash does not match detector configuration fields")
         if not isinstance(self.compatibility, DetectorCompatibility):
             raise TypeError("compatibility must be a DetectorCompatibility")
         if self.compatibility.status is not CompatibilityStatus.SUPPORTED:
