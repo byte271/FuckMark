@@ -7,9 +7,10 @@ from .._validation import require_int, require_sha256
 from ..corpus import CorpusDomain, CorpusManifest, CorpusSplit, KeySplit, WatermarkLabel
 from ..hashing import sha256_json
 from .confirmatory import ConfirmatoryPreregistration
+from .confirmatory_keys import ConfirmatoryTestKeyManifest
 
 
-CONFIRMATORY_CORPUS_SEAL_ALGORITHM_VERSION = "confirmatory-corpus-seal-v1"
+CONFIRMATORY_CORPUS_SEAL_ALGORITHM_VERSION = "confirmatory-corpus-seal-v2"
 
 
 class ConfirmatoryCorpusSealError(ValueError):
@@ -125,24 +126,31 @@ class ConfirmatoryCorpusSeal:
 def build_confirmatory_corpus_seal(
     preregistration: ConfirmatoryPreregistration,
     corpus_manifest: CorpusManifest,
-    test_key_manifest_hash: str,
+    test_key_manifest: ConfirmatoryTestKeyManifest,
 ) -> ConfirmatoryCorpusSeal:
     if not isinstance(preregistration, ConfirmatoryPreregistration):
         raise TypeError("preregistration must be a ConfirmatoryPreregistration")
     if not isinstance(corpus_manifest, CorpusManifest):
         raise TypeError("corpus_manifest must be a CorpusManifest")
-    require_sha256("test_key_manifest_hash", test_key_manifest_hash)
-    if test_key_manifest_hash != preregistration.sealed_test_key_hash:
+    if not isinstance(test_key_manifest, ConfirmatoryTestKeyManifest):
+        raise TypeError("test_key_manifest must be a ConfirmatoryTestKeyManifest")
+    if test_key_manifest.manifest_hash != preregistration.sealed_test_key_hash:
         raise ConfirmatoryCorpusSealError("test-key manifest hash does not match preregistration commitment")
     if corpus_manifest.manifest_hash != preregistration.sealed_test_corpus_hash:
         raise ConfirmatoryCorpusSealError("corpus manifest hash does not match preregistration commitment")
     allowed_models = {value.identity_hash: value for value in preregistration.model_tokenizers}
+    sealed_conditions = set(test_key_manifest.condition_identities)
+    used_conditions: set[tuple[str, str]] = set()
     counts: Counter[tuple[str, CorpusDomain, int, WatermarkLabel]] = Counter()
     for sample in corpus_manifest.samples:
         if sample.split is not CorpusSplit.FINAL_TEST:
             raise ConfirmatoryCorpusSealError("confirmatory corpus contains a non-final-test sample")
         if sample.watermark.key_split is not KeySplit.TEST:
             raise ConfirmatoryCorpusSealError("confirmatory corpus contains a non-TEST_KEYS sample")
+        condition_identity = (sample.watermark.watermark_config_hash, sample.watermark.key_id)
+        if condition_identity not in sealed_conditions:
+            raise ConfirmatoryCorpusSealError("confirmatory corpus uses a TEST_KEYS condition that was not sealed")
+        used_conditions.add(condition_identity)
         expected_model = allowed_models.get(sample.model.identity_hash)
         if expected_model is None or sample.model != expected_model:
             raise ConfirmatoryCorpusSealError("confirmatory corpus contains an unregistered model/tokenizer identity")
@@ -151,6 +159,8 @@ def build_confirmatory_corpus_seal(
         if sample.target_length not in preregistration.length_buckets:
             raise ConfirmatoryCorpusSealError("confirmatory corpus contains an unregistered target length")
         counts[(sample.model.identity_hash, sample.domain, sample.target_length, sample.label)] += 1
+    if used_conditions != sealed_conditions:
+        raise ConfirmatoryCorpusSealError("sealed TEST_KEYS conditions must be used exactly by the confirmatory corpus")
     strata: list[ConfirmatoryStratumCount] = []
     for model in preregistration.model_tokenizers:
         for domain in preregistration.domains:
@@ -182,7 +192,7 @@ def build_confirmatory_corpus_seal(
         "algorithm_version": CONFIRMATORY_CORPUS_SEAL_ALGORITHM_VERSION,
         "preregistration_hash": preregistration.preregistration_hash,
         "corpus_manifest_hash": corpus_manifest.manifest_hash,
-        "test_key_manifest_hash": test_key_manifest_hash,
+        "test_key_manifest_hash": test_key_manifest.manifest_hash,
         "strata": ordered,
         "watermarked_base_sample_count": watermarked_total,
         "matched_negative_base_sample_count": negative_total,
@@ -191,7 +201,7 @@ def build_confirmatory_corpus_seal(
         CONFIRMATORY_CORPUS_SEAL_ALGORITHM_VERSION,
         preregistration.preregistration_hash,
         corpus_manifest.manifest_hash,
-        test_key_manifest_hash,
+        test_key_manifest.manifest_hash,
         ordered,
         watermarked_total,
         negative_total,
@@ -203,10 +213,10 @@ def verify_confirmatory_corpus_seal(
     seal: ConfirmatoryCorpusSeal,
     preregistration: ConfirmatoryPreregistration,
     corpus_manifest: CorpusManifest,
-    test_key_manifest_hash: str,
+    test_key_manifest: ConfirmatoryTestKeyManifest,
 ) -> None:
     if not isinstance(seal, ConfirmatoryCorpusSeal):
         raise TypeError("seal must be a ConfirmatoryCorpusSeal")
-    expected = build_confirmatory_corpus_seal(preregistration, corpus_manifest, test_key_manifest_hash)
+    expected = build_confirmatory_corpus_seal(preregistration, corpus_manifest, test_key_manifest)
     if seal != expected:
-        raise ConfirmatoryCorpusSealError("confirmatory corpus seal does not replay exactly from preregistration and held-out manifest")
+        raise ConfirmatoryCorpusSealError("confirmatory corpus seal does not replay exactly from preregistration and held-out manifests")
