@@ -15,11 +15,12 @@ from fuckmark.detectors import ComparisonOperator, DetectorFamily
 from fuckmark.environment import capture_environment
 from fuckmark.experiments import authorize_e20_execution
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
-from fuckmark.experiments.confirmatory_corpus import build_confirmatory_corpus_seal
+from fuckmark.experiments.confirmatory_corpus_tracks import build_confirmatory_corpus_seal
 from fuckmark.experiments.e20_bundle import (
     E20ReasonCount,
     E20ResultBundle,
     E20ResultBundleError,
+    _verify_shared_transforms,
     build_e20_result_bundle,
     verify_e20_result_bundle,
 )
@@ -96,9 +97,14 @@ def _bundle_fixture():
         create_e20_run_ledger(authorization, "2026-08-16T20:49:00Z"),
         "2026-08-16T20:49:30Z",
     )
+    bundle_by_hash = {value.bundle_hash: value for value in preregistration.calibration_bundles}
     failures = []
     for sample in corpus_manifest.samples:
+        track = preregistration.watermark_tracks.track_for(sample.watermark.watermark_config_hash)
         for condition in condition_plan.conditions:
+            bundle = bundle_by_hash[condition.calibration_bundle_hash]
+            if not track.matches_detector_identity(bundle.detector_identity):
+                continue
             failures.append(
                 build_e20_failure_row(
                     authorization,
@@ -116,7 +122,7 @@ def _bundle_fixture():
                     timestamp_utc=TIMESTAMP,
                 )
             )
-    return authorization, corpus_manifest, condition_plan, tuple(failures)
+    return authorization, preregistration, corpus_manifest, condition_plan, tuple(failures)
 
 
 def _reason_count(bundle, reason):
@@ -200,10 +206,11 @@ def _synthetic_outcome(failure, condition, *, transformed_hash, transform_suffix
     )
 
 
-def test_result_bundle_requires_exact_full_sample_by_evaluation_condition_population() -> None:
-    authorization, corpus_manifest, condition_plan, failures = _bundle_fixture()
+def test_result_bundle_requires_exact_track_compatible_population() -> None:
+    authorization, preregistration, corpus_manifest, condition_plan, failures = _bundle_fixture()
     bundle = build_e20_result_bundle(
         authorization,
+        preregistration,
         corpus_manifest,
         condition_plan,
         (),
@@ -211,21 +218,22 @@ def test_result_bundle_requires_exact_full_sample_by_evaluation_condition_popula
     )
     assert len(corpus_manifest.samples) == 80
     assert len(condition_plan.conditions) == 6
-    assert bundle.expected_row_count == 480
-    assert bundle.observed_row_count == 480
+    assert bundle.expected_row_count == 240
+    assert bundle.observed_row_count == 240
     assert bundle.outcome_row_count == 0
-    assert bundle.failure_row_count == 480
-    assert _reason_count(bundle, ExperimentReasonCode.TOKENIZATION_FAILURE) == 480
+    assert bundle.failure_row_count == 240
+    assert _reason_count(bundle, ExperimentReasonCode.TOKENIZATION_FAILURE) == 240
     assert _reason_count(bundle, ExperimentReasonCode.OK) == 0
     assert len(bundle.reason_counts) == len(ExperimentReasonCode)
-    verify_e20_result_bundle(bundle, authorization, corpus_manifest, condition_plan)
+    verify_e20_result_bundle(bundle, authorization, preregistration, corpus_manifest, condition_plan)
 
 
 def test_result_bundle_rejects_one_missing_row_instead_of_silent_drop() -> None:
-    authorization, corpus_manifest, condition_plan, failures = _bundle_fixture()
+    authorization, preregistration, corpus_manifest, condition_plan, failures = _bundle_fixture()
     with pytest.raises(E20ResultBundleError, match="coverage mismatch"):
         build_e20_result_bundle(
             authorization,
+            preregistration,
             corpus_manifest,
             condition_plan,
             (),
@@ -234,10 +242,11 @@ def test_result_bundle_rejects_one_missing_row_instead_of_silent_drop() -> None:
 
 
 def test_result_bundle_rejects_duplicate_sample_condition_row() -> None:
-    authorization, corpus_manifest, condition_plan, failures = _bundle_fixture()
+    authorization, preregistration, corpus_manifest, condition_plan, failures = _bundle_fixture()
     with pytest.raises(E20ResultBundleError, match="duplicate sample and condition"):
         build_e20_result_bundle(
             authorization,
+            preregistration,
             corpus_manifest,
             condition_plan,
             (),
@@ -245,14 +254,17 @@ def test_result_bundle_rejects_duplicate_sample_condition_row() -> None:
         )
 
 
-def test_result_bundle_rejects_extra_unsealed_condition() -> None:
-    authorization, corpus_manifest, condition_plan, failures = _bundle_fixture()
+def test_result_bundle_rejects_extra_condition_incompatible_with_sample_track() -> None:
+    authorization, preregistration, corpus_manifest, condition_plan, failures = _bundle_fixture()
     source = failures[0]
+    sample = next(value for value in corpus_manifest.samples if value.sample_id == source.identity.sample_id)
+    compatible = {value.identity.condition_id for value in failures if value.identity.sample_id == sample.sample_id}
+    wrong_condition = next(value for value in condition_plan.conditions if value.condition_id not in compatible)
     forged_identity = E20IdentityFields(
         source.identity.execution_id,
         source.identity.run_id,
         source.identity.experiment_id,
-        "not-a-sealed-condition",
+        wrong_condition.condition_id,
         source.identity.sample_id,
         source.identity.pair_id,
     )
@@ -267,6 +279,7 @@ def test_result_bundle_rejects_extra_unsealed_condition() -> None:
     with pytest.raises(E20ResultBundleError, match="coverage mismatch"):
         build_e20_result_bundle(
             authorization,
+            preregistration,
             corpus_manifest,
             condition_plan,
             (),
@@ -275,7 +288,7 @@ def test_result_bundle_rejects_extra_unsealed_condition() -> None:
 
 
 def test_result_bundle_rejects_row_from_different_execution() -> None:
-    authorization, corpus_manifest, condition_plan, failures = _bundle_fixture()
+    authorization, preregistration, corpus_manifest, condition_plan, failures = _bundle_fixture()
     source = failures[0]
     forged_execution = sha256_text("different-e20-execution")
     forged_identity = E20IdentityFields(
@@ -297,6 +310,7 @@ def test_result_bundle_rejects_row_from_different_execution() -> None:
     with pytest.raises(E20ResultBundleError, match="different sealed execution"):
         build_e20_result_bundle(
             authorization,
+            preregistration,
             corpus_manifest,
             condition_plan,
             (),
@@ -305,9 +319,10 @@ def test_result_bundle_rejects_row_from_different_execution() -> None:
 
 
 def test_result_bundle_rejects_rehashed_forged_reason_counts() -> None:
-    authorization, corpus_manifest, condition_plan, failures = _bundle_fixture()
+    authorization, preregistration, corpus_manifest, condition_plan, failures = _bundle_fixture()
     bundle = build_e20_result_bundle(
         authorization,
+        preregistration,
         corpus_manifest,
         condition_plan,
         (),
@@ -324,7 +339,7 @@ def test_result_bundle_rejects_rehashed_forged_reason_counts() -> None:
     )
     payload = bundle._payload()
     payload["reason_counts"] = bad_counts
-    with pytest.raises(ValueError, match="do not replay"):
+    with pytest.raises(ValueError, match="reason_counts do not replay"):
         E20ResultBundle(
             bundle.algorithm_version,
             bundle.execution_id,
@@ -342,50 +357,25 @@ def test_result_bundle_rejects_rehashed_forged_reason_counts() -> None:
         )
 
 
-def test_result_bundle_requires_shared_transform_across_detector_evaluations() -> None:
-    authorization, corpus_manifest, condition_plan, failures = _bundle_fixture()
-    sample_id = failures[0].identity.sample_id
-    conditions = tuple(
+def test_shared_transform_checker_rejects_detector_condition_transform_drift() -> None:
+    _, _, _, condition_plan, failures = _bundle_fixture()
+    first_condition = condition_plan.conditions[0]
+    second_condition = next(
         value
         for value in condition_plan.conditions
-        if value.transform_condition_id == condition_plan.conditions[0].transform_condition_id
+        if value.transform_condition_id == first_condition.transform_condition_id
+        and value.condition_id != first_condition.condition_id
     )
-    assert len(conditions) == 2
-    failure_by_key = {(value.identity.sample_id, value.identity.condition_id): value for value in failures}
-    first_failure = failure_by_key[(sample_id, conditions[0].condition_id)]
-    second_failure = failure_by_key[(sample_id, conditions[1].condition_id)]
+    first_failure = failures[0]
     transformed_hash = sha256_text("shared transformed text")
-    first = _synthetic_outcome(first_failure, conditions[0], transformed_hash=transformed_hash)
-    second = _synthetic_outcome(second_failure, conditions[1], transformed_hash=transformed_hash)
-    removed = {
-        (sample_id, conditions[0].condition_id),
-        (sample_id, conditions[1].condition_id),
-    }
-    remaining = tuple(
-        value
-        for value in failures
-        if (value.identity.sample_id, value.identity.condition_id) not in removed
-    )
-    bundle = build_e20_result_bundle(
-        authorization,
-        corpus_manifest,
-        condition_plan,
-        (first, second),
-        remaining,
-    )
-    assert bundle.outcome_row_count == 2
-    assert bundle.failure_row_count == 478
+    first = _synthetic_outcome(first_failure, first_condition, transformed_hash=transformed_hash)
+    second = _synthetic_outcome(first_failure, second_condition, transformed_hash=transformed_hash)
+    _verify_shared_transforms((first, second), condition_plan)
     inconsistent = _synthetic_outcome(
-        second_failure,
-        conditions[1],
+        first_failure,
+        second_condition,
         transformed_hash=sha256_text("different transformed text"),
         transform_suffix="different",
     )
     with pytest.raises(E20ResultBundleError, match="changed the frozen transform"):
-        build_e20_result_bundle(
-            authorization,
-            corpus_manifest,
-            condition_plan,
-            (first, inconsistent),
-            remaining,
-        )
+        _verify_shared_transforms((first, inconsistent), condition_plan)
