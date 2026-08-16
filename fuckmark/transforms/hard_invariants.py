@@ -10,50 +10,20 @@ from .invariants import validate_protected_invariants
 from .protected_artifacts import ProtectedInvariantReport, UserProtectedRange
 from .schema import HardInvariantReason, InvariantStatus
 
-
-HARD_INVARIANT_ALGORITHM_VERSION = "hard-invariant-validator-v2"
+HARD_INVARIANT_ALGORITHM_VERSION = "hard-invariant-validator-v3"
 _WORD_RE = re.compile(r"[A-Za-z]+(?:['’][A-Za-z]+)?")
 _CONTRACTED_NEGATIONS = {
-    "don't": ("do:not", None),
-    "doesn't": ("does:not", None),
-    "didn't": ("did:not", None),
-    "can't": ("can:not", "can"),
-    "won't": ("will:not", "will"),
-    "shouldn't": ("should:not", "should"),
-    "wouldn't": ("would:not", "would"),
-    "couldn't": ("could:not", "could"),
-    "mustn't": ("must:not", "must"),
-    "isn't": ("is:not", None),
-    "aren't": ("are:not", None),
-    "wasn't": ("was:not", None),
-    "weren't": ("were:not", None),
-    "haven't": ("have:not", None),
-    "hasn't": ("has:not", None),
-    "hadn't": ("had:not", None),
+    "don't": ("do:not", None), "doesn't": ("does:not", None), "didn't": ("did:not", None),
+    "can't": ("can:not", "can"), "won't": ("will:not", "will"), "shouldn't": ("should:not", "should"),
+    "wouldn't": ("would:not", "would"), "couldn't": ("could:not", "could"), "mustn't": ("must:not", "must"),
+    "isn't": ("is:not", None), "aren't": ("are:not", None), "wasn't": ("was:not", None), "weren't": ("were:not", None),
+    "haven't": ("have:not", None), "hasn't": ("has:not", None), "hadn't": ("had:not", None),
 }
-_EXPANDED_NEGATION_AUX = {
-    "do": None,
-    "does": None,
-    "did": None,
-    "can": "can",
-    "will": "will",
-    "should": "should",
-    "would": "would",
-    "could": "could",
-    "must": "must",
-    "is": None,
-    "are": None,
-    "was": None,
-    "were": None,
-    "have": None,
-    "has": None,
-    "had": None,
-}
+_EXPANDED_NEGATION_AUX = {"do": None, "does": None, "did": None, "can": "can", "will": "will", "should": "should", "would": "would", "could": "could", "must": "must", "is": None, "are": None, "was": None, "were": None, "have": None, "has": None, "had": None}
 _MODAL_WORDS = frozenset(("can", "will", "should", "would", "could", "must", "may", "might", "shall"))
 _STANDALONE_NEGATIONS = frozenset(("never", "no", "neither", "nor", "none", "nothing", "nobody", "nowhere", "without"))
 _OBLIGATION_WORDS = frozenset(("must", "required", "mandatory", "obliged", "obligated"))
 _PERMISSION_WORDS = frozenset(("may", "allowed", "permitted"))
-
 
 @dataclass(frozen=True, slots=True)
 class HardInvariantSignature:
@@ -73,7 +43,6 @@ class HardInvariantSignature:
         require_sha256("signature_hash", self.signature_hash)
         if self.signature_hash != sha256_json({"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "negations": negations, "modalities": modalities}):
             raise ValueError("signature_hash does not match hard invariant signature")
-
 
 @dataclass(frozen=True, slots=True)
 class HardInvariantReport:
@@ -103,7 +72,7 @@ class HardInvariantReport:
         object.__setattr__(self, "reasons", reasons)
         if self.protected_report.original_hash != self.original_hash or self.protected_report.transformed_hash != self.transformed_hash:
             raise ValueError("protected report hashes must match hard invariant report")
-        expected: list[HardInvariantReason] = []
+        expected = []
         if self.protected_report.status is InvariantStatus.FAIL:
             expected.append(HardInvariantReason.PROTECTED_CONTENT_CHANGED)
         if self.original_signature.negations != self.transformed_signature.negations:
@@ -119,16 +88,7 @@ class HardInvariantReport:
             raise ValueError("report_hash does not match hard invariant report")
 
     def _payload(self) -> dict[str, object]:
-        return {
-            "algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION,
-            "status": self.status.value,
-            "original_hash": self.original_hash,
-            "transformed_hash": self.transformed_hash,
-            "protected_report": self.protected_report,
-            "original_signature": self.original_signature,
-            "transformed_signature": self.transformed_signature,
-            "reasons": tuple(value.value for value in self.reasons),
-        }
+        return {"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "status": self.status.value, "original_hash": self.original_hash, "transformed_hash": self.transformed_hash, "protected_report": self.protected_report, "original_signature": self.original_signature, "transformed_signature": self.transformed_signature, "reasons": tuple(value.value for value in self.reasons)}
 
 
 def _normalized_words(text: str) -> tuple[str, ...]:
@@ -139,8 +99,8 @@ def hard_invariant_signature(text: str) -> HardInvariantSignature:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     words = _normalized_words(text)
-    negations: list[str] = []
-    modalities: list[str] = []
+    negations = []
+    modalities = []
     index = 0
     while index < len(words):
         word = words[index]
@@ -181,25 +141,16 @@ def hard_invariant_signature(text: str) -> HardInvariantSignature:
         index += 1
     negation_tuple = tuple(negations)
     modality_tuple = tuple(modalities)
-    return HardInvariantSignature(
-        negation_tuple,
-        modality_tuple,
-        sha256_json({"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "negations": negation_tuple, "modalities": modality_tuple}),
-    )
+    return HardInvariantSignature(negation_tuple, modality_tuple, sha256_json({"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "negations": negation_tuple, "modalities": modality_tuple}))
 
 
-def validate_hard_invariants(
-    original: str,
-    transformed: str,
-    identifiers: Sequence[str] = (),
-    user_ranges: Sequence[UserProtectedRange] = (),
-) -> HardInvariantReport:
+def validate_hard_invariants(original: str, transformed: str, identifiers: Sequence[str] = (), user_ranges: Sequence[UserProtectedRange] = ()) -> HardInvariantReport:
     if not isinstance(original, str) or not isinstance(transformed, str):
         raise TypeError("original and transformed must be strings")
     protected_report = validate_protected_invariants(original, transformed, identifiers, user_ranges)
     original_signature = hard_invariant_signature(original)
     transformed_signature = hard_invariant_signature(transformed)
-    reasons: list[HardInvariantReason] = []
+    reasons = []
     if protected_report.status is InvariantStatus.FAIL:
         reasons.append(HardInvariantReason.PROTECTED_CONTENT_CHANGED)
     if original_signature.negations != transformed_signature.negations:
@@ -210,23 +161,5 @@ def validate_hard_invariants(
     status = InvariantStatus.PASS if not normalized_reasons else InvariantStatus.FAIL
     original_hash = sha256_text(original)
     transformed_hash = sha256_text(transformed)
-    payload = {
-        "algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION,
-        "status": status.value,
-        "original_hash": original_hash,
-        "transformed_hash": transformed_hash,
-        "protected_report": protected_report,
-        "original_signature": original_signature,
-        "transformed_signature": transformed_signature,
-        "reasons": tuple(value.value for value in normalized_reasons),
-    }
-    return HardInvariantReport(
-        status,
-        original_hash,
-        transformed_hash,
-        protected_report,
-        original_signature,
-        transformed_signature,
-        normalized_reasons,
-        sha256_json(payload),
-    )
+    payload = {"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "status": status.value, "original_hash": original_hash, "transformed_hash": transformed_hash, "protected_report": protected_report, "original_signature": original_signature, "transformed_signature": transformed_signature, "reasons": tuple(value.value for value in normalized_reasons)}
+    return HardInvariantReport(status, original_hash, transformed_hash, protected_report, original_signature, transformed_signature, normalized_reasons, sha256_json(payload))

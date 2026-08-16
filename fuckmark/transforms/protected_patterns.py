@@ -2,62 +2,29 @@ from __future__ import annotations
 
 import ipaddress
 import re
-from datetime import date, datetime
+from datetime import date
 
 from .schema import ProtectedSpanKind
 
-
 _MAX_PROTECTED_ITEMS = 100_000
-
-
-_URL_RE = re.compile(r"(?i)\b(?:https?://|www\.)[^\s<>\"']+")
-
-
-_BARE_DOMAIN_RE = re.compile(r"(?i)(?<![@\w.-])(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:xn--[A-Z0-9-]{2,59}|[A-Z]{2,63})(?![A-Z0-9-])(?::\d{1,5})?(?:[/?#][^\s<>\"']*)?")
-
-
-_EMAIL_RE = re.compile(r"(?i)(?<![\w.+-])[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+(?![\w-])")
-
-
+_HWS = r"[^\S\r\n]"
+_URL_RE = re.compile(r"\b(?ai:https?://|www\.)[^\s<>\"']+")
+_BARE_DOMAIN_RE = re.compile(r"(?<![@\\/\w.-])(?ai:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:xn--[A-Z0-9-]{2,59}|[A-Z]{2,63})(?![A-Z0-9-]))(?::\d{1,5})?(?:[/?#][^\s<>\"']*)?")
+_EMAIL_RE = re.compile(r"(?<![\w.+-])(?ai:[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+)(?![\w-])")
 _IPV4_RE = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
-
-
 _IPV6_TOKEN_RE = re.compile(r"(?<![0-9A-Fa-f:.])[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]*(?:%[A-Za-z0-9._~-]+)?(?![0-9A-Za-z_.:~-])")
-
-
 _ISO_DATE_RE = re.compile(r"(?<!\d)\d{4}-\d{2}-\d{2}(?!\d)")
-
-
-_MONTH = r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
-
-
-_MONTH_FIRST_DATE_RE = re.compile(rf"(?i)(?<!\w){_MONTH}\s+\d{{1,2}}(?:,)?\s+\d{{4}}(?!\d)")
-
-
-_DAY_FIRST_DATE_RE = re.compile(rf"(?i)(?<!\d)\d{{1,2}}\s+{_MONTH}\s+\d{{4}}(?!\d)")
-
-
+_MONTH = r"(?ai:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+_MONTH_FIRST_DATE_RE = re.compile(rf"(?<!\w){_MONTH}{_HWS}+\d{{1,2}}(?:,)?{_HWS}+\d{{4}}(?!\d)")
+_DAY_FIRST_DATE_RE = re.compile(rf"(?<!\d)\d{{1,2}}{_HWS}+{_MONTH}{_HWS}+\d{{4}}(?!\d)")
 _SLASH_DATE_RE = re.compile(r"(?<!\d)(?:\d{1,2}/\d{1,2}/\d{2,4}|\d{4}/\d{1,2}/\d{1,2})(?!\d)")
-
-
 _NUMBER_BODY = r"[-+]?(?:(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|\.\d+)(?:[eE][-+]?\d+)?"
-
-
-_CURRENCY_RE = re.compile(rf"(?i)(?<!\w)(?:[-+]?[ \t]*(?:USD|EUR|GBP|JPY|CNY|RMB)[ \t]*{_NUMBER_BODY}|[-+]?[ \t]*[$€£¥][ \t]*{_NUMBER_BODY}|{_NUMBER_BODY}[ \t]*(?:USD|EUR|GBP|JPY|CNY|RMB))(?!\w)")
-
-
-_PERCENT_RE = re.compile(rf"(?<![\w.]){_NUMBER_BODY}[ \t]*%(?!\w)")
-
-
+_CURRENCY_CODE = r"(?ai:USD|EUR|GBP|JPY|CNY|RMB)"
+_CURRENCY_RE = re.compile(rf"(?<!\w)(?:[-+]?{_HWS}*{_CURRENCY_CODE}{_HWS}*{_NUMBER_BODY}|[-+]?{_HWS}*[$€£¥]{_HWS}*{_NUMBER_BODY}|{_NUMBER_BODY}{_HWS}*{_CURRENCY_CODE})(?!\w)")
+_PERCENT_RE = re.compile(rf"(?<![\w.]){_NUMBER_BODY}{_HWS}*%(?!\w)")
 _NUMBER_RE = re.compile(rf"(?<![\w.]){_NUMBER_BODY}(?!\w)")
-
-
 _CLI_FLAG_RE = re.compile(r"(?<![\w-])--?[A-Za-z][A-Za-z0-9-]*(?:=[^\s]+)?")
-
-
 _NUMERIC_CITATION_RE = re.compile(r"\[(?:\d+(?:\s*[-,]\s*\d+)*)\]")
-
-
 _AUTHOR_YEAR_CITATION_RE = re.compile(r"\((?:[A-Z][A-Za-z'’-]+(?:\s+(?:and|&|et\s+al\.)\s+[A-Z][A-Za-z'’-]+)?),\s*\d{4}[a-z]?\)")
 
 
@@ -91,16 +58,20 @@ def _line_end(text: str, start: int) -> int:
 def _trim_terminal_punctuation(text: str, start: int, end: int) -> tuple[int, int]:
     while end > start and text[end - 1] in ".,;:!?":
         end -= 1
-    pairs = (("(", ")"), ("[", "]"), ("{", "}"))
-    changed = True
-    while changed and end > start:
-        changed = False
-        candidate = text[start:end]
-        for opening, closing in pairs:
-            if candidate.endswith(closing) and candidate.count(closing) > candidate.count(opening):
-                end -= 1
-                changed = True
-                break
+    if end <= start:
+        return start, end
+    counts = {"(": 0, ")": 0, "[": 0, "]": 0, "{": 0, "}": 0}
+    for character in text[start:end]:
+        if character in counts:
+            counts[character] += 1
+    opening_for = {")": "(", "]": "[", "}": "{"}
+    while end > start:
+        closing = text[end - 1]
+        opening = opening_for.get(closing)
+        if opening is None or counts[closing] <= counts[opening]:
+            break
+        counts[closing] -= 1
+        end -= 1
     return start, end
 
 
@@ -135,16 +106,54 @@ def _add_ip_addresses(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) 
             _append(raw, match.start(), end, ProtectedSpanKind.IPV6)
 
 
+_MONTH_NUMBERS = {
+    "jan": 1, "january": 1,
+    "feb": 2, "february": 2,
+    "mar": 3, "march": 3,
+    "apr": 4, "april": 4,
+    "may": 5,
+    "jun": 6, "june": 6,
+    "jul": 7, "july": 7,
+    "aug": 8, "august": 8,
+    "sep": 9, "sept": 9, "september": 9,
+    "oct": 10, "october": 10,
+    "nov": 11, "november": 11,
+    "dec": 12, "december": 12,
+}
+
+
+def _valid_date_parts(year: int, month: int, day: int) -> bool:
+    try:
+        date(year, month, day)
+        return True
+    except ValueError:
+        return False
+
+
 def _valid_english_date(value: str) -> bool:
-    compact = re.sub(r"\s+", " ", value.strip())
-    compact = re.sub(r"(?i)\bSept\b", "Sep", compact)
-    for pattern in ("%b %d, %Y", "%B %d, %Y", "%b %d %Y", "%B %d %Y", "%d %b %Y", "%d %B %Y"):
-        try:
-            datetime.strptime(compact, pattern)
-            return True
-        except ValueError:
-            pass
-    return False
+    compact = re.sub(_HWS + "+", " ", value.strip()).replace(",", "")
+    parts = compact.split(" ")
+    if len(parts) != 3:
+        return False
+    if parts[0].isdigit():
+        day_text, month_text, year_text = parts
+    else:
+        month_text, day_text, year_text = parts
+    month = _MONTH_NUMBERS.get(month_text.lower())
+    if month is None or not day_text.isdigit() or not year_text.isdigit():
+        return False
+    return _valid_date_parts(int(year_text), month, int(day_text))
+
+
+def _valid_slash_date(value: str) -> bool:
+    parts = value.split("/")
+    if len(parts) != 3 or any(not part.isdigit() for part in parts):
+        return False
+    first, second, third = parts
+    if len(first) == 4:
+        return _valid_date_parts(int(first), int(second), int(third))
+    year = int(third) if len(third) == 4 else 2000 + int(third)
+    return _valid_date_parts(year, int(first), int(second)) or _valid_date_parts(year, int(second), int(first))
 
 
 def _add_dates(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
@@ -159,19 +168,8 @@ def _add_dates(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None
             if _valid_english_date(match.group()):
                 _append(raw, match.start(), match.end(), ProtectedSpanKind.DATE)
     for match in _SLASH_DATE_RE.finditer(text):
-        value = match.group()
-        formats = ("%Y/%m/%d",) if len(value.split("/", 1)[0]) == 4 else ("%m/%d/%Y", "%m/%d/%y")
-        if any(_valid_date_format(value, pattern) for pattern in formats):
+        if _valid_slash_date(match.group()):
             _append(raw, match.start(), match.end(), ProtectedSpanKind.DATE)
-
-
-def _valid_date_format(value: str, pattern: str) -> bool:
-    try:
-        datetime.strptime(value, pattern)
-        return True
-    except ValueError:
-        return False
-
 
 def _identifier_matches(text: str, identifier: str) -> tuple[tuple[int, int], ...]:
     escaped = re.escape(identifier)

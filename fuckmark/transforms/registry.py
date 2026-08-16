@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from bisect import bisect_right
 from collections.abc import Sequence
 
 from .._validation import require_int, require_sha256
@@ -12,14 +13,9 @@ from .rules import LiteralTransformRule, default_contraction_rules, validate_rul
 from .schema import CandidateRejectionReason, InvariantStatus
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
-
-TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v2"
-TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v2"
+TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v3"
+TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v3"
 _MAX_ENUMERATION_ITEMS = 100_000
-
-
-def _span_overlaps(start: int, end: int, span: ProtectedSpan) -> bool:
-    return start < span.end and span.start < end
 
 
 def _simple_case_replacement(source_text: str, replacement: str) -> str | None:
@@ -33,45 +29,28 @@ def _simple_case_replacement(source_text: str, replacement: str) -> str | None:
     return None
 
 
-def _make_rejection(
-    input_hash: str,
-    rule: LiteralTransformRule,
-    start: int,
-    end: int,
-    source_text: str,
-    reason: CandidateRejectionReason,
-    protected_hashes: Sequence[str] = (),
-) -> CandidateRejection:
+def _make_rejection(input_hash: str, rule: LiteralTransformRule, start: int, end: int, source_text: str, reason: CandidateRejectionReason, protected_hashes: Sequence[str] = ()) -> CandidateRejection:
     hashes = tuple(sorted(set(protected_hashes)))
-    payload = {
-        "input_hash": input_hash,
-        "rule_id": rule.rule_id,
-        "rule_version": rule.version,
-        "rule_hash": rule.rule_hash,
-        "start": start,
-        "end": end,
-        "source_text": source_text,
-        "reason": reason.value,
-        "protected_span_hashes": hashes,
-    }
+    payload = {"input_hash": input_hash, "rule_id": rule.rule_id, "rule_version": rule.version, "rule_hash": rule.rule_hash, "start": start, "end": end, "source_text": source_text, "reason": reason.value, "protected_span_hashes": hashes}
     return CandidateRejection(input_hash, rule.rule_id, rule.version, rule.rule_hash, start, end, source_text, reason, hashes, sha256_json(payload))
 
 
 def _make_candidate(input_hash: str, rule: LiteralTransformRule, start: int, end: int, source_text: str, replacement: str) -> TransformCandidate:
-    payload = {
-        "input_hash": input_hash,
-        "rule_id": rule.rule_id,
-        "rule_version": rule.version,
-        "rule_hash": rule.rule_hash,
-        "family": rule.family.value,
-        "tier": rule.tier.value,
-        "start": start,
-        "end": end,
-        "source_text": source_text,
-        "replacement_text": replacement,
-    }
+    payload = {"input_hash": input_hash, "rule_id": rule.rule_id, "rule_version": rule.version, "rule_hash": rule.rule_hash, "family": rule.family.value, "tier": rule.tier.value, "start": start, "end": end, "source_text": source_text, "replacement_text": replacement}
     candidate_id = sha256_json(payload)
     return TransformCandidate(candidate_id, input_hash, rule.rule_id, rule.version, rule.rule_hash, rule.family, rule.tier, start, end, source_text, replacement)
+
+
+def _overlapping_spans(spans: tuple[ProtectedSpan, ...], ends: tuple[int, ...], start: int, end: int) -> tuple[ProtectedSpan, ...]:
+    index = bisect_right(ends, start)
+    output: list[ProtectedSpan] = []
+    while index < len(spans):
+        span = spans[index]
+        if span.start >= end:
+            break
+        output.append(span)
+        index += 1
+    return tuple(output)
 
 
 class TransformRegistry:
@@ -79,12 +58,7 @@ class TransformRegistry:
 
     def __init__(self, rules: Sequence[LiteralTransformRule], identifiers: Sequence[str] = ()) -> None:
         self._rules = validate_rules(rules)
-        self._ruleset_hash = sha256_json(
-            {
-                "algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION,
-                "rules": self._rules,
-            }
-        )
+        self._ruleset_hash = sha256_json({"algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "rules": self._rules})
         self._extractor = ProtectedSpanExtractor(identifiers)
 
     @property
@@ -104,6 +78,8 @@ class TransformRegistry:
             raise TypeError("text must be a string")
         protected = self._extractor.extract(text, user_ranges)
         input_hash = sha256_text(text)
+        spans = protected.spans
+        span_ends = tuple(span.end for span in spans)
         candidates: list[TransformCandidate] = []
         rejections: list[CandidateRejection] = []
         for rule in self._rules:
@@ -112,19 +88,9 @@ class TransformRegistry:
                     raise ValueError("candidate enumeration exceeded resource limit")
                 start, end = match.span()
                 source_text = text[start:end]
-                overlaps = tuple(span for span in protected.spans if _span_overlaps(start, end, span))
+                overlaps = _overlapping_spans(spans, span_ends, start, end)
                 if overlaps:
-                    rejections.append(
-                        _make_rejection(
-                            input_hash,
-                            rule,
-                            start,
-                            end,
-                            source_text,
-                            CandidateRejectionReason.PROTECTED_OVERLAP,
-                            tuple(span.span_hash for span in overlaps),
-                        )
-                    )
+                    rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.PROTECTED_OVERLAP, tuple(span.span_hash for span in overlaps)))
                     continue
                 letters = "".join(character for character in source_text if character.isalpha())
                 if rule.block_all_caps and letters and letters.isupper():
@@ -140,33 +106,10 @@ class TransformRegistry:
         ordered_candidates = tuple(sorted(candidates, key=lambda value: (value.start, value.end, value.rule_id, value.candidate_id)))
         ordered_rejections = tuple(sorted(rejections, key=lambda value: (value.start, value.end, value.rule_id, value.reason.value, value.rejection_hash)))
         conflicts = _build_conflicts(ordered_candidates)
-        payload = {
-            "algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION,
-            "input_hash": input_hash,
-            "ruleset_hash": self._ruleset_hash,
-            "protected_manifest_hash": protected.manifest_hash,
-            "candidates": ordered_candidates,
-            "rejections": ordered_rejections,
-            "conflicts": conflicts,
-        }
-        return CandidateEnumeration(
-            TRANSFORM_REGISTRY_ALGORITHM_VERSION,
-            text,
-            input_hash,
-            self._ruleset_hash,
-            protected,
-            ordered_candidates,
-            ordered_rejections,
-            conflicts,
-            sha256_json(payload),
-        )
+        payload = {"algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "input_hash": input_hash, "ruleset_hash": self._ruleset_hash, "protected_manifest_hash": protected.manifest_hash, "candidates": ordered_candidates, "rejections": ordered_rejections, "conflicts": conflicts}
+        return CandidateEnumeration(TRANSFORM_REGISTRY_ALGORITHM_VERSION, text, input_hash, self._ruleset_hash, protected, ordered_candidates, ordered_rejections, conflicts, sha256_json(payload))
 
-    def apply(
-        self,
-        enumeration: CandidateEnumeration,
-        candidate_ids: Sequence[str],
-        seed: int = 0,
-    ) -> TransformResult:
+    def apply(self, enumeration: CandidateEnumeration, candidate_ids: Sequence[str], seed: int = 0) -> TransformResult:
         if not isinstance(enumeration, CandidateEnumeration):
             raise TypeError("enumeration must be a CandidateEnumeration")
         if enumeration.ruleset_hash != self._ruleset_hash:
@@ -206,33 +149,8 @@ class TransformRegistry:
             chunks.append(candidate.replacement_text)
             output_position += len(candidate.replacement_text)
             output_end = output_position
-            payload = {
-                "candidate_id": candidate.candidate_id,
-                "rule_id": candidate.rule_id,
-                "rule_version": candidate.rule_version,
-                "rule_hash": candidate.rule_hash,
-                "source_start": candidate.start,
-                "source_end": candidate.end,
-                "output_start": output_start,
-                "output_end": output_end,
-                "before_text": candidate.source_text,
-                "after_text": candidate.replacement_text,
-            }
-            operations.append(
-                TransformOperation(
-                    candidate.candidate_id,
-                    candidate.rule_id,
-                    candidate.rule_version,
-                    candidate.rule_hash,
-                    candidate.start,
-                    candidate.end,
-                    output_start,
-                    output_end,
-                    candidate.source_text,
-                    candidate.replacement_text,
-                    sha256_json(payload),
-                )
-            )
+            payload = {"candidate_id": candidate.candidate_id, "rule_id": candidate.rule_id, "rule_version": candidate.rule_version, "rule_hash": candidate.rule_hash, "source_start": candidate.start, "source_end": candidate.end, "output_start": output_start, "output_end": output_end, "before_text": candidate.source_text, "after_text": candidate.replacement_text}
+            operations.append(TransformOperation(candidate.candidate_id, candidate.rule_id, candidate.rule_version, candidate.rule_hash, candidate.start, candidate.end, output_start, output_end, candidate.source_text, candidate.replacement_text, sha256_json(payload)))
             selected_ids.append(candidate.candidate_id)
             cursor = candidate.end
         chunks.append(enumeration.input_text[cursor:])
@@ -241,47 +159,13 @@ class TransformRegistry:
         output_hash = sha256_text(output_text)
         if selected and output_hash == input_hash:
             raise ValueError("non-empty candidate selection produced no net text change")
-        invariant_report = validate_hard_invariants(
-            enumeration.input_text,
-            output_text,
-            self.identifiers,
-            enumeration.protected_manifest.user_ranges,
-        )
+        invariant_report = validate_hard_invariants(enumeration.input_text, output_text, self.identifiers, enumeration.protected_manifest.user_ranges)
         if invariant_report.status is not InvariantStatus.PASS:
             raise ValueError("transformation violated hard content invariants")
         selected_tuple = tuple(selected_ids)
         operation_tuple = tuple(operations)
-        trace_payload = {
-            "algorithm_version": TRANSFORM_APPLY_ALGORITHM_VERSION,
-            "registry_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION,
-            "selection_policy_id": "explicit-candidate-ids-v2",
-            "seed": seed,
-            "input_hash": input_hash,
-            "output_hash": output_hash,
-            "ruleset_hash": self._ruleset_hash,
-            "enumeration_hash": enumeration.enumeration_hash,
-            "selected_candidate_ids": selected_tuple,
-            "operations": operation_tuple,
-            "precondition_failures": enumeration.rejections,
-            "protected_span_violation_count": 0,
-            "invariant_report": invariant_report,
-        }
-        trace = TransformationTrace(
-            TRANSFORM_APPLY_ALGORITHM_VERSION,
-            TRANSFORM_REGISTRY_ALGORITHM_VERSION,
-            "explicit-candidate-ids-v2",
-            seed,
-            input_hash,
-            output_hash,
-            self._ruleset_hash,
-            enumeration.enumeration_hash,
-            selected_tuple,
-            operation_tuple,
-            enumeration.rejections,
-            0,
-            invariant_report,
-            sha256_json(trace_payload),
-        )
+        trace_payload = {"algorithm_version": TRANSFORM_APPLY_ALGORITHM_VERSION, "registry_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "selection_policy_id": "explicit-candidate-ids-v3", "seed": seed, "input_hash": input_hash, "output_hash": output_hash, "ruleset_hash": self._ruleset_hash, "enumeration_hash": enumeration.enumeration_hash, "selected_candidate_ids": selected_tuple, "operations": operation_tuple, "precondition_failures": enumeration.rejections, "protected_span_violation_count": 0, "invariant_report": invariant_report}
+        trace = TransformationTrace(TRANSFORM_APPLY_ALGORITHM_VERSION, TRANSFORM_REGISTRY_ALGORITHM_VERSION, "explicit-candidate-ids-v3", seed, input_hash, output_hash, self._ruleset_hash, enumeration.enumeration_hash, selected_tuple, operation_tuple, enumeration.rejections, 0, invariant_report, sha256_json(trace_payload))
         return TransformResult(output_text, trace, sha256_json({"output_text": output_text, "trace": trace}))
 
 

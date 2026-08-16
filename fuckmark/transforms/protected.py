@@ -36,8 +36,7 @@ from .protected_structures import (
 )
 from .schema import ProtectedSpanKind
 
-
-PROTECTED_SPAN_ALGORITHM_VERSION = "protected-span-extractor-v2"
+PROTECTED_SPAN_ALGORITHM_VERSION = "protected-span-extractor-v3"
 
 
 def _merge_spans(text: str, raw: Sequence[tuple[int, int, ProtectedSpanKind]]) -> tuple[ProtectedSpan, ...]:
@@ -57,13 +56,7 @@ def _merge_spans(text: str, raw: Sequence[tuple[int, int, ProtectedSpanKind]]) -
         exact_text = text[start:end]
         normalized_kinds = tuple(sorted(kinds, key=lambda value: value.value))
         text_hash = sha256_text(exact_text)
-        payload = {
-            "start": start,
-            "end": end,
-            "kinds": tuple(kind.value for kind in normalized_kinds),
-            "exact_text": exact_text,
-            "text_hash": text_hash,
-        }
+        payload = {"start": start, "end": end, "kinds": tuple(kind.value for kind in normalized_kinds), "exact_text": exact_text, "text_hash": text_hash}
         output.append(ProtectedSpan(start, end, normalized_kinds, exact_text, text_hash, sha256_json(payload)))
     return tuple(output)
 
@@ -131,18 +124,5 @@ class ProtectedSpanExtractor:
             _append(raw, value.start, value.end, ProtectedSpanKind.USER_MARKED_ENTITY)
         spans = _merge_spans(text, raw)
         input_hash = sha256_text(text)
-        payload = {
-            "algorithm_version": PROTECTED_SPAN_ALGORITHM_VERSION,
-            "input_hash": input_hash,
-            "identifiers": self._identifiers,
-            "user_ranges": ranges,
-            "spans": spans,
-        }
-        return ProtectedSpanManifest(
-            PROTECTED_SPAN_ALGORITHM_VERSION,
-            input_hash,
-            self._identifiers,
-            ranges,
-            spans,
-            sha256_json(payload),
-        )
+        payload = {"algorithm_version": PROTECTED_SPAN_ALGORITHM_VERSION, "input_hash": input_hash, "identifiers": self._identifiers, "user_ranges": ranges, "spans": spans}
+        return ProtectedSpanManifest(PROTECTED_SPAN_ALGORITHM_VERSION, input_hash, self._identifiers, ranges, spans, sha256_json(payload))

@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from .._validation import require_clean_string, require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateRejection
-from .hard_invariants import HardInvariantReport
+from .hard_invariants import HardInvariantReport, hard_invariant_signature
+from .invariants import validate_protected_invariants
 from .schema import InvariantStatus
-
 
 @dataclass(frozen=True, slots=True)
 class TransformOperation:
@@ -60,7 +60,6 @@ class TransformOperation:
             "before_text": self.before_text,
             "after_text": self.after_text,
         }
-
 
 @dataclass(frozen=True, slots=True)
 class TransformationTrace:
@@ -122,7 +121,7 @@ class TransformationTrace:
         if len({value.rejection_hash for value in failures}) != len(failures):
             raise ValueError("precondition_failures must be unique")
         if any(value.input_hash != self.input_hash for value in failures):
-            raise ValueError("precondition_failures must match trace input")
+            raise ValueError("precondition failure input hashes must match trace input")
         require_int("protected_span_violation_count", self.protected_span_violation_count)
         if self.protected_span_violation_count != 0:
             raise ValueError("successful transformation traces cannot contain protected-span violations")
@@ -152,7 +151,6 @@ class TransformationTrace:
             "invariant_report": self.invariant_report,
         }
 
-
 @dataclass(frozen=True, slots=True)
 class TransformResult:
     output_text: str
@@ -166,11 +164,31 @@ class TransformResult:
             raise TypeError("trace must be a TransformationTrace")
         if self.trace.output_hash != sha256_text(self.output_text):
             raise ValueError("trace output hash does not match output_text")
+        chunks: list[str] = []
+        cursor = 0
         for operation in self.trace.operations:
             if operation.output_end > len(self.output_text):
                 raise ValueError("operation output span extends beyond output_text")
             if self.output_text[operation.output_start:operation.output_end] != operation.after_text:
                 raise ValueError("operation output geometry does not match output_text")
+            chunks.append(self.output_text[cursor:operation.output_start])
+            chunks.append(operation.before_text)
+            cursor = operation.output_end
+        chunks.append(self.output_text[cursor:])
+        reconstructed_input = "".join(chunks)
+        if sha256_text(reconstructed_input) != self.trace.input_hash:
+            raise ValueError("operations do not reconstruct trace input hash")
+        for operation in self.trace.operations:
+            if operation.source_end > len(reconstructed_input):
+                raise ValueError("operation source span extends beyond reconstructed input")
+            if reconstructed_input[operation.source_start:operation.source_end] != operation.before_text:
+                raise ValueError("operation source geometry does not match reconstructed input")
+        if hard_invariant_signature(reconstructed_input) != self.trace.invariant_report.original_signature:
+            raise ValueError("trace original hard-invariant signature does not match reconstructed input")
+        if hard_invariant_signature(self.output_text) != self.trace.invariant_report.transformed_signature:
+            raise ValueError("trace transformed hard-invariant signature does not match output_text")
+        if validate_protected_invariants(reconstructed_input, self.output_text).status is not InvariantStatus.PASS:
+            raise ValueError("transform result violates default protected-content invariants")
         require_sha256("result_hash", self.result_hash)
         if self.result_hash != sha256_json({"output_text": self.output_text, "trace": self.trace}):
             raise ValueError("result_hash does not match transform result")

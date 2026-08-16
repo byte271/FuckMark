@@ -6,9 +6,7 @@ from .._validation import require_clean_string, require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .schema import InvariantStatus, ProtectedSpanKind
 
-
-PROTECTED_INVARIANT_ALGORITHM_VERSION = "protected-invariant-validator-v2"
-
+PROTECTED_INVARIANT_ALGORITHM_VERSION = "protected-invariant-validator-v3"
 
 @dataclass(frozen=True, slots=True)
 class UserProtectedRange:
@@ -30,7 +28,6 @@ class UserProtectedRange:
     @classmethod
     def create(cls, start: int, end: int, label: str) -> UserProtectedRange:
         return cls(start, end, label, sha256_json({"start": start, "end": end, "label": label}))
-
 
 @dataclass(frozen=True, slots=True)
 class ProtectedSpan:
@@ -65,14 +62,7 @@ class ProtectedSpan:
             raise ValueError("span_hash does not match protected span")
 
     def _payload(self) -> dict[str, object]:
-        return {
-            "start": self.start,
-            "end": self.end,
-            "kinds": tuple(kind.value for kind in self.kinds),
-            "exact_text": self.exact_text,
-            "text_hash": self.text_hash,
-        }
-
+        return {"start": self.start, "end": self.end, "kinds": tuple(kind.value for kind in self.kinds), "exact_text": self.exact_text, "text_hash": self.text_hash}
 
 @dataclass(frozen=True, slots=True)
 class ProtectedSpanManifest:
@@ -114,14 +104,7 @@ class ProtectedSpanManifest:
             raise ValueError("manifest_hash does not match protected span manifest")
 
     def _payload(self) -> dict[str, object]:
-        return {
-            "algorithm_version": self.algorithm_version,
-            "input_hash": self.input_hash,
-            "identifiers": self.identifiers,
-            "user_ranges": self.user_ranges,
-            "spans": self.spans,
-        }
-
+        return {"algorithm_version": self.algorithm_version, "input_hash": self.input_hash, "identifiers": self.identifiers, "user_ranges": self.user_ranges, "spans": self.spans}
 
 @dataclass(frozen=True, slots=True)
 class InvariantDifference:
@@ -140,7 +123,6 @@ class InvariantDifference:
         if self.original_count < 0 or self.transformed_count < 0 or self.original_count == self.transformed_count:
             raise ValueError("invariant difference counts must be non-negative and unequal")
 
-
 @dataclass(frozen=True, slots=True)
 class ProtectedInvariantReport:
     status: InvariantStatus
@@ -148,6 +130,8 @@ class ProtectedInvariantReport:
     transformed_hash: str
     differences: tuple[InvariantDifference, ...]
     report_hash: str
+    original_manifest_hash: str = "0" * 64
+    transformed_manifest_hash: str = "0" * 64
 
     def __post_init__(self) -> None:
         if not isinstance(self.status, InvariantStatus):
@@ -168,15 +152,13 @@ class ProtectedInvariantReport:
         expected_status = InvariantStatus.PASS if not differences else InvariantStatus.FAIL
         if self.status is not expected_status:
             raise ValueError("status does not match invariant differences")
+        require_sha256("original_manifest_hash", self.original_manifest_hash)
+        require_sha256("transformed_manifest_hash", self.transformed_manifest_hash)
+        if self.original_manifest_hash == "0" * 64 or self.transformed_manifest_hash == "0" * 64:
+            raise ValueError("v3 invariant reports require protected manifest provenance")
         require_sha256("report_hash", self.report_hash)
         if self.report_hash != sha256_json(self._payload()):
             raise ValueError("report_hash does not match invariant report")
 
     def _payload(self) -> dict[str, object]:
-        return {
-            "algorithm_version": PROTECTED_INVARIANT_ALGORITHM_VERSION,
-            "status": self.status.value,
-            "original_hash": self.original_hash,
-            "transformed_hash": self.transformed_hash,
-            "differences": self.differences,
-        }
+        return {"algorithm_version": PROTECTED_INVARIANT_ALGORITHM_VERSION, "status": self.status.value, "original_hash": self.original_hash, "transformed_hash": self.transformed_hash, "original_manifest_hash": self.original_manifest_hash, "transformed_manifest_hash": self.transformed_manifest_hash, "differences": self.differences}

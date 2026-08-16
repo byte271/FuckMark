@@ -18,12 +18,7 @@ def _invariant_counter(manifest: ProtectedSpanManifest) -> Counter[tuple[str, st
     return counter
 
 
-def validate_protected_invariants(
-    original: str,
-    transformed: str,
-    identifiers: Sequence[str] = (),
-    user_ranges: Sequence[UserProtectedRange] = (),
-) -> ProtectedInvariantReport:
+def validate_protected_invariants(original: str, transformed: str, identifiers: Sequence[str] = (), user_ranges: Sequence[UserProtectedRange] = ()) -> ProtectedInvariantReport:
     if not isinstance(original, str) or not isinstance(transformed, str):
         raise TypeError("original and transformed must be strings")
     materialized_ranges = tuple(user_ranges)
@@ -37,24 +32,9 @@ def validate_protected_invariants(
         original_counter[(ProtectedSpanKind.USER_MARKED_ENTITY.value, exact_text)] = original.count(exact_text)
         transformed_counter[(ProtectedSpanKind.USER_MARKED_ENTITY.value, exact_text)] = transformed.count(exact_text)
     keys = sorted(set(original_counter) | set(transformed_counter))
-    differences = tuple(
-        InvariantDifference(
-            ProtectedSpanKind(kind),
-            exact_text,
-            original_counter[(kind, exact_text)],
-            transformed_counter[(kind, exact_text)],
-        )
-        for kind, exact_text in keys
-        if original_counter[(kind, exact_text)] != transformed_counter[(kind, exact_text)]
-    )
+    differences = tuple(InvariantDifference(ProtectedSpanKind(kind), exact_text, original_counter[(kind, exact_text)], transformed_counter[(kind, exact_text)]) for kind, exact_text in keys if original_counter[(kind, exact_text)] != transformed_counter[(kind, exact_text)])
     status = InvariantStatus.PASS if not differences else InvariantStatus.FAIL
     original_hash = sha256_text(original)
     transformed_hash = sha256_text(transformed)
-    payload = {
-        "algorithm_version": PROTECTED_INVARIANT_ALGORITHM_VERSION,
-        "status": status.value,
-        "original_hash": original_hash,
-        "transformed_hash": transformed_hash,
-        "differences": differences,
-    }
-    return ProtectedInvariantReport(status, original_hash, transformed_hash, differences, sha256_json(payload))
+    payload = {"algorithm_version": PROTECTED_INVARIANT_ALGORITHM_VERSION, "status": status.value, "original_hash": original_hash, "transformed_hash": transformed_hash, "original_manifest_hash": original_manifest.manifest_hash, "transformed_manifest_hash": transformed_manifest.manifest_hash, "differences": differences}
+    return ProtectedInvariantReport(status, original_hash, transformed_hash, differences, sha256_json(payload), original_manifest.manifest_hash, transformed_manifest.manifest_hash)

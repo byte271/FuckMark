@@ -1,16 +1,16 @@
 from __future__ import annotations
 
+from bisect import bisect_right
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 from .._validation import require_clean_string, require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
-from .protected_artifacts import ProtectedSpanManifest
+from .protected_artifacts import ProtectedSpan, ProtectedSpanManifest
 from .schema import CandidateRejectionReason, TransformFamily, TransformTier
 
-
 _MAX_CONFLICTS = 100_000
-
+_MAX_ENUMERATION_ITEMS = 100_000
 
 @dataclass(frozen=True, slots=True)
 class TransformCandidate:
@@ -64,7 +64,6 @@ class TransformCandidate:
             "source_text": self.source_text,
             "replacement_text": self.replacement_text,
         }
-
 
 @dataclass(frozen=True, slots=True)
 class CandidateRejection:
@@ -121,7 +120,6 @@ class CandidateRejection:
             "protected_span_hashes": self.protected_span_hashes,
         }
 
-
 @dataclass(frozen=True, slots=True)
 class CandidateConflict:
     first_candidate_id: str
@@ -144,6 +142,18 @@ class CandidateConflict:
 def _overlap(start: int, end: int, other_start: int, other_end: int) -> bool:
     return start < other_end and other_start < end
 
+
+def _overlapping_spans(spans: tuple[ProtectedSpan, ...], ends: tuple[int, ...], start: int, end: int) -> tuple[ProtectedSpan, ...]:
+    index = bisect_right(ends, start)
+    output: list[ProtectedSpan] = []
+    while index < len(spans):
+        span = spans[index]
+        if span.start >= end:
+            break
+        if _overlap(start, end, span.start, span.end):
+            output.append(span)
+        index += 1
+    return tuple(output)
 
 @dataclass(frozen=True, slots=True)
 class CandidateEnumeration:
@@ -172,6 +182,8 @@ class CandidateEnumeration:
         candidates = tuple(self.candidates)
         rejections = tuple(self.rejections)
         conflicts = tuple(self.conflicts)
+        if len(candidates) + len(rejections) > _MAX_ENUMERATION_ITEMS:
+            raise ValueError("candidate enumeration exceeded resource limit")
         object.__setattr__(self, "candidates", candidates)
         object.__setattr__(self, "rejections", rejections)
         object.__setattr__(self, "conflicts", conflicts)
@@ -191,26 +203,24 @@ class CandidateEnumeration:
             raise ValueError("candidate input hashes must match enumeration input")
         if any(value.input_hash != self.input_hash for value in rejections):
             raise ValueError("rejection input hashes must match enumeration input")
+        spans = self.protected_manifest.spans
+        span_ends = tuple(span.end for span in spans)
         for value in candidates:
             if value.end > len(self.input_text) or self.input_text[value.start:value.end] != value.source_text:
                 raise ValueError("candidate source span does not match enumeration input")
-            if any(_overlap(value.start, value.end, span.start, span.end) for span in self.protected_manifest.spans):
+            if _overlapping_spans(spans, span_ends, value.start, value.end):
                 raise ValueError("candidate overlaps a protected span")
-        span_by_hash = {span.span_hash: span for span in self.protected_manifest.spans}
+        span_by_hash = {span.span_hash: span for span in spans}
         for value in rejections:
             if value.end > len(self.input_text) or self.input_text[value.start:value.end] != value.source_text:
                 raise ValueError("rejection source span does not match enumeration input")
             if value.reason is CandidateRejectionReason.PROTECTED_OVERLAP:
-                expected = tuple(sorted(
-                    span.span_hash
-                    for span in self.protected_manifest.spans
-                    if _overlap(value.start, value.end, span.start, span.end)
-                ))
+                expected = tuple(sorted(span.span_hash for span in _overlapping_spans(spans, span_ends, value.start, value.end)))
                 if value.protected_span_hashes != expected:
                     raise ValueError("protected overlap rejection does not match protected geometry")
             elif any(hash_value not in span_by_hash for hash_value in value.protected_span_hashes):
                 raise ValueError("rejection references an unknown protected span")
-        for span in self.protected_manifest.spans:
+        for span in spans:
             if span.end > len(self.input_text) or self.input_text[span.start:span.end] != span.exact_text:
                 raise ValueError("protected span does not match enumeration input")
         if len({value.candidate_id for value in candidates}) != len(candidates):
