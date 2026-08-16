@@ -166,7 +166,14 @@ def _outcome_for(authorization, preregistration, corpus_manifest, condition, sam
         failure.audit.environment_snapshot_hash,
         failure.audit.authorization_hash,
         failure.audit.ledger_hash,
-        (sha256_text(f"aggregate-outcome:{sample.sample_id}:{condition.condition_id}"),),
+        tuple(
+            sorted(
+                {
+                    sample.record_hash,
+                    sha256_text(f"aggregate-outcome:{sample.sample_id}:{condition.condition_id}"),
+                }
+            )
+        ),
     )
     return E20OutcomeRow.create(
         identity,
