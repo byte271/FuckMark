@@ -37,6 +37,11 @@ from .types import (
     UncalibratedDetectorEvidence,
     ZeroValidObservationsError,
 )
+from .verification import (
+    DetectorArtifactVerificationError,
+    verify_calibrated_detector_result,
+    verify_uncalibrated_detector_evidence,
+)
 
 
 __all__ = [
@@ -50,6 +55,7 @@ __all__ = [
     "CalibrationThreshold",
     "ComparisonOperator",
     "CompatibilityStatus",
+    "DetectorArtifactVerificationError",
     "DetectorCalibrationIdentity",
     "DetectorCompatibility",
     "DetectorCompatibilityError",
@@ -70,6 +76,8 @@ __all__ = [
     "mean_evidence",
     "mean_score",
     "require_supported_detector",
+    "verify_calibrated_detector_result",
+    "verify_uncalibrated_detector_evidence",
     "weighted_mean_evidence",
     "weighted_mean_score",
 ]
