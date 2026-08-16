@@ -9,7 +9,7 @@ from ..corpus import CorpusManifest
 from ..hashing import sha256_json
 from .confirmatory import ConfirmatoryPreregistration
 from .e20_conditions import E20ConditionPlan
-from .e20_execution import E20ExecutionAuthorization
+from .e20_execution import E20ExecutionAuthorization, derive_e20_condition_seed
 from .e20_rows import E20FailureRow, E20OutcomeRow, ExperimentReasonCode
 
 
@@ -213,6 +213,133 @@ def _verify_shared_transforms(
                 )
 
 
+def _verify_common_row_binding(
+    row: E20OutcomeRow | E20FailureRow,
+    authorization: E20ExecutionAuthorization,
+    sample,
+) -> None:
+    if row.identity.execution_id != authorization.execution_id or row.identity.run_id != authorization.execution_id:
+        raise E20ResultBundleError("E20 result row belongs to a different sealed execution")
+    if row.identity.pair_id != sample.match_id:
+        raise E20ResultBundleError("E20 result row pair identity does not match the sealed corpus sample")
+    if row.audit.authorization_hash != authorization.authorization_hash:
+        raise E20ResultBundleError("E20 result row audit authorization does not match the sealed execution authorization")
+    if row.audit.environment_snapshot_hash != authorization.environment_snapshot_hash:
+        raise E20ResultBundleError("E20 result row audit environment does not match the sealed execution authorization")
+    if row.audit.worker_version != authorization.worker_version:
+        raise E20ResultBundleError("E20 result row audit worker version does not match the sealed execution authorization")
+    if sample.record_hash not in row.audit.artifact_hashes:
+        raise E20ResultBundleError("E20 result row audit artifacts do not bind the sealed source sample")
+
+
+def _verify_failure_row_binding(row: E20FailureRow, sample, condition) -> None:
+    if row.source_sample_record_hash != sample.record_hash:
+        raise E20ResultBundleError("E20 failure row source sample hash does not match the sealed corpus sample")
+    if row.detail_hash not in row.audit.artifact_hashes:
+        raise E20ResultBundleError("E20 failure row audit artifacts do not bind the failure detail")
+    if condition.condition_hash not in row.audit.artifact_hashes:
+        raise E20ResultBundleError("E20 failure row audit artifacts do not bind the sealed condition")
+
+
+def _verify_outcome_row_binding(
+    row: E20OutcomeRow,
+    authorization: E20ExecutionAuthorization,
+    preregistration: ConfirmatoryPreregistration,
+    corpus_manifest: CorpusManifest,
+    sample,
+    condition,
+    bundle,
+) -> None:
+    track = preregistration.watermark_tracks.track_for(sample.watermark.watermark_config_hash)
+    if (
+        row.source.adapter_id != track.adapter_id
+        or row.source.source_commit != track.source_pin.commit
+        or row.source.adapter_config_hash != track.adapter_config_hash
+    ):
+        raise E20ResultBundleError("E20 outcome source adapter does not match the sealed generation track")
+    if (
+        row.model.model_id != sample.model.model_id
+        or row.model.model_revision != sample.model.model_revision
+        or row.model.tokenizer_id != sample.model.tokenizer_id
+        or row.model.tokenizer_revision != sample.model.tokenizer_revision
+    ):
+        raise E20ResultBundleError("E20 outcome model/tokenizer does not match the sealed corpus sample")
+    if (
+        row.watermark.watermark_config_hash != sample.watermark.watermark_config_hash
+        or row.watermark.key_split is not sample.watermark.key_split
+        or row.watermark.key_id != sample.watermark.key_id
+    ):
+        raise E20ResultBundleError("E20 outcome watermark identity does not match the sealed corpus sample")
+    if (
+        row.generation.seed != sample.generation.seed
+        or row.generation.temperature != sample.generation.temperature
+        or row.generation.top_k != sample.generation.top_k
+        or row.generation.top_p != sample.generation.top_p
+        or row.generation.realized_length != sample.generation_realized_length
+    ):
+        raise E20ResultBundleError("E20 outcome generation parameters do not match the sealed corpus sample")
+    if row.text.source_text_hash != sample.text_sha256:
+        raise E20ResultBundleError("E20 outcome source text hash does not match the sealed corpus sample")
+    if row.text.source_char_count != len(sample.text):
+        raise E20ResultBundleError("E20 outcome source character count does not match the sealed corpus sample")
+    if row.text.source_token_count != len(sample.generation_tokens.continuation_token_ids):
+        raise E20ResultBundleError("E20 outcome source token count does not match the sealed corpus sample")
+    if row.transform.ruleset_hash != preregistration.transform_ruleset_hash:
+        raise E20ResultBundleError("E20 outcome transform ruleset does not match preregistration")
+    expected_seed = derive_e20_condition_seed(
+        authorization,
+        corpus_manifest,
+        sample.sample_id,
+        condition.transform_condition_id,
+        "schedule",
+    )
+    if row.transform.schedule_seed != expected_seed:
+        raise E20ResultBundleError("E20 outcome schedule seed does not match sealed deterministic derivation")
+    identity = bundle.detector_identity
+    if row.detector.detector_family is not identity.detector_family:
+        raise E20ResultBundleError("E20 outcome detector family does not match the frozen calibration identity")
+    if row.detector.detector_config_hash != identity.detector_config_hash:
+        raise E20ResultBundleError("E20 outcome detector configuration does not match the frozen calibration identity")
+    if row.gvalues.depth != identity.depth:
+        raise E20ResultBundleError("E20 outcome g-value depth does not match the frozen detector identity")
+    thresholds = tuple(value for value in bundle.thresholds if value.target_fpr == condition.target_fpr)
+    if len(thresholds) != 1:
+        raise E20ResultBundleError("E20 condition does not resolve to exactly one frozen calibration threshold")
+    threshold = thresholds[0]
+    if row.detector.calibration_bundle_hash != bundle.bundle_hash:
+        raise E20ResultBundleError("E20 outcome detector bundle does not match its sealed evaluation condition")
+    if row.detector.target_fpr != condition.target_fpr:
+        raise E20ResultBundleError("E20 outcome target FPR does not match its sealed evaluation condition")
+    if row.detector.threshold_hash != threshold.threshold_hash:
+        raise E20ResultBundleError("E20 outcome threshold hash does not match the frozen calibration threshold")
+    if row.detector.threshold_value != threshold.value:
+        raise E20ResultBundleError("E20 outcome threshold value does not match the frozen calibration threshold")
+    if row.detector.comparison_operator is not threshold.comparison_operator:
+        raise E20ResultBundleError("E20 outcome comparison operator does not match the frozen calibration threshold")
+    if row.detector.robust_scale != bundle.robust_scale:
+        raise E20ResultBundleError("E20 outcome robust scale does not match the frozen calibration bundle")
+    if row.transform.schedule_policy is not condition.schedule_policy:
+        raise E20ResultBundleError("E20 outcome schedule does not match its sealed transform condition")
+    if row.transform.budget != condition.budget or row.transform.budget_unit != condition.budget_unit:
+        raise E20ResultBundleError("E20 outcome budget does not match its sealed transform condition")
+    if row.statistics.hypothesis_class != condition.hypothesis_class:
+        raise E20ResultBundleError("E20 outcome hypothesis class does not match its sealed evaluation condition")
+    expected_stratum_id = sha256_json(
+        {
+            "model_tokenizer_identity_hash": sample.model.identity_hash,
+            "domain": sample.domain.value,
+            "target_length": sample.target_length,
+            "key_id": sample.watermark.key_id,
+            "detector_config_hash": identity.detector_config_hash,
+            "target_fpr": condition.target_fpr,
+        }
+    )
+    if row.statistics.stratum_id != expected_stratum_id:
+        raise E20ResultBundleError("E20 outcome statistical stratum does not match sealed sample and detector inputs")
+    if row.statistics.bootstrap_group != sample.sample_id:
+        raise E20ResultBundleError("E20 outcome bootstrap group does not match the sealed source sample")
+
+
 def build_e20_result_bundle(
     authorization: E20ExecutionAuthorization,
     preregistration: ConfirmatoryPreregistration,
@@ -243,6 +370,7 @@ def build_e20_result_bundle(
         raise TypeError("failure_rows must contain E20FailureRow values")
     conditions = {value.condition_id: value for value in condition_plan.conditions}
     sample_by_id = {value.sample_id: value for value in corpus_manifest.samples}
+    bundle_by_hash = {value.bundle_hash: value for value in preregistration.calibration_bundles}
     expected_keys: set[tuple[str, str]] = set()
     for sample in corpus_manifest.samples:
         for condition_id in _compatible_condition_ids(
@@ -261,27 +389,30 @@ def build_e20_result_bundle(
     if missing or extra:
         raise E20ResultBundleError(f"E20 result coverage mismatch: missing={len(missing)} extra={len(extra)}")
     for row in observed_rows:
-        if row.identity.execution_id != authorization.execution_id or row.identity.run_id != authorization.execution_id:
-            raise E20ResultBundleError("E20 result row belongs to a different sealed execution")
         sample = sample_by_id[row.identity.sample_id]
+        condition = conditions[row.identity.condition_id]
+        _verify_common_row_binding(row, authorization, sample)
         if row.identity.condition_id not in _compatible_condition_ids(
             preregistration,
             condition_plan,
             sample.watermark.watermark_config_hash,
         ):
             raise E20ResultBundleError("E20 row evaluation condition is incompatible with the source generation track")
-    for row in outcomes:
-        condition = conditions[row.identity.condition_id]
-        if row.detector.calibration_bundle_hash != condition.calibration_bundle_hash:
-            raise E20ResultBundleError("E20 outcome detector bundle does not match its sealed evaluation condition")
-        if row.detector.target_fpr != condition.target_fpr:
-            raise E20ResultBundleError("E20 outcome target FPR does not match its sealed evaluation condition")
-        if row.transform.schedule_policy is not condition.schedule_policy:
-            raise E20ResultBundleError("E20 outcome schedule does not match its sealed transform condition")
-        if row.transform.budget != condition.budget or row.transform.budget_unit != condition.budget_unit:
-            raise E20ResultBundleError("E20 outcome budget does not match its sealed transform condition")
-        if row.statistics.hypothesis_class != condition.hypothesis_class:
-            raise E20ResultBundleError("E20 outcome hypothesis class does not match its sealed evaluation condition")
+        if isinstance(row, E20FailureRow):
+            _verify_failure_row_binding(row, sample, condition)
+        else:
+            bundle = bundle_by_hash.get(condition.calibration_bundle_hash)
+            if bundle is None:
+                raise E20ResultBundleError("E20 condition references a calibration bundle outside preregistration")
+            _verify_outcome_row_binding(
+                row,
+                authorization,
+                preregistration,
+                corpus_manifest,
+                sample,
+                condition,
+                bundle,
+            )
     ordered_outcomes = tuple(sorted(outcomes, key=lambda value: (value.identity.sample_id, value.identity.condition_id, value.row_hash)))
     ordered_failures = tuple(sorted(failures, key=lambda value: (value.identity.sample_id, value.identity.condition_id, value.row_hash)))
     _verify_shared_transforms(ordered_outcomes, condition_plan)
