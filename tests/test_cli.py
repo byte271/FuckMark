@@ -14,7 +14,8 @@ def test_cli_process_text_uses_release_contractions_deterministically() -> None:
 
 def test_cli_process_text_respects_protected_quoted_content() -> None:
     source = 'Keep "do not change this" but I do not agree.'
-    assert process_text(source) == 'Keep "do not change this" but I don't agree.'
+    expected = "Keep \"do not change this\" but I don't agree."
+    assert process_text(source) == expected
 
 
 def test_cli_process_text_preserves_text_when_no_candidate_is_eligible() -> None:
