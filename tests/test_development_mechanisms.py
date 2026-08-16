@@ -139,7 +139,7 @@ def test_e04_e05_e06_reject_wrong_edit_shapes_and_non_evidentiary_suffixes() -> 
             (1, 9, 8, 4),
             2,
         )
-    with pytest.raises(MechanismInputError, match="one inserted"):
+    with pytest.raises(MechanismInputError, match="one insert"):
         run_observation_mechanism(
             DevelopmentExperimentId.E05,
             (1, 2, 3, 4),
