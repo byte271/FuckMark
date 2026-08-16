@@ -2,8 +2,14 @@ from dataclasses import replace
 
 import pytest
 
-from confirmatory_helpers import calibration_materials, confirmatory_manifest, preregistration_inputs
+from confirmatory_helpers import (
+    calibration_materials,
+    confirmatory_condition_plan,
+    confirmatory_manifest,
+    preregistration_inputs,
+)
 from fuckmark.environment import capture_environment
+from fuckmark.experiments import authorize_e20_execution, verify_e20_execution_authorization
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
 from fuckmark.experiments.confirmatory_corpus import build_confirmatory_corpus_seal
 from fuckmark.experiments.confirmatory_keys import (
@@ -17,14 +23,12 @@ from fuckmark.experiments.e20_execution import (
     E20RunState,
     E20RunTransitionError,
     E20VerificationError,
-    authorize_e20_execution,
     complete_e20_run,
     create_e20_run_ledger,
     derive_e20_condition_seed,
     e20_sample_shard,
     invalidate_e20_run,
     start_e20_run,
-    verify_e20_execution_authorization,
     verify_e20_run_history,
     verify_e20_run_ledger,
 )
@@ -39,6 +43,7 @@ T3 = "2026-08-16T20:03:00Z"
 
 def _sealed_execution_fixture():
     inputs = preregistration_inputs(final_n_per_core_cell=1)
+    condition_plan = confirmatory_condition_plan()
     corpus_manifest = confirmatory_manifest(inputs)
     materials = {
         0: b"secret-test-key-0",
@@ -81,34 +86,52 @@ def _sealed_execution_fixture():
         "code_commit": preregistration.code_commit,
         "spec_revision_hash": preregistration.spec_revision_hash,
         "power_analysis_hash": preregistration.power_analysis_hash,
-        "budget_config_hash": preregistration.budget_config_hash,
         "verification_test_hashes": preregistration.verification_test_hashes,
         "model_tokenizers": preregistration.model_tokenizers,
         "calibration_negative_evidence": calibration_evidence,
     }
-    return preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common
+    return (
+        preregistration,
+        condition_plan,
+        corpus_seal,
+        corpus_manifest,
+        key_manifest,
+        environment,
+        common,
+    )
 
 
 def _authorize():
-    preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
+    preregistration, condition_plan, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
     authorization = authorize_e20_execution(
         preregistration,
+        condition_plan,
         corpus_seal,
         corpus_manifest,
         key_manifest,
         environment,
         **common,
     )
-    return authorization, preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common
+    return (
+        authorization,
+        preregistration,
+        condition_plan,
+        corpus_seal,
+        corpus_manifest,
+        key_manifest,
+        environment,
+        common,
+    )
 
 
 def test_e20_authorization_replays_all_sealed_inputs_and_runtime_keys() -> None:
-    authorization, preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common = _authorize()
+    authorization, preregistration, condition_plan, corpus_seal, corpus_manifest, key_manifest, environment, common = _authorize()
     assert authorization.experiment_id == "E20"
     assert authorization.output_namespace == f"e20/{authorization.execution_id}"
     verify_e20_execution_authorization(
         authorization,
         preregistration,
+        condition_plan,
         corpus_seal,
         corpus_manifest,
         key_manifest,
@@ -120,15 +143,29 @@ def test_e20_authorization_replays_all_sealed_inputs_and_runtime_keys() -> None:
         code_commit=common["code_commit"],
         spec_revision_hash=common["spec_revision_hash"],
         power_analysis_hash=common["power_analysis_hash"],
-        budget_config_hash=common["budget_config_hash"],
         verification_test_hashes=common["verification_test_hashes"],
         model_tokenizers=common["model_tokenizers"],
         calibration_negative_evidence=common["calibration_negative_evidence"],
     )
 
 
+def test_public_e20_authorization_rejects_wrong_condition_plan_before_execution() -> None:
+    preregistration, _, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
+    wrong_plan = confirmatory_condition_plan((0.05,))
+    with pytest.raises(E20AuthorizationError, match="condition plan"):
+        authorize_e20_execution(
+            preregistration,
+            wrong_plan,
+            corpus_seal,
+            corpus_manifest,
+            key_manifest,
+            environment,
+            **common,
+        )
+
+
 def test_e20_authorization_rejects_wrong_runtime_test_key_material() -> None:
-    preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
+    preregistration, condition_plan, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
     wrong = dict(common)
     material = dict(common["serialized_test_key_material"])
     first = next(iter(material))
@@ -137,6 +174,7 @@ def test_e20_authorization_rejects_wrong_runtime_test_key_material() -> None:
     with pytest.raises(E20AuthorizationError, match="TEST_KEYS material"):
         authorize_e20_execution(
             preregistration,
+            condition_plan,
             corpus_seal,
             corpus_manifest,
             key_manifest,
@@ -146,12 +184,13 @@ def test_e20_authorization_rejects_wrong_runtime_test_key_material() -> None:
 
 
 def test_e20_authorization_rejects_dirty_tree_and_output_collision() -> None:
-    preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
+    preregistration, condition_plan, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
     dirty = dict(common)
     dirty["dirty_worktree"] = True
     with pytest.raises(E20AuthorizationError, match="clean worktree"):
         authorize_e20_execution(
             preregistration,
+            condition_plan,
             corpus_seal,
             corpus_manifest,
             key_manifest,
@@ -163,6 +202,7 @@ def test_e20_authorization_rejects_dirty_tree_and_output_collision() -> None:
     with pytest.raises(E20AuthorizationError, match="output namespace"):
         authorize_e20_execution(
             preregistration,
+            condition_plan,
             corpus_seal,
             corpus_manifest,
             key_manifest,
@@ -172,13 +212,14 @@ def test_e20_authorization_rejects_dirty_tree_and_output_collision() -> None:
 
 
 def test_e20_same_sealed_execution_cannot_be_authorized_twice() -> None:
-    authorization, preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common = _authorize()
+    authorization, preregistration, condition_plan, corpus_seal, corpus_manifest, key_manifest, environment, common = _authorize()
     ledger = create_e20_run_ledger(authorization, T0)
     duplicate = dict(common)
     duplicate["prior_ledgers"] = (ledger,)
     with pytest.raises(E20AuthorizationError, match="already has a run ledger"):
         authorize_e20_execution(
             preregistration,
+            condition_plan,
             corpus_seal,
             corpus_manifest,
             key_manifest,
@@ -260,7 +301,7 @@ def test_e20_invalidation_requires_fresh_seal_when_scientifically_contaminated()
 
 
 def test_e20_source_replay_rejects_rehashed_forged_environment_binding() -> None:
-    authorization, preregistration, corpus_seal, corpus_manifest, key_manifest, environment, common = _authorize()
+    authorization, preregistration, condition_plan, corpus_seal, corpus_manifest, key_manifest, environment, common = _authorize()
     payload = authorization._payload()
     payload["environment_snapshot_hash"] = sha256_text("forged-environment")
     forged = E20ExecutionAuthorization(
@@ -284,6 +325,7 @@ def test_e20_source_replay_rejects_rehashed_forged_environment_binding() -> None
         verify_e20_execution_authorization(
             forged,
             preregistration,
+            condition_plan,
             corpus_seal,
             corpus_manifest,
             key_manifest,
@@ -295,7 +337,6 @@ def test_e20_source_replay_rejects_rehashed_forged_environment_binding() -> None
             code_commit=common["code_commit"],
             spec_revision_hash=common["spec_revision_hash"],
             power_analysis_hash=common["power_analysis_hash"],
-            budget_config_hash=common["budget_config_hash"],
             verification_test_hashes=common["verification_test_hashes"],
             model_tokenizers=common["model_tokenizers"],
             calibration_negative_evidence=common["calibration_negative_evidence"],
@@ -303,7 +344,7 @@ def test_e20_source_replay_rejects_rehashed_forged_environment_binding() -> None
 
 
 def test_e20_shards_and_condition_seeds_are_deterministic_and_corpus_bound() -> None:
-    authorization, _, _, corpus_manifest, _, _, _ = _authorize()
+    authorization, _, _, _, corpus_manifest, _, _, _ = _authorize()
     sample_id = corpus_manifest.samples[0].sample_id
     assert e20_sample_shard(authorization, corpus_manifest, sample_id) == e20_sample_shard(
         authorization,
