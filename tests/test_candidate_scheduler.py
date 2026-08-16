@@ -9,6 +9,7 @@ from fuckmark.transforms.scheduler import (
     CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
     CandidateScheduler,
     KeyBlindScheduleInput,
+    ScheduleGeometryMode,
     SchedulePolicy,
 )
 from fuckmark.transforms.schema import TransformFamily, TransformTier
@@ -38,6 +39,7 @@ def test_scheduler_input_is_explicitly_key_blind() -> None:
         "input_hash",
         "enumeration_hash",
         "budget_unit",
+        "geometry_mode",
         "candidates",
         "conflicts",
         "input_artifact_hash",
@@ -45,6 +47,7 @@ def test_scheduler_input_is_explicitly_key_blind() -> None:
     forbidden = {"key", "g_values", "detector_score", "detector_decision", "checkpoint"}
     assert names.isdisjoint(forbidden)
     assert scheduler_input.enumeration_hash == enumeration.enumeration_hash
+    assert scheduler_input.geometry_mode is ScheduleGeometryMode.TEXT_ONLY
 
 
 def test_left_to_right_schedule_uses_geometry_and_exact_budget() -> None:
@@ -75,6 +78,8 @@ def test_left_to_right_schedule_uses_geometry_and_exact_budget() -> None:
     )
     assert result.total_cost == 3
     assert result.budget == 3
+    assert result.policy_skipped_candidate_ids == ()
+    assert result.covered_interval_size == 0
 
 
 def test_budget_one_under_never_exceeds_budget_and_can_skip_to_cheaper_candidate() -> None:
