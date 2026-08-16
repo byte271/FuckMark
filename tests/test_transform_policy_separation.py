@@ -20,7 +20,9 @@ def _hashes(prefix: str, count: int) -> tuple[str, ...]:
 
 def test_default_policy_excludes_all_development_only_rules() -> None:
     registry = default_transform_registry()
-    assert registry.rules == default_contraction_rules()
+    expected = default_contraction_rules()
+    assert len(registry.rules) == len(expected) == 6
+    assert {rule.rule_hash for rule in registry.rules} == {rule.rule_hash for rule in expected}
     text = "Do not wait. For example, retry once. The build passed; however, the deploy failed."
     enumeration = registry.enumerate(text)
     assert tuple(candidate.rule_id for candidate in enumeration.candidates) == ("contract-do-not",)
@@ -36,18 +38,18 @@ def test_development_policy_combines_surface_lexical_and_syntax_rules() -> None:
     )
 
 
-def test_release_policy_rejects_current_unaudited_lexical_rule() -> None:
+def test_release_policy_rejects_unaudited_lexical_rule_without_source_grounded_evidence() -> None:
     rule = development_lexical_rules()[0]
     pending = create_lexical_rule_audit(
         rule.rule_hash,
         _hashes("positive", 5),
         _hashes("negative", 5),
     )
-    with pytest.raises(LexicalRulePromotionError, match="not release eligible"):
+    with pytest.raises(LexicalRulePromotionError, match="source-grounded verified fidelity evidence"):
         release_transform_registry((rule,), (pending,))
 
 
-def test_release_policy_accepts_only_explicit_release_eligible_lexical_audit() -> None:
+def test_release_policy_rejects_complete_summary_without_source_grounded_evidence() -> None:
     rule = development_lexical_rules()[0]
     audit = create_lexical_rule_audit(
         rule.rule_hash,
@@ -59,17 +61,20 @@ def test_release_policy_accepts_only_explicit_release_eligible_lexical_audit() -
         equivalent_or_minor_count=48,
         cannot_judge_count=2,
     )
-    registry = release_transform_registry((rule,), (audit,))
+    assert audit.evidence_summary_complete
+    with pytest.raises(LexicalRulePromotionError, match="source-grounded verified fidelity evidence"):
+        release_transform_registry((rule,), (audit,))
+
+
+def test_release_policy_has_no_summary_based_syntax_promotion_path() -> None:
+    syntax_rule = development_syntax_rules()[0]
+    with pytest.raises(LexicalRulePromotionError, match="source-grounded verified fidelity evidence"):
+        release_transform_registry((syntax_rule,), ())
+
+
+def test_release_policy_without_promotions_remains_contractions_only() -> None:
+    registry = release_transform_registry()
     enumeration = registry.enumerate(
         "Do not wait. For example, retry once. The build passed; however, the deploy failed."
     )
-    assert tuple(candidate.rule_id for candidate in enumeration.candidates) == (
-        "contract-do-not",
-        "lexical-for-example-for-instance",
-    )
-
-
-def test_release_policy_has_no_syntax_promotion_path() -> None:
-    syntax_rule = development_syntax_rules()[0]
-    with pytest.raises(TypeError, match="LexicalTemplateRule"):
-        release_transform_registry((syntax_rule,), ())
+    assert tuple(candidate.rule_id for candidate in enumeration.candidates) == ("contract-do-not",)
