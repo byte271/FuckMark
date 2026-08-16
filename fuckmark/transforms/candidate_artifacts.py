@@ -42,6 +42,8 @@ class TransformCandidate:
             raise ValueError("candidate span must satisfy 0 <= start < end")
         if not isinstance(self.source_text, str) or not self.source_text:
             raise ValueError("source_text must be non-empty")
+        if self.end - self.start != len(self.source_text):
+            raise ValueError("candidate span does not match source_text")
         if not isinstance(self.replacement_text, str) or not self.replacement_text:
             raise ValueError("replacement_text must be non-empty")
         if self.source_text == self.replacement_text:
@@ -88,6 +90,8 @@ class CandidateRejection:
             raise ValueError("rejection span must satisfy 0 <= start < end")
         if not isinstance(self.source_text, str) or not self.source_text:
             raise ValueError("source_text must be non-empty")
+        if self.end - self.start != len(self.source_text):
+            raise ValueError("rejection span does not match source_text")
         if not isinstance(self.reason, CandidateRejectionReason):
             raise TypeError("reason must be a CandidateRejectionReason")
         hashes = tuple(self.protected_span_hashes)
