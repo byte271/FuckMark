@@ -2,7 +2,7 @@
 
 FuckMark is a deterministic research harness for studying how text transformations alter statistical watermark observations.
 
-The project follows `spec.md` and is implemented bottom-up. The current project version is **FuckMark v0.1.0**.
+The project is implemented bottom-up. The current project version is **FuckMark v0.1.0**.
 
 ## Project identity
 

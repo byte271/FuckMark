@@ -1,0 +1,11 @@
+{
+  "source_id": "huggingface-transformers-synthid",
+  "repository": "huggingface/transformers",
+  "commit": "a61d5f9e4fc184cff66938ff6c521cc358b5e024",
+  "license_id": "Apache-2.0",
+  "critical_files": [
+    "src/transformers/generation/configuration_utils.py",
+    "src/transformers/generation/logits_process.py",
+    "src/transformers/generation/watermarking.py"
+  ]
+}
