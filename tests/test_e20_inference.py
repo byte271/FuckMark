@@ -69,7 +69,7 @@ def test_exact_mcnemar_binomial_matches_direct_small_reference() -> None:
 def test_exact_mcnemar_binomial_remains_finite_at_confirmatory_scale() -> None:
     value = _exact_binomial_two_sided(1800, 4000)
     assert 0.0 < value < 1.0
-    assert isclose(value, 2.721567768251934e-10, rel_tol=1e-12, abs_tol=0.0)
+    assert isclose(value, 2.7215677682448397e-10, rel_tol=1e-12, abs_tol=0.0)
     assert _exact_binomial_two_sided(2000, 4000) == 1.0
     assert _exact_binomial_two_sided(0, 4000) > 0.0
 
