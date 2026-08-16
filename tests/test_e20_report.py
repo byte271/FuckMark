@@ -95,6 +95,7 @@ def test_report_blocks_confirmatory_claims_when_detector_readiness_is_incomplete
     assert readiness.ready_for_e20 is False
     assert report.status is E20ReportStatus.BLOCKED_DETECTOR_READINESS
     assert report.human_fidelity.reviewed_transform_count == 0
+    assert report.human_fidelity.equivalent_or_minor_interval is None
     assert report.human_fidelity.gate_passed is False
     assert all(value.headline_eligible is False for value in report.headlines)
     tokenization_failures = next(
@@ -190,6 +191,7 @@ def test_human_fidelity_summary_deduplicates_detector_evaluations_of_same_transf
     )
     assert summary.unique_transform_count == 1
     assert summary.reviewed_transform_count == 0
+    assert summary.equivalent_or_minor_interval is None
     assert summary.gate_passed is False
 
 
@@ -219,5 +221,10 @@ def test_human_fidelity_cannot_judge_reviews_count_against_headline_gate() -> No
     assert summary.equivalent_or_minor_count == 50
     assert summary.cannot_judge_count == 3
     assert summary.equivalent_or_minor_rate == pytest.approx(50 / 53)
+    assert summary.equivalent_or_minor_interval is not None
+    assert summary.equivalent_or_minor_interval.method == "clopper-pearson-equal-tailed"
+    assert summary.equivalent_or_minor_interval.confidence_level == 0.95
+    assert summary.equivalent_or_minor_interval.lower <= summary.equivalent_or_minor_rate
+    assert summary.equivalent_or_minor_rate <= summary.equivalent_or_minor_interval.upper
     assert summary.equivalent_or_minor_rate < preregistration.fidelity_gate.minimum_equivalent_or_minor_rate
     assert summary.gate_passed is False
