@@ -1,4 +1,11 @@
 from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate
+from .fidelity_readiness import (
+    TASK29_FIDELITY_READINESS_ALGORITHM_VERSION,
+    FidelityReadinessStatus,
+    FidelityRuleReadiness,
+    Task29FidelityReadinessReport,
+    build_task29_fidelity_readiness,
+)
 from .fidelity_evidence import (
     FIDELITY_EVIDENCE_ALGORITHM_VERSION,
     BlindHumanFidelityAudit,
@@ -105,6 +112,11 @@ from .trace import TransformOperation, TransformResult, TransformationTrace
 
 
 __all__ = [
+    "TASK29_FIDELITY_READINESS_ALGORITHM_VERSION",
+    "FidelityReadinessStatus",
+    "FidelityRuleReadiness",
+    "Task29FidelityReadinessReport",
+    "build_task29_fidelity_readiness",
     "FIDELITY_EVIDENCE_ALGORITHM_VERSION",
     "BlindHumanFidelityAudit",
     "BlindReviewJudgment",
