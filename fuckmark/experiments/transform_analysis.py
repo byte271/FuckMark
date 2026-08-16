@@ -403,6 +403,8 @@ def _validate_tiny_attack_rows(
     artifact: TinyDevCorpusArtifact,
     rows: tuple[DevelopmentTransformRow, ...],
 ) -> tuple[str, str, tuple[str, ...]]:
+    if any(row.secret_access_observed for row in rows):
+        raise TransformAnalysisInputError("secret access contaminates E07/E08 key-blind analysis")
     expected_samples = tuple(
         sample
         for sample in artifact.manifest.samples

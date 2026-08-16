@@ -6,15 +6,15 @@ from enum import Enum
 
 from .._validation import require_bool, require_int, require_sha256
 from ..corpus import CorpusSplit, KeySplit, TinyDevCorpusArtifact, WatermarkLabel
-from ..hashing import sha256_json
+from ..hashing import sha256_json, sha256_text
 from ..transforms import SchedulePolicy
 from .registry import DevelopmentExperimentId, default_development_experiment_registry
 from .transform_analysis import DevelopmentTransformRow, TransformAnalysisInputError
 
 
-E09_ALGORITHM_VERSION = "e09-random-baseline-v1"
-E10_ALGORITHM_VERSION = "e10-spacing-comparison-v1"
-E11_ALGORITHM_VERSION = "e11-key-blind-greedy-v1"
+E09_ALGORITHM_VERSION = "e09-random-baseline-v2"
+E10_ALGORITHM_VERSION = "e10-spacing-comparison-v2"
+E11_ALGORITHM_VERSION = "e11-key-blind-greedy-v2"
 
 
 class E09BaselineStatus(str, Enum):
@@ -25,6 +25,12 @@ class E09BaselineStatus(str, Enum):
 class E10PairStatus(str, Enum):
     MATCHED = "MATCHED"
     UNMATCHED_COST = "UNMATCHED_COST"
+
+
+class E10Status(str, Enum):
+    COMPLETE_MATCHED = "COMPLETE_MATCHED"
+    WITHHELD_UNMATCHED_COST = "WITHHELD_UNMATCHED_COST"
+    INCOMPLETE = "INCOMPLETE"
 
 
 class E11Status(str, Enum):
@@ -50,6 +56,8 @@ def _expected_attack_sources(artifact: TinyDevCorpusArtifact) -> dict[str, objec
 def _validate_schedule_rows(
     artifact: TinyDevCorpusArtifact,
     rows: tuple[DevelopmentTransformRow, ...],
+    *,
+    allow_secret_access: bool = False,
 ) -> tuple[str, str, float]:
     if not isinstance(artifact, TinyDevCorpusArtifact):
         raise TypeError("artifact must be a TinyDevCorpusArtifact")
@@ -59,6 +67,10 @@ def _validate_schedule_rows(
         raise TypeError("rows must contain DevelopmentTransformRow values")
     if len({row.row_hash for row in rows}) != len(rows):
         raise TransformAnalysisInputError("schedule analysis rows must not contain duplicate artifacts")
+    if type(allow_secret_access) is not bool:
+        raise TypeError("allow_secret_access must be a bool")
+    if not allow_secret_access and any(row.secret_access_observed for row in rows):
+        raise TransformAnalysisInputError("secret access contaminates key-blind schedule analysis")
     sample_by_id = _expected_attack_sources(artifact)
     for row in rows:
         sample = sample_by_id.get(row.source_sample_id)
@@ -66,10 +78,16 @@ def _validate_schedule_rows(
             raise TransformAnalysisInputError("schedule row references a non-watermarked or non-attack source")
         if row.prompt_family_id != sample.prompt_family_id:
             raise TransformAnalysisInputError("schedule row prompt family does not match corpus source")
+        if row.source_text_hash != sha256_text(sample.text):
+            raise TransformAnalysisInputError("schedule row source text hash does not match corpus source")
         if row.key_split is not KeySplit.DEV:
             raise TransformAnalysisInputError("tiny-dev schedule rows must use DEV_KEYS")
     if not rows:
         raise TransformAnalysisInputError("schedule analysis requires at least one row")
+    for source_sample_id in {row.source_sample_id for row in rows}:
+        source_rows = tuple(row for row in rows if row.source_sample_id == source_sample_id)
+        if len({row.pristine_score for row in source_rows}) != 1:
+            raise TransformAnalysisInputError("variants from one source must share one pristine score")
     detector_ids = {row.detector_identity_hash for row in rows}
     threshold_hashes = {row.threshold_hash for row in rows}
     threshold_values = {row.threshold_value for row in rows}
@@ -181,8 +199,16 @@ def run_e09_random_baseline(
     expected_ids = tuple(sorted(_expected_attack_sources(artifact)))
     observed_ids = tuple(sorted({row.source_sample_id for row in rows}))
     missing = tuple(sorted(set(expected_ids) - set(observed_ids)))
-    replacement_values = tuple(row.replacement_per_edit for row in rows)
-    margin_values = tuple(row.margin_drop for row in rows)
+    replacement_values = tuple(
+        sum(row.replacement_per_edit for row in rows if row.source_sample_id == source_id)
+        / sum(row.source_sample_id == source_id for row in rows)
+        for source_id in observed_ids
+    )
+    margin_values = tuple(
+        sum(row.margin_drop for row in rows if row.source_sample_id == source_id)
+        / sum(row.source_sample_id == source_id for row in rows)
+        for source_id in observed_ids
+    )
     definition = default_development_experiment_registry().get(DevelopmentExperimentId.E09)
     row_hashes = tuple(sorted(row.row_hash for row in rows))
     status = E09BaselineStatus.COMPLETE if not missing else E09BaselineStatus.INCOMPLETE
@@ -223,6 +249,7 @@ def _pair_key(row: DevelopmentTransformRow) -> tuple[object, ...]:
     return (
         row.source_sample_id,
         row.candidate_pool_hash,
+        row.scheduler_input_hash,
         row.budget,
         row.budget_unit,
         row.schedule_seed,
@@ -305,12 +332,16 @@ class E10SpacingComparisonResult:
     detector_identity_hash: str
     threshold_hash: str
     pair_hashes: tuple[str, ...]
+    expected_source_count: int
+    observed_source_count: int
+    missing_source_ids: tuple[str, ...]
     matched_pair_count: int
     unmatched_cost_pair_count: int
     mean_coverage_difference_even_minus_clustered: float | None
     mean_observation_ratio_difference_even_minus_clustered: float | None
     mean_margin_drop_difference_even_minus_clustered: float | None
     comparison_withheld_for_unmatched_cost: bool
+    status: E10Status
     result_hash: str
 
     def __post_init__(self) -> None:
@@ -328,6 +359,16 @@ class E10SpacingComparisonResult:
             raise ValueError("pair_hashes must be unique and canonically ordered")
         for value in self.pair_hashes:
             require_sha256("pair_hash", value)
+        require_int("expected_source_count", self.expected_source_count)
+        require_int("observed_source_count", self.observed_source_count)
+        if self.expected_source_count != 4:
+            raise ValueError("tiny-dev E10 expects four watermarked attack sources")
+        if not 0 <= self.observed_source_count <= self.expected_source_count:
+            raise ValueError("E10 observed_source_count is outside expected range")
+        if self.missing_source_ids != tuple(sorted(set(self.missing_source_ids))):
+            raise ValueError("E10 missing_source_ids must be unique and canonically ordered")
+        if len(self.missing_source_ids) != self.expected_source_count - self.observed_source_count:
+            raise ValueError("E10 missing source count does not match observed source count")
         require_int("matched_pair_count", self.matched_pair_count)
         require_int("unmatched_cost_pair_count", self.unmatched_cost_pair_count)
         if self.matched_pair_count < 0 or self.unmatched_cost_pair_count < 0:
@@ -347,6 +388,16 @@ class E10SpacingComparisonResult:
         require_bool("comparison_withheld_for_unmatched_cost", self.comparison_withheld_for_unmatched_cost)
         if self.comparison_withheld_for_unmatched_cost != (self.unmatched_cost_pair_count > 0):
             raise ValueError("E10 unmatched-cost withholding flag does not match pair count")
+        if not isinstance(self.status, E10Status):
+            raise TypeError("status must be an E10Status")
+        if self.missing_source_ids:
+            expected_status = E10Status.INCOMPLETE
+        elif self.unmatched_cost_pair_count:
+            expected_status = E10Status.WITHHELD_UNMATCHED_COST
+        else:
+            expected_status = E10Status.COMPLETE_MATCHED
+        if self.status is not expected_status:
+            raise ValueError("E10 status does not match source completeness and cost matching")
         if self.result_hash != sha256_json(self._payload()):
             raise ValueError("result_hash does not match E10 spacing comparison result")
 
@@ -358,12 +409,16 @@ class E10SpacingComparisonResult:
             "detector_identity_hash": self.detector_identity_hash,
             "threshold_hash": self.threshold_hash,
             "pair_hashes": self.pair_hashes,
+            "expected_source_count": self.expected_source_count,
+            "observed_source_count": self.observed_source_count,
+            "missing_source_ids": self.missing_source_ids,
             "matched_pair_count": self.matched_pair_count,
             "unmatched_cost_pair_count": self.unmatched_cost_pair_count,
             "mean_coverage_difference_even_minus_clustered": self.mean_coverage_difference_even_minus_clustered,
             "mean_observation_ratio_difference_even_minus_clustered": self.mean_observation_ratio_difference_even_minus_clustered,
             "mean_margin_drop_difference_even_minus_clustered": self.mean_margin_drop_difference_even_minus_clustered,
             "comparison_withheld_for_unmatched_cost": self.comparison_withheld_for_unmatched_cost,
+            "status": self.status.value,
         }
 
 
@@ -428,11 +483,20 @@ def run_e10_spacing_comparison(
             )
         )
     pair_tuple = tuple(pairs)
+    expected_ids = tuple(sorted(_expected_attack_sources(artifact)))
+    observed_source_ids = tuple(sorted({value.source_sample_id for value in pair_tuple}))
+    missing = tuple(sorted(set(expected_ids) - set(observed_source_ids)))
     matched = tuple(value for value in pair_tuple if value.status is E10PairStatus.MATCHED)
     unmatched_count = len(pair_tuple) - len(matched)
     coverage_values = tuple(float(value.coverage_difference_even_minus_clustered) for value in matched)
     observation_values = tuple(float(value.observation_ratio_difference_even_minus_clustered) for value in matched)
     margin_values = tuple(float(value.margin_drop_difference_even_minus_clustered) for value in matched)
+    if missing:
+        status = E10Status.INCOMPLETE
+    elif unmatched_count:
+        status = E10Status.WITHHELD_UNMATCHED_COST
+    else:
+        status = E10Status.COMPLETE_MATCHED
     definition = default_development_experiment_registry().get(DevelopmentExperimentId.E10)
     pair_hashes = tuple(sorted(value.pair_hash for value in pair_tuple))
     payload = {
@@ -442,27 +506,35 @@ def run_e10_spacing_comparison(
         "detector_identity_hash": detector_identity_hash,
         "threshold_hash": threshold_hash,
         "pair_hashes": pair_hashes,
+        "expected_source_count": len(expected_ids),
+        "observed_source_count": len(observed_source_ids),
+        "missing_source_ids": missing,
         "matched_pair_count": len(matched),
         "unmatched_cost_pair_count": unmatched_count,
         "mean_coverage_difference_even_minus_clustered": _mean(coverage_values),
         "mean_observation_ratio_difference_even_minus_clustered": _mean(observation_values),
         "mean_margin_drop_difference_even_minus_clustered": _mean(margin_values),
         "comparison_withheld_for_unmatched_cost": unmatched_count > 0,
+        "status": status.value,
     }
     return E10SpacingComparisonResult(
-        E10_ALGORITHM_VERSION,
-        definition.definition_hash,
-        artifact.artifact_hash,
-        detector_identity_hash,
-        threshold_hash,
-        pair_hashes,
-        len(matched),
-        unmatched_count,
-        payload["mean_coverage_difference_even_minus_clustered"],
-        payload["mean_observation_ratio_difference_even_minus_clustered"],
-        payload["mean_margin_drop_difference_even_minus_clustered"],
-        unmatched_count > 0,
-        sha256_json(payload),
+        algorithm_version=E10_ALGORITHM_VERSION,
+        experiment_definition_hash=definition.definition_hash,
+        tiny_dev_artifact_hash=artifact.artifact_hash,
+        detector_identity_hash=detector_identity_hash,
+        threshold_hash=threshold_hash,
+        pair_hashes=pair_hashes,
+        expected_source_count=len(expected_ids),
+        observed_source_count=len(observed_source_ids),
+        missing_source_ids=missing,
+        matched_pair_count=len(matched),
+        unmatched_cost_pair_count=unmatched_count,
+        mean_coverage_difference_even_minus_clustered=payload["mean_coverage_difference_even_minus_clustered"],
+        mean_observation_ratio_difference_even_minus_clustered=payload["mean_observation_ratio_difference_even_minus_clustered"],
+        mean_margin_drop_difference_even_minus_clustered=payload["mean_margin_drop_difference_even_minus_clustered"],
+        comparison_withheld_for_unmatched_cost=unmatched_count > 0,
+        status=status,
+        result_hash=sha256_json(payload),
     )
 
 
@@ -606,7 +678,7 @@ def run_e11_greedy_comparison(
     artifact: TinyDevCorpusArtifact,
     rows: tuple[DevelopmentTransformRow, ...],
 ) -> E11GreedyComparisonResult:
-    detector_identity_hash, threshold_hash, _ = _validate_schedule_rows(artifact, rows)
+    detector_identity_hash, threshold_hash, _ = _validate_schedule_rows(artifact, rows, allow_secret_access=True)
     allowed = {SchedulePolicy.RANDOM_VALID, SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND}
     if any(row.schedule_policy not in allowed for row in rows):
         raise TransformAnalysisInputError("E11 accepts RANDOM_VALID and COVERAGE_GREEDY_KEY_BLIND rows only")
@@ -616,13 +688,14 @@ def run_e11_greedy_comparison(
         if row.schedule_policy in group:
             raise TransformAnalysisInputError("E11 pair key contains duplicate policy rows")
         group[row.schedule_policy] = row
+    incomplete = tuple(key for key, group in groups.items() if set(group) != allowed)
+    if incomplete:
+        raise TransformAnalysisInputError("E11 requires both random and greedy rows for every pair key")
     expected_ids = tuple(sorted(_expected_attack_sources(artifact)))
     paired_ids: set[str] = set()
     pairs: list[E11GreedyPair] = []
     for key in sorted(groups, key=lambda value: sha256_json(value)):
         group = groups[key]
-        if set(group) != allowed:
-            continue
         random_row = group[SchedulePolicy.RANDOM_VALID]
         greedy_row = group[SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND]
         paired_ids.add(random_row.source_sample_id)

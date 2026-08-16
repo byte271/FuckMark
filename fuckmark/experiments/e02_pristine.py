@@ -98,6 +98,12 @@ class E02OperatingPoint:
         require_sha256("point_hash", self.point_hash)
         if self.point_hash != sha256_json(self._payload()):
             raise ValueError("point_hash does not match E02 operating point")
+        expected_tpr_interval = exact_binomial_interval(self.positive_detected_count, self.positive_count, 0.95)
+        if self.tpr_interval != expected_tpr_interval:
+            raise ValueError("E02 TPR interval does not match exact binomial interval")
+        expected_fpr_interval = exact_binomial_interval(self.negative_detected_count, self.negative_count, 0.95)
+        if self.evaluation_fpr_interval != expected_fpr_interval:
+            raise ValueError("E02 FPR interval does not match exact binomial interval")
 
     def _payload(self) -> dict[str, object]:
         return {

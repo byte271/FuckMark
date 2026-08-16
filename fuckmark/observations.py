@@ -31,6 +31,8 @@ class TokenNgram:
             raise TypeError("Token n-gram must contain only integer token IDs")
         if any(token < 0 for token in self.tokens):
             raise ValueError("Token n-gram must contain only non-negative token IDs")
+        if self.index != self.start:
+            raise ValueError("token n-gram index/start geometry mismatch")
 
 
 class StructuralObservationState(str, Enum):
