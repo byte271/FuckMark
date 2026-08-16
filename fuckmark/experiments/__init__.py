@@ -1,3 +1,36 @@
+from .confirmatory import (
+    CONFIRMATORY_PREREGISTRATION_ALGORITHM_VERSION,
+    PRIMARY_OUTCOMES,
+    ConfirmatoryBootstrapPlan,
+    ConfirmatoryFidelityGate,
+    ConfirmatoryHypothesis,
+    ConfirmatoryPreregistration,
+    ConfirmatoryPreregistrationError,
+    ConfirmatoryPreregistrationInputs,
+    ConfirmatoryPrimaryOutcome,
+    MultipleTestingMethod,
+    create_confirmatory_preregistration,
+)
+from .confirmatory_corpus import (
+    CONFIRMATORY_CORPUS_SEAL_ALGORITHM_VERSION,
+    ConfirmatoryCorpusSeal,
+    ConfirmatoryCorpusSealError,
+    ConfirmatoryStratumCount,
+    build_confirmatory_corpus_seal,
+    verify_confirmatory_corpus_seal,
+)
+from .confirmatory_keys import (
+    CONFIRMATORY_TEST_KEY_MANIFEST_ALGORITHM_VERSION,
+    ConfirmatoryTestKeyEntry,
+    ConfirmatoryTestKeyManifest,
+    ConfirmatoryTestKeyVerificationError,
+    build_confirmatory_test_key_manifest,
+    verify_confirmatory_test_key_material,
+)
+from .confirmatory_verification import (
+    ConfirmatoryPreflightVerificationError,
+    verify_confirmatory_preregistration,
+)
 from .development_calibration import (
     DEVELOPMENT_CALIBRATION_BINDING_VERSION,
     DEVELOPMENT_CALIBRATION_POPULATION_ID,
@@ -47,13 +80,6 @@ from .registry import (
     TransformSelectionAccess,
     default_development_experiment_registry,
 )
-from .transform_provenance import (
-    DEVELOPMENT_TRANSFORM_PROVENANCE_VERSION,
-    TransformProvenanceError,
-    VerifiedTransformProvenance,
-    build_verified_transform_row,
-    verify_transform_provenance,
-)
 from .schedule_analysis import (
     E09_ALGORITHM_VERSION,
     E10_ALGORITHM_VERSION,
@@ -72,6 +98,23 @@ from .schedule_analysis import (
     run_e10_spacing_comparison,
     run_e11_greedy_comparison,
 )
+from .transform_analysis import (
+    DEVELOPMENT_TRANSFORM_ROW_VERSION,
+    E07_ALGORITHM_VERSION,
+    DevelopmentClaimStatus,
+    DevelopmentTransformRow,
+    E07PredictorComparisonResult,
+    PredictorMetric,
+    TransformAnalysisInputError,
+    run_e07_predictor_comparison,
+)
+from .transform_provenance import (
+    DEVELOPMENT_TRANSFORM_PROVENANCE_VERSION,
+    TransformProvenanceError,
+    VerifiedTransformProvenance,
+    build_verified_transform_row,
+    verify_transform_provenance,
+)
 from .verification import (
     ExperimentArtifactVerificationError,
     verify_development_calibration_binding,
@@ -84,19 +127,34 @@ from .verification import (
     verify_e11_result,
     verify_observation_mechanism_result,
 )
-from .transform_analysis import (
-    DEVELOPMENT_TRANSFORM_ROW_VERSION,
-    E07_ALGORITHM_VERSION,
-    DevelopmentClaimStatus,
-    DevelopmentTransformRow,
-    E07PredictorComparisonResult,
-    PredictorMetric,
-    TransformAnalysisInputError,
-    run_e07_predictor_comparison,
-)
 
 
 __all__ = [
+    "CONFIRMATORY_PREREGISTRATION_ALGORITHM_VERSION",
+    "CONFIRMATORY_CORPUS_SEAL_ALGORITHM_VERSION",
+    "CONFIRMATORY_TEST_KEY_MANIFEST_ALGORITHM_VERSION",
+    "PRIMARY_OUTCOMES",
+    "ConfirmatoryBootstrapPlan",
+    "ConfirmatoryCorpusSeal",
+    "ConfirmatoryCorpusSealError",
+    "ConfirmatoryFidelityGate",
+    "ConfirmatoryHypothesis",
+    "ConfirmatoryPreflightVerificationError",
+    "ConfirmatoryPreregistration",
+    "ConfirmatoryPreregistrationError",
+    "ConfirmatoryPreregistrationInputs",
+    "ConfirmatoryPrimaryOutcome",
+    "ConfirmatoryStratumCount",
+    "ConfirmatoryTestKeyEntry",
+    "ConfirmatoryTestKeyManifest",
+    "ConfirmatoryTestKeyVerificationError",
+    "MultipleTestingMethod",
+    "build_confirmatory_corpus_seal",
+    "build_confirmatory_test_key_manifest",
+    "create_confirmatory_preregistration",
+    "verify_confirmatory_corpus_seal",
+    "verify_confirmatory_preregistration",
+    "verify_confirmatory_test_key_material",
     "DEVELOPMENT_CALIBRATION_BINDING_VERSION",
     "DEVELOPMENT_CALIBRATION_POPULATION_ID",
     "DEVELOPMENT_EXPERIMENT_REGISTRY_VERSION",
