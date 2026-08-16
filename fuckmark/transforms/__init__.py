@@ -1,4 +1,24 @@
 from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate
+from .fidelity_evidence import (
+    FIDELITY_EVIDENCE_ALGORITHM_VERSION,
+    BlindHumanFidelityAudit,
+    BlindReviewJudgment,
+    FidelityAdjudication,
+    FidelityLabel,
+    FidelityReviewSample,
+    GrammarFixture,
+    GrammarFixtureDisposition,
+    create_blind_human_fidelity_audit,
+)
+from .fidelity_verification import (
+    LEXICAL_PROMOTION_EVIDENCE_ALGORITHM_VERSION,
+    FidelityEvidenceVerificationError,
+    LexicalPromotionEvidence,
+    source_verified_release_transform_registry,
+    verify_fidelity_review_sample,
+    verify_grammar_fixture,
+    verify_lexical_promotion_evidence,
+)
 from .hard_invariants import HARD_INVARIANT_ALGORITHM_VERSION, HardInvariantReport, HardInvariantSignature, hard_invariant_signature, validate_hard_invariants
 from .invariants import validate_protected_invariants
 from .lexical_audit import (
@@ -63,6 +83,11 @@ from .syntax_audit import (
     SyntaxRuleAudit,
     create_syntax_rule_audit,
 )
+from .syntax_fidelity_verification import (
+    SYNTAX_DEVELOPMENT_EVIDENCE_ALGORITHM_VERSION,
+    SyntaxDevelopmentEvidence,
+    verify_syntax_development_evidence,
+)
 from .syntax_rules import (
     SYNTAX_TEMPLATE_RULE_ALGORITHM_VERSION,
     SyntaxConstruction,
@@ -80,6 +105,25 @@ from .trace import TransformOperation, TransformResult, TransformationTrace
 
 
 __all__ = [
+    "FIDELITY_EVIDENCE_ALGORITHM_VERSION",
+    "BlindHumanFidelityAudit",
+    "BlindReviewJudgment",
+    "FidelityAdjudication",
+    "FidelityEvidenceVerificationError",
+    "FidelityLabel",
+    "FidelityReviewSample",
+    "GrammarFixture",
+    "GrammarFixtureDisposition",
+    "LEXICAL_PROMOTION_EVIDENCE_ALGORITHM_VERSION",
+    "LexicalPromotionEvidence",
+    "SYNTAX_DEVELOPMENT_EVIDENCE_ALGORITHM_VERSION",
+    "SyntaxDevelopmentEvidence",
+    "create_blind_human_fidelity_audit",
+    "source_verified_release_transform_registry",
+    "verify_fidelity_review_sample",
+    "verify_grammar_fixture",
+    "verify_lexical_promotion_evidence",
+    "verify_syntax_development_evidence",
     "BLIND_HUMAN_REVIEW_POLICY_ID",
     "CANDIDATE_SCHEDULER_ALGORITHM_VERSION",
     "CandidateConflict",
