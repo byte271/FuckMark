@@ -90,7 +90,13 @@ from .e20_execution import (
     verify_e20_run_history,
     verify_e20_run_ledger,
 )
-from .e20_row_verification import (
+from .e20_failure_verification import (
+    E20_FAILURE_REPLAY_ALGORITHM_VERSION,
+    E20FailureVerificationError,
+    build_e20_failure_row,
+    verify_e20_failure_row,
+)
+from .e20_outcome import (
     E20_ALIGNMENT_ALGORITHM_VERSION,
     E20_ROW_REPLAY_ALGORITHM_VERSION,
     E20_TEXT_METRIC_ALGORITHM_VERSION,
@@ -242,6 +248,7 @@ __all__ = [
     "E20_CONDITION_PLAN_ALGORITHM_VERSION",
     "E20_EXECUTION_AUTHORIZATION_ALGORITHM_VERSION",
     "E20_EXPERIMENT_ID",
+    "E20_FAILURE_REPLAY_ALGORITHM_VERSION",
     "E20_FAILURE_ROW_ALGORITHM_VERSION",
     "E20_OUTCOME_ROW_ALGORITHM_VERSION",
     "E20_ROW_REPLAY_ALGORITHM_VERSION",
@@ -260,6 +267,7 @@ __all__ = [
     "E20RunState",
     "E20RunTransitionError",
     "E20VerificationError",
+    "E20FailureVerificationError",
     "E20RowVerificationError",
     "E20AlignmentFields",
     "E20AuditFields",
@@ -282,6 +290,7 @@ __all__ = [
     "ExperimentReasonCode",
     "authorize_e20_execution",
     "build_e20_condition_plan",
+    "build_e20_failure_row",
     "build_e20_outcome_row",
     "complete_e20_run",
     "create_e20_run_ledger",
@@ -291,6 +300,7 @@ __all__ = [
     "start_e20_run",
     "verify_e20_condition_plan",
     "verify_e20_execution_authorization",
+    "verify_e20_failure_row",
     "verify_e20_outcome_row",
     "verify_e20_run_history",
     "verify_e20_run_ledger",
