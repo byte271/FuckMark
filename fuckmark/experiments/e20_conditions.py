@@ -10,7 +10,7 @@ from ..transforms import SchedulePolicy
 from .confirmatory import ConfirmatoryPreregistration
 
 
-E20_CONDITION_PLAN_ALGORITHM_VERSION = "e20-condition-plan-v2"
+E20_CONDITION_PLAN_ALGORITHM_VERSION = "e20-condition-plan-v3"
 
 
 class E20ConditionPlanError(ValueError):
@@ -20,6 +20,7 @@ class E20ConditionPlanError(ValueError):
 @dataclass(frozen=True, slots=True)
 class E20Condition:
     condition_id: str
+    transform_condition_id: str
     schedule_policy: SchedulePolicy
     budget: int
     budget_unit: str
@@ -30,6 +31,7 @@ class E20Condition:
 
     def __post_init__(self) -> None:
         require_clean_string("condition_id", self.condition_id)
+        require_clean_string("transform_condition_id", self.transform_condition_id)
         if not isinstance(self.schedule_policy, SchedulePolicy):
             raise TypeError("schedule_policy must be a SchedulePolicy")
         require_int("budget", self.budget)
@@ -52,6 +54,7 @@ class E20Condition:
         return {
             "algorithm_version": E20_CONDITION_PLAN_ALGORITHM_VERSION,
             "condition_id": self.condition_id,
+            "transform_condition_id": self.transform_condition_id,
             "schedule_policy": self.schedule_policy.value,
             "budget": self.budget,
             "budget_unit": self.budget_unit,
@@ -64,6 +67,7 @@ class E20Condition:
     def create(
         cls,
         condition_id: str,
+        transform_condition_id: str,
         schedule_policy: SchedulePolicy,
         budget: int,
         budget_unit: str,
@@ -74,6 +78,7 @@ class E20Condition:
         payload = {
             "algorithm_version": E20_CONDITION_PLAN_ALGORITHM_VERSION,
             "condition_id": condition_id,
+            "transform_condition_id": transform_condition_id,
             "schedule_policy": schedule_policy.value if isinstance(schedule_policy, SchedulePolicy) else schedule_policy,
             "budget": budget,
             "budget_unit": budget_unit,
@@ -83,6 +88,7 @@ class E20Condition:
         }
         return cls(
             condition_id,
+            transform_condition_id,
             schedule_policy,
             budget,
             budget_unit,
@@ -124,6 +130,16 @@ class E20ConditionPlan:
         )
         if len(set(semantic_keys)) != len(semantic_keys):
             raise ValueError("E20 conditions must be unique by execution semantics")
+        transform_semantics: dict[str, tuple[SchedulePolicy, int, str]] = {}
+        semantic_to_transform_id: dict[tuple[SchedulePolicy, int, str], str] = {}
+        for value in self.conditions:
+            semantics = (value.schedule_policy, value.budget, value.budget_unit)
+            previous = transform_semantics.setdefault(value.transform_condition_id, semantics)
+            if previous != semantics:
+                raise ValueError("transform_condition_id must map to exactly one schedule and budget definition")
+            previous_id = semantic_to_transform_id.setdefault(semantics, value.transform_condition_id)
+            if previous_id != value.transform_condition_id:
+                raise ValueError("identical schedule and budget semantics must reuse one transform_condition_id")
         require_sha256("plan_hash", self.plan_hash)
         if self.plan_hash != sha256_json(self._payload()):
             raise ValueError("plan_hash does not match E20 condition plan")
@@ -140,6 +156,10 @@ class E20ConditionPlan:
             if value.condition_id == condition_id:
                 return value
         raise KeyError(condition_id)
+
+    @property
+    def transform_condition_ids(self) -> tuple[str, ...]:
+        return tuple(sorted({value.transform_condition_id for value in self.conditions}))
 
 
 def build_e20_condition_plan(conditions: Sequence[E20Condition]) -> E20ConditionPlan:
@@ -184,6 +204,7 @@ def verify_e20_condition_plan(
         if any(threshold.target_fpr == target_fpr for threshold in bundle.thresholds)
     }
     actual_execution_cells: set[tuple[SchedulePolicy, float, str]] = set()
+    transform_semantics_by_id: dict[str, tuple[SchedulePolicy, int, str]] = {}
     for condition in plan.conditions:
         if condition.schedule_policy not in allowed_schedules:
             raise E20ConditionPlanError("E20 condition uses a schedule outside the preregistered schedule set")
@@ -196,6 +217,19 @@ def verify_e20_condition_plan(
             raise E20ConditionPlanError("E20 condition uses a calibration bundle outside the preregistration")
         if not any(threshold.target_fpr == condition.target_fpr for threshold in bundle.thresholds):
             raise E20ConditionPlanError("E20 condition target FPR is not calibrated in its frozen detector bundle")
+        transform_semantics = (
+            condition.schedule_policy,
+            condition.budget,
+            condition.budget_unit,
+        )
+        prior_semantics = transform_semantics_by_id.setdefault(
+            condition.transform_condition_id,
+            transform_semantics,
+        )
+        if prior_semantics != transform_semantics:
+            raise E20ConditionPlanError(
+                "transform_condition_id changes schedule or budget semantics across evaluation conditions"
+            )
         execution_cell = (
             condition.schedule_policy,
             condition.target_fpr,
@@ -209,4 +243,14 @@ def verify_e20_condition_plan(
     if actual_execution_cells != expected_execution_cells:
         raise E20ConditionPlanError(
             "E20 condition plan must exactly cover every preregistered schedule, target FPR, and calibrated detector bundle execution cell"
+        )
+    expected_transform_count = len(
+        {
+            (value.schedule_policy, value.budget, value.budget_unit)
+            for value in plan.conditions
+        }
+    )
+    if len(transform_semantics_by_id) != expected_transform_count:
+        raise E20ConditionPlanError(
+            "E20 condition plan transform identities do not form a one-to-one mapping with schedule and budget semantics"
         )
