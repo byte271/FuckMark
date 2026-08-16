@@ -38,6 +38,7 @@ jobs:
           python .github/scripts/apply_task27_hardening.py
           python - <<'PY'
           from pathlib import Path
+
           path = Path('fuckmark/experiments/schedule_analysis.py')
           text = path.read_text()
           function_start = text.index('def run_e10_spacing_comparison(')
@@ -53,10 +54,63 @@ jobs:
           )
           if status_block not in text[function_start:definition_index]:
               text = text[:definition_index] + status_block + text[definition_index:]
+
+          class_start = text.index('class E10SpacingComparisonResult:')
+          class_payload_start = text.index('    def _payload(self) -> dict[str, object]:', class_start)
+          function_start = text.index('def run_e10_spacing_comparison(', class_payload_start)
+          canonical_class_payload = '''    def _payload(self) -> dict[str, object]:
+              return {
+                  "algorithm_version": self.algorithm_version,
+                  "experiment_definition_hash": self.experiment_definition_hash,
+                  "tiny_dev_artifact_hash": self.tiny_dev_artifact_hash,
+                  "detector_identity_hash": self.detector_identity_hash,
+                  "threshold_hash": self.threshold_hash,
+                  "pair_hashes": self.pair_hashes,
+                  "expected_source_count": self.expected_source_count,
+                  "observed_source_count": self.observed_source_count,
+                  "missing_source_ids": self.missing_source_ids,
+                  "matched_pair_count": self.matched_pair_count,
+                  "unmatched_cost_pair_count": self.unmatched_cost_pair_count,
+                  "mean_coverage_difference_even_minus_clustered": self.mean_coverage_difference_even_minus_clustered,
+                  "mean_observation_ratio_difference_even_minus_clustered": self.mean_observation_ratio_difference_even_minus_clustered,
+                  "mean_margin_drop_difference_even_minus_clustered": self.mean_margin_drop_difference_even_minus_clustered,
+                  "comparison_withheld_for_unmatched_cost": self.comparison_withheld_for_unmatched_cost,
+                  "status": self.status.value,
+              }
+
+
+          '''
+          text = text[:class_payload_start] + canonical_class_payload + text[function_start:]
+
+          function_start = text.index('def run_e10_spacing_comparison(')
+          pair_hashes_index = text.index('    pair_hashes = tuple(sorted(value.pair_hash for value in pair_tuple))\n', function_start)
+          run_payload_start = text.index('    payload = {\n', pair_hashes_index)
+          return_start = text.index('    return E10SpacingComparisonResult(', run_payload_start)
+          canonical_run_payload = '''    payload = {
+              "algorithm_version": E10_ALGORITHM_VERSION,
+              "experiment_definition_hash": definition.definition_hash,
+              "tiny_dev_artifact_hash": artifact.artifact_hash,
+              "detector_identity_hash": detector_identity_hash,
+              "threshold_hash": threshold_hash,
+              "pair_hashes": pair_hashes,
+              "expected_source_count": len(expected_ids),
+              "observed_source_count": len(observed_source_ids),
+              "missing_source_ids": missing,
+              "matched_pair_count": len(matched),
+              "unmatched_cost_pair_count": unmatched_count,
+              "mean_coverage_difference_even_minus_clustered": _mean(coverage_values),
+              "mean_observation_ratio_difference_even_minus_clustered": _mean(observation_values),
+              "mean_margin_drop_difference_even_minus_clustered": _mean(margin_values),
+              "comparison_withheld_for_unmatched_cost": unmatched_count > 0,
+              "status": status.value,
+          }
+          '''
+          text = text[:run_payload_start] + canonical_run_payload + text[return_start:]
+
           function_start = text.index('def run_e10_spacing_comparison(')
           return_start = text.index('    return E10SpacingComparisonResult(', function_start)
           next_section = text.index('\n\n\n@dataclass', return_start)
-          replacement = '''    return E10SpacingComparisonResult(
+          canonical_constructor = '''    return E10SpacingComparisonResult(
               algorithm_version=E10_ALGORITHM_VERSION,
               experiment_definition_hash=definition.definition_hash,
               tiny_dev_artifact_hash=artifact.artifact_hash,
@@ -75,7 +129,7 @@ jobs:
               status=status,
               result_hash=sha256_json(payload),
           )'''
-          text = text[:return_start] + replacement + text[next_section:]
+          text = text[:return_start] + canonical_constructor + text[next_section:]
           path.write_text(text)
           PY
       - name: Full suite
@@ -109,6 +163,7 @@ jobs:
           python .github/scripts/apply_task27_hardening.py
           python - <<'PY'
           from pathlib import Path
+
           path = Path('fuckmark/experiments/schedule_analysis.py')
           text = path.read_text()
           function_start = text.index('def run_e10_spacing_comparison(')
@@ -124,10 +179,63 @@ jobs:
           )
           if status_block not in text[function_start:definition_index]:
               text = text[:definition_index] + status_block + text[definition_index:]
+
+          class_start = text.index('class E10SpacingComparisonResult:')
+          class_payload_start = text.index('    def _payload(self) -> dict[str, object]:', class_start)
+          function_start = text.index('def run_e10_spacing_comparison(', class_payload_start)
+          canonical_class_payload = '''    def _payload(self) -> dict[str, object]:
+              return {
+                  "algorithm_version": self.algorithm_version,
+                  "experiment_definition_hash": self.experiment_definition_hash,
+                  "tiny_dev_artifact_hash": self.tiny_dev_artifact_hash,
+                  "detector_identity_hash": self.detector_identity_hash,
+                  "threshold_hash": self.threshold_hash,
+                  "pair_hashes": self.pair_hashes,
+                  "expected_source_count": self.expected_source_count,
+                  "observed_source_count": self.observed_source_count,
+                  "missing_source_ids": self.missing_source_ids,
+                  "matched_pair_count": self.matched_pair_count,
+                  "unmatched_cost_pair_count": self.unmatched_cost_pair_count,
+                  "mean_coverage_difference_even_minus_clustered": self.mean_coverage_difference_even_minus_clustered,
+                  "mean_observation_ratio_difference_even_minus_clustered": self.mean_observation_ratio_difference_even_minus_clustered,
+                  "mean_margin_drop_difference_even_minus_clustered": self.mean_margin_drop_difference_even_minus_clustered,
+                  "comparison_withheld_for_unmatched_cost": self.comparison_withheld_for_unmatched_cost,
+                  "status": self.status.value,
+              }
+
+
+          '''
+          text = text[:class_payload_start] + canonical_class_payload + text[function_start:]
+
+          function_start = text.index('def run_e10_spacing_comparison(')
+          pair_hashes_index = text.index('    pair_hashes = tuple(sorted(value.pair_hash for value in pair_tuple))\n', function_start)
+          run_payload_start = text.index('    payload = {\n', pair_hashes_index)
+          return_start = text.index('    return E10SpacingComparisonResult(', run_payload_start)
+          canonical_run_payload = '''    payload = {
+              "algorithm_version": E10_ALGORITHM_VERSION,
+              "experiment_definition_hash": definition.definition_hash,
+              "tiny_dev_artifact_hash": artifact.artifact_hash,
+              "detector_identity_hash": detector_identity_hash,
+              "threshold_hash": threshold_hash,
+              "pair_hashes": pair_hashes,
+              "expected_source_count": len(expected_ids),
+              "observed_source_count": len(observed_source_ids),
+              "missing_source_ids": missing,
+              "matched_pair_count": len(matched),
+              "unmatched_cost_pair_count": unmatched_count,
+              "mean_coverage_difference_even_minus_clustered": _mean(coverage_values),
+              "mean_observation_ratio_difference_even_minus_clustered": _mean(observation_values),
+              "mean_margin_drop_difference_even_minus_clustered": _mean(margin_values),
+              "comparison_withheld_for_unmatched_cost": unmatched_count > 0,
+              "status": status.value,
+          }
+          '''
+          text = text[:run_payload_start] + canonical_run_payload + text[return_start:]
+
           function_start = text.index('def run_e10_spacing_comparison(')
           return_start = text.index('    return E10SpacingComparisonResult(', function_start)
           next_section = text.index('\n\n\n@dataclass', return_start)
-          replacement = '''    return E10SpacingComparisonResult(
+          canonical_constructor = '''    return E10SpacingComparisonResult(
               algorithm_version=E10_ALGORITHM_VERSION,
               experiment_definition_hash=definition.definition_hash,
               tiny_dev_artifact_hash=artifact.artifact_hash,
@@ -146,7 +254,7 @@ jobs:
               status=status,
               result_hash=sha256_json(payload),
           )'''
-          text = text[:return_start] + replacement + text[next_section:]
+          text = text[:return_start] + canonical_constructor + text[next_section:]
           path.write_text(text)
           PY
       - name: Full latest-main suite
