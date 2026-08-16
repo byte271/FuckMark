@@ -119,6 +119,10 @@ class TransformationTrace:
             raise TypeError("precondition_failures must contain CandidateRejection values")
         if failures != tuple(sorted(failures, key=lambda value: (value.start, value.end, value.rule_id, value.reason.value, value.rejection_hash))):
             raise ValueError("precondition_failures must be canonically ordered")
+        if len({value.rejection_hash for value in failures}) != len(failures):
+            raise ValueError("precondition_failures must be unique")
+        if any(value.input_hash != self.input_hash for value in failures):
+            raise ValueError("precondition_failures must match trace input")
         require_int("protected_span_violation_count", self.protected_span_violation_count)
         if self.protected_span_violation_count != 0:
             raise ValueError("successful transformation traces cannot contain protected-span violations")
