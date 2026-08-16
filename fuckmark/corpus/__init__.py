@@ -21,9 +21,10 @@ from .records import (
     WatermarkLabel,
 )
 from .tiny_dev import (
+    TINY_DEV_ATTACK_PAIRS_PER_DOMAIN,
+    TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN,
     TINY_DEV_CORPUS_ALGORITHM_VERSION,
     TINY_DEV_DOMAINS,
-    TINY_DEV_PAIRS_PER_CELL,
     TINY_DEV_SPLITS,
     TINY_DEV_TARGET_LENGTH,
     TinyDevCorpusArtifact,
@@ -37,9 +38,10 @@ from .tokenization import GenerationTokenRecord, TextOnlyTokenRecord, TokenTrack
 __all__ = [
     "CORPUS_MANIFEST_ALGORITHM_VERSION",
     "TARGET_LENGTHS",
+    "TINY_DEV_ATTACK_PAIRS_PER_DOMAIN",
+    "TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN",
     "TINY_DEV_CORPUS_ALGORITHM_VERSION",
     "TINY_DEV_DOMAINS",
-    "TINY_DEV_PAIRS_PER_CELL",
     "TINY_DEV_SPLITS",
     "TINY_DEV_TARGET_LENGTH",
     "CorpusDomain",
