@@ -36,9 +36,10 @@ from fuckmark.experiments.confirmatory_keys import (
     ConfirmatoryTestKeyEntry,
     build_confirmatory_test_key_manifest,
 )
+from fuckmark.experiments.e20_conditions import E20Condition, build_e20_condition_plan
 from fuckmark.hashing import sha256_bytes, sha256_text
 from fuckmark.native_observations import build_native_observations
-from fuckmark.transforms import ScheduleGeometryMode, build_task29_fidelity_readiness, default_transform_registry
+from fuckmark.transforms import ScheduleGeometryMode, SchedulePolicy, build_task29_fidelity_readiness, default_transform_registry
 
 
 def _model(index: int) -> ModelTokenizerIdentity:
@@ -116,11 +117,34 @@ def calibration_materials(target_fprs: tuple[float, ...] = (0.01,)):
     return bundles, evidence
 
 
+def confirmatory_condition_plan(target_fprs: tuple[float, ...] = (0.01,)):
+    conditions = []
+    for target_fpr in target_fprs:
+        suffix = str(target_fpr).replace(".", "p")
+        for policy in (
+            SchedulePolicy.RANDOM_VALID,
+            SchedulePolicy.EVEN_SPACING,
+            SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND,
+        ):
+            conditions.append(
+                E20Condition.create(
+                    condition_id=f"{policy.value.lower()}-budget-1-fpr-{suffix}",
+                    schedule_policy=policy,
+                    budget=1,
+                    budget_unit="operation",
+                    target_fpr=target_fpr,
+                    hypothesis_class="H13-primary",
+                )
+            )
+    return build_e20_condition_plan(conditions)
+
+
 def preregistration_inputs(
     final_n_per_core_cell: int = 200,
     target_fprs: tuple[float, ...] = (0.01,),
 ) -> ConfirmatoryPreregistrationInputs:
     bundles, _ = calibration_materials(target_fprs)
+    plan = confirmatory_condition_plan(target_fprs)
     return ConfirmatoryPreregistrationInputs(
         code_commit="d" * 40,
         spec_revision_hash=sha256_text("fuckmark-master-spec-v2"),
@@ -132,7 +156,7 @@ def preregistration_inputs(
         transform_rules=default_transform_registry().rules,
         task29_readiness=build_task29_fidelity_readiness(confirmatory_rule_hashes=()),
         schedule_geometry_mode=ScheduleGeometryMode.TOKENIZER_AWARE_PUBLIC,
-        budget_config_hash=sha256_text("confirmatory-budget-config-v1"),
+        budget_config_hash=plan.plan_hash,
         target_fprs=target_fprs,
         fidelity_gate=ConfirmatoryFidelityGate.create(),
         bootstrap_plan=ConfirmatoryBootstrapPlan.create(),
