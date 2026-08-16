@@ -15,7 +15,7 @@ from fuckmark.experiments.e20_report import (
     build_e20_confirmatory_report,
     verify_e20_confirmatory_report,
 )
-from fuckmark.experiments.e20_rows import ExperimentReasonCode
+from fuckmark.experiments.e20_rows import E20HumanFidelityStatus, ExperimentReasonCode
 from fuckmark.hashing import sha256_json, sha256_text
 
 
@@ -190,4 +190,34 @@ def test_human_fidelity_summary_deduplicates_detector_evaluations_of_same_transf
     )
     assert summary.unique_transform_count == 1
     assert summary.reviewed_transform_count == 0
+    assert summary.gate_passed is False
+
+
+def test_human_fidelity_cannot_judge_reviews_count_against_headline_gate() -> None:
+    _, preregistration, _, condition_plan, _ = _bundle_fixture()
+    condition = condition_plan.conditions[0]
+
+    def row(sample_id: str, status: E20HumanFidelityStatus):
+        return SimpleNamespace(
+            identity=SimpleNamespace(sample_id=sample_id, condition_id=condition.condition_id),
+            fidelity=SimpleNamespace(human_status=status),
+        )
+
+    outcomes = tuple(
+        row(f"favorable-{index}", E20HumanFidelityStatus.EQUIVALENT_OR_MINOR)
+        for index in range(50)
+    ) + tuple(
+        row(f"cannot-judge-{index}", E20HumanFidelityStatus.CANNOT_JUDGE)
+        for index in range(3)
+    )
+    summary = _human_fidelity_summary(
+        SimpleNamespace(outcome_rows=outcomes, failure_rows=()),
+        condition_plan,
+        preregistration,
+    )
+    assert summary.reviewed_transform_count == 53
+    assert summary.equivalent_or_minor_count == 50
+    assert summary.cannot_judge_count == 3
+    assert summary.equivalent_or_minor_rate == pytest.approx(50 / 53)
+    assert summary.equivalent_or_minor_rate < preregistration.fidelity_gate.minimum_equivalent_or_minor_rate
     assert summary.gate_passed is False
