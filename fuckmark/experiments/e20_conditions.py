@@ -10,7 +10,7 @@ from ..transforms import SchedulePolicy
 from .confirmatory import ConfirmatoryPreregistration
 
 
-E20_CONDITION_PLAN_ALGORITHM_VERSION = "e20-condition-plan-v1"
+E20_CONDITION_PLAN_ALGORITHM_VERSION = "e20-condition-plan-v2"
 
 
 class E20ConditionPlanError(ValueError):
@@ -24,6 +24,7 @@ class E20Condition:
     budget: int
     budget_unit: str
     target_fpr: float
+    calibration_bundle_hash: str
     hypothesis_class: str
     condition_hash: str
 
@@ -41,6 +42,7 @@ class E20Condition:
         if not math.isfinite(target) or target <= 0.0 or target >= 1.0:
             raise ValueError("target_fpr must be strictly between 0 and 1")
         object.__setattr__(self, "target_fpr", target)
+        require_sha256("calibration_bundle_hash", self.calibration_bundle_hash)
         require_clean_string("hypothesis_class", self.hypothesis_class)
         require_sha256("condition_hash", self.condition_hash)
         if self.condition_hash != sha256_json(self._payload()):
@@ -54,6 +56,7 @@ class E20Condition:
             "budget": self.budget,
             "budget_unit": self.budget_unit,
             "target_fpr": self.target_fpr,
+            "calibration_bundle_hash": self.calibration_bundle_hash,
             "hypothesis_class": self.hypothesis_class,
         }
 
@@ -65,6 +68,7 @@ class E20Condition:
         budget: int,
         budget_unit: str,
         target_fpr: float,
+        calibration_bundle_hash: str,
         hypothesis_class: str,
     ) -> E20Condition:
         payload = {
@@ -74,6 +78,7 @@ class E20Condition:
             "budget": budget,
             "budget_unit": budget_unit,
             "target_fpr": float(target_fpr),
+            "calibration_bundle_hash": calibration_bundle_hash,
             "hypothesis_class": hypothesis_class,
         }
         return cls(
@@ -82,6 +87,7 @@ class E20Condition:
             budget,
             budget_unit,
             float(target_fpr),
+            calibration_bundle_hash,
             hypothesis_class,
             sha256_json(payload),
         )
@@ -111,6 +117,7 @@ class E20ConditionPlan:
                 value.budget,
                 value.budget_unit,
                 value.target_fpr,
+                value.calibration_bundle_hash,
                 value.hypothesis_class,
             )
             for value in self.conditions
@@ -168,6 +175,15 @@ def verify_e20_condition_plan(
     allowed_schedules = set(preregistration.schedules)
     allowed_fprs = set(preregistration.target_fprs)
     allowed_hypotheses = {value.hypothesis_id for value in preregistration.hypotheses}
+    bundles = {value.bundle_hash: value for value in preregistration.calibration_bundles}
+    expected_execution_cells = {
+        (schedule, target_fpr, bundle_hash)
+        for schedule in allowed_schedules
+        for target_fpr in allowed_fprs
+        for bundle_hash, bundle in bundles.items()
+        if any(threshold.target_fpr == target_fpr for threshold in bundle.thresholds)
+    }
+    actual_execution_cells: set[tuple[SchedulePolicy, float, str]] = set()
     for condition in plan.conditions:
         if condition.schedule_policy not in allowed_schedules:
             raise E20ConditionPlanError("E20 condition uses a schedule outside the preregistered schedule set")
@@ -175,9 +191,22 @@ def verify_e20_condition_plan(
             raise E20ConditionPlanError("E20 condition uses a target FPR outside the preregistered target set")
         if condition.hypothesis_class not in allowed_hypotheses:
             raise E20ConditionPlanError("E20 condition uses an unknown preregistered hypothesis class")
-    represented_schedules = {value.schedule_policy for value in plan.conditions}
-    represented_fprs = {value.target_fpr for value in plan.conditions}
-    if represented_schedules != allowed_schedules:
-        raise E20ConditionPlanError("E20 condition plan must cover every preregistered schedule exactly as a represented policy")
-    if represented_fprs != allowed_fprs:
-        raise E20ConditionPlanError("E20 condition plan must cover every preregistered target FPR")
+        bundle = bundles.get(condition.calibration_bundle_hash)
+        if bundle is None:
+            raise E20ConditionPlanError("E20 condition uses a calibration bundle outside the preregistration")
+        if not any(threshold.target_fpr == condition.target_fpr for threshold in bundle.thresholds):
+            raise E20ConditionPlanError("E20 condition target FPR is not calibrated in its frozen detector bundle")
+        execution_cell = (
+            condition.schedule_policy,
+            condition.target_fpr,
+            condition.calibration_bundle_hash,
+        )
+        if execution_cell in actual_execution_cells:
+            raise E20ConditionPlanError(
+                "E20 condition plan contains more than one condition for the same schedule, target FPR, and detector calibration bundle"
+            )
+        actual_execution_cells.add(execution_cell)
+    if actual_execution_cells != expected_execution_cells:
+        raise E20ConditionPlanError(
+            "E20 condition plan must exactly cover every preregistered schedule, target FPR, and calibrated detector bundle execution cell"
+        )
