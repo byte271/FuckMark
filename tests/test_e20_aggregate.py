@@ -66,11 +66,7 @@ def _outcome_for(authorization, preregistration, corpus_manifest, condition, sam
         sample.sample_id,
         sample.match_id,
     )
-    source = E20SourceFields(
-        track.adapter_id,
-        track.source_pin.commit,
-        track.adapter_config_hash,
-    )
+    source = E20SourceFields(track.adapter_id, track.source_pin.commit, track.adapter_config_hash)
     model = E20ModelFields(
         sample.model.model_id,
         sample.model.model_revision,
@@ -169,7 +165,7 @@ def _outcome_for(authorization, preregistration, corpus_manifest, condition, sam
         failure.audit.timestamp_utc,
         failure.audit.environment_snapshot_hash,
         failure.audit.authorization_hash,
-        failure.audit.run_ledger_hash,
+        failure.audit.ledger_hash,
         (sha256_text(f"aggregate-outcome:{sample.sample_id}:{condition.condition_id}"),),
     )
     return E20OutcomeRow.create(
@@ -201,7 +197,6 @@ def _metric(condition, population, metric_id):
 def test_e20_aggregate_preserves_policy_all_negative_controls_and_fixed_fpr_metrics() -> None:
     authorization, preregistration, corpus_manifest, condition_plan, failures = _bundle_fixture()
     chosen = condition_plan.conditions[0]
-    failure_by_key = {(value.identity.sample_id, value.identity.condition_id): value for value in failures}
     sample_by_id = {value.sample_id: value for value in corpus_manifest.samples}
     chosen_failures = tuple(value for value in failures if value.identity.condition_id == chosen.condition_id)
     outcomes = tuple(
