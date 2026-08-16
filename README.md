@@ -52,6 +52,13 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 31. Empirical null quantiles, robust null scale, and exact Clopper-Pearson FPR intervals
 32. Immutable calibration scopes, detector identities, threshold hashes, and calibration-bundle hashes
 33. Calibrated detector decisions with standardized margins and pristine-baseline interpretability gates
+34. Immutable corpus manifests with deterministic content-addressed prompt and sample records
+35. Exact prompt provenance, licensing, English-language scope, and prompt-family partition enforcement
+36. Immutable model/tokenizer identities with revision, chat-template, special-token, padding, BOS, and EOS provenance
+37. Exact generation continuation boundaries over padded inputs and attention masks
+38. Separate captured-generation and decoded/re-tokenized token tracks for the same source text
+39. Matched watermarked/control validation with frozen non-watermark generation parameters and explicit seed policy
+40. Exact-output deduplication, TEST_KEYS isolation, target-length feasibility, and corpus integrity hashes
 
 Bayesian checkpoint training, transformation rules, experiments, aggregation, and reporting remain intentionally outside this layer.
 

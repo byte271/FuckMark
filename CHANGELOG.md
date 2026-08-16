@@ -4,6 +4,13 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added immutable corpus manifests with content-addressed prompt and sample records, deterministic ordering, and self-validating manifest hashes.
+- Added exact prompt provenance and license records with English v1 scope, exact UTF-8 hashing, prompt-family partition enforcement, and duplicate-prompt leakage rejection.
+- Added immutable model/tokenizer identities covering pinned revisions, chat-template identity, special-token maps, BOS/EOS policy, padding side, and token IDs.
+- Added exact generation-token boundary records that preserve padded inputs, attention masks, generated sequences, continuation slices, and prompt length after templating.
+- Added separate generation-token and text-only re-encoding views for the same source sample without silently replacing canonical generation tokens.
+- Added matched watermarked/control corpus validation that freezes all non-watermark generation parameters while allowing distinct realized seeds under a shared seed policy.
+- Added exact-output deduplication, TEST_KEYS isolation, target-length feasibility checks, padding-token validation, and controlled-group integrity checks.
 - Added conservative finite-sample fixed-FPR calibration over unwatermarked control evidence with observed-score thresholds and no interpolation.
 - Added explicit `>` and `>=` threshold semantics, empirical achieved-FPR accounting, and exact equal-tailed Clopper-Pearson uncertainty intervals.
 - Bound calibration artifacts to immutable corpus scope, detector identity, negative manifests, statistical method identities, threshold hashes, and calibration-bundle hashes.
