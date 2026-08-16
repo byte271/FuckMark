@@ -143,7 +143,19 @@ class DetectorCalibrationIdentity:
                 raise ValueError("normalized_weights must contain finite non-negative values")
             weights.append(number)
         normalized_weights = tuple(weights)
+        if not math.isclose(math.fsum(normalized_weights), float(self.depth), rel_tol=1e-12, abs_tol=1e-12):
+            raise ValueError("normalized_weights must sum to depth")
         object.__setattr__(self, "normalized_weights", normalized_weights)
+        expected_config_hash = sha256_json(
+            {
+                "detector_family": self.detector_family.value,
+                "algorithm_version": self.detector_algorithm_version,
+                "detector_source_commit": self.detector_source_commit,
+                "normalized_weights": normalized_weights,
+            }
+        )
+        if self.detector_config_hash != expected_config_hash:
+            raise ValueError("detector_config_hash does not match detector calibration identity fields")
         expected = sha256_json(self._payload(normalized_weights))
         if self.identity_hash != expected:
             raise ValueError("identity_hash does not match detector calibration identity")
