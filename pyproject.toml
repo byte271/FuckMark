@@ -12,6 +12,8 @@ dependencies = []
 
 [project.scripts]
 FuckMark = "fuckmark.cli:main"
+Fuckmark = "fuckmark.cli:main"
+fuckmark = "fuckmark.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3"]
