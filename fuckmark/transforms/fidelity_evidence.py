@@ -5,12 +5,12 @@ from dataclasses import dataclass
 from enum import Enum
 
 from .._validation import require_clean_string, require_sha256
-from ..hashing import sha256_json
+from ..hashing import sha256_json, sha256_text
 from .lexical_audit import BLIND_HUMAN_REVIEW_POLICY_ID
 from .schema import CandidateRejectionReason
 
 
-FIDELITY_EVIDENCE_ALGORITHM_VERSION = "fidelity-evidence-v1"
+FIDELITY_EVIDENCE_ALGORITHM_VERSION = "fidelity-evidence-v2"
 
 
 class FidelityLabel(str, Enum):
@@ -25,9 +25,80 @@ class GrammarFixtureDisposition(str, Enum):
 
 
 @dataclass(frozen=True, slots=True)
+class FidelityReviewSample:
+    rule_hash: str
+    sample_id: str
+    source_text: str
+    transformed_text: str
+    source_text_hash: str
+    transformed_text_hash: str
+    sample_hash: str
+
+    def __post_init__(self) -> None:
+        require_sha256("rule_hash", self.rule_hash)
+        require_clean_string("sample_id", self.sample_id)
+        if not isinstance(self.source_text, str) or not self.source_text:
+            raise ValueError("source_text must be a non-empty string")
+        if not isinstance(self.transformed_text, str) or not self.transformed_text:
+            raise ValueError("transformed_text must be a non-empty string")
+        if self.source_text == self.transformed_text:
+            raise ValueError("review sample must change text")
+        require_sha256("source_text_hash", self.source_text_hash)
+        require_sha256("transformed_text_hash", self.transformed_text_hash)
+        if self.source_text_hash != sha256_text(self.source_text):
+            raise ValueError("source_text_hash does not match source_text")
+        if self.transformed_text_hash != sha256_text(self.transformed_text):
+            raise ValueError("transformed_text_hash does not match transformed_text")
+        require_sha256("sample_hash", self.sample_hash)
+        if self.sample_hash != sha256_json(self._payload()):
+            raise ValueError("sample_hash does not match fidelity review sample")
+
+    def _payload(self) -> dict[str, object]:
+        return {
+            "algorithm_version": FIDELITY_EVIDENCE_ALGORITHM_VERSION,
+            "rule_hash": self.rule_hash,
+            "sample_id": self.sample_id,
+            "source_text": self.source_text,
+            "transformed_text": self.transformed_text,
+            "source_text_hash": self.source_text_hash,
+            "transformed_text_hash": self.transformed_text_hash,
+        }
+
+    @classmethod
+    def create(
+        cls,
+        rule_hash: str,
+        sample_id: str,
+        source_text: str,
+        transformed_text: str,
+    ) -> FidelityReviewSample:
+        source_hash = sha256_text(source_text)
+        transformed_hash = sha256_text(transformed_text)
+        payload = {
+            "algorithm_version": FIDELITY_EVIDENCE_ALGORITHM_VERSION,
+            "rule_hash": rule_hash,
+            "sample_id": sample_id,
+            "source_text": source_text,
+            "transformed_text": transformed_text,
+            "source_text_hash": source_hash,
+            "transformed_text_hash": transformed_hash,
+        }
+        return cls(
+            rule_hash,
+            sample_id,
+            source_text,
+            transformed_text,
+            source_hash,
+            transformed_hash,
+            sha256_json(payload),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class BlindReviewJudgment:
     rule_hash: str
     sample_id: str
+    review_sample_hash: str
     reviewer_id: str
     label: FidelityLabel
     judgment_hash: str
@@ -35,6 +106,7 @@ class BlindReviewJudgment:
     def __post_init__(self) -> None:
         require_sha256("rule_hash", self.rule_hash)
         require_clean_string("sample_id", self.sample_id)
+        require_sha256("review_sample_hash", self.review_sample_hash)
         require_clean_string("reviewer_id", self.reviewer_id)
         if not isinstance(self.label, FidelityLabel):
             raise TypeError("label must be a FidelityLabel")
@@ -47,6 +119,7 @@ class BlindReviewJudgment:
             "algorithm_version": FIDELITY_EVIDENCE_ALGORITHM_VERSION,
             "rule_hash": self.rule_hash,
             "sample_id": self.sample_id,
+            "review_sample_hash": self.review_sample_hash,
             "reviewer_id": self.reviewer_id,
             "label": self.label.value,
         }
@@ -54,30 +127,41 @@ class BlindReviewJudgment:
     @classmethod
     def create(
         cls,
-        rule_hash: str,
-        sample_id: str,
+        sample: FidelityReviewSample,
         reviewer_id: str,
         label: FidelityLabel,
     ) -> BlindReviewJudgment:
+        if not isinstance(sample, FidelityReviewSample):
+            raise TypeError("sample must be a FidelityReviewSample")
         payload = {
             "algorithm_version": FIDELITY_EVIDENCE_ALGORITHM_VERSION,
-            "rule_hash": rule_hash,
-            "sample_id": sample_id,
+            "rule_hash": sample.rule_hash,
+            "sample_id": sample.sample_id,
+            "review_sample_hash": sample.sample_hash,
             "reviewer_id": reviewer_id,
             "label": label.value if isinstance(label, FidelityLabel) else label,
         }
-        return cls(rule_hash, sample_id, reviewer_id, label, sha256_json(payload))
+        return cls(
+            sample.rule_hash,
+            sample.sample_id,
+            sample.sample_hash,
+            reviewer_id,
+            label,
+            sha256_json(payload),
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class FidelityAdjudication:
     sample_id: str
+    review_sample_hash: str
     label: FidelityLabel
     judgment_hashes: tuple[str, ...]
     adjudication_hash: str
 
     def __post_init__(self) -> None:
         require_clean_string("sample_id", self.sample_id)
+        require_sha256("review_sample_hash", self.review_sample_hash)
         if not isinstance(self.label, FidelityLabel):
             raise TypeError("label must be a FidelityLabel")
         if not isinstance(self.judgment_hashes, tuple):
@@ -95,6 +179,7 @@ class FidelityAdjudication:
     def _payload(self) -> dict[str, object]:
         return {
             "sample_id": self.sample_id,
+            "review_sample_hash": self.review_sample_hash,
             "label": self.label.value,
             "judgment_hashes": self.judgment_hashes,
         }
@@ -105,6 +190,7 @@ class BlindHumanFidelityAudit:
     algorithm_version: str
     rule_hash: str
     review_policy_id: str
+    review_samples: tuple[FidelityReviewSample, ...]
     judgments: tuple[BlindReviewJudgment, ...]
     adjudications: tuple[FidelityAdjudication, ...]
     sample_count: int
@@ -120,10 +206,22 @@ class BlindHumanFidelityAudit:
         require_sha256("rule_hash", self.rule_hash)
         if self.review_policy_id != BLIND_HUMAN_REVIEW_POLICY_ID:
             raise ValueError("unsupported blind human review policy")
+        if not isinstance(self.review_samples, tuple) or not self.review_samples:
+            raise TypeError("review_samples must be a non-empty tuple")
         if not isinstance(self.judgments, tuple) or not self.judgments:
             raise TypeError("judgments must be a non-empty tuple")
         if not isinstance(self.adjudications, tuple) or not self.adjudications:
             raise TypeError("adjudications must be a non-empty tuple")
+        expected_samples = tuple(sorted(self.review_samples, key=lambda value: (value.sample_id, value.sample_hash)))
+        if self.review_samples != expected_samples:
+            raise ValueError("review_samples must be canonically ordered")
+        if len({value.sample_id for value in self.review_samples}) != len(self.review_samples):
+            raise ValueError("review sample IDs must be unique")
+        if len({value.sample_hash for value in self.review_samples}) != len(self.review_samples):
+            raise ValueError("review samples must be unique")
+        if any(value.rule_hash != self.rule_hash for value in self.review_samples):
+            raise ValueError("all review samples must match audit rule hash")
+        by_sample_id = {value.sample_id: value for value in self.review_samples}
         expected_judgments = tuple(sorted(self.judgments, key=lambda value: (value.sample_id, value.reviewer_id, value.judgment_hash)))
         if self.judgments != expected_judgments:
             raise ValueError("judgments must be canonically ordered")
@@ -131,10 +229,21 @@ class BlindHumanFidelityAudit:
             raise ValueError("each reviewer may judge a sample at most once")
         if any(value.rule_hash != self.rule_hash for value in self.judgments):
             raise ValueError("all judgments must match audit rule hash")
-        expected_adjudications = _adjudicate(self.judgments)
+        for judgment in self.judgments:
+            try:
+                sample = by_sample_id[judgment.sample_id]
+            except KeyError as error:
+                raise ValueError("judgment references unknown review sample") from error
+            if judgment.review_sample_hash != sample.sample_hash:
+                raise ValueError("judgment review sample hash does not match referenced sample")
+        if {value.sample_id for value in self.judgments} != set(by_sample_id):
+            raise ValueError("every review sample must have judgments")
+        expected_adjudications = _adjudicate(self.review_samples, self.judgments)
         if self.adjudications != expected_adjudications:
             raise ValueError("adjudications do not match blind review judgments")
         counts = Counter(value.label for value in self.adjudications)
+        if self.sample_count != len(self.review_samples):
+            raise ValueError("sample_count does not match review samples")
         if self.sample_count != len(self.adjudications):
             raise ValueError("sample_count does not match adjudications")
         if self.equivalent_or_minor_count != counts[FidelityLabel.EQUIVALENT_OR_MINOR]:
@@ -152,6 +261,7 @@ class BlindHumanFidelityAudit:
             "algorithm_version": self.algorithm_version,
             "rule_hash": self.rule_hash,
             "review_policy_id": self.review_policy_id,
+            "review_samples": self.review_samples,
             "judgments": self.judgments,
             "adjudications": self.adjudications,
             "sample_count": self.sample_count,
@@ -161,15 +271,22 @@ class BlindHumanFidelityAudit:
         }
 
 
-def _adjudicate(judgments: tuple[BlindReviewJudgment, ...]) -> tuple[FidelityAdjudication, ...]:
+def _adjudicate(
+    review_samples: tuple[FidelityReviewSample, ...],
+    judgments: tuple[BlindReviewJudgment, ...],
+) -> tuple[FidelityAdjudication, ...]:
+    by_sample_id = {value.sample_id: value for value in review_samples}
     grouped: dict[str, list[BlindReviewJudgment]] = defaultdict(list)
     for value in judgments:
         grouped[value.sample_id].append(value)
     output: list[FidelityAdjudication] = []
-    for sample_id in sorted(grouped):
-        rows = tuple(sorted(grouped[sample_id], key=lambda value: (value.reviewer_id, value.judgment_hash)))
+    for sample_id in sorted(by_sample_id):
+        sample = by_sample_id[sample_id]
+        rows = tuple(sorted(grouped.get(sample_id, ()), key=lambda value: (value.reviewer_id, value.judgment_hash)))
         if len(rows) not in (2, 3):
             raise ValueError("each fidelity sample requires exactly two reviewers or one tiebreak reviewer")
+        if any(value.review_sample_hash != sample.sample_hash for value in rows):
+            raise ValueError("judgment review sample hash does not match referenced sample")
         labels = Counter(value.label for value in rows)
         if len(rows) == 2:
             if len(labels) != 1:
@@ -182,25 +299,33 @@ def _adjudicate(judgments: tuple[BlindReviewJudgment, ...]) -> tuple[FidelityAdj
             if count != 2:
                 raise ValueError("three-way reviewer disagreement cannot be adjudicated")
         hashes = tuple(sorted(value.judgment_hash for value in rows))
-        payload = {"sample_id": sample_id, "label": label.value, "judgment_hashes": hashes}
-        output.append(FidelityAdjudication(sample_id, label, hashes, sha256_json(payload)))
+        payload = {
+            "sample_id": sample_id,
+            "review_sample_hash": sample.sample_hash,
+            "label": label.value,
+            "judgment_hashes": hashes,
+        }
+        output.append(FidelityAdjudication(sample_id, sample.sample_hash, label, hashes, sha256_json(payload)))
     return tuple(output)
 
 
 def create_blind_human_fidelity_audit(
     rule_hash: str,
+    review_samples: tuple[FidelityReviewSample, ...],
     judgments: tuple[BlindReviewJudgment, ...],
 ) -> BlindHumanFidelityAudit:
+    samples = tuple(sorted(tuple(review_samples), key=lambda value: (value.sample_id, value.sample_hash)))
     ordered = tuple(sorted(tuple(judgments), key=lambda value: (value.sample_id, value.reviewer_id, value.judgment_hash)))
-    adjudications = _adjudicate(ordered)
+    adjudications = _adjudicate(samples, ordered)
     counts = Counter(value.label for value in adjudications)
     payload = {
         "algorithm_version": FIDELITY_EVIDENCE_ALGORITHM_VERSION,
         "rule_hash": rule_hash,
         "review_policy_id": BLIND_HUMAN_REVIEW_POLICY_ID,
+        "review_samples": samples,
         "judgments": ordered,
         "adjudications": adjudications,
-        "sample_count": len(adjudications),
+        "sample_count": len(samples),
         "equivalent_or_minor_count": counts[FidelityLabel.EQUIVALENT_OR_MINOR],
         "material_change_count": counts[FidelityLabel.MATERIAL_CHANGE],
         "cannot_judge_count": counts[FidelityLabel.CANNOT_JUDGE],
@@ -209,9 +334,10 @@ def create_blind_human_fidelity_audit(
         FIDELITY_EVIDENCE_ALGORITHM_VERSION,
         rule_hash,
         BLIND_HUMAN_REVIEW_POLICY_ID,
+        samples,
         ordered,
         adjudications,
-        len(adjudications),
+        len(samples),
         counts[FidelityLabel.EQUIVALENT_OR_MINOR],
         counts[FidelityLabel.MATERIAL_CHANGE],
         counts[FidelityLabel.CANNOT_JUDGE],
