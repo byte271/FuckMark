@@ -7,13 +7,14 @@ from .._validation import require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
 from .hard_invariants import validate_hard_invariants
+from .lexical_rules import LexicalTemplateRule
 from .protected import ProtectedSpanExtractor
 from .protected_artifacts import ProtectedSpan, UserProtectedRange
-from .rules import LiteralTransformRule, default_contraction_rules, validate_rules
+from .rules import TransformRule, default_contraction_rules, validate_rules
 from .schema import CandidateRejectionReason, InvariantStatus
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
-TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v4"
+TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v5"
 TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v4"
 _MAX_ENUMERATION_ITEMS = 100_000
 _MAX_RULE_SCAN_WORK = 50_000_000
@@ -30,13 +31,13 @@ def _simple_case_replacement(source_text: str, replacement: str) -> str | None:
     return None
 
 
-def _make_rejection(input_hash: str, rule: LiteralTransformRule, start: int, end: int, source_text: str, reason: CandidateRejectionReason, protected_hashes: Sequence[str] = ()) -> CandidateRejection:
+def _make_rejection(input_hash: str, rule: TransformRule, start: int, end: int, source_text: str, reason: CandidateRejectionReason, protected_hashes: Sequence[str] = ()) -> CandidateRejection:
     hashes = tuple(sorted(set(protected_hashes)))
     payload = {"input_hash": input_hash, "rule_id": rule.rule_id, "rule_version": rule.version, "rule_hash": rule.rule_hash, "start": start, "end": end, "source_text": source_text, "reason": reason.value, "protected_span_hashes": hashes}
     return CandidateRejection(input_hash, rule.rule_id, rule.version, rule.rule_hash, start, end, source_text, reason, hashes, sha256_json(payload))
 
 
-def _make_candidate(input_hash: str, rule: LiteralTransformRule, start: int, end: int, source_text: str, replacement: str) -> TransformCandidate:
+def _make_candidate(input_hash: str, rule: TransformRule, start: int, end: int, source_text: str, replacement: str) -> TransformCandidate:
     payload = {"input_hash": input_hash, "rule_id": rule.rule_id, "rule_version": rule.version, "rule_hash": rule.rule_hash, "family": rule.family.value, "tier": rule.tier.value, "start": start, "end": end, "source_text": source_text, "replacement_text": replacement}
     candidate_id = sha256_json(payload)
     return TransformCandidate(candidate_id, input_hash, rule.rule_id, rule.version, rule.rule_hash, rule.family, rule.tier, start, end, source_text, replacement)
@@ -57,13 +58,13 @@ def _overlapping_spans(spans: tuple[ProtectedSpan, ...], ends: tuple[int, ...], 
 class TransformRegistry:
     __slots__ = ("_rules", "_ruleset_hash", "_extractor")
 
-    def __init__(self, rules: Sequence[LiteralTransformRule], identifiers: Sequence[str] = ()) -> None:
+    def __init__(self, rules: Sequence[TransformRule], identifiers: Sequence[str] = ()) -> None:
         self._rules = validate_rules(rules)
         self._ruleset_hash = sha256_json({"algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "rules": self._rules})
         self._extractor = ProtectedSpanExtractor(identifiers)
 
     @property
-    def rules(self) -> tuple[LiteralTransformRule, ...]:
+    def rules(self) -> tuple[TransformRule, ...]:
         return self._rules
 
     @property
@@ -98,6 +99,9 @@ class TransformRegistry:
                 letters = "".join(character for character in source_text if character.isalpha())
                 if rule.block_all_caps and letters and letters.isupper():
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.ALL_CAPS_BLOCKED))
+                    continue
+                if isinstance(rule, LexicalTemplateRule) and not rule.precondition(text, start, end):
+                    rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.PRECONDITION_FAILED))
                     continue
                 replacement = rule.replacement
                 if rule.preserve_simple_case:
