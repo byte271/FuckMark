@@ -14,7 +14,7 @@ from .e20_conditions import E20Condition, E20ConditionPlan
 from .e20_rows import E20FailureRow, E20OutcomeRow, ExperimentReasonCode
 
 
-E20_AGGREGATOR_ALGORITHM_VERSION = "e20-aggregator-v1"
+E20_AGGREGATOR_ALGORITHM_VERSION = "e20-aggregator-v2"
 E20_BOOTSTRAP_RNG_ALGORITHM_VERSION = "splitmix64-rejection-v1"
 E20_BOOTSTRAP_QUANTILE_ALGORITHM_VERSION = "linear-type7-v1"
 _MASK64 = (1 << 64) - 1
@@ -34,6 +34,7 @@ class E20MetricStatus(str, Enum):
     NO_ANALYSABLE_ROWS = "NO_ANALYSABLE_ROWS"
     NO_PRISTINE_POSITIVES = "NO_PRISTINE_POSITIVES"
     SINGLE_CLASS_ONLY = "SINGLE_CLASS_ONLY"
+    ZERO_TOKEN_EDIT_DENOMINATOR = "ZERO_TOKEN_EDIT_DENOMINATOR"
 
 
 class E20MetricId(str, Enum):
@@ -44,7 +45,7 @@ class E20MetricId(str, Enum):
     DECISION_LOSS_RATE = "conditional_pristine_positive_decision_loss"
     OBSERVATION_REPLACEMENT_RATIO = "observation_replacement_ratio"
     NORMALIZED_TOKEN_EDIT_RATE = "normalized_token_edit_rate"
-    COVERAGE_EFFICIENCY = "observation_replacement_per_token_edit"
+    COVERAGE_EFFICIENCY = "observation_replacement_per_normalized_token_edit"
     ELIGIBILITY_RATE = "eligibility_rate"
     PRISTINE_FPR = "pristine_fpr"
     TRANSFORMED_FPR = "transformed_fpr"
@@ -113,6 +114,7 @@ class E20MetricEstimate:
                 E20MetricStatus.NO_ANALYSABLE_ROWS,
                 E20MetricStatus.NO_PRISTINE_POSITIVES,
                 E20MetricStatus.SINGLE_CLASS_ONLY,
+                E20MetricStatus.ZERO_TOKEN_EDIT_DENOMINATOR,
             ):
                 raise ValueError("missing estimate requires a machine-readable no-estimate status")
         else:
@@ -486,6 +488,59 @@ def _metric_estimate(
     )
 
 
+def _coverage_efficiency_estimate(
+    execution_id: str,
+    condition_id: str,
+    population: E20AnalysisPopulation,
+    rows: tuple[E20OutcomeRow, ...],
+    sample_by_id: dict[str, CorpusSample],
+    expected_count: int,
+    failure_count: int,
+    preregistration: ConfirmatoryPreregistration,
+) -> E20MetricEstimate:
+    if not rows:
+        return _metric_estimate(
+            execution_id,
+            condition_id,
+            E20MetricId.COVERAGE_EFFICIENCY,
+            population,
+            (),
+            expected_count,
+            failure_count,
+            preregistration,
+        )
+    if any(row.fidelity.token_edit_distance == 0 for row in rows):
+        return _metric_estimate(
+            execution_id,
+            condition_id,
+            E20MetricId.COVERAGE_EFFICIENCY,
+            population,
+            (),
+            expected_count,
+            failure_count,
+            preregistration,
+            E20MetricStatus.ZERO_TOKEN_EDIT_DENOMINATOR,
+        )
+    values = tuple(
+        (
+            sample_by_id[row.identity.sample_id],
+            (row.observation.replaced_count / row.observation.original_valid_count)
+            / (row.fidelity.token_edit_distance / row.text.source_token_count),
+        )
+        for row in rows
+    )
+    return _metric_estimate(
+        execution_id,
+        condition_id,
+        E20MetricId.COVERAGE_EFFICIENCY,
+        population,
+        values,
+        expected_count,
+        failure_count,
+        preregistration,
+    )
+
+
 def _auc_estimate(
     execution_id: str,
     condition_id: str,
@@ -596,8 +651,8 @@ def _condition_aggregate(
             _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.TPR_CHANGE, policy_population, paired_values(watermarked_outcomes, lambda row: int(row.detector.transformed_decision) - int(row.detector.pristine_decision)), watermarked_expected, len(watermarked_failures), preregistration),
             _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.STANDARDIZED_MARGIN_DROP, policy_population, paired_values(watermarked_outcomes, lambda row: row.detector.pristine_standardized_margin - row.detector.transformed_standardized_margin), watermarked_expected, len(watermarked_failures), preregistration),
             _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.OBSERVATION_REPLACEMENT_RATIO, policy_population, paired_values(watermarked_outcomes, lambda row: row.observation.replaced_count / row.observation.original_valid_count), watermarked_expected, len(watermarked_failures), preregistration),
-            _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.NORMALIZED_TOKEN_EDIT_RATE, policy_population, paired_values(watermarked_outcomes, lambda row: row.fidelity.token_edit_distance / max(1, row.text.source_token_count)), watermarked_expected, len(watermarked_failures), preregistration),
-            _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.COVERAGE_EFFICIENCY, policy_population, paired_values(watermarked_outcomes, lambda row: row.observation.replaced_count / max(1, row.fidelity.token_edit_distance)), watermarked_expected, len(watermarked_failures), preregistration),
+            _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.NORMALIZED_TOKEN_EDIT_RATE, policy_population, paired_values(watermarked_outcomes, lambda row: row.fidelity.token_edit_distance / row.text.source_token_count), watermarked_expected, len(watermarked_failures), preregistration),
+            _coverage_efficiency_estimate(result_bundle.execution_id, condition.condition_id, policy_population, watermarked_outcomes, sample_by_id, watermarked_expected, len(watermarked_failures), preregistration),
             _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.ELIGIBILITY_RATE, policy_population, paired_values(watermarked_outcomes, lambda row: row.transform.eligible), watermarked_expected, len(watermarked_failures), preregistration),
         )
     )
@@ -608,7 +663,7 @@ def _condition_aggregate(
             _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.TPR_CHANGE, eligible_population, paired_values(eligible, lambda row: int(row.detector.transformed_decision) - int(row.detector.pristine_decision)), watermarked_expected, len(watermarked_failures), preregistration),
             _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.STANDARDIZED_MARGIN_DROP, eligible_population, paired_values(eligible, lambda row: row.detector.pristine_standardized_margin - row.detector.transformed_standardized_margin), watermarked_expected, len(watermarked_failures), preregistration),
             _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.OBSERVATION_REPLACEMENT_RATIO, eligible_population, paired_values(eligible, lambda row: row.observation.replaced_count / row.observation.original_valid_count), watermarked_expected, len(watermarked_failures), preregistration),
-            _metric_estimate(result_bundle.execution_id, condition.condition_id, E20MetricId.COVERAGE_EFFICIENCY, eligible_population, paired_values(eligible, lambda row: row.observation.replaced_count / max(1, row.fidelity.token_edit_distance)), watermarked_expected, len(watermarked_failures), preregistration),
+            _coverage_efficiency_estimate(result_bundle.execution_id, condition.condition_id, eligible_population, eligible, sample_by_id, watermarked_expected, len(watermarked_failures), preregistration),
         )
     )
     pristine_positive = tuple(row for row in watermarked_outcomes if row.detector.pristine_decision)
