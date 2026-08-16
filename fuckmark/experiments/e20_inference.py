@@ -166,10 +166,6 @@ def _exact_binomial_two_sided(successes: int, trials: int) -> float:
         raise ValueError("invalid exact binomial count")
     if trials == 0 or successes * 2 >= trials:
         return 1.0
-    # Keep the binomial coefficient as an exact Python integer. math.log accepts
-    # arbitrarily large ints without first converting the coefficient to a float,
-    # avoiding both the old overflow and the cancellation from subtracting lgamma
-    # terms at confirmatory-scale N.
     log_probability_at_successes = math.log(math.comb(trials, successes)) - trials * _LOG_TWO
     scaled_tail = 1.0
     scaled_term = 1.0
