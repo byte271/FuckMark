@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from enum import Enum
 
 from .._validation import require_clean_string, require_int, require_sha256
 from ..hashing import sha256_json
+from .lexical_rules import LexicalTemplateRule
 
 
 LEXICAL_RULE_AUDIT_ALGORITHM_VERSION = "lexical-rule-fidelity-audit-v1"
@@ -21,6 +23,10 @@ class LexicalAuditStatus(str, Enum):
     BLOCKED_HARD_INVARIANT = "BLOCKED_HARD_INVARIANT"
     BLOCKED_HUMAN_FIDELITY = "BLOCKED_HUMAN_FIDELITY"
     RELEASE_ELIGIBLE = "RELEASE_ELIGIBLE"
+
+
+class LexicalRulePromotionError(ValueError):
+    pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,7 +60,7 @@ class LexicalRuleAudit:
             if values != tuple(sorted(set(values))):
                 raise ValueError(f"{name} must be unique and canonically ordered")
             for value in values:
-                require_sha256(name[:-1], value)
+                require_sha256("fixture_hash", value)
         for name, value in (
             ("human_sample_count", self.human_sample_count),
             ("equivalent_or_minor_count", self.equivalent_or_minor_count),
@@ -186,3 +192,37 @@ def create_lexical_rule_audit(
         status=status,
         audit_hash=sha256_json(payload),
     )
+
+
+def require_release_eligible_lexical_rules(
+    rules: Sequence[LexicalTemplateRule],
+    audits: Sequence[LexicalRuleAudit],
+) -> tuple[LexicalTemplateRule, ...]:
+    if not isinstance(rules, Sequence) or isinstance(rules, (str, bytes, bytearray)):
+        raise TypeError("rules must be a sequence")
+    if not isinstance(audits, Sequence) or isinstance(audits, (str, bytes, bytearray)):
+        raise TypeError("audits must be a sequence")
+    rule_tuple = tuple(rules)
+    audit_tuple = tuple(audits)
+    if not rule_tuple:
+        raise LexicalRulePromotionError("lexical release requires at least one rule")
+    if any(not isinstance(rule, LexicalTemplateRule) for rule in rule_tuple):
+        raise TypeError("rules must contain LexicalTemplateRule values")
+    if any(not isinstance(audit, LexicalRuleAudit) for audit in audit_tuple):
+        raise TypeError("audits must contain LexicalRuleAudit values")
+    if len({rule.rule_hash for rule in rule_tuple}) != len(rule_tuple):
+        raise LexicalRulePromotionError("lexical release rules must be unique")
+    by_rule_hash = {audit.rule_hash: audit for audit in audit_tuple}
+    if len(by_rule_hash) != len(audit_tuple):
+        raise LexicalRulePromotionError("lexical release audits must be unique by rule hash")
+    expected_hashes = {rule.rule_hash for rule in rule_tuple}
+    if set(by_rule_hash) != expected_hashes:
+        raise LexicalRulePromotionError("lexical release audits must exactly match the requested rules")
+    blocked = tuple(
+        (rule.rule_id, by_rule_hash[rule.rule_hash].status.value)
+        for rule in rule_tuple
+        if not by_rule_hash[rule.rule_hash].release_eligible
+    )
+    if blocked:
+        raise LexicalRulePromotionError(f"lexical rules are not release eligible: {blocked}")
+    return tuple(sorted(rule_tuple, key=lambda rule: (rule.rule_id, rule.version, rule.rule_hash)))
