@@ -1,0 +1,127 @@
+name: Finalize fidelity API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/export-readiness-api.yml
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Export APIs
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          transforms = Path('fuckmark/transforms/__init__.py')
+          text = transforms.read_text()
+          blocks = (
+              ('from .fidelity_evidence import (', '''from .fidelity_evidence import (
+              FIDELITY_EVIDENCE_ALGORITHM_VERSION,
+              BlindHumanFidelityAudit,
+              BlindReviewJudgment,
+              FidelityAdjudication,
+              FidelityLabel,
+              FidelityReviewSample,
+              GrammarFixture,
+              GrammarFixtureDisposition,
+              create_blind_human_fidelity_audit,
+          )
+          '''),
+              ('from .fidelity_readiness import (', '''from .fidelity_readiness import (
+              TASK29_FIDELITY_READINESS_ALGORITHM_VERSION,
+              FidelityReadinessStatus,
+              FidelityRuleReadiness,
+              Task29FidelityReadinessReport,
+              build_task29_fidelity_readiness,
+          )
+          '''),
+              ('from .fidelity_verification import (', '''from .fidelity_verification import (
+              LEXICAL_PROMOTION_EVIDENCE_ALGORITHM_VERSION,
+              FidelityEvidenceVerificationError,
+              LexicalPromotionEvidence,
+              source_verified_release_transform_registry,
+              verify_fidelity_review_sample,
+              verify_grammar_fixture,
+              verify_lexical_promotion_evidence,
+          )
+          '''),
+              ('from .syntax_fidelity_verification import (', '''from .syntax_fidelity_verification import (
+              SYNTAX_DEVELOPMENT_EVIDENCE_ALGORITHM_VERSION,
+              SyntaxDevelopmentEvidence,
+              verify_syntax_development_evidence,
+          )
+          '''),
+          )
+          anchor = 'from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate\n'
+          for marker, block in blocks:
+              if marker not in text:
+                  text = text.replace(anchor, anchor + block, 1)
+                  anchor = block
+          names = (
+              'FIDELITY_EVIDENCE_ALGORITHM_VERSION',
+              'TASK29_FIDELITY_READINESS_ALGORITHM_VERSION',
+              'LEXICAL_PROMOTION_EVIDENCE_ALGORITHM_VERSION',
+              'SYNTAX_DEVELOPMENT_EVIDENCE_ALGORITHM_VERSION',
+              'BlindHumanFidelityAudit',
+              'BlindReviewJudgment',
+              'FidelityAdjudication',
+              'FidelityEvidenceVerificationError',
+              'FidelityLabel',
+              'FidelityReadinessStatus',
+              'FidelityReviewSample',
+              'FidelityRuleReadiness',
+              'GrammarFixture',
+              'GrammarFixtureDisposition',
+              'LexicalPromotionEvidence',
+              'SyntaxDevelopmentEvidence',
+              'Task29FidelityReadinessReport',
+              'build_task29_fidelity_readiness',
+              'create_blind_human_fidelity_audit',
+              'source_verified_release_transform_registry',
+              'verify_fidelity_review_sample',
+              'verify_grammar_fixture',
+              'verify_lexical_promotion_evidence',
+              'verify_syntax_development_evidence',
+          )
+          missing = tuple(name for name in names if f'    "{name}",' not in text)
+          if missing:
+              text = text.replace('__all__ = [\n', '__all__ = [\n' + ''.join(f'    "{name}",\n' for name in missing), 1)
+          transforms.write_text(text)
+
+          root = Path('fuckmark/__init__.py')
+          text = root.read_text()
+          marker = 'from .transforms import (\n'
+          start = text.index(marker) + len(marker)
+          end = text.index(')\n\n__all__', start)
+          import_block = text[start:end]
+          additions = ''.join(f'    {name},\n' for name in names if f'    {name},\n' not in import_block)
+          if additions:
+              text = text[:start] + additions + text[start:]
+          missing = tuple(name for name in names if f'    "{name}",' not in text)
+          if missing:
+              text = text.replace('__all__ = [\n', '__all__ = [\n' + ''.join(f'    "{name}",\n' for name in missing), 1)
+          root.write_text(text)
+          PY
+          python -m py_compile fuckmark/transforms/__init__.py fuckmark/__init__.py
+      - name: Commit
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f --ignore-unmatch .github/workflows/export-fidelity-api.yml .github/workflows/export-readiness-api.yml
+          git add fuckmark/transforms/__init__.py fuckmark/__init__.py
+          git commit -m "Finalize Task 29 fidelity API exports"
+          git push origin HEAD:main
