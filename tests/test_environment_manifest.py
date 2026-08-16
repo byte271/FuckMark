@@ -93,8 +93,8 @@ def test_environment_snapshot_rejects_tampering() -> None:
 def test_environment_snapshot_rejects_duplicate_library_names_case_insensitively() -> None:
     snapshot = _environment()
     duplicate = (
-        EnvironmentLibrary("alpha", "1.0"),
         EnvironmentLibrary("ALPHA", "1.0"),
+        EnvironmentLibrary("alpha", "1.0"),
     )
     with pytest.raises(ValueError, match="duplicate"):
         replace(snapshot, libraries=duplicate, snapshot_hash="0" * 64)
