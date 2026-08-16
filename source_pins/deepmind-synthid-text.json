@@ -1,0 +1,13 @@
+{
+  "source_id": "deepmind-synthid-text-reference",
+  "repository": "google-deepmind/synthid-text",
+  "commit": "addb4a158143c7c6851a1308f78b89fceed59683",
+  "license_id": "Apache-2.0",
+  "critical_files": [
+    "src/synthid_text/logits_processing.py",
+    "src/synthid_text/hashing_function.py",
+    "src/synthid_text/detector_mean.py",
+    "src/synthid_text/detector_bayesian.py",
+    "src/synthid_text/synthid_mixin.py"
+  ]
+}
