@@ -457,8 +457,8 @@ def create_confirmatory_preregistration(inputs: ConfirmatoryPreregistrationInput
         {"algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "rules": transform_rules}
     )
     hypotheses = tuple(sorted(inputs.hypotheses, key=lambda value: (value.hypothesis_id, value.hypothesis_hash)))
-    test_hashes = tuple(sorted(set(inputs.verification_test_hashes)))
-    target_fprs = tuple(sorted({float(value) for value in inputs.target_fprs}, reverse=True))
+    test_hashes = tuple(sorted(inputs.verification_test_hashes))
+    target_fprs = tuple(sorted((float(value) for value in inputs.target_fprs), reverse=True))
     payload = {
         "algorithm_version": CONFIRMATORY_PREREGISTRATION_ALGORITHM_VERSION,
         "code_commit": inputs.code_commit,
