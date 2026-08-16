@@ -13,13 +13,17 @@ from .syntax_fidelity_verification import SyntaxDevelopmentEvidence, verify_synt
 from .syntax_rules import development_syntax_rules
 
 
-TASK29_FIDELITY_READINESS_ALGORITHM_VERSION = "task29-fidelity-readiness-v1"
+TASK29_FIDELITY_READINESS_ALGORITHM_VERSION = "task29-fidelity-readiness-v2"
 
 
 class FidelityReadinessStatus(str, Enum):
     MISSING_SOURCE_GROUNDED_EVIDENCE = "MISSING_SOURCE_GROUNDED_EVIDENCE"
     VERIFIED_LEXICAL_RELEASE_EVIDENCE = "VERIFIED_LEXICAL_RELEASE_EVIDENCE"
     VERIFIED_SYNTAX_DEVELOPMENT_ONLY = "VERIFIED_SYNTAX_DEVELOPMENT_ONLY"
+
+
+class FidelityReadinessVerificationError(ValueError):
+    pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,6 +71,13 @@ class Task29FidelityReadinessReport:
             raise ValueError("fidelity readiness rows must be canonically ordered")
         if len({value.rule_hash for value in self.rows}) != len(self.rows):
             raise ValueError("fidelity readiness rows must have unique rule hashes")
+        expected_identities = {
+            (rule.rule_id, rule.rule_hash, rule.family)
+            for rule in (*development_lexical_rules(), *development_syntax_rules())
+        }
+        actual_identities = {(value.rule_id, value.rule_hash, value.family) for value in self.rows}
+        if actual_identities != expected_identities:
+            raise ValueError("fidelity readiness rows must exactly cover current development rules")
         require_sha256("report_hash", self.report_hash)
         if self.report_hash != sha256_json(self._payload()):
             raise ValueError("report_hash does not match Task 29 fidelity readiness report")
@@ -145,3 +156,22 @@ def build_task29_fidelity_readiness(
         ordered,
         sha256_json(payload),
     )
+
+
+def verify_task29_fidelity_readiness(
+    report: Task29FidelityReadinessReport,
+    lexical_evidence: Sequence[LexicalPromotionEvidence] = (),
+    syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
+    tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
+) -> None:
+    if not isinstance(report, Task29FidelityReadinessReport):
+        raise TypeError("report must be a Task29FidelityReadinessReport")
+    expected = build_task29_fidelity_readiness(
+        lexical_evidence=lexical_evidence,
+        syntax_evidence=syntax_evidence,
+        tokenizers=tokenizers,
+    )
+    if report != expected:
+        raise FidelityReadinessVerificationError(
+            "Task 29 fidelity readiness report does not replay exactly from supplied evidence"
+        )
