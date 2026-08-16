@@ -24,11 +24,14 @@ from .e20_conditions import E20ConditionPlan
 from .e20_execution import E20ExecutionAuthorization
 
 
-E20_INFERENCE_ALGORITHM_VERSION = "e20-inference-v1"
-E20_DECISION_TEST_ALGORITHM_VERSION = "paired-exact-mcnemar-binomial-v1"
+E20_INFERENCE_ALGORITHM_VERSION = "e20-inference-v2"
+E20_DECISION_TEST_ALGORITHM_VERSION = "paired-exact-mcnemar-binomial-logsum-v2"
 E20_CONTINUOUS_TEST_ALGORITHM_VERSION = "paired-sign-flip-splitmix64-v1"
 E20_SIGN_FLIP_REPLICATES = 10_000
 _MASK64 = (1 << 64) - 1
+_LOG_TWO = math.log(2.0)
+_MIN_POSITIVE_FLOAT = math.nextafter(0.0, 1.0)
+_LOG_MIN_POSITIVE_FLOAT = math.log(_MIN_POSITIVE_FLOAT)
 
 
 class E20InferenceStatus(str, Enum):
@@ -122,7 +125,7 @@ class E20InferenceBundle:
         ):
             require_sha256(name, value)
         if self.multiple_testing_method is not MultipleTestingMethod.HOLM_BONFERRONI:
-            raise ValueError("E20 inference v1 requires the preregistered Holm-Bonferroni method")
+            raise ValueError("E20 inference v2 requires the preregistered Holm-Bonferroni method")
         require_int("family_size", self.family_size)
         if self.family_size <= 0:
             raise ValueError("family_size must be positive")
@@ -161,10 +164,25 @@ def _exact_binomial_two_sided(successes: int, trials: int) -> float:
     require_int("trials", trials)
     if trials < 0 or successes < 0 or successes > trials:
         raise ValueError("invalid exact binomial count")
-    if trials == 0:
+    if trials == 0 or successes * 2 >= trials:
         return 1.0
-    tail = math.fsum(math.comb(trials, index) for index in range(successes + 1)) / (2**trials)
-    return min(1.0, 2.0 * tail)
+    log_probability_at_successes = (
+        math.lgamma(trials + 1)
+        - math.lgamma(successes + 1)
+        - math.lgamma(trials - successes + 1)
+        - trials * _LOG_TWO
+    )
+    scaled_tail = 1.0
+    scaled_term = 1.0
+    for index in range(successes, 0, -1):
+        scaled_term *= index / (trials - index + 1)
+        scaled_tail += scaled_term
+    log_two_sided = log_probability_at_successes + math.log(scaled_tail) + _LOG_TWO
+    if log_two_sided >= 0.0:
+        return 1.0
+    if log_two_sided <= _LOG_MIN_POSITIVE_FLOAT:
+        return _MIN_POSITIVE_FLOAT
+    return math.exp(log_two_sided)
 
 
 def _mcnemar_p_value(rows) -> float:
@@ -256,7 +274,12 @@ def _raw_inference(condition, hypothesis, aggregate_condition, rows, execution_i
             E20InferenceStatus.COMPLETE,
             effect,
             E20_CONTINUOUS_TEST_ALGORITHM_VERSION,
-            _sign_flip_p_value(execution_id, condition.condition_id, hypothesis.hypothesis_id, differences),
+            _sign_flip_p_value(
+                execution_id,
+                condition.condition_id,
+                hypothesis.hypothesis_id,
+                differences,
+            ),
         )
     return (E20InferenceStatus.UNSUPPORTED_PRIMARY_OUTCOME, None, None, None)
 
@@ -312,7 +335,13 @@ def build_e20_inference_bundle(
         cells.append((condition, hypothesis, aggregate_by_condition[condition.condition_id], rows))
     family_size = len(cells)
     raw = tuple(
-        _raw_inference(condition, hypothesis, aggregate_condition, rows, result_bundle.execution_id)
+        _raw_inference(
+            condition,
+            hypothesis,
+            aggregate_condition,
+            rows,
+            result_bundle.execution_id,
+        )
         for condition, hypothesis, aggregate_condition, rows in cells
     )
     adjusted = _holm_adjust(raw, family_size)
@@ -390,4 +419,6 @@ def verify_e20_inference_bundle(
         authorization,
     )
     if inference != expected:
-        raise ValueError("E20 inference bundle does not replay exactly from sealed results and preregistered analysis")
+        raise ValueError(
+            "E20 inference bundle does not replay exactly from sealed results and preregistered analysis"
+        )
