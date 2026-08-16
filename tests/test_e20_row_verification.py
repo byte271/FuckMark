@@ -13,18 +13,18 @@ from fuckmark.adapters import DeepMindReferenceAdapter, DeepMindReferenceConfig
 from fuckmark.corpus import TextOnlyTokenRecord, WatermarkLabel
 from fuckmark.detectors import apply_calibration, mean_evidence
 from fuckmark.environment import capture_environment
-from fuckmark.experiments import authorize_e20_execution
+from fuckmark.experiments import (
+    E20RowVerificationError,
+    authorize_e20_execution,
+    build_e20_outcome_row,
+    verify_e20_outcome_row,
+)
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
 from fuckmark.experiments.confirmatory_corpus import build_confirmatory_corpus_seal
 from fuckmark.experiments.e20_execution import (
     create_e20_run_ledger,
     derive_e20_condition_seed,
     start_e20_run,
-)
-from fuckmark.experiments.e20_row_verification import (
-    E20RowVerificationError,
-    build_e20_outcome_row,
-    verify_e20_outcome_row,
 )
 from fuckmark.experiments.e20_rows import E20OutcomeRow, E20StatisticsFields, ExperimentReasonCode
 from fuckmark.hashing import sha256_text
@@ -43,7 +43,7 @@ TIMESTAMP = "2026-08-16T20:30:00Z"
 
 def _fixture():
     inputs = preregistration_inputs(final_n_per_core_cell=1)
-    condition_plan = confirmatory_condition_plan()
+    condition_plan = confirmatory_condition_plan(calibration_bundles=inputs.calibration_bundles)
     corpus_manifest = confirmatory_manifest(inputs)
     key_manifest = confirmatory_test_key_manifest(inputs)
     inputs = replace(
@@ -88,11 +88,6 @@ def _fixture():
         create_e20_run_ledger(authorization, "2026-08-16T20:29:00Z"),
         "2026-08-16T20:29:30Z",
     )
-    condition = next(
-        value
-        for value in condition_plan.conditions
-        if value.schedule_policy is SchedulePolicy.RANDOM_VALID
-    )
     source_sample = next(
         value
         for value in corpus_manifest.samples
@@ -104,6 +99,17 @@ def _fixture():
             keys=(11, 22, 33),
             context_history_size=8,
         )
+    )
+    calibration_bundle = next(
+        value
+        for value in preregistration.calibration_bundles
+        if value.detector_identity.adapter_id == adapter.adapter_id
+    )
+    condition = next(
+        value
+        for value in condition_plan.conditions
+        if value.schedule_policy is SchedulePolicy.RANDOM_VALID
+        and value.calibration_bundle_hash == calibration_bundle.bundle_hash
     )
     registry = default_transform_registry()
     enumeration = registry.enumerate(source_sample.text)
@@ -146,11 +152,6 @@ def _fixture():
     )
     original_evidence = mean_evidence(original_batch)
     transformed_evidence = mean_evidence(transformed_batch)
-    calibration_bundle = next(
-        value
-        for value in preregistration.calibration_bundles
-        if value.detector_identity.adapter_id == adapter.adapter_id
-    )
     original_detector_result = apply_calibration(
         original_evidence,
         calibration_bundle,
@@ -195,6 +196,21 @@ def test_no_eligible_e20_row_replays_from_full_source_artifact_chain() -> None:
     assert row.gvalues.hamming_difference_count == 0
     assert row.detector.pristine_raw_score == row.detector.transformed_raw_score
     verify_e20_outcome_row(row, **artifacts)
+
+
+def test_public_outcome_rejects_runtime_bundle_different_from_sealed_condition() -> None:
+    artifacts = _fixture()
+    current = artifacts["condition_plan"].condition(artifacts["condition_id"])
+    wrong_condition = next(
+        value
+        for value in artifacts["condition_plan"].conditions
+        if value.schedule_policy is current.schedule_policy
+        and value.calibration_bundle_hash != current.calibration_bundle_hash
+    )
+    changed = dict(artifacts)
+    changed["condition_id"] = wrong_condition.condition_id
+    with pytest.raises(E20RowVerificationError, match="detector bundle frozen"):
+        build_e20_outcome_row(**changed)
 
 
 def test_source_replay_rejects_internally_valid_rehashed_row_with_wrong_bootstrap_group() -> None:
