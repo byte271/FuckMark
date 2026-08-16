@@ -9,6 +9,15 @@ from .development_calibration import (
     DevelopmentCalibrationError,
     calibrate_tiny_dev_detector,
 )
+from .e02_pristine import (
+    E02_ALGORITHM_VERSION,
+    E02_INTERPRETABILITY_FLOOR,
+    E02InputError,
+    E02OperatingPoint,
+    E02PristineDetectabilityResult,
+    E02Status,
+    run_e02_pristine_detectability,
+)
 from .registry import (
     DEVELOPMENT_EXPERIMENT_REGISTRY_VERSION,
     DEVELOPMENT_EXPERIMENTS,
@@ -30,6 +39,12 @@ __all__ = [
     "DEVELOPMENT_PROMPT_BOUNDARY_MODE",
     "DEVELOPMENT_TARGET_FPRS",
     "DEVELOPMENT_TOKEN_TRACK",
+    "E02_ALGORITHM_VERSION",
+    "E02_INTERPRETABILITY_FLOOR",
+    "E02InputError",
+    "E02OperatingPoint",
+    "E02PristineDetectabilityResult",
+    "E02Status",
     "DevelopmentCalibrationBinding",
     "DevelopmentCalibrationError",
     "DevelopmentDataScope",
@@ -39,4 +54,5 @@ __all__ = [
     "TransformSelectionAccess",
     "calibrate_tiny_dev_detector",
     "default_development_experiment_registry",
+    "run_e02_pristine_detectability",
 ]
