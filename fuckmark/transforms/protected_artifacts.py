@@ -48,6 +48,8 @@ class ProtectedSpan:
             raise ValueError("protected span must satisfy 0 <= start < end")
         if not isinstance(self.exact_text, str) or not self.exact_text:
             raise ValueError("exact_text must be a non-empty string")
+        if self.end - self.start != len(self.exact_text):
+            raise ValueError("protected span geometry does not match exact_text")
         kinds = tuple(self.kinds)
         if not kinds or any(not isinstance(kind, ProtectedSpanKind) for kind in kinds):
             raise TypeError("kinds must contain ProtectedSpanKind values")
@@ -156,6 +158,13 @@ class ProtectedInvariantReport:
         if any(not isinstance(value, InvariantDifference) for value in differences):
             raise TypeError("differences must contain InvariantDifference values")
         object.__setattr__(self, "differences", differences)
+        if differences != tuple(sorted(differences, key=lambda value: (value.kind.value, value.exact_text))):
+            raise ValueError("differences must be canonically ordered")
+        keys = tuple((value.kind, value.exact_text) for value in differences)
+        if len(set(keys)) != len(keys):
+            raise ValueError("differences must not duplicate protected keys")
+        if self.original_hash == self.transformed_hash and differences:
+            raise ValueError("identical text hashes cannot contain invariant differences")
         expected_status = InvariantStatus.PASS if not differences else InvariantStatus.FAIL
         if self.status is not expected_status:
             raise ValueError("status does not match invariant differences")
