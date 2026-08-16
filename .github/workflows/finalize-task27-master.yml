@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - .github/workflows/finalize-task27-master.yml
+      - .github/scripts/apply_task27_hardening.py
 
 permissions:
   contents: write
