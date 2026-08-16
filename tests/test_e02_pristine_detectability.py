@@ -10,6 +10,7 @@ from fuckmark.experiments.e02_pristine import (
     E02Status,
     run_e02_pristine_detectability,
 )
+from fuckmark.hashing import sha256_json
 from tiny_dev_experiment_helpers import attack_evidence, calibration_evidence, tiny_dev_artifact
 
 
@@ -71,8 +72,22 @@ def test_e02_replays_identically_independent_of_evidence_input_order() -> None:
 def test_e02_rejects_calibration_binding_from_other_corpus_identity() -> None:
     artifact = tiny_dev_artifact()
     calibration = _calibration()
-    forged = replace(calibration, tiny_dev_artifact_hash="f" * 64, binding_hash="0" * 64)
-    with pytest.raises(ValueError):
+    other_artifact_hash = "f" * 64
+    forged_hash = sha256_json(
+        {
+            "algorithm_version": calibration.algorithm_version,
+            "corpus_id": calibration.corpus_id,
+            "tiny_dev_artifact_hash": other_artifact_hash,
+            "calibration_sample_id_hash": calibration.calibration_sample_id_hash,
+            "calibration_bundle_hash": calibration.calibration_bundle.bundle_hash,
+        }
+    )
+    forged = replace(
+        calibration,
+        tiny_dev_artifact_hash=other_artifact_hash,
+        binding_hash=forged_hash,
+    )
+    with pytest.raises(E02InputError, match="does not belong"):
         run_e02_pristine_detectability(artifact, forged, attack_evidence())
 
 
