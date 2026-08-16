@@ -54,11 +54,27 @@ from .scheduler import (
     SchedulerCandidate,
 )
 from .schema import CandidateRejectionReason, HardInvariantReason, InvariantStatus, ProtectedSpanKind, TransformFamily, TransformTier
+from .syntax_audit import (
+    MINIMUM_SYNTAX_EQUIVALENT_OR_MINOR_RATE,
+    MINIMUM_SYNTAX_GRAMMAR_FIXTURES_PER_CLASS,
+    MINIMUM_SYNTAX_HUMAN_AUDIT_SAMPLES,
+    SYNTAX_RULE_AUDIT_ALGORITHM_VERSION,
+    SyntaxAuditStatus,
+    SyntaxRuleAudit,
+    create_syntax_rule_audit,
+)
 from .syntax_rules import (
     SYNTAX_TEMPLATE_RULE_ALGORITHM_VERSION,
     SyntaxConstruction,
     SyntaxTemplateRule,
     development_syntax_rules,
+)
+from .syntax_tokenization import (
+    SYNTAX_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION,
+    SyntaxRetokenizationFixture,
+    SyntaxRetokenizationVerificationError,
+    capture_syntax_retokenization_fixture,
+    verify_syntax_retokenization_fixture,
 )
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
@@ -95,6 +111,9 @@ __all__ = [
     "MINIMUM_EQUIVALENT_OR_MINOR_RATE",
     "MINIMUM_GRAMMAR_FIXTURES_PER_CLASS",
     "MINIMUM_HUMAN_AUDIT_SAMPLES",
+    "MINIMUM_SYNTAX_EQUIVALENT_OR_MINOR_RATE",
+    "MINIMUM_SYNTAX_GRAMMAR_FIXTURES_PER_CLASS",
+    "MINIMUM_SYNTAX_HUMAN_AUDIT_SAMPLES",
     "PROTECTED_SPAN_ALGORITHM_VERSION",
     "ProtectedInvariantReport",
     "ProtectedSpan",
@@ -106,8 +125,14 @@ __all__ = [
     "SchedulePolicy",
     "ScheduleResult",
     "SchedulerCandidate",
+    "SYNTAX_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION",
+    "SYNTAX_RULE_AUDIT_ALGORITHM_VERSION",
     "SYNTAX_TEMPLATE_RULE_ALGORITHM_VERSION",
+    "SyntaxAuditStatus",
     "SyntaxConstruction",
+    "SyntaxRetokenizationFixture",
+    "SyntaxRetokenizationVerificationError",
+    "SyntaxRuleAudit",
     "SyntaxTemplateRule",
     "TRANSFORM_APPLY_ALGORITHM_VERSION",
     "TRANSFORM_REGISTRY_ALGORITHM_VERSION",
@@ -121,7 +146,9 @@ __all__ = [
     "TransformationTrace",
     "UserProtectedRange",
     "capture_lexical_retokenization_fixture",
+    "capture_syntax_retokenization_fixture",
     "create_lexical_rule_audit",
+    "create_syntax_rule_audit",
     "default_contraction_rules",
     "default_transform_registry",
     "development_lexical_rules",
@@ -131,4 +158,5 @@ __all__ = [
     "require_release_eligible_lexical_rules",
     "validate_protected_invariants",
     "verify_lexical_retokenization_fixture",
+    "verify_syntax_retokenization_fixture",
 ]
