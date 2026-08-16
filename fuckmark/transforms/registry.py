@@ -13,9 +13,10 @@ from .protected import ProtectedSpanExtractor
 from .protected_artifacts import ProtectedSpan, UserProtectedRange
 from .rules import TransformRule, default_contraction_rules, validate_rules
 from .schema import CandidateRejectionReason, InvariantStatus
+from .syntax_rules import SyntaxTemplateRule, development_syntax_rules
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
-TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v5"
+TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v6"
 TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v4"
 _MAX_ENUMERATION_ITEMS = 100_000
 _MAX_RULE_SCAN_WORK = 50_000_000
@@ -101,7 +102,7 @@ class TransformRegistry:
                 if rule.block_all_caps and letters and letters.isupper():
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.ALL_CAPS_BLOCKED))
                     continue
-                if isinstance(rule, LexicalTemplateRule) and not rule.precondition(text, start, end):
+                if isinstance(rule, (LexicalTemplateRule, SyntaxTemplateRule)) and not rule.precondition(text, start, end):
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.PRECONDITION_FAILED))
                     continue
                 replacement = rule.replacement
@@ -188,7 +189,7 @@ def default_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegi
 
 
 def development_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegistry:
-    return TransformRegistry((*default_contraction_rules(), *development_lexical_rules()), identifiers)
+    return TransformRegistry((*default_contraction_rules(), *development_lexical_rules(), *development_syntax_rules()), identifiers)
 
 
 def release_transform_registry(
