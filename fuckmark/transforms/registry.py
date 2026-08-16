@@ -125,6 +125,12 @@ class TransformRegistry:
             raise ValueError("seed must be between 0 and 2^64-1")
         if not isinstance(candidate_ids, Sequence) or isinstance(candidate_ids, (str, bytes, bytearray)):
             raise TypeError("candidate_ids must be a sequence")
+        requested_count = len(candidate_ids)
+        available_count = len(enumeration.candidates)
+        if available_count == 0 and requested_count:
+            raise KeyError("candidate_ids contains an unknown or rejected candidate")
+        if requested_count > available_count:
+            raise ValueError("candidate_ids cannot exceed available candidates")
         requested = tuple(candidate_ids)
         for value in requested:
             require_sha256("candidate_id", value)
@@ -134,8 +140,6 @@ class TransformRegistry:
         unknown = tuple(value for value in requested if value not in by_id)
         if unknown:
             raise KeyError("candidate_ids contains an unknown or rejected candidate")
-        if len(requested) > len(enumeration.candidates):
-            raise ValueError("candidate_ids cannot exceed available candidates")
         conflict_pairs = {(value.first_candidate_id, value.second_candidate_id) for value in enumeration.conflicts}
         requested_set = set(requested)
         if any(first in requested_set and second in requested_set for first, second in conflict_pairs):
