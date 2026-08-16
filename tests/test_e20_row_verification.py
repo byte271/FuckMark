@@ -13,10 +13,10 @@ from fuckmark.adapters import DeepMindReferenceAdapter, DeepMindReferenceConfig
 from fuckmark.corpus import TextOnlyTokenRecord, WatermarkLabel
 from fuckmark.detectors import apply_calibration, mean_evidence
 from fuckmark.environment import capture_environment
+from fuckmark.experiments import authorize_e20_execution
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
 from fuckmark.experiments.confirmatory_corpus import build_confirmatory_corpus_seal
 from fuckmark.experiments.e20_execution import (
-    authorize_e20_execution,
     create_e20_run_ledger,
     derive_e20_condition_seed,
     start_e20_run,
@@ -43,6 +43,7 @@ TIMESTAMP = "2026-08-16T20:30:00Z"
 
 def _fixture():
     inputs = preregistration_inputs(final_n_per_core_cell=1)
+    condition_plan = confirmatory_condition_plan()
     corpus_manifest = confirmatory_manifest(inputs)
     key_manifest = confirmatory_test_key_manifest(inputs)
     inputs = replace(
@@ -64,6 +65,7 @@ def _fixture():
     environment = capture_environment()
     authorization = authorize_e20_execution(
         preregistration,
+        condition_plan,
         corpus_seal,
         corpus_manifest,
         key_manifest,
@@ -78,14 +80,19 @@ def _fixture():
         code_commit=preregistration.code_commit,
         spec_revision_hash=preregistration.spec_revision_hash,
         power_analysis_hash=preregistration.power_analysis_hash,
-        budget_config_hash=preregistration.budget_config_hash,
         verification_test_hashes=preregistration.verification_test_hashes,
         model_tokenizers=preregistration.model_tokenizers,
         calibration_negative_evidence=calibration_evidence,
     )
-    ledger = start_e20_run(create_e20_run_ledger(authorization, "2026-08-16T20:29:00Z"), "2026-08-16T20:29:30Z")
-    condition_plan = confirmatory_condition_plan()
-    condition = next(value for value in condition_plan.conditions if value.schedule_policy is SchedulePolicy.RANDOM_VALID)
+    ledger = start_e20_run(
+        create_e20_run_ledger(authorization, "2026-08-16T20:29:00Z"),
+        "2026-08-16T20:29:30Z",
+    )
+    condition = next(
+        value
+        for value in condition_plan.conditions
+        if value.schedule_policy is SchedulePolicy.RANDOM_VALID
+    )
     source_sample = next(
         value
         for value in corpus_manifest.samples
@@ -144,8 +151,16 @@ def _fixture():
         for value in preregistration.calibration_bundles
         if value.detector_identity.adapter_id == adapter.adapter_id
     )
-    original_detector_result = apply_calibration(original_evidence, calibration_bundle, condition.target_fpr)
-    transformed_detector_result = apply_calibration(transformed_evidence, calibration_bundle, condition.target_fpr)
+    original_detector_result = apply_calibration(
+        original_evidence,
+        calibration_bundle,
+        condition.target_fpr,
+    )
+    transformed_detector_result = apply_calibration(
+        transformed_evidence,
+        calibration_bundle,
+        condition.target_fpr,
+    )
     artifacts = {
         "authorization": authorization,
         "ledger": ledger,
@@ -198,7 +213,11 @@ def test_source_replay_rejects_internally_valid_rehashed_row_with_wrong_bootstra
         row.observation,
         row.gvalues,
         row.detector,
-        E20StatisticsFields(row.statistics.stratum_id, "wrong-bootstrap-group", row.statistics.hypothesis_class),
+        E20StatisticsFields(
+            row.statistics.stratum_id,
+            "wrong-bootstrap-group",
+            row.statistics.hypothesis_class,
+        ),
         row.audit,
     )
     with pytest.raises(E20RowVerificationError, match="does not replay exactly"):
@@ -213,8 +232,9 @@ def test_source_replay_rejects_schedule_seed_not_derived_from_sealed_execution()
         artifacts["schedule_result"].budget,
         artifacts["schedule_result"].seed + 1,
     )
-    wrong_transform = default_transform_registry().apply(
-        default_transform_registry().enumerate(artifacts["source_sample"].text),
+    registry = default_transform_registry()
+    wrong_transform = registry.apply(
+        registry.enumerate(artifacts["source_sample"].text),
         wrong_schedule.selected_candidate_ids,
         wrong_schedule.seed,
     )
@@ -239,7 +259,7 @@ def test_source_replay_rejects_transformed_batch_without_condition_bound_identit
     changed["transformed_detector_result"] = apply_calibration(
         changed["transformed_evidence"],
         artifacts["calibration_bundle"],
-        artifacts["schedule_result"].policy and 0.01,
+        artifacts["original_detector_result"].target_fpr,
     )
     with pytest.raises(E20RowVerificationError, match="canonical condition-bound identity"):
         build_e20_outcome_row(**changed)
