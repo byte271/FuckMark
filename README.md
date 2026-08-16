@@ -17,6 +17,24 @@ Historical project identities and the former Python namespace are retired and mu
 
 The project remains on `v0.1.0` for this research line. Fixes and research hardening do not change the project version.
 
+## Interactive CLI
+
+Install the package, then run exactly:
+
+```text
+FuckMark
+```
+
+Paste one or more lines of text. Type `ok` on its own line and press Enter when the paste is complete.
+
+The CLI prints `Processing...`, applies the current deterministic release transform registry, and copies the resulting text to the system clipboard. When clipboard transfer succeeds it prints `Success. Copied to clipboard.` If no eligible release transformation exists, the original text is copied unchanged.
+
+The CLI uses the same protected-span and hard-invariant checks as the release transform registry. Development-only lexical and syntax rules are not enabled by this command.
+
+On macOS the CLI uses `pbcopy`. On Windows it uses `clip`. On Linux it tries `wl-copy`, `xclip`, `xsel`, and `clip.exe` in that order. If no supported clipboard command is available, the processed text is printed so it is not lost.
+
+This interface performs deterministic text transformation. It is not a watermark detector and does not claim to remove, defeat, or validate any proprietary watermarking system.
+
 ## Current foundation
 
 1. Canonical serialization
@@ -66,7 +84,5 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 45. Explicit-candidate application with independent enumeration replay, exact operation geometry, immutable traces, and deterministic byte-identical replay
 46. Canonical negation and modality signatures that make hard-invariant validation reject semantic polarity or obligation changes
 47. Transform dependency isolation with no detector, watermark-key, network, model, or neural inference access in the transform package
-
-Bayesian checkpoint training, candidate scheduling, realized-budget rollback, lexical/syntax rules, experiments, aggregation, and reporting remain intentionally outside this layer.
 
 Python source is English-only and contains no comments or docstrings.
