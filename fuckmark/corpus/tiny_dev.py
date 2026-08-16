@@ -12,9 +12,10 @@ from .sample import CorpusSample
 from .schema import CorpusDomain, CorpusSplit, KeySplit, TARGET_LENGTHS
 
 
-TINY_DEV_CORPUS_ALGORITHM_VERSION = "tiny-dev-corpus-v1"
+TINY_DEV_CORPUS_ALGORITHM_VERSION = "tiny-dev-corpus-v2"
 TINY_DEV_TARGET_LENGTH = 64
-TINY_DEV_PAIRS_PER_CELL = 1
+TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN = 25
+TINY_DEV_ATTACK_PAIRS_PER_DOMAIN = 1
 TINY_DEV_SPLITS = (
     CorpusSplit.THRESHOLD_CALIBRATION,
     CorpusSplit.ATTACK_DEVELOPMENT,
@@ -24,6 +25,14 @@ TINY_DEV_DOMAINS = tuple(CorpusDomain)
 
 class TinyDevCorpusError(ValueError):
     pass
+
+
+def _pairs_for_split(split: CorpusSplit) -> int:
+    if split is CorpusSplit.THRESHOLD_CALIBRATION:
+        return TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN
+    if split is CorpusSplit.ATTACK_DEVELOPMENT:
+        return TINY_DEV_ATTACK_PAIRS_PER_DOMAIN
+    raise TinyDevCorpusError("split is outside the frozen tiny development profile")
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,8 +47,8 @@ class TinyDevCorpusCell:
         if not isinstance(self.domain, CorpusDomain):
             raise TypeError("domain must be a CorpusDomain")
         require_int("pair_count", self.pair_count)
-        if self.pair_count != TINY_DEV_PAIRS_PER_CELL:
-            raise ValueError("tiny development corpus cells must contain exactly one matched pair")
+        if self.pair_count != _pairs_for_split(self.split):
+            raise ValueError("tiny development corpus cell pair count does not match the frozen profile")
 
 
 @dataclass(frozen=True, slots=True)
@@ -47,7 +56,8 @@ class TinyDevCorpusArtifact:
     algorithm_version: str
     manifest: CorpusManifest
     target_length: int
-    pairs_per_cell: int
+    calibration_pairs_per_domain: int
+    attack_pairs_per_domain: int
     required_splits: tuple[CorpusSplit, ...]
     required_domains: tuple[CorpusDomain, ...]
     model_identity_hash: str
@@ -65,9 +75,12 @@ class TinyDevCorpusArtifact:
         require_int("target_length", self.target_length)
         if self.target_length != TINY_DEV_TARGET_LENGTH or self.target_length not in TARGET_LENGTHS:
             raise ValueError("tiny development corpus target length must be 64")
-        require_int("pairs_per_cell", self.pairs_per_cell)
-        if self.pairs_per_cell != TINY_DEV_PAIRS_PER_CELL:
-            raise ValueError("tiny development corpus pairs_per_cell must be one")
+        require_int("calibration_pairs_per_domain", self.calibration_pairs_per_domain)
+        require_int("attack_pairs_per_domain", self.attack_pairs_per_domain)
+        if self.calibration_pairs_per_domain != TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN:
+            raise ValueError("calibration pair count does not match the frozen tiny development profile")
+        if self.attack_pairs_per_domain != TINY_DEV_ATTACK_PAIRS_PER_DOMAIN:
+            raise ValueError("attack pair count does not match the frozen tiny development profile")
         if self.required_splits != TINY_DEV_SPLITS:
             raise ValueError("tiny development corpus split profile does not match the frozen profile")
         if self.required_domains != TINY_DEV_DOMAINS:
@@ -80,7 +93,7 @@ class TinyDevCorpusArtifact:
         if any(not isinstance(value, TinyDevCorpusCell) for value in self.cells):
             raise TypeError("cells must contain TinyDevCorpusCell values")
         expected_cells = tuple(
-            TinyDevCorpusCell(split, domain, TINY_DEV_PAIRS_PER_CELL)
+            TinyDevCorpusCell(split, domain, _pairs_for_split(split))
             for split in TINY_DEV_SPLITS
             for domain in TINY_DEV_DOMAINS
         )
@@ -101,7 +114,8 @@ class TinyDevCorpusArtifact:
             "algorithm_version": self.algorithm_version,
             "manifest_hash": self.manifest.manifest_hash,
             "target_length": self.target_length,
-            "pairs_per_cell": self.pairs_per_cell,
+            "calibration_pairs_per_domain": self.calibration_pairs_per_domain,
+            "attack_pairs_per_domain": self.attack_pairs_per_domain,
             "required_splits": tuple(value.value for value in self.required_splits),
             "required_domains": tuple(value.value for value in self.required_domains),
             "model_identity_hash": self.model_identity_hash,
@@ -119,11 +133,19 @@ def _validate_tiny_dev_manifest(
 ) -> None:
     prompts = manifest.prompts
     samples = manifest.samples
-    expected_pair_count = len(TINY_DEV_SPLITS) * len(TINY_DEV_DOMAINS) * TINY_DEV_PAIRS_PER_CELL
-    if len(samples) != expected_pair_count * 2:
-        raise TinyDevCorpusError("tiny development corpus must contain exactly sixteen samples")
+    expected_pair_count = sum(
+        _pairs_for_split(split) * len(TINY_DEV_DOMAINS)
+        for split in TINY_DEV_SPLITS
+    )
+    expected_sample_count = expected_pair_count * 2
+    if len(samples) != expected_sample_count:
+        raise TinyDevCorpusError(
+            f"tiny development corpus must contain exactly {expected_sample_count} samples"
+        )
     if len({sample.match_id for sample in samples}) != expected_pair_count:
-        raise TinyDevCorpusError("tiny development corpus must contain exactly eight matched pairs")
+        raise TinyDevCorpusError(
+            f"tiny development corpus must contain exactly {expected_pair_count} matched pairs"
+        )
     if len(prompts) != expected_pair_count:
         raise TinyDevCorpusError("tiny development corpus must contain exactly one prompt per matched pair")
     allowed_splits = set(TINY_DEV_SPLITS)
@@ -159,12 +181,20 @@ def _validate_tiny_dev_manifest(
         seen_match_ids.add(sample.match_id)
         cell_pairs[(sample.split, sample.domain)] += 1
     expected_cells = {
-        (split, domain): TINY_DEV_PAIRS_PER_CELL
+        (split, domain): _pairs_for_split(split)
         for split in TINY_DEV_SPLITS
         for domain in TINY_DEV_DOMAINS
     }
     if dict(cell_pairs) != expected_cells:
-        raise TinyDevCorpusError("tiny development corpus must contain one matched pair in every split/domain cell")
+        raise TinyDevCorpusError("tiny development corpus split/domain pair counts do not match the frozen profile")
+    calibration_negatives = sum(
+        1
+        for sample in samples
+        if sample.split is CorpusSplit.THRESHOLD_CALIBRATION
+        and sample.label.value == "unwatermarked"
+    )
+    if calibration_negatives < 100:
+        raise TinyDevCorpusError("tiny development corpus must contain at least 100 calibration negatives")
 
 
 def build_tiny_dev_corpus(
@@ -193,7 +223,7 @@ def build_tiny_dev_corpus(
         watermark_condition_hash,
     )
     cells = tuple(
-        TinyDevCorpusCell(split, domain, TINY_DEV_PAIRS_PER_CELL)
+        TinyDevCorpusCell(split, domain, _pairs_for_split(split))
         for split in TINY_DEV_SPLITS
         for domain in TINY_DEV_DOMAINS
     )
@@ -201,7 +231,8 @@ def build_tiny_dev_corpus(
         "algorithm_version": TINY_DEV_CORPUS_ALGORITHM_VERSION,
         "manifest_hash": manifest.manifest_hash,
         "target_length": TINY_DEV_TARGET_LENGTH,
-        "pairs_per_cell": TINY_DEV_PAIRS_PER_CELL,
+        "calibration_pairs_per_domain": TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN,
+        "attack_pairs_per_domain": TINY_DEV_ATTACK_PAIRS_PER_DOMAIN,
         "required_splits": tuple(value.value for value in TINY_DEV_SPLITS),
         "required_domains": tuple(value.value for value in TINY_DEV_DOMAINS),
         "model_identity_hash": model_identity_hash,
@@ -213,7 +244,8 @@ def build_tiny_dev_corpus(
         TINY_DEV_CORPUS_ALGORITHM_VERSION,
         manifest,
         TINY_DEV_TARGET_LENGTH,
-        TINY_DEV_PAIRS_PER_CELL,
+        TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN,
+        TINY_DEV_ATTACK_PAIRS_PER_DOMAIN,
         TINY_DEV_SPLITS,
         TINY_DEV_DOMAINS,
         model_identity_hash,
