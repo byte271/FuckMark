@@ -1,0 +1,173 @@
+name: Experiment key-blind hardening
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/patch-experiment-key-blind.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Apply hardening patches
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          schedule_path = Path('fuckmark/experiments/schedule_analysis.py')
+          schedule = schedule_path.read_text()
+          if 'from ..hashing import sha256_json, sha256_text' not in schedule:
+              old = 'from ..hashing import sha256_json\n'
+              assert old in schedule
+              schedule = schedule.replace(old, 'from ..hashing import sha256_json, sha256_text\n', 1)
+          if 'schedule row source text hash does not match corpus source' not in schedule:
+              old = '''        if row.prompt_family_id != sample.prompt_family_id:\n            raise TransformAnalysisInputError("schedule row prompt family does not match corpus source")\n        if row.key_split is not KeySplit.DEV:\n'''
+              new = '''        if row.prompt_family_id != sample.prompt_family_id:\n            raise TransformAnalysisInputError("schedule row prompt family does not match corpus source")\n        if row.source_text_hash != sha256_text(sample.text):\n            raise TransformAnalysisInputError("schedule row source text hash does not match corpus source")\n        if row.key_split is not KeySplit.DEV:\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, new, 1)
+          if 'variants from one source must share one pristine score' not in schedule:
+              old = '''    if not rows:\n        raise TransformAnalysisInputError("schedule analysis requires at least one row")\n    detector_ids = {row.detector_identity_hash for row in rows}\n'''
+              new = '''    if not rows:\n        raise TransformAnalysisInputError("schedule analysis requires at least one row")\n    for source_sample_id in {row.source_sample_id for row in rows}:\n        source_rows = tuple(row for row in rows if row.source_sample_id == source_sample_id)\n        if len({row.pristine_score for row in source_rows}) != 1:\n            raise TransformAnalysisInputError("variants from one source must share one pristine score")\n    detector_ids = {row.detector_identity_hash for row in rows}\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, new, 1)
+          pair_marker = '''        row.candidate_pool_hash,\n        row.scheduler_input_hash,\n        row.budget,\n'''
+          if pair_marker not in schedule:
+              old = '''        row.candidate_pool_hash,\n        row.budget,\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, pair_marker, 1)
+          signature = '''def _validate_schedule_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n    *,\n    allow_secret_access: bool = False,\n) -> tuple[str, str, float]:\n'''
+          if signature not in schedule:
+              old = '''def _validate_schedule_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n) -> tuple[str, str, float]:\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, signature, 1)
+          secret_guard = 'secret access contaminates key-blind schedule analysis'
+          if secret_guard not in schedule:
+              old = '''    if len({row.row_hash for row in rows}) != len(rows):\n        raise TransformAnalysisInputError("schedule analysis rows must not contain duplicate artifacts")\n    sample_by_id = _expected_attack_sources(artifact)\n'''
+              new = '''    if len({row.row_hash for row in rows}) != len(rows):\n        raise TransformAnalysisInputError("schedule analysis rows must not contain duplicate artifacts")\n    if type(allow_secret_access) is not bool:\n        raise TypeError("allow_secret_access must be a bool")\n    if not allow_secret_access and any(row.secret_access_observed for row in rows):\n        raise TransformAnalysisInputError("secret access contaminates key-blind schedule analysis")\n    sample_by_id = _expected_attack_sources(artifact)\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, new, 1)
+          function_marker = 'def run_e11_greedy_comparison('
+          index = schedule.index(function_marker)
+          head, tail = schedule[:index], schedule[index:]
+          desired = '    detector_identity_hash, threshold_hash, _ = _validate_schedule_rows(artifact, rows, allow_secret_access=True)\n'
+          if desired not in tail:
+              old = '    detector_identity_hash, threshold_hash, _ = _validate_schedule_rows(artifact, rows)\n'
+              assert old in tail
+              tail = tail.replace(old, desired, 1)
+              schedule = head + tail
+          assert 'schedule row source text hash does not match corpus source' in schedule
+          assert 'variants from one source must share one pristine score' in schedule
+          assert pair_marker in schedule
+          assert secret_guard in schedule
+          assert desired in schedule
+          schedule_path.write_text(schedule)
+
+          analysis_path = Path('fuckmark/experiments/transform_analysis.py')
+          analysis = analysis_path.read_text()
+          analysis_guard = 'secret access contaminates E07/E08 key-blind analysis'
+          if analysis_guard not in analysis:
+              old = '''def _validate_tiny_attack_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n) -> tuple[str, str, tuple[str, ...]]:\n    expected_samples = tuple(\n'''
+              new = '''def _validate_tiny_attack_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n) -> tuple[str, str, tuple[str, ...]]:\n    if any(row.secret_access_observed for row in rows):\n        raise TransformAnalysisInputError("secret access contaminates E07/E08 key-blind analysis")\n    expected_samples = tuple(\n'''
+              assert old in analysis
+              analysis = analysis.replace(old, new, 1)
+          assert analysis_guard in analysis
+          analysis_path.write_text(analysis)
+          PY
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Test
+        run: python -m pytest -q
+
+  commit:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rebase on latest main
+        shell: bash
+        run: |
+          git fetch origin main
+          git reset --hard origin/main
+      - name: Apply hardening patches
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          schedule_path = Path('fuckmark/experiments/schedule_analysis.py')
+          schedule = schedule_path.read_text()
+          if 'from ..hashing import sha256_json, sha256_text' not in schedule:
+              old = 'from ..hashing import sha256_json\n'
+              assert old in schedule
+              schedule = schedule.replace(old, 'from ..hashing import sha256_json, sha256_text\n', 1)
+          if 'schedule row source text hash does not match corpus source' not in schedule:
+              old = '''        if row.prompt_family_id != sample.prompt_family_id:\n            raise TransformAnalysisInputError("schedule row prompt family does not match corpus source")\n        if row.key_split is not KeySplit.DEV:\n'''
+              new = '''        if row.prompt_family_id != sample.prompt_family_id:\n            raise TransformAnalysisInputError("schedule row prompt family does not match corpus source")\n        if row.source_text_hash != sha256_text(sample.text):\n            raise TransformAnalysisInputError("schedule row source text hash does not match corpus source")\n        if row.key_split is not KeySplit.DEV:\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, new, 1)
+          if 'variants from one source must share one pristine score' not in schedule:
+              old = '''    if not rows:\n        raise TransformAnalysisInputError("schedule analysis requires at least one row")\n    detector_ids = {row.detector_identity_hash for row in rows}\n'''
+              new = '''    if not rows:\n        raise TransformAnalysisInputError("schedule analysis requires at least one row")\n    for source_sample_id in {row.source_sample_id for row in rows}:\n        source_rows = tuple(row for row in rows if row.source_sample_id == source_sample_id)\n        if len({row.pristine_score for row in source_rows}) != 1:\n            raise TransformAnalysisInputError("variants from one source must share one pristine score")\n    detector_ids = {row.detector_identity_hash for row in rows}\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, new, 1)
+          pair_marker = '''        row.candidate_pool_hash,\n        row.scheduler_input_hash,\n        row.budget,\n'''
+          if pair_marker not in schedule:
+              old = '''        row.candidate_pool_hash,\n        row.budget,\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, pair_marker, 1)
+          signature = '''def _validate_schedule_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n    *,\n    allow_secret_access: bool = False,\n) -> tuple[str, str, float]:\n'''
+          if signature not in schedule:
+              old = '''def _validate_schedule_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n) -> tuple[str, str, float]:\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, signature, 1)
+          if 'secret access contaminates key-blind schedule analysis' not in schedule:
+              old = '''    if len({row.row_hash for row in rows}) != len(rows):\n        raise TransformAnalysisInputError("schedule analysis rows must not contain duplicate artifacts")\n    sample_by_id = _expected_attack_sources(artifact)\n'''
+              new = '''    if len({row.row_hash for row in rows}) != len(rows):\n        raise TransformAnalysisInputError("schedule analysis rows must not contain duplicate artifacts")\n    if type(allow_secret_access) is not bool:\n        raise TypeError("allow_secret_access must be a bool")\n    if not allow_secret_access and any(row.secret_access_observed for row in rows):\n        raise TransformAnalysisInputError("secret access contaminates key-blind schedule analysis")\n    sample_by_id = _expected_attack_sources(artifact)\n'''
+              assert old in schedule
+              schedule = schedule.replace(old, new, 1)
+          function_marker = 'def run_e11_greedy_comparison('
+          index = schedule.index(function_marker)
+          head, tail = schedule[:index], schedule[index:]
+          desired = '    detector_identity_hash, threshold_hash, _ = _validate_schedule_rows(artifact, rows, allow_secret_access=True)\n'
+          if desired not in tail:
+              old = '    detector_identity_hash, threshold_hash, _ = _validate_schedule_rows(artifact, rows)\n'
+              assert old in tail
+              tail = tail.replace(old, desired, 1)
+              schedule = head + tail
+          schedule_path.write_text(schedule)
+
+          analysis_path = Path('fuckmark/experiments/transform_analysis.py')
+          analysis = analysis_path.read_text()
+          if 'secret access contaminates E07/E08 key-blind analysis' not in analysis:
+              old = '''def _validate_tiny_attack_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n) -> tuple[str, str, tuple[str, ...]]:\n    expected_samples = tuple(\n'''
+              new = '''def _validate_tiny_attack_rows(\n    artifact: TinyDevCorpusArtifact,\n    rows: tuple[DevelopmentTransformRow, ...],\n) -> tuple[str, str, tuple[str, ...]]:\n    if any(row.secret_access_observed for row in rows):\n        raise TransformAnalysisInputError("secret access contaminates E07/E08 key-blind analysis")\n    expected_samples = tuple(\n'''
+              assert old in analysis
+              analysis = analysis.replace(old, new, 1)
+          analysis_path.write_text(analysis)
+          PY
+      - name: Commit validated hardening
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f --ignore-unmatch .github/workflows/patch-schedule-identity.yml .github/workflows/patch-experiment-key-blind.yml
+          git add fuckmark/experiments/schedule_analysis.py fuckmark/experiments/transform_analysis.py
+          git commit -m "Harden experiment key-blind identity boundaries"
+          git push origin HEAD:main
+          git push origin --delete __probe_invalid__ || true
