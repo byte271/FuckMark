@@ -10,6 +10,7 @@ from .schema import TransformFamily, TransformTier
 
 
 RULE_ALGORITHM_VERSION = "literal-transform-rule-v2"
+_MAX_RULES = 100_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,6 +134,8 @@ def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
 def validate_rules(rules: Sequence[LiteralTransformRule]) -> tuple[LiteralTransformRule, ...]:
     if not isinstance(rules, Sequence) or isinstance(rules, (str, bytes, bytearray)):
         raise TypeError("rules must be a sequence")
+    if len(rules) > _MAX_RULES:
+        raise ValueError("rules exceeded resource limit")
     normalized = tuple(rules)
     if not normalized:
         raise ValueError("rules must not be empty")

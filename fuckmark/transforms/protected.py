@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+import re
+from collections.abc import Iterator, Sequence
 
 from .._validation import require_clean_string
 from ..hashing import sha256_json, sha256_text
@@ -11,11 +12,11 @@ from .protected_patterns import (
     _add_regex,
     _add_urls,
     _append,
-    _identifier_matches,
     _AUTHOR_YEAR_CITATION_RE,
     _CLI_FLAG_RE,
     _CURRENCY_RE,
     _EMAIL_RE,
+    _MAX_PROTECTED_ITEMS,
     _NUMBER_RE,
     _NUMERIC_CITATION_RE,
     _PERCENT_RE,
@@ -36,7 +37,9 @@ from .protected_structures import (
 )
 from .schema import ProtectedSpanKind
 
-PROTECTED_SPAN_ALGORITHM_VERSION = "protected-span-extractor-v3"
+
+PROTECTED_SPAN_ALGORITHM_VERSION = "protected-span-extractor-v4"
+_MAX_IDENTIFIER_SCAN_WORK = 50_000_000
 
 
 def _merge_spans(text: str, raw: Sequence[tuple[int, int, ProtectedSpanKind]]) -> tuple[ProtectedSpan, ...]:
@@ -61,12 +64,61 @@ def _merge_spans(text: str, raw: Sequence[tuple[int, int, ProtectedSpanKind]]) -
     return tuple(output)
 
 
+def _is_escaped(text: str, index: int) -> bool:
+    count = 0
+    cursor = index - 1
+    while cursor >= 0 and text[cursor] == "\\":
+        count += 1
+        cursor -= 1
+    return count % 2 == 1
+
+
+def _markdown_label_closers(text: str) -> frozenset[int]:
+    stack: list[int] = []
+    closers: set[int] = set()
+    for index, character in enumerate(text):
+        if character == "\n":
+            stack.clear()
+            continue
+        if character not in "[]" or _is_escaped(text, index):
+            continue
+        if character == "[":
+            stack.append(index)
+        elif stack:
+            stack.pop()
+            closers.add(index)
+    return frozenset(closers)
+
+
+def _add_valid_markdown_destinations(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
+    closers = _markdown_label_closers(text)
+    if not closers:
+        return
+    temporary: list[tuple[int, int, ProtectedSpanKind]] = []
+    _add_markdown_destinations(temporary, text)
+    for start, end, kind in temporary:
+        if start >= 2 and start - 2 in closers:
+            _append(raw, start, end, kind)
+
+
+def _identifier_matches(text: str, identifier: str) -> Iterator[tuple[int, int]]:
+    escaped = re.escape(identifier)
+    if identifier[0].isalnum() or identifier[0] == "_":
+        escaped = rf"(?<!\w){escaped}"
+    if identifier[-1].isalnum() or identifier[-1] == "_":
+        escaped = rf"{escaped}(?!\w)"
+    for match in re.finditer(escaped, text):
+        yield match.start(), match.end()
+
+
 class ProtectedSpanExtractor:
     __slots__ = ("_identifiers",)
 
     def __init__(self, identifiers: Sequence[str] = ()) -> None:
         if not isinstance(identifiers, Sequence) or isinstance(identifiers, (str, bytes, bytearray)):
             raise TypeError("identifiers must be a sequence of strings")
+        if len(identifiers) > _MAX_PROTECTED_ITEMS:
+            raise ValueError("identifiers exceeded resource limit")
         materialized = tuple(identifiers)
         if any(not isinstance(value, str) for value in materialized):
             raise TypeError("identifiers must contain strings")
@@ -85,6 +137,10 @@ class ProtectedSpanExtractor:
             raise TypeError("text must be a string")
         if not isinstance(user_ranges, Sequence) or isinstance(user_ranges, (str, bytes, bytearray)):
             raise TypeError("user_ranges must be a sequence")
+        if len(user_ranges) > _MAX_PROTECTED_ITEMS:
+            raise ValueError("user_ranges exceeded resource limit")
+        if self._identifiers and len(self._identifiers) * len(text) > _MAX_IDENTIFIER_SCAN_WORK:
+            raise ValueError("identifier scanning exceeded work limit")
         materialized_ranges = tuple(user_ranges)
         if any(not isinstance(value, UserProtectedRange) for value in materialized_ranges):
             raise TypeError("user_ranges must contain UserProtectedRange values")
@@ -97,7 +153,7 @@ class ProtectedSpanExtractor:
         raw: list[tuple[int, int, ProtectedSpanKind]] = []
         _add_fenced_code(raw, text)
         _add_inline_code(raw, text)
-        _add_markdown_destinations(raw, text)
+        _add_valid_markdown_destinations(raw, text)
         _add_urls(raw, text)
         _add_regex(raw, text, _EMAIL_RE, ProtectedSpanKind.EMAIL)
         _add_ip_addresses(raw, text)

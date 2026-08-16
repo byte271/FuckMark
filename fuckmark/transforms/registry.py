@@ -13,9 +13,10 @@ from .rules import LiteralTransformRule, default_contraction_rules, validate_rul
 from .schema import CandidateRejectionReason, InvariantStatus
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
-TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v3"
-TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v3"
+TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v4"
+TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v4"
 _MAX_ENUMERATION_ITEMS = 100_000
+_MAX_RULE_SCAN_WORK = 50_000_000
 
 
 def _simple_case_replacement(source_text: str, replacement: str) -> str | None:
@@ -76,6 +77,8 @@ class TransformRegistry:
     def enumerate(self, text: str, user_ranges: Sequence[UserProtectedRange] = ()) -> CandidateEnumeration:
         if not isinstance(text, str):
             raise TypeError("text must be a string")
+        if len(self._rules) * len(text) > _MAX_RULE_SCAN_WORK:
+            raise ValueError("transform rule scanning exceeded work limit")
         protected = self._extractor.extract(text, user_ranges)
         input_hash = sha256_text(text)
         spans = protected.spans
@@ -122,6 +125,8 @@ class TransformRegistry:
             raise ValueError("seed must be between 0 and 2^64-1")
         if not isinstance(candidate_ids, Sequence) or isinstance(candidate_ids, (str, bytes, bytearray)):
             raise TypeError("candidate_ids must be a sequence")
+        if len(candidate_ids) > len(enumeration.candidates):
+            raise ValueError("candidate_ids cannot exceed available candidates")
         requested = tuple(candidate_ids)
         for value in requested:
             require_sha256("candidate_id", value)
@@ -164,8 +169,8 @@ class TransformRegistry:
             raise ValueError("transformation violated hard content invariants")
         selected_tuple = tuple(selected_ids)
         operation_tuple = tuple(operations)
-        trace_payload = {"algorithm_version": TRANSFORM_APPLY_ALGORITHM_VERSION, "registry_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "selection_policy_id": "explicit-candidate-ids-v3", "seed": seed, "input_hash": input_hash, "output_hash": output_hash, "ruleset_hash": self._ruleset_hash, "enumeration_hash": enumeration.enumeration_hash, "selected_candidate_ids": selected_tuple, "operations": operation_tuple, "precondition_failures": enumeration.rejections, "protected_span_violation_count": 0, "invariant_report": invariant_report}
-        trace = TransformationTrace(TRANSFORM_APPLY_ALGORITHM_VERSION, TRANSFORM_REGISTRY_ALGORITHM_VERSION, "explicit-candidate-ids-v3", seed, input_hash, output_hash, self._ruleset_hash, enumeration.enumeration_hash, selected_tuple, operation_tuple, enumeration.rejections, 0, invariant_report, sha256_json(trace_payload))
+        trace_payload = {"algorithm_version": TRANSFORM_APPLY_ALGORITHM_VERSION, "registry_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "selection_policy_id": "explicit-candidate-ids-v4", "seed": seed, "input_hash": input_hash, "output_hash": output_hash, "ruleset_hash": self._ruleset_hash, "enumeration_hash": enumeration.enumeration_hash, "selected_candidate_ids": selected_tuple, "operations": operation_tuple, "precondition_failures": enumeration.rejections, "protected_span_violation_count": 0, "invariant_report": invariant_report}
+        trace = TransformationTrace(TRANSFORM_APPLY_ALGORITHM_VERSION, TRANSFORM_REGISTRY_ALGORITHM_VERSION, "explicit-candidate-ids-v4", seed, input_hash, output_hash, self._ruleset_hash, enumeration.enumeration_hash, selected_tuple, operation_tuple, enumeration.rejections, 0, invariant_report, sha256_json(trace_payload))
         return TransformResult(output_text, trace, sha256_json({"output_text": output_text, "trace": trace}))
 
 

@@ -52,18 +52,7 @@ class TransformCandidate:
             raise ValueError("candidate_id does not match transform candidate")
 
     def _payload(self) -> dict[str, object]:
-        return {
-            "input_hash": self.input_hash,
-            "rule_id": self.rule_id,
-            "rule_version": self.rule_version,
-            "rule_hash": self.rule_hash,
-            "family": self.family.value,
-            "tier": self.tier.value,
-            "start": self.start,
-            "end": self.end,
-            "source_text": self.source_text,
-            "replacement_text": self.replacement_text,
-        }
+        return {"input_hash": self.input_hash, "rule_id": self.rule_id, "rule_version": self.rule_version, "rule_hash": self.rule_hash, "family": self.family.value, "tier": self.tier.value, "start": self.start, "end": self.end, "source_text": self.source_text, "replacement_text": self.replacement_text}
 
 @dataclass(frozen=True, slots=True)
 class CandidateRejection:
@@ -108,17 +97,7 @@ class CandidateRejection:
             raise ValueError("rejection_hash does not match candidate rejection")
 
     def _payload(self) -> dict[str, object]:
-        return {
-            "input_hash": self.input_hash,
-            "rule_id": self.rule_id,
-            "rule_version": self.rule_version,
-            "rule_hash": self.rule_hash,
-            "start": self.start,
-            "end": self.end,
-            "source_text": self.source_text,
-            "reason": self.reason.value,
-            "protected_span_hashes": self.protected_span_hashes,
-        }
+        return {"input_hash": self.input_hash, "rule_id": self.rule_id, "rule_version": self.rule_version, "rule_hash": self.rule_hash, "start": self.start, "end": self.end, "source_text": self.source_text, "reason": self.reason.value, "protected_span_hashes": self.protected_span_hashes}
 
 @dataclass(frozen=True, slots=True)
 class CandidateConflict:
@@ -184,6 +163,8 @@ class CandidateEnumeration:
         conflicts = tuple(self.conflicts)
         if len(candidates) + len(rejections) > _MAX_ENUMERATION_ITEMS:
             raise ValueError("candidate enumeration exceeded resource limit")
+        if len(conflicts) > _MAX_CONFLICTS:
+            raise ValueError("candidate conflict graph exceeded resource limit")
         object.__setattr__(self, "candidates", candidates)
         object.__setattr__(self, "rejections", rejections)
         object.__setattr__(self, "conflicts", conflicts)
@@ -239,22 +220,16 @@ class CandidateEnumeration:
             raise ValueError("enumeration_hash does not match candidate enumeration")
 
     def _payload(self) -> dict[str, object]:
-        return {
-            "algorithm_version": self.algorithm_version,
-            "input_hash": self.input_hash,
-            "ruleset_hash": self.ruleset_hash,
-            "protected_manifest_hash": self.protected_manifest.manifest_hash,
-            "candidates": self.candidates,
-            "rejections": self.rejections,
-            "conflicts": self.conflicts,
-        }
+        return {"algorithm_version": self.algorithm_version, "input_hash": self.input_hash, "ruleset_hash": self.ruleset_hash, "protected_manifest_hash": self.protected_manifest.manifest_hash, "candidates": self.candidates, "rejections": self.rejections, "conflicts": self.conflicts}
 
 
 def _build_conflicts(candidates: Sequence[TransformCandidate]) -> tuple[CandidateConflict, ...]:
     materialized = tuple(candidates)
     output: list[CandidateConflict] = []
     for index, left in enumerate(materialized):
-        for right in materialized[index + 1:]:
+        right_index = index + 1
+        while right_index < len(materialized):
+            right = materialized[right_index]
             if right.start >= left.end:
                 break
             if left.start < right.end and right.start < left.end:
@@ -263,4 +238,5 @@ def _build_conflicts(candidates: Sequence[TransformCandidate]) -> tuple[Candidat
                 first, second = sorted((left.candidate_id, right.candidate_id))
                 payload = {"first_candidate_id": first, "second_candidate_id": second}
                 output.append(CandidateConflict(first, second, sha256_json(payload)))
+            right_index += 1
     return tuple(sorted(output, key=lambda value: (value.first_candidate_id, value.second_candidate_id)))
