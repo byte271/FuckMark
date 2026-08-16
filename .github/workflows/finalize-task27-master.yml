@@ -36,6 +36,48 @@ jobs:
           path.write_text(text)
           PY
           python .github/scripts/apply_task27_hardening.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('fuckmark/experiments/schedule_analysis.py')
+          text = path.read_text()
+          function_start = text.index('def run_e10_spacing_comparison(')
+          definition_anchor = '    definition = default_development_experiment_registry().get(DevelopmentExperimentId.E10)\n'
+          definition_index = text.index(definition_anchor, function_start)
+          status_block = (
+              '    if missing:\n'
+              '        status = E10Status.INCOMPLETE\n'
+              '    elif unmatched_count:\n'
+              '        status = E10Status.WITHHELD_UNMATCHED_COST\n'
+              '    else:\n'
+              '        status = E10Status.COMPLETE_MATCHED\n'
+          )
+          if status_block not in text[function_start:definition_index]:
+              text = text[:definition_index] + status_block + text[definition_index:]
+          function_start = text.index('def run_e10_spacing_comparison(')
+          return_start = text.index('    return E10SpacingComparisonResult(', function_start)
+          next_section = text.index('\n\n\n@dataclass', return_start)
+          replacement = '''    return E10SpacingComparisonResult(
+              algorithm_version=E10_ALGORITHM_VERSION,
+              experiment_definition_hash=definition.definition_hash,
+              tiny_dev_artifact_hash=artifact.artifact_hash,
+              detector_identity_hash=detector_identity_hash,
+              threshold_hash=threshold_hash,
+              pair_hashes=pair_hashes,
+              expected_source_count=len(expected_ids),
+              observed_source_count=len(observed_source_ids),
+              missing_source_ids=missing,
+              matched_pair_count=len(matched),
+              unmatched_cost_pair_count=unmatched_count,
+              mean_coverage_difference_even_minus_clustered=payload["mean_coverage_difference_even_minus_clustered"],
+              mean_observation_ratio_difference_even_minus_clustered=payload["mean_observation_ratio_difference_even_minus_clustered"],
+              mean_margin_drop_difference_even_minus_clustered=payload["mean_margin_drop_difference_even_minus_clustered"],
+              comparison_withheld_for_unmatched_cost=unmatched_count > 0,
+              status=status,
+              result_hash=sha256_json(payload),
+          )'''
+          text = text[:return_start] + replacement + text[next_section:]
+          path.write_text(text)
+          PY
       - name: Full suite
         run: python -m pytest -q
 
@@ -65,6 +107,48 @@ jobs:
           path.write_text(text)
           PY
           python .github/scripts/apply_task27_hardening.py
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('fuckmark/experiments/schedule_analysis.py')
+          text = path.read_text()
+          function_start = text.index('def run_e10_spacing_comparison(')
+          definition_anchor = '    definition = default_development_experiment_registry().get(DevelopmentExperimentId.E10)\n'
+          definition_index = text.index(definition_anchor, function_start)
+          status_block = (
+              '    if missing:\n'
+              '        status = E10Status.INCOMPLETE\n'
+              '    elif unmatched_count:\n'
+              '        status = E10Status.WITHHELD_UNMATCHED_COST\n'
+              '    else:\n'
+              '        status = E10Status.COMPLETE_MATCHED\n'
+          )
+          if status_block not in text[function_start:definition_index]:
+              text = text[:definition_index] + status_block + text[definition_index:]
+          function_start = text.index('def run_e10_spacing_comparison(')
+          return_start = text.index('    return E10SpacingComparisonResult(', function_start)
+          next_section = text.index('\n\n\n@dataclass', return_start)
+          replacement = '''    return E10SpacingComparisonResult(
+              algorithm_version=E10_ALGORITHM_VERSION,
+              experiment_definition_hash=definition.definition_hash,
+              tiny_dev_artifact_hash=artifact.artifact_hash,
+              detector_identity_hash=detector_identity_hash,
+              threshold_hash=threshold_hash,
+              pair_hashes=pair_hashes,
+              expected_source_count=len(expected_ids),
+              observed_source_count=len(observed_source_ids),
+              missing_source_ids=missing,
+              matched_pair_count=len(matched),
+              unmatched_cost_pair_count=unmatched_count,
+              mean_coverage_difference_even_minus_clustered=payload["mean_coverage_difference_even_minus_clustered"],
+              mean_observation_ratio_difference_even_minus_clustered=payload["mean_observation_ratio_difference_even_minus_clustered"],
+              mean_margin_drop_difference_even_minus_clustered=payload["mean_margin_drop_difference_even_minus_clustered"],
+              comparison_withheld_for_unmatched_cost=unmatched_count > 0,
+              status=status,
+              result_hash=sha256_json(payload),
+          )'''
+          text = text[:return_start] + replacement + text[next_section:]
+          path.write_text(text)
+          PY
       - name: Full latest-main suite
         run: python -m pytest -q
       - name: Commit convergence
