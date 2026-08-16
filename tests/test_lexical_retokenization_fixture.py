@@ -77,13 +77,22 @@ def test_lexical_retokenization_verifier_rejects_rule_and_tokenizer_identity_dri
     )
     with pytest.raises(LexicalRetokenizationVerificationError, match="rule hash"):
         verify_lexical_retokenization_fixture(fixture, changed_rule, identity, _tokenizer)
-    other_identity = model_identity()
-    other_identity = replace(
-        other_identity,
+    other_identity = type(identity).create(
+        model_id=identity.model_id,
+        model_revision=identity.model_revision,
         tokenizer_id="example/other-tokenizer",
-        identity_hash="0" * 64,
+        tokenizer_revision=identity.tokenizer_revision,
+        chat_template_present=identity.chat_template_present,
+        chat_template_hash=identity.chat_template_hash,
+        special_token_map_hash=identity.special_token_map_hash,
+        padding_side=identity.padding_side,
+        bos_token_id=identity.bos_token_id,
+        eos_token_id=identity.eos_token_id,
+        pad_token_id=identity.pad_token_id,
+        add_bos_token=identity.add_bos_token,
+        add_eos_token=identity.add_eos_token,
     )
-    with pytest.raises(ValueError, match="identity_hash"):
+    with pytest.raises(LexicalRetokenizationVerificationError, match="tokenizer identity"):
         verify_lexical_retokenization_fixture(fixture, rule, other_identity, _tokenizer)
 
 
