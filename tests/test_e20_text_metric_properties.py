@@ -36,11 +36,11 @@ def test_bit_parallel_levenshtein_matches_reference_on_all_small_binary_sequence
 def test_bit_parallel_levenshtein_matches_reference_on_unicode_words_and_characters() -> None:
     pairs = (
         ("", "abc"),
-        ("café", "cafe"),
+        ("caf\u00e9", "cafe"),
         ("can't stop", "cannot stop"),
-        ("alpha—beta", "alpha beta"),
-        ("你好世界", "你好，世界"),
-        ("naïve coöperate", "naive cooperate"),
+        ("alpha\u2014beta", "alpha beta"),
+        ("\u4f60\u597d\u4e16\u754c", "\u4f60\u597d\uff0c\u4e16\u754c"),
+        ("na\u00efve co\u00f6perate", "naive cooperate"),
     )
     for left, right in pairs:
         assert _levenshtein(tuple(left), tuple(right)) == _reference_distance(tuple(left), tuple(right))
@@ -51,4 +51,4 @@ def test_bit_parallel_levenshtein_matches_reference_on_unicode_words_and_charact
 
 
 def test_word_tokenizer_keeps_internal_apostrophe_and_hyphen_but_excludes_punctuation() -> None:
-    assert _word_tokens("Can't re-enter, naïve user!") == ("Can't", "re-enter", "naïve", "user")
+    assert _word_tokens("Can't re-enter, na\u00efve user!") == ("Can't", "re-enter", "na\u00efve", "user")
