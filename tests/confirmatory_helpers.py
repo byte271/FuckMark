@@ -117,25 +117,35 @@ def calibration_materials(target_fprs: tuple[float, ...] = (0.01,)):
     return bundles, evidence
 
 
-def confirmatory_condition_plan(target_fprs: tuple[float, ...] = (0.01,)):
+def confirmatory_condition_plan(
+    target_fprs: tuple[float, ...] = (0.01,),
+    calibration_bundles=None,
+):
+    bundles = tuple(calibration_bundles) if calibration_bundles is not None else calibration_materials(target_fprs)[0]
     conditions = []
-    for target_fpr in target_fprs:
-        suffix = str(target_fpr).replace(".", "p")
-        for policy in (
-            SchedulePolicy.RANDOM_VALID,
-            SchedulePolicy.EVEN_SPACING,
-            SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND,
-        ):
-            conditions.append(
-                E20Condition.create(
-                    condition_id=f"{policy.value.lower()}-budget-1-fpr-{suffix}",
-                    schedule_policy=policy,
-                    budget=1,
-                    budget_unit="operation",
-                    target_fpr=target_fpr,
-                    hypothesis_class="H13-primary",
+    for bundle in bundles:
+        calibrated_fprs = {value.target_fpr for value in bundle.thresholds}
+        for target_fpr in target_fprs:
+            if target_fpr not in calibrated_fprs:
+                continue
+            suffix = str(target_fpr).replace(".", "p")
+            bundle_suffix = bundle.bundle_hash[:12]
+            for policy in (
+                SchedulePolicy.RANDOM_VALID,
+                SchedulePolicy.EVEN_SPACING,
+                SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND,
+            ):
+                conditions.append(
+                    E20Condition.create(
+                        condition_id=f"{policy.value.lower()}-budget-1-fpr-{suffix}-bundle-{bundle_suffix}",
+                        schedule_policy=policy,
+                        budget=1,
+                        budget_unit="operation",
+                        target_fpr=target_fpr,
+                        calibration_bundle_hash=bundle.bundle_hash,
+                        hypothesis_class="H13-primary",
+                    )
                 )
-            )
     return build_e20_condition_plan(conditions)
 
 
@@ -144,7 +154,7 @@ def preregistration_inputs(
     target_fprs: tuple[float, ...] = (0.01,),
 ) -> ConfirmatoryPreregistrationInputs:
     bundles, _ = calibration_materials(target_fprs)
-    plan = confirmatory_condition_plan(target_fprs)
+    plan = confirmatory_condition_plan(target_fprs, bundles)
     return ConfirmatoryPreregistrationInputs(
         code_commit="d" * 40,
         spec_revision_hash=sha256_text("fuckmark-master-spec-v2"),
