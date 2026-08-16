@@ -18,6 +18,14 @@ from .e02_pristine import (
     E02Status,
     run_e02_pristine_detectability,
 )
+from .e08_dose import (
+    E08_ALGORITHM_VERSION,
+    E08_BIN_EDGES,
+    E08_BOOTSTRAP_REPLICATES,
+    E08DoseBin,
+    E08DoseResponseResult,
+    run_e08_dose_response,
+)
 from .mechanisms import (
     E03_ALGORITHM_VERSION,
     OBSERVATION_MECHANISM_ALGORITHM_VERSION,
@@ -69,6 +77,11 @@ __all__ = [
     "E02Status",
     "E03_ALGORITHM_VERSION",
     "E07_ALGORITHM_VERSION",
+    "E08_ALGORITHM_VERSION",
+    "E08_BIN_EDGES",
+    "E08_BOOTSTRAP_REPLICATES",
+    "E08DoseBin",
+    "E08DoseResponseResult",
     "OBSERVATION_MECHANISM_ALGORITHM_VERSION",
     "E03RepetitionFixture",
     "E03RepetitionResult",
@@ -92,5 +105,6 @@ __all__ = [
     "run_e02_pristine_detectability",
     "run_e03_repetition_fixture",
     "run_e07_predictor_comparison",
+    "run_e08_dose_response",
     "run_observation_mechanism",
 ]
