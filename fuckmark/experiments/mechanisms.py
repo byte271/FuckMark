@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass
 from enum import Enum
 
@@ -21,6 +22,7 @@ from .registry import DevelopmentExperimentId, default_development_experiment_re
 
 E03_ALGORITHM_VERSION = "e03-repetition-sensitivity-v1"
 OBSERVATION_MECHANISM_ALGORITHM_VERSION = "e04-e06-observation-mechanisms-v1"
+_GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
 
 class MechanismStatus(str, Enum):
@@ -30,6 +32,12 @@ class MechanismStatus(str, Enum):
 
 class MechanismInputError(ValueError):
     pass
+
+
+def _require_git_sha(name: str, value: str) -> None:
+    require_clean_string(name, value)
+    if _GIT_SHA_RE.fullmatch(value) is None:
+        raise ValueError(f"{name} must be a full lowercase 40-character Git revision")
 
 
 @dataclass(frozen=True, slots=True)
@@ -53,7 +61,7 @@ class E03RepetitionFixture:
             ("source_id", self.source_id),
         ):
             require_clean_string(name, value)
-        require_sha256("source_commit", self.source_commit)
+        _require_git_sha("source_commit", self.source_commit)
         require_sha256("adapter_config_hash", self.adapter_config_hash)
         require_int("ngram_len", self.ngram_len)
         if self.ngram_len <= 1:
@@ -65,8 +73,7 @@ class E03RepetitionFixture:
             raise TypeError("expected_context_mask must be a tuple")
         for value in self.expected_context_mask:
             require_bool("expected_context_mask value", value)
-        expected_count = max(0, len(tokens) - self.ngram_len + 1)
-        if len(self.expected_context_mask) != expected_count:
+        if len(self.expected_context_mask) != max(0, len(tokens) - self.ngram_len + 1):
             raise ValueError("expected_context_mask length does not match fixture n-gram geometry")
         require_sha256("fixture_hash", self.fixture_hash)
         if self.fixture_hash != sha256_json(self._payload()):
@@ -143,16 +150,12 @@ class E03RepetitionResult:
         require_clean_string("algorithm_version", self.algorithm_version)
         if self.algorithm_version != E03_ALGORITHM_VERSION:
             raise ValueError("unsupported E03 algorithm version")
-        for name, value in (
-            ("experiment_definition_hash", self.experiment_definition_hash),
-            ("fixture_hash", self.fixture_hash),
-            ("source_commit", self.source_commit),
-            ("adapter_config_hash", self.adapter_config_hash),
-            ("result_hash", self.result_hash),
-        ):
-            require_sha256(name, value)
+        require_sha256("experiment_definition_hash", self.experiment_definition_hash)
+        require_sha256("fixture_hash", self.fixture_hash)
         require_clean_string("adapter_id", self.adapter_id)
         require_clean_string("adapter_algorithm_version", self.adapter_algorithm_version)
+        _require_git_sha("source_commit", self.source_commit)
+        require_sha256("adapter_config_hash", self.adapter_config_hash)
         for name, mask in (
             ("expected_context_mask", self.expected_context_mask),
             ("actual_context_mask", self.actual_context_mask),
@@ -180,6 +183,7 @@ class E03RepetitionResult:
         expected_status = MechanismStatus.PASS if self.actual_context_mask == self.expected_context_mask else MechanismStatus.MISMATCH
         if self.status is not expected_status:
             raise ValueError("E03 status does not match expected versus actual context mask")
+        require_sha256("result_hash", self.result_hash)
         if self.result_hash != sha256_json(self._payload()):
             raise ValueError("result_hash does not match E03 repetition result")
 
@@ -201,10 +205,7 @@ class E03RepetitionResult:
         }
 
 
-def run_e03_repetition_fixture(
-    fixture: E03RepetitionFixture,
-    adapter: WatermarkAdapter,
-) -> E03RepetitionResult:
+def run_e03_repetition_fixture(fixture: E03RepetitionFixture, adapter: WatermarkAdapter) -> E03RepetitionResult:
     if not isinstance(fixture, E03RepetitionFixture):
         raise TypeError("fixture must be an E03RepetitionFixture")
     if not isinstance(adapter, WatermarkAdapter):
@@ -265,6 +266,108 @@ def run_e03_repetition_fixture(
     )
 
 
+def _single_edit_step(alignment: AlignmentResult, expected_op: AlignmentOp):
+    edits = tuple((index, step) for index, step in enumerate(alignment.steps) if step.op is not AlignmentOp.MATCH)
+    if alignment.distance != 1 or len(edits) != 1 or edits[0][1].op is not expected_op:
+        raise MechanismInputError(f"fixture must contain exactly one {expected_op.value} edit")
+    return edits[0]
+
+
+def _prefix_consumption(alignment: AlignmentResult, edit_step_index: int) -> tuple[int, int]:
+    original_count = 0
+    transformed_count = 0
+    for step in alignment.steps[:edit_step_index]:
+        if step.op in (AlignmentOp.MATCH, AlignmentOp.SUBSTITUTE, AlignmentOp.DELETE):
+            original_count += 1
+        if step.op in (AlignmentOp.MATCH, AlignmentOp.SUBSTITUTE, AlignmentOp.INSERT):
+            transformed_count += 1
+    return original_count, transformed_count
+
+
+def _suffix_preservation_counts(
+    diffs: tuple[StructuralObservationDiff, ...],
+    original_suffix_start: int,
+    transformed_suffix_start: int,
+    original_count: int,
+    ngram_len: int,
+) -> tuple[int, int]:
+    expected_count = max(0, original_count - ngram_len + 1 - original_suffix_start)
+    preserved = 0
+    for original_index in range(original_suffix_start, original_suffix_start + expected_count):
+        expected_transformed_index = transformed_suffix_start + (original_index - original_suffix_start)
+        diff = diffs[original_index]
+        if diff.state is StructuralObservationState.PRESERVED and diff.transformed_index == expected_transformed_index:
+            preserved += 1
+    return expected_count, preserved
+
+
+def _derive_mechanism_geometry(
+    experiment_id: DevelopmentExperimentId,
+    original: tuple[int, ...],
+    transformed: tuple[int, ...],
+    ngram_len: int,
+    alignment: AlignmentResult,
+    diffs: tuple[StructuralObservationDiff, ...],
+) -> tuple[int | None, int | None, tuple[int, ...], int, int]:
+    if len(original) < ngram_len:
+        raise MechanismInputError("mechanism fixture must contain at least one original n-gram")
+    if experiment_id is DevelopmentExperimentId.E04:
+        if len(original) != len(transformed):
+            raise MechanismInputError("E04 requires equal-length token sequences")
+        _, edit = _single_edit_step(alignment, AlignmentOp.SUBSTITUTE)
+        if edit.original_index is None or edit.transformed_index is None:
+            raise RuntimeError("substitution edit is missing indices")
+        interval = substitution_observation_interval(edit.original_index, len(original), ngram_len)
+        return edit.original_index, edit.transformed_index, tuple(range(interval.start, interval.end_exclusive)), 0, 0
+    if experiment_id is DevelopmentExperimentId.E05:
+        if len(transformed) != len(original) + 1:
+            raise MechanismInputError("E05 requires exactly one inserted token")
+        step_index, edit = _single_edit_step(alignment, AlignmentOp.INSERT)
+        if edit.transformed_index is None:
+            raise RuntimeError("insertion edit is missing transformed index")
+        original_prefix, transformed_prefix = _prefix_consumption(alignment, step_index)
+        if transformed_prefix != edit.transformed_index:
+            raise RuntimeError("insertion prefix geometry is inconsistent")
+        original_suffix_start = original_prefix
+        transformed_suffix_start = edit.transformed_index + 1
+        if original[original_suffix_start:] != transformed[transformed_suffix_start:]:
+            raise MechanismInputError("E05 suffix is not conserved after the insertion")
+        expected, preserved = _suffix_preservation_counts(diffs, original_suffix_start, transformed_suffix_start, len(original), ngram_len)
+        if expected == 0:
+            raise MechanismInputError("E05 fixture must retain at least one full suffix n-gram")
+        return None, edit.transformed_index, (), expected, preserved
+    if experiment_id is DevelopmentExperimentId.E06:
+        if len(original) != len(transformed) + 1:
+            raise MechanismInputError("E06 requires exactly one deleted token")
+        step_index, edit = _single_edit_step(alignment, AlignmentOp.DELETE)
+        if edit.original_index is None:
+            raise RuntimeError("deletion edit is missing original index")
+        original_prefix, transformed_prefix = _prefix_consumption(alignment, step_index)
+        if original_prefix != edit.original_index:
+            raise RuntimeError("deletion prefix geometry is inconsistent")
+        original_suffix_start = edit.original_index + 1
+        transformed_suffix_start = transformed_prefix
+        if original[original_suffix_start:] != transformed[transformed_suffix_start:]:
+            raise MechanismInputError("E06 suffix is not conserved after the deletion")
+        expected, preserved = _suffix_preservation_counts(diffs, original_suffix_start, transformed_suffix_start, len(original), ngram_len)
+        if expected == 0:
+            raise MechanismInputError("E06 fixture must retain at least one full suffix n-gram")
+        return edit.original_index, None, (), expected, preserved
+    raise ValueError("experiment_id must be E04, E05, or E06")
+
+
+def _mechanism_status(
+    experiment_id: DevelopmentExperimentId,
+    expected_non_preserved_indices: tuple[int, ...],
+    actual_non_preserved_indices: tuple[int, ...],
+    suffix_expected_count: int,
+    suffix_preserved_count: int,
+) -> MechanismStatus:
+    if experiment_id is DevelopmentExperimentId.E04:
+        return MechanismStatus.PASS if actual_non_preserved_indices == expected_non_preserved_indices else MechanismStatus.MISMATCH
+    return MechanismStatus.PASS if suffix_expected_count > 0 and suffix_preserved_count == suffix_expected_count else MechanismStatus.MISMATCH
+
+
 @dataclass(frozen=True, slots=True)
 class ObservationMechanismResult:
     algorithm_version: str
@@ -290,11 +393,7 @@ class ObservationMechanismResult:
         require_clean_string("algorithm_version", self.algorithm_version)
         if self.algorithm_version != OBSERVATION_MECHANISM_ALGORITHM_VERSION:
             raise ValueError("unsupported observation mechanism algorithm version")
-        if self.experiment_id not in (
-            DevelopmentExperimentId.E04,
-            DevelopmentExperimentId.E05,
-            DevelopmentExperimentId.E06,
-        ):
+        if self.experiment_id not in (DevelopmentExperimentId.E04, DevelopmentExperimentId.E05, DevelopmentExperimentId.E06):
             raise ValueError("observation mechanism result must be E04, E05, or E06")
         require_sha256("experiment_definition_hash", self.experiment_definition_hash)
         original = normalize_token_sequence("original_tokens", self.original_tokens)
@@ -304,14 +403,6 @@ class ObservationMechanismResult:
         require_int("ngram_len", self.ngram_len)
         if self.ngram_len <= 0:
             raise ValueError("ngram_len must be positive")
-        for name, value in (
-            ("edit_original_index", self.edit_original_index),
-            ("edit_transformed_index", self.edit_transformed_index),
-        ):
-            if value is not None:
-                require_int(name, value)
-                if value < 0:
-                    raise ValueError(f"{name} must be non-negative")
         if not isinstance(self.alignment, AlignmentResult):
             raise TypeError("alignment must be an AlignmentResult")
         validate_alignment(original, transformed, self.alignment)
@@ -321,33 +412,22 @@ class ObservationMechanismResult:
         expected_diffs = structural_observation_diff(original, transformed, self.ngram_len, self.alignment)
         if self.observation_diffs != expected_diffs:
             raise ValueError("observation_diffs do not match canonical observation mapping")
-        expected_summary = summarize_structural_observations(
-            original,
-            transformed,
-            self.ngram_len,
-            self.observation_diffs,
-        )
+        expected_summary = summarize_structural_observations(original, transformed, self.ngram_len, self.observation_diffs)
         if self.observation_summary != expected_summary:
             raise ValueError("observation_summary does not match observation diffs")
-        expected_actual = tuple(
-            diff.original_index
-            for diff in self.observation_diffs
-            if diff.state is not StructuralObservationState.PRESERVED
-        )
-        if self.actual_non_preserved_indices != expected_actual:
+        actual_non_preserved = tuple(diff.original_index for diff in self.observation_diffs if diff.state is not StructuralObservationState.PRESERVED)
+        if self.actual_non_preserved_indices != actual_non_preserved:
             raise ValueError("actual_non_preserved_indices do not match observation diffs")
-        if self.expected_non_preserved_indices != tuple(sorted(set(self.expected_non_preserved_indices))):
-            raise ValueError("expected_non_preserved_indices must be unique and ordered")
-        for value in self.expected_non_preserved_indices:
-            require_int("expected non-preserved index", value)
-            if value < 0 or value >= self.observation_summary.original_count:
-                raise ValueError("expected non-preserved index is outside original observation range")
-        require_int("suffix_expected_observation_count", self.suffix_expected_observation_count)
-        require_int("suffix_preserved_observation_count", self.suffix_preserved_observation_count)
-        if self.suffix_expected_observation_count < 0:
-            raise ValueError("suffix_expected_observation_count must be non-negative")
-        if not 0 <= self.suffix_preserved_observation_count <= self.suffix_expected_observation_count:
-            raise ValueError("suffix_preserved_observation_count is outside expected suffix range")
+        derived = _derive_mechanism_geometry(self.experiment_id, original, transformed, self.ngram_len, self.alignment, self.observation_diffs)
+        declared = (
+            self.edit_original_index,
+            self.edit_transformed_index,
+            self.expected_non_preserved_indices,
+            self.suffix_expected_observation_count,
+            self.suffix_preserved_observation_count,
+        )
+        if declared != derived:
+            raise ValueError("declared mechanism geometry does not match canonical alignment and observation mapping")
         expected_status = _mechanism_status(
             self.experiment_id,
             self.expected_non_preserved_indices,
@@ -383,82 +463,13 @@ class ObservationMechanismResult:
         }
 
 
-def _mechanism_status(
-    experiment_id: DevelopmentExperimentId,
-    expected_non_preserved_indices: tuple[int, ...],
-    actual_non_preserved_indices: tuple[int, ...],
-    suffix_expected_count: int,
-    suffix_preserved_count: int,
-) -> MechanismStatus:
-    if experiment_id is DevelopmentExperimentId.E04:
-        return (
-            MechanismStatus.PASS
-            if actual_non_preserved_indices == expected_non_preserved_indices
-            else MechanismStatus.MISMATCH
-        )
-    return (
-        MechanismStatus.PASS
-        if suffix_expected_count > 0 and suffix_preserved_count == suffix_expected_count
-        else MechanismStatus.MISMATCH
-    )
-
-
-def _single_edit_step(
-    alignment: AlignmentResult,
-    expected_op: AlignmentOp,
-) -> tuple[int, object]:
-    edits = tuple(
-        (index, step)
-        for index, step in enumerate(alignment.steps)
-        if step.op is not AlignmentOp.MATCH
-    )
-    if alignment.distance != 1 or len(edits) != 1 or edits[0][1].op is not expected_op:
-        raise MechanismInputError(f"fixture must contain exactly one {expected_op.value} edit")
-    return edits[0]
-
-
-def _prefix_consumption(alignment: AlignmentResult, edit_step_index: int) -> tuple[int, int]:
-    original_count = 0
-    transformed_count = 0
-    for step in alignment.steps[:edit_step_index]:
-        if step.op in (AlignmentOp.MATCH, AlignmentOp.SUBSTITUTE, AlignmentOp.DELETE):
-            original_count += 1
-        if step.op in (AlignmentOp.MATCH, AlignmentOp.SUBSTITUTE, AlignmentOp.INSERT):
-            transformed_count += 1
-    return original_count, transformed_count
-
-
-def _suffix_preservation_counts(
-    diffs: tuple[StructuralObservationDiff, ...],
-    original_suffix_start: int,
-    transformed_suffix_start: int,
-    original_count: int,
-    ngram_len: int,
-) -> tuple[int, int]:
-    expected_count = max(0, original_count - ngram_len + 1 - original_suffix_start)
-    preserved = 0
-    for original_index in range(original_suffix_start, original_suffix_start + expected_count):
-        expected_transformed_index = transformed_suffix_start + (original_index - original_suffix_start)
-        diff = diffs[original_index]
-        if (
-            diff.state is StructuralObservationState.PRESERVED
-            and diff.transformed_index == expected_transformed_index
-        ):
-            preserved += 1
-    return expected_count, preserved
-
-
 def run_observation_mechanism(
     experiment_id: DevelopmentExperimentId,
     original_tokens: tuple[int, ...],
     transformed_tokens: tuple[int, ...],
     ngram_len: int,
 ) -> ObservationMechanismResult:
-    if experiment_id not in (
-        DevelopmentExperimentId.E04,
-        DevelopmentExperimentId.E05,
-        DevelopmentExperimentId.E06,
-    ):
+    if experiment_id not in (DevelopmentExperimentId.E04, DevelopmentExperimentId.E05, DevelopmentExperimentId.E06):
         raise ValueError("experiment_id must be E04, E05, or E06")
     original = normalize_token_sequence("original_tokens", original_tokens)
     transformed = normalize_token_sequence("transformed_tokens", transformed_tokens)
@@ -466,73 +477,18 @@ def run_observation_mechanism(
     if ngram_len <= 0:
         raise ValueError("ngram_len must be positive")
     alignment = align_tokens(original, transformed)
-    expected_non_preserved: tuple[int, ...] = ()
-    edit_original_index: int | None = None
-    edit_transformed_index: int | None = None
-    suffix_expected = 0
-    suffix_preserved = 0
-    if experiment_id is DevelopmentExperimentId.E04:
-        if len(original) != len(transformed):
-            raise MechanismInputError("E04 requires equal-length token sequences")
-        _, edit = _single_edit_step(alignment, AlignmentOp.SUBSTITUTE)
-        edit_original_index = edit.original_index
-        edit_transformed_index = edit.transformed_index
-        if edit_original_index is None or edit_transformed_index is None:
-            raise RuntimeError("substitution edit is missing indices")
-        interval = substitution_observation_interval(edit_original_index, len(original), ngram_len)
-        expected_non_preserved = tuple(range(interval.start, interval.end_exclusive))
-    elif experiment_id is DevelopmentExperimentId.E05:
-        if len(transformed) != len(original) + 1:
-            raise MechanismInputError("E05 requires exactly one inserted token")
-        step_index, edit = _single_edit_step(alignment, AlignmentOp.INSERT)
-        edit_transformed_index = edit.transformed_index
-        if edit_transformed_index is None:
-            raise RuntimeError("insertion edit is missing transformed index")
-        original_prefix, transformed_prefix = _prefix_consumption(alignment, step_index)
-        if transformed_prefix != edit_transformed_index:
-            raise RuntimeError("insertion prefix geometry is inconsistent")
-        original_suffix_start = original_prefix
-        transformed_suffix_start = edit_transformed_index + 1
-        if original[original_suffix_start:] != transformed[transformed_suffix_start:]:
-            raise MechanismInputError("E05 suffix is not conserved after the insertion")
-    else:
-        if len(original) != len(transformed) + 1:
-            raise MechanismInputError("E06 requires exactly one deleted token")
-        step_index, edit = _single_edit_step(alignment, AlignmentOp.DELETE)
-        edit_original_index = edit.original_index
-        if edit_original_index is None:
-            raise RuntimeError("deletion edit is missing original index")
-        original_prefix, transformed_prefix = _prefix_consumption(alignment, step_index)
-        if original_prefix != edit_original_index:
-            raise RuntimeError("deletion prefix geometry is inconsistent")
-        original_suffix_start = edit_original_index + 1
-        transformed_suffix_start = transformed_prefix
-        if original[original_suffix_start:] != transformed[transformed_suffix_start:]:
-            raise MechanismInputError("E06 suffix is not conserved after the deletion")
     diffs = structural_observation_diff(original, transformed, ngram_len, alignment)
     summary = summarize_structural_observations(original, transformed, ngram_len, diffs)
-    actual_non_preserved = tuple(
-        diff.original_index
-        for diff in diffs
-        if diff.state is not StructuralObservationState.PRESERVED
-    )
-    if experiment_id in (DevelopmentExperimentId.E05, DevelopmentExperimentId.E06):
-        suffix_expected, suffix_preserved = _suffix_preservation_counts(
-            diffs,
-            original_suffix_start,
-            transformed_suffix_start,
-            len(original),
-            ngram_len,
-        )
-        if suffix_expected == 0:
-            raise MechanismInputError("E05/E06 fixture must retain at least one full suffix n-gram")
-    status = _mechanism_status(
+    edit_original_index, edit_transformed_index, expected_non_preserved, suffix_expected, suffix_preserved = _derive_mechanism_geometry(
         experiment_id,
-        expected_non_preserved,
-        actual_non_preserved,
-        suffix_expected,
-        suffix_preserved,
+        original,
+        transformed,
+        ngram_len,
+        alignment,
+        diffs,
     )
+    actual_non_preserved = tuple(diff.original_index for diff in diffs if diff.state is not StructuralObservationState.PRESERVED)
+    status = _mechanism_status(experiment_id, expected_non_preserved, actual_non_preserved, suffix_expected, suffix_preserved)
     definition = default_development_experiment_registry().get(experiment_id)
     runs = conserved_runs(alignment)
     payload = {
