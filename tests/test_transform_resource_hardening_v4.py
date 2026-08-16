@@ -11,7 +11,7 @@ import fuckmark.transforms.registry as registry_module
 
 def test_transform_resource_hardening_versions_advance() -> None:
     assert PROTECTED_SPAN_ALGORITHM_VERSION == "protected-span-extractor-v4"
-    assert TRANSFORM_REGISTRY_ALGORITHM_VERSION == "transform-registry-v4"
+    assert TRANSFORM_REGISTRY_ALGORITHM_VERSION == "transform-registry-v5"
     assert TRANSFORM_APPLY_ALGORITHM_VERSION == "explicit-candidate-apply-v4"
 
 
