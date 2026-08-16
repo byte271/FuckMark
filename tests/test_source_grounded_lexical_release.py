@@ -6,6 +6,7 @@ from fuckmark.transforms.fidelity_evidence import (
     FidelityLabel,
     FidelityReviewSample,
     GrammarFixture,
+    GrammarFixtureDisposition,
     create_blind_human_fidelity_audit,
 )
 from fuckmark.transforms.fidelity_verification import (
@@ -114,8 +115,13 @@ def test_source_grounded_release_replays_all_evidence_before_enabling_lexical_ru
 def test_source_grounded_release_rejects_valid_but_wrong_grammar_expectation() -> None:
     promotion = _promotion()
     grammar = list(promotion.grammar_fixtures)
-    first = grammar[0]
-    grammar[0] = GrammarFixture.candidate(
+    index = next(
+        position
+        for position, fixture in enumerate(grammar)
+        if fixture.disposition is GrammarFixtureDisposition.CANDIDATE
+    )
+    first = grammar[index]
+    grammar[index] = GrammarFixture.candidate(
         first.rule_hash,
         first.fixture_id,
         first.source_text,
