@@ -15,7 +15,10 @@ from ..transforms.fidelity_verification import LexicalPromotionEvidence
 from ..transforms.syntax_fidelity_verification import SyntaxDevelopmentEvidence
 from .confirmatory import ConfirmatoryPreregistration
 from .confirmatory_corpus import ConfirmatoryCorpusSeal, verify_confirmatory_corpus_seal
-from .confirmatory_keys import ConfirmatoryTestKeyManifest
+from .confirmatory_keys import (
+    ConfirmatoryTestKeyManifest,
+    verify_confirmatory_test_key_material,
+)
 from .confirmatory_verification import verify_confirmatory_preregistration
 
 
@@ -49,6 +52,10 @@ class E20AuthorizationError(ValueError):
 
 
 class E20RunTransitionError(ValueError):
+    pass
+
+
+class E20VerificationError(ValueError):
     pass
 
 
@@ -106,7 +113,7 @@ class E20ExecutionAuthorization:
         ):
             require_sha256(name, value)
         require_clean_string("code_commit", self.code_commit)
-        if not re.fullmatch(r"[0-9a-f]{40}", self.code_commit):
+        if re.fullmatch(r"[0-9a-f]{40}", self.code_commit) is None:
             raise ValueError("code_commit must be a full lowercase 40-character Git revision")
         require_clean_string("worker_version", self.worker_version)
         require_int("shard_count", self.shard_count)
@@ -264,24 +271,21 @@ class E20RunLedger:
         if tuple(value.sequence for value in self.events) != tuple(range(len(self.events))):
             raise ValueError("E20 run events must use contiguous zero-based sequence numbers")
         states = tuple(value.state for value in self.events)
-        if states[0] is not E20RunState.AUTHORIZED:
-            raise ValueError("E20 run ledger must begin with AUTHORIZED")
-        allowed = {
+        valid_paths = {
+            (E20RunState.AUTHORIZED,),
             (E20RunState.AUTHORIZED, E20RunState.STARTED),
             (E20RunState.AUTHORIZED, E20RunState.INVALIDATED),
-            (E20RunState.STARTED, E20RunState.COMPLETED),
-            (E20RunState.STARTED, E20RunState.INVALIDATED),
-            (E20RunState.COMPLETED, E20RunState.INVALIDATED),
+            (E20RunState.AUTHORIZED, E20RunState.STARTED, E20RunState.COMPLETED),
+            (E20RunState.AUTHORIZED, E20RunState.STARTED, E20RunState.INVALIDATED),
+            (
+                E20RunState.AUTHORIZED,
+                E20RunState.STARTED,
+                E20RunState.COMPLETED,
+                E20RunState.INVALIDATED,
+            ),
         }
-        for previous, current in zip(states, states[1:]):
-            if (previous, current) not in allowed:
-                raise ValueError("invalid E20 run ledger state transition")
-        terminal_count = sum(value in (E20RunState.COMPLETED, E20RunState.INVALIDATED) for value in states)
-        if terminal_count > 1:
-            raise ValueError("E20 run ledger can contain only one terminal event")
-        if states[-1] in (E20RunState.COMPLETED, E20RunState.INVALIDATED) and len(states) > 1:
-            if any(value in (E20RunState.COMPLETED, E20RunState.INVALIDATED) for value in states[:-1]):
-                raise ValueError("E20 run ledger cannot continue after a terminal state")
+        if states not in valid_paths:
+            raise ValueError("invalid E20 run ledger state path")
         require_sha256("ledger_hash", self.ledger_hash)
         if self.ledger_hash != sha256_json(self._payload()):
             raise ValueError("ledger_hash does not match E20 run ledger")
@@ -299,6 +303,32 @@ class E20RunLedger:
         }
 
 
+def verify_e20_run_history(ledgers: Sequence[E20RunLedger]) -> None:
+    if not isinstance(ledgers, Sequence) or isinstance(ledgers, (str, bytes, bytearray)):
+        raise TypeError("ledgers must be a sequence")
+    values = tuple(ledgers)
+    if any(not isinstance(value, E20RunLedger) for value in values):
+        raise TypeError("ledgers must contain E20RunLedger values")
+    execution_ids = tuple(value.execution_id for value in values)
+    if len(set(execution_ids)) != len(execution_ids):
+        raise E20VerificationError("E20 run history contains more than one ledger for the same sealed execution_id")
+
+
+def _verify_test_key_material(
+    manifest: ConfirmatoryTestKeyManifest,
+    serialized_test_key_material: Mapping[str, bytes],
+) -> None:
+    material_map = dict(serialized_test_key_material)
+    expected = {entry.entry_hash for entry in manifest.entries}
+    if set(material_map) != expected:
+        raise E20AuthorizationError("runtime TEST_KEYS material must exactly cover the sealed key entries")
+    for entry in manifest.entries:
+        try:
+            verify_confirmatory_test_key_material(entry, material_map[entry.entry_hash])
+        except Exception as error:
+            raise E20AuthorizationError("runtime TEST_KEYS material does not replay the sealed commitment") from error
+
+
 def authorize_e20_execution(
     preregistration: ConfirmatoryPreregistration,
     corpus_seal: ConfirmatoryCorpusSeal,
@@ -306,10 +336,12 @@ def authorize_e20_execution(
     test_key_manifest: ConfirmatoryTestKeyManifest,
     environment: EnvironmentSnapshot,
     *,
+    serialized_test_key_material: Mapping[str, bytes],
     dependency_lock_hash: str,
     worker_version: str,
     shard_count: int,
     dirty_worktree: bool,
+    output_namespace_available: bool,
     prior_ledgers: Sequence[E20RunLedger],
     code_commit: str,
     spec_revision_hash: str,
@@ -335,9 +367,14 @@ def authorize_e20_execution(
     require_sha256("dependency_lock_hash", dependency_lock_hash)
     require_clean_string("worker_version", worker_version)
     require_int("shard_count", shard_count)
+    if shard_count <= 0 or shard_count > 4096:
+        raise E20AuthorizationError("shard_count must be between 1 and 4096")
     require_bool("dirty_worktree", dirty_worktree)
+    require_bool("output_namespace_available", output_namespace_available)
     if dirty_worktree:
         raise E20AuthorizationError("E20 authorization requires a clean worktree in the v1 sealed runner")
+    if not output_namespace_available:
+        raise E20AuthorizationError("E20 output namespace already exists; patch-and-continue is forbidden")
     if code_commit != preregistration.code_commit:
         raise E20AuthorizationError("runtime code commit does not match the sealed preregistration")
     try:
@@ -362,10 +399,10 @@ def authorize_e20_execution(
         verify_confirmatory_corpus_seal(corpus_seal, preregistration, corpus_manifest, test_key_manifest)
     except Exception as error:
         raise E20AuthorizationError("confirmatory corpus seal did not replay exactly") from error
-    execution_id = _execution_id(preregistration.preregistration_hash, corpus_seal.seal_hash)
+    _verify_test_key_material(test_key_manifest, serialized_test_key_material)
     previous = tuple(prior_ledgers)
-    if any(not isinstance(value, E20RunLedger) for value in previous):
-        raise TypeError("prior_ledgers must contain E20RunLedger values")
+    verify_e20_run_history(previous)
+    execution_id = _execution_id(preregistration.preregistration_hash, corpus_seal.seal_hash)
     if any(value.execution_id == execution_id for value in previous):
         raise E20AuthorizationError("this sealed E20 execution_id already has a run ledger and cannot be authorized again")
     output_namespace = f"e20/{execution_id}"
@@ -404,6 +441,59 @@ def authorize_e20_execution(
     )
 
 
+def verify_e20_execution_authorization(
+    authorization: E20ExecutionAuthorization,
+    preregistration: ConfirmatoryPreregistration,
+    corpus_seal: ConfirmatoryCorpusSeal,
+    corpus_manifest: CorpusManifest,
+    test_key_manifest: ConfirmatoryTestKeyManifest,
+    environment: EnvironmentSnapshot,
+    *,
+    serialized_test_key_material: Mapping[str, bytes],
+    dependency_lock_hash: str,
+    worker_version: str,
+    shard_count: int,
+    code_commit: str,
+    spec_revision_hash: str,
+    power_analysis_hash: str,
+    budget_config_hash: str,
+    verification_test_hashes: Sequence[str],
+    model_tokenizers: Sequence[ModelTokenizerIdentity],
+    calibration_negative_evidence: Mapping[str, Sequence[UncalibratedDetectorEvidence]],
+    task29_lexical_evidence: Sequence[LexicalPromotionEvidence] = (),
+    task29_syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
+    task29_tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
+) -> None:
+    if not isinstance(authorization, E20ExecutionAuthorization):
+        raise TypeError("authorization must be an E20ExecutionAuthorization")
+    expected = authorize_e20_execution(
+        preregistration,
+        corpus_seal,
+        corpus_manifest,
+        test_key_manifest,
+        environment,
+        serialized_test_key_material=serialized_test_key_material,
+        dependency_lock_hash=dependency_lock_hash,
+        worker_version=worker_version,
+        shard_count=shard_count,
+        dirty_worktree=False,
+        output_namespace_available=True,
+        prior_ledgers=(),
+        code_commit=code_commit,
+        spec_revision_hash=spec_revision_hash,
+        power_analysis_hash=power_analysis_hash,
+        budget_config_hash=budget_config_hash,
+        verification_test_hashes=verification_test_hashes,
+        model_tokenizers=model_tokenizers,
+        calibration_negative_evidence=calibration_negative_evidence,
+        task29_lexical_evidence=task29_lexical_evidence,
+        task29_syntax_evidence=task29_syntax_evidence,
+        task29_tokenizers=task29_tokenizers,
+    )
+    if authorization != expected:
+        raise E20VerificationError("E20 execution authorization does not replay exactly from sealed source inputs")
+
+
 def create_e20_run_ledger(authorization: E20ExecutionAuthorization, occurred_at_utc: str) -> E20RunLedger:
     if not isinstance(authorization, E20ExecutionAuthorization):
         raise TypeError("authorization must be an E20ExecutionAuthorization")
@@ -421,6 +511,15 @@ def create_e20_run_ledger(authorization: E20ExecutionAuthorization, occurred_at_
         (event,),
         sha256_json(payload),
     )
+
+
+def verify_e20_run_ledger(ledger: E20RunLedger, authorization: E20ExecutionAuthorization) -> None:
+    if not isinstance(ledger, E20RunLedger):
+        raise TypeError("ledger must be an E20RunLedger")
+    if not isinstance(authorization, E20ExecutionAuthorization):
+        raise TypeError("authorization must be an E20ExecutionAuthorization")
+    if ledger.execution_id != authorization.execution_id or ledger.authorization_hash != authorization.authorization_hash:
+        raise E20VerificationError("E20 run ledger is not bound to the supplied execution authorization")
 
 
 def _append_event(ledger: E20RunLedger, event: E20RunEvent) -> E20RunLedger:
@@ -498,10 +597,28 @@ def invalidate_e20_run(
     )
 
 
-def e20_sample_shard(authorization: E20ExecutionAuthorization, sample_id: str) -> int:
+def _require_authorized_sample(
+    authorization: E20ExecutionAuthorization,
+    corpus_manifest: CorpusManifest,
+    sample_id: str,
+) -> None:
     if not isinstance(authorization, E20ExecutionAuthorization):
         raise TypeError("authorization must be an E20ExecutionAuthorization")
+    if not isinstance(corpus_manifest, CorpusManifest):
+        raise TypeError("corpus_manifest must be a CorpusManifest")
     require_clean_string("sample_id", sample_id)
+    if corpus_manifest.manifest_hash != authorization.corpus_manifest_hash:
+        raise E20VerificationError("corpus manifest does not match E20 authorization")
+    if sample_id not in {value.sample_id for value in corpus_manifest.samples}:
+        raise E20VerificationError("sample_id is not part of the authorized held-out corpus")
+
+
+def e20_sample_shard(
+    authorization: E20ExecutionAuthorization,
+    corpus_manifest: CorpusManifest,
+    sample_id: str,
+) -> int:
+    _require_authorized_sample(authorization, corpus_manifest, sample_id)
     return derive_seed(
         authorization.execution_id,
         authorization.seed_derivation_version,
@@ -513,13 +630,12 @@ def e20_sample_shard(authorization: E20ExecutionAuthorization, sample_id: str) -
 
 def derive_e20_condition_seed(
     authorization: E20ExecutionAuthorization,
+    corpus_manifest: CorpusManifest,
     sample_id: str,
     condition_id: str,
     purpose: str,
 ) -> int:
-    if not isinstance(authorization, E20ExecutionAuthorization):
-        raise TypeError("authorization must be an E20ExecutionAuthorization")
-    require_clean_string("sample_id", sample_id)
+    _require_authorized_sample(authorization, corpus_manifest, sample_id)
     require_clean_string("condition_id", condition_id)
     require_clean_string("purpose", purpose)
     return derive_seed(
