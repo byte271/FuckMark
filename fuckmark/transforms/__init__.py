@@ -1,6 +1,18 @@
 from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate
 from .hard_invariants import HARD_INVARIANT_ALGORITHM_VERSION, HardInvariantReport, HardInvariantSignature, hard_invariant_signature, validate_hard_invariants
 from .invariants import validate_protected_invariants
+from .lexical_audit import (
+    BLIND_HUMAN_REVIEW_POLICY_ID,
+    LEXICAL_RULE_AUDIT_ALGORITHM_VERSION,
+    MINIMUM_EQUIVALENT_OR_MINOR_RATE,
+    MINIMUM_GRAMMAR_FIXTURES_PER_CLASS,
+    MINIMUM_HUMAN_AUDIT_SAMPLES,
+    LexicalAuditStatus,
+    LexicalRuleAudit,
+    LexicalRulePromotionError,
+    create_lexical_rule_audit,
+    require_release_eligible_lexical_rules,
+)
 from .lexical_rules import (
     LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION,
     LexicalConstruction,
@@ -37,6 +49,7 @@ from .trace import TransformOperation, TransformResult, TransformationTrace
 
 
 __all__ = [
+    "BLIND_HUMAN_REVIEW_POLICY_ID",
     "CANDIDATE_SCHEDULER_ALGORITHM_VERSION",
     "CandidateConflict",
     "CandidateEnumeration",
@@ -53,10 +66,17 @@ __all__ = [
     "InvariantDifference",
     "InvariantStatus",
     "KeyBlindScheduleInput",
+    "LEXICAL_RULE_AUDIT_ALGORITHM_VERSION",
     "LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION",
+    "LexicalAuditStatus",
     "LexicalConstruction",
+    "LexicalRuleAudit",
+    "LexicalRulePromotionError",
     "LexicalTemplateRule",
     "LiteralTransformRule",
+    "MINIMUM_EQUIVALENT_OR_MINOR_RATE",
+    "MINIMUM_GRAMMAR_FIXTURES_PER_CLASS",
+    "MINIMUM_HUMAN_AUDIT_SAMPLES",
     "PROTECTED_SPAN_ALGORITHM_VERSION",
     "ProtectedInvariantReport",
     "ProtectedSpan",
@@ -79,8 +99,10 @@ __all__ = [
     "TransformTier",
     "TransformationTrace",
     "UserProtectedRange",
+    "create_lexical_rule_audit",
     "default_contraction_rules",
     "default_transform_registry",
     "development_lexical_rules",
+    "require_release_eligible_lexical_rules",
     "validate_protected_invariants",
 ]
