@@ -410,7 +410,9 @@ class CandidateScheduler:
         if seed < 0 or seed >= 1 << 64:
             raise ValueError("seed must be between 0 and 2^64-1")
         if policy is SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND:
-            if not any(candidate.coverage_intervals for candidate in scheduler_input.candidates):
+            if scheduler_input.candidates and not any(
+                candidate.coverage_intervals for candidate in scheduler_input.candidates
+            ):
                 raise ValueError("coverage greedy scheduling requires explicit key-blind coverage geometry")
             return self._schedule_coverage_greedy(scheduler_input, budget, seed)
         if policy in (SchedulePolicy.CLUSTERED, SchedulePolicy.EVEN_SPACING):
@@ -438,7 +440,7 @@ class CandidateScheduler:
         candidates = scheduler_input.candidates
         if len(candidates) > max_candidates:
             raise ValueError("candidate set exceeds exact diagnostic resource limit")
-        if not any(candidate.coverage_intervals for candidate in candidates):
+        if candidates and not any(candidate.coverage_intervals for candidate in candidates):
             raise ValueError("exact coverage diagnostic requires explicit key-blind coverage geometry")
         greedy = self.schedule(
             scheduler_input,
