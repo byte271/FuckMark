@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from .._validation import require_bool, require_clean_string, require_sha256
 from ..hashing import sha256_json
+from .lexical_rules import LexicalTemplateRule
 from .schema import TransformFamily, TransformTier
 
 
@@ -131,7 +132,10 @@ def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
     )
 
 
-def validate_rules(rules: Sequence[LiteralTransformRule]) -> tuple[LiteralTransformRule, ...]:
+TransformRule = LiteralTransformRule | LexicalTemplateRule
+
+
+def validate_rules(rules: Sequence[TransformRule]) -> tuple[TransformRule, ...]:
     if not isinstance(rules, Sequence) or isinstance(rules, (str, bytes, bytearray)):
         raise TypeError("rules must be a sequence")
     if len(rules) > _MAX_RULES:
@@ -139,8 +143,8 @@ def validate_rules(rules: Sequence[LiteralTransformRule]) -> tuple[LiteralTransf
     normalized = tuple(rules)
     if not normalized:
         raise ValueError("rules must not be empty")
-    if any(not isinstance(rule, LiteralTransformRule) for rule in normalized):
-        raise TypeError("rules must contain LiteralTransformRule values")
+    if any(not isinstance(rule, (LiteralTransformRule, LexicalTemplateRule)) for rule in normalized):
+        raise TypeError("rules must contain supported transform rule values")
     identities = tuple((rule.rule_id, rule.version) for rule in normalized)
     if len(set(identities)) != len(identities):
         raise ValueError("rule identities must be unique")
