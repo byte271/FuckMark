@@ -4,7 +4,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
 
-from .._validation import require_clean_string, require_sha256
+from .._validation import require_bool, require_clean_string, require_sha256
 from ..hashing import sha256_json
 from .fidelity_verification import LexicalPromotionEvidence, verify_lexical_promotion_evidence
 from .lexical_rules import development_lexical_rules
@@ -13,7 +13,7 @@ from .syntax_fidelity_verification import SyntaxDevelopmentEvidence, verify_synt
 from .syntax_rules import development_syntax_rules
 
 
-TASK29_FIDELITY_READINESS_ALGORITHM_VERSION = "task29-fidelity-readiness-v2"
+TASK29_FIDELITY_READINESS_ALGORITHM_VERSION = "task29-fidelity-readiness-v3"
 
 
 class FidelityReadinessStatus(str, Enum):
@@ -33,6 +33,7 @@ class FidelityRuleReadiness:
     family: TransformFamily
     status: FidelityReadinessStatus
     evidence_hash: str | None
+    selected_for_confirmatory: bool
 
     def __post_init__(self) -> None:
         require_clean_string("rule_id", self.rule_id)
@@ -52,12 +53,14 @@ class FidelityRuleReadiness:
             raise ValueError("lexical rules cannot use syntax readiness status")
         if self.family is TransformFamily.SYNTAX_TEMPLATE and self.status is FidelityReadinessStatus.VERIFIED_LEXICAL_RELEASE_EVIDENCE:
             raise ValueError("syntax rules cannot use lexical release readiness status")
+        require_bool("selected_for_confirmatory", self.selected_for_confirmatory)
 
 
 @dataclass(frozen=True, slots=True)
 class Task29FidelityReadinessReport:
     algorithm_version: str
     rows: tuple[FidelityRuleReadiness, ...]
+    selection_frozen: bool
     report_hash: str
 
     def __post_init__(self) -> None:
@@ -78,6 +81,9 @@ class Task29FidelityReadinessReport:
         actual_identities = {(value.rule_id, value.rule_hash, value.family) for value in self.rows}
         if actual_identities != expected_identities:
             raise ValueError("fidelity readiness rows must exactly cover current development rules")
+        require_bool("selection_frozen", self.selection_frozen)
+        if not self.selection_frozen and any(value.selected_for_confirmatory for value in self.rows):
+            raise ValueError("unfrozen confirmatory selection cannot contain selected rules")
         require_sha256("report_hash", self.report_hash)
         if self.report_hash != sha256_json(self._payload()):
             raise ValueError("report_hash does not match Task 29 fidelity readiness report")
@@ -87,16 +93,30 @@ class Task29FidelityReadinessReport:
         return any(value.status is FidelityReadinessStatus.MISSING_SOURCE_GROUNDED_EVIDENCE for value in self.rows)
 
     @property
+    def selected_rows(self) -> tuple[FidelityRuleReadiness, ...]:
+        return tuple(value for value in self.rows if value.selected_for_confirmatory)
+
+    @property
+    def has_selected_missing_evidence(self) -> bool:
+        return any(
+            value.status is FidelityReadinessStatus.MISSING_SOURCE_GROUNDED_EVIDENCE
+            for value in self.selected_rows
+        )
+
+    @property
     def confirmatory_scale_ready(self) -> bool:
-        return not self.has_missing_evidence and all(
-            value.status is not FidelityReadinessStatus.VERIFIED_SYNTAX_DEVELOPMENT_ONLY
-            for value in self.rows
+        if not self.selection_frozen:
+            return False
+        return all(
+            value.status is FidelityReadinessStatus.VERIFIED_LEXICAL_RELEASE_EVIDENCE
+            for value in self.selected_rows
         )
 
     def _payload(self) -> dict[str, object]:
         return {
             "algorithm_version": self.algorithm_version,
             "rows": self.rows,
+            "selection_frozen": self.selection_frozen,
         }
 
 
@@ -104,6 +124,7 @@ def build_task29_fidelity_readiness(
     lexical_evidence: Sequence[LexicalPromotionEvidence] = (),
     syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
     tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
+    confirmatory_rule_hashes: Sequence[str] | None = None,
 ) -> Task29FidelityReadinessReport:
     tokenizer_map = {} if tokenizers is None else dict(tokenizers)
     lexical_values = tuple(lexical_evidence)
@@ -118,17 +139,37 @@ def build_task29_fidelity_readiness(
         raise ValueError("syntax readiness evidence must be unique by rule hash")
     lexical_by_hash = {value.rule.rule_hash: value for value in lexical_values}
     syntax_by_hash = {value.rule.rule_hash: value for value in syntax_values}
-    expected_lexical = {value.rule_hash for value in development_lexical_rules()}
-    expected_syntax = {value.rule_hash for value in development_syntax_rules()}
+    development_lexical = development_lexical_rules()
+    development_syntax = development_syntax_rules()
+    expected_lexical = {value.rule_hash for value in development_lexical}
+    expected_syntax = {value.rule_hash for value in development_syntax}
+    all_development_hashes = expected_lexical | expected_syntax
     if not set(lexical_by_hash) <= expected_lexical:
         raise ValueError("lexical readiness evidence contains an unknown development rule")
     if not set(syntax_by_hash) <= expected_syntax:
         raise ValueError("syntax readiness evidence contains an unknown development rule")
+    if confirmatory_rule_hashes is None:
+        selection_frozen = False
+        selected_hashes: set[str] = set()
+    else:
+        if isinstance(confirmatory_rule_hashes, (str, bytes, bytearray)) or not isinstance(confirmatory_rule_hashes, Sequence):
+            raise TypeError("confirmatory_rule_hashes must be a sequence or None")
+        selected_values = tuple(confirmatory_rule_hashes)
+        for value in selected_values:
+            require_sha256("confirmatory_rule_hash", value)
+        if len(set(selected_values)) != len(selected_values):
+            raise ValueError("confirmatory rule hashes must be unique")
+        selected_hashes = set(selected_values)
+        unknown_selected = selected_hashes - all_development_hashes
+        if unknown_selected:
+            raise ValueError("confirmatory selection contains an unknown development rule")
+        selection_frozen = True
     rows: list[FidelityRuleReadiness] = []
-    for rule in development_lexical_rules():
+    for rule in development_lexical:
         evidence = lexical_by_hash.get(rule.rule_hash)
+        selected = rule.rule_hash in selected_hashes
         if evidence is None:
-            rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.MISSING_SOURCE_GROUNDED_EVIDENCE, None))
+            rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.MISSING_SOURCE_GROUNDED_EVIDENCE, None, selected))
             continue
         identity_hash = evidence.model_tokenizer_identity.identity_hash
         try:
@@ -136,11 +177,12 @@ def build_task29_fidelity_readiness(
         except KeyError as error:
             raise ValueError("missing tokenizer callable for lexical readiness evidence") from error
         verify_lexical_promotion_evidence(evidence, tokenizer)
-        rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.VERIFIED_LEXICAL_RELEASE_EVIDENCE, evidence.evidence_hash))
-    for rule in development_syntax_rules():
+        rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.VERIFIED_LEXICAL_RELEASE_EVIDENCE, evidence.evidence_hash, selected))
+    for rule in development_syntax:
         evidence = syntax_by_hash.get(rule.rule_hash)
+        selected = rule.rule_hash in selected_hashes
         if evidence is None:
-            rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.MISSING_SOURCE_GROUNDED_EVIDENCE, None))
+            rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.MISSING_SOURCE_GROUNDED_EVIDENCE, None, selected))
             continue
         identity_hash = evidence.model_tokenizer_identity.identity_hash
         try:
@@ -148,12 +190,17 @@ def build_task29_fidelity_readiness(
         except KeyError as error:
             raise ValueError("missing tokenizer callable for syntax readiness evidence") from error
         verify_syntax_development_evidence(evidence, tokenizer)
-        rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.VERIFIED_SYNTAX_DEVELOPMENT_ONLY, evidence.evidence_hash))
+        rows.append(FidelityRuleReadiness(rule.rule_id, rule.rule_hash, rule.family, FidelityReadinessStatus.VERIFIED_SYNTAX_DEVELOPMENT_ONLY, evidence.evidence_hash, selected))
     ordered = tuple(sorted(rows, key=lambda value: (value.family.value, value.rule_id, value.rule_hash)))
-    payload = {"algorithm_version": TASK29_FIDELITY_READINESS_ALGORITHM_VERSION, "rows": ordered}
+    payload = {
+        "algorithm_version": TASK29_FIDELITY_READINESS_ALGORITHM_VERSION,
+        "rows": ordered,
+        "selection_frozen": selection_frozen,
+    }
     return Task29FidelityReadinessReport(
         TASK29_FIDELITY_READINESS_ALGORITHM_VERSION,
         ordered,
+        selection_frozen,
         sha256_json(payload),
     )
 
@@ -163,6 +210,7 @@ def verify_task29_fidelity_readiness(
     lexical_evidence: Sequence[LexicalPromotionEvidence] = (),
     syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
     tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
+    confirmatory_rule_hashes: Sequence[str] | None = None,
 ) -> None:
     if not isinstance(report, Task29FidelityReadinessReport):
         raise TypeError("report must be a Task29FidelityReadinessReport")
@@ -170,8 +218,9 @@ def verify_task29_fidelity_readiness(
         lexical_evidence=lexical_evidence,
         syntax_evidence=syntax_evidence,
         tokenizers=tokenizers,
+        confirmatory_rule_hashes=confirmatory_rule_hashes,
     )
     if report != expected:
         raise FidelityReadinessVerificationError(
-            "Task 29 fidelity readiness report does not replay exactly from supplied evidence"
+            "Task 29 fidelity readiness report does not replay exactly from supplied evidence and confirmatory selection"
         )
