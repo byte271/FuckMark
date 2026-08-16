@@ -110,17 +110,17 @@ class AdapterRegistry:
         require_clean_string("adapter_id", adapter_id)
         if not isinstance(config, Mapping):
             raise TypeError("config must be a mapping")
-        if any(not isinstance(key, str) for key in config):
+        snapshot = dict(config)
+        if any(not isinstance(key, str) for key in snapshot):
             raise TypeError("config keys must be strings")
         try:
             factory = self._factories[adapter_id]
         except KeyError as error:
             raise KeyError(f"Unknown adapter_id: {adapter_id}") from error
-        adapter = factory(dict(config))
+        adapter = factory(snapshot)
         if not isinstance(adapter, WatermarkAdapter):
             raise TypeError("factory did not return a WatermarkAdapter-compatible object")
         if adapter.adapter_id != adapter_id:
             raise ValueError("factory returned an adapter with a mismatched adapter_id")
         require_sha256("adapter configuration fingerprint", adapter.configuration_fingerprint())
         return adapter
-
