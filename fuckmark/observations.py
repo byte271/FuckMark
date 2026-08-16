@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from enum import Enum
 from collections.abc import Sequence
 
-from ._validation import require_int, validate_token_sequence
+from ._validation import normalize_token_sequence, require_int
 from .alignment import AlignmentResult, validate_alignment
 
 
@@ -107,20 +107,20 @@ class StructuralObservationSummary:
 
 
 def build_token_ngrams(tokens: Sequence[int], ngram_len: int) -> tuple[TokenNgram, ...]:
-    validate_token_sequence("tokens", tokens)
+    token_ids = normalize_token_sequence("tokens", tokens)
     require_int("ngram_len", ngram_len)
     if ngram_len <= 0:
         raise ValueError("ngram_len must be positive")
-    if len(tokens) < ngram_len:
+    if len(token_ids) < ngram_len:
         return ()
     return tuple(
         TokenNgram(
             index=start,
             start=start,
             end_exclusive=start + ngram_len,
-            tokens=tuple(tokens[start : start + ngram_len]),
+            tokens=token_ids[start : start + ngram_len],
         )
-        for start in range(len(tokens) - ngram_len + 1)
+        for start in range(len(token_ids) - ngram_len + 1)
     )
 
 
@@ -130,9 +130,11 @@ def structural_observation_diff(
     ngram_len: int,
     alignment: AlignmentResult,
 ) -> tuple[StructuralObservationDiff, ...]:
-    validate_alignment(original, transformed, alignment)
-    original_ngrams = build_token_ngrams(original, ngram_len)
-    transformed_ngrams = build_token_ngrams(transformed, ngram_len)
+    original_tokens = normalize_token_sequence("original", original)
+    transformed_tokens = normalize_token_sequence("transformed", transformed)
+    validate_alignment(original_tokens, transformed_tokens, alignment)
+    original_ngrams = build_token_ngrams(original_tokens, ngram_len)
+    transformed_ngrams = build_token_ngrams(transformed_tokens, ngram_len)
     transformed_lookup = {ngram.start: ngram for ngram in transformed_ngrams}
     output: list[StructuralObservationDiff] = []
 
@@ -194,43 +196,44 @@ def summarize_structural_observations(
     ngram_len: int,
     diffs: Sequence[StructuralObservationDiff],
 ) -> StructuralObservationSummary:
-    validate_token_sequence("original", original)
-    validate_token_sequence("transformed", transformed)
+    original_tokens = normalize_token_sequence("original", original)
+    transformed_tokens = normalize_token_sequence("transformed", transformed)
     require_int("ngram_len", ngram_len)
     if ngram_len <= 0:
         raise ValueError("ngram_len must be positive")
     if not isinstance(diffs, Sequence) or isinstance(diffs, (str, bytes, bytearray)):
         raise TypeError("diffs must be a sequence of StructuralObservationDiff values")
-    if any(not isinstance(diff, StructuralObservationDiff) for diff in diffs):
+    diff_rows = tuple(diffs)
+    if any(not isinstance(diff, StructuralObservationDiff) for diff in diff_rows):
         raise TypeError("diffs must contain only StructuralObservationDiff values")
-    original_count = max(0, len(original) - ngram_len + 1)
-    transformed_count = max(0, len(transformed) - ngram_len + 1)
-    if len(diffs) != original_count:
+    original_count = max(0, len(original_tokens) - ngram_len + 1)
+    transformed_count = max(0, len(transformed_tokens) - ngram_len + 1)
+    if len(diff_rows) != original_count:
         raise ValueError("Structural observation diff count does not match original observation count")
     expected_indices = tuple(range(original_count))
-    actual_indices = tuple(diff.original_index for diff in diffs)
+    actual_indices = tuple(diff.original_index for diff in diff_rows)
     if actual_indices != expected_indices:
         raise ValueError("Structural observation diffs must contain every original index exactly once in order")
-    original_ngrams = build_token_ngrams(original, ngram_len)
-    transformed_ngrams = build_token_ngrams(transformed, ngram_len)
+    original_ngrams = build_token_ngrams(original_tokens, ngram_len)
+    transformed_ngrams = build_token_ngrams(transformed_tokens, ngram_len)
     mapped_indices: list[int] = []
-    for diff in diffs:
+    for diff in diff_rows:
         if diff.transformed_index is None:
             continue
         if diff.transformed_index >= transformed_count:
             raise ValueError("Structural observation diff references an out-of-range transformed index")
         mapped_indices.append(diff.transformed_index)
-        original_tokens = original_ngrams[diff.original_index].tokens
-        transformed_tokens = transformed_ngrams[diff.transformed_index].tokens
-        if diff.state is StructuralObservationState.PRESERVED and original_tokens != transformed_tokens:
+        original_ngram_tokens = original_ngrams[diff.original_index].tokens
+        transformed_ngram_tokens = transformed_ngrams[diff.transformed_index].tokens
+        if diff.state is StructuralObservationState.PRESERVED and original_ngram_tokens != transformed_ngram_tokens:
             raise ValueError("Preserved structural observations must contain identical token n-grams")
-        if diff.state is StructuralObservationState.REPLACED and original_tokens == transformed_tokens:
+        if diff.state is StructuralObservationState.REPLACED and original_ngram_tokens == transformed_ngram_tokens:
             raise ValueError("Replaced structural observations must contain different token n-grams")
     if mapped_indices != sorted(set(mapped_indices)):
         raise ValueError("Mapped transformed observation indices must be unique and strictly increasing")
-    preserved_count = sum(diff.state is StructuralObservationState.PRESERVED for diff in diffs)
-    replaced_count = sum(diff.state is StructuralObservationState.REPLACED for diff in diffs)
-    unmapped_count = sum(diff.state is StructuralObservationState.UNMAPPED for diff in diffs)
+    preserved_count = sum(diff.state is StructuralObservationState.PRESERVED for diff in diff_rows)
+    replaced_count = sum(diff.state is StructuralObservationState.REPLACED for diff in diff_rows)
+    unmapped_count = sum(diff.state is StructuralObservationState.UNMAPPED for diff in diff_rows)
     return StructuralObservationSummary(
         original_count=original_count,
         transformed_count=transformed_count,

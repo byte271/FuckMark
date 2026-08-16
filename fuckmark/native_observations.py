@@ -4,8 +4,16 @@ import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from ._validation import normalize_token_sequence, require_bool, require_clean_string, require_int, require_sha256, validate_token_sequence
+from ._validation import (
+    normalize_token_sequence,
+    require_bool,
+    require_clean_string,
+    require_int,
+    require_sha256,
+    validate_token_sequence,
+)
 from .adapters.base import AdapterSignals, WatermarkAdapter
+from .types import SourcePin
 
 
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -194,40 +202,55 @@ def build_native_observations(
         raise ValueError("eos_token_id must be non-negative")
     if not isinstance(adapter, WatermarkAdapter):
         raise TypeError("adapter must satisfy the WatermarkAdapter protocol")
-    require_clean_string("adapter_id", adapter.adapter_id)
-    require_clean_string("adapter_algorithm_version", adapter.algorithm_version)
-    require_int("adapter ngram_len", adapter.ngram_len)
-    require_int("adapter depth", adapter.depth)
-    if adapter.ngram_len < 2:
-        raise ValueError("adapter ngram_len must be at least 2")
-    if adapter.depth <= 0:
-        raise ValueError("adapter depth must be positive")
+    adapter_id = adapter.adapter_id
+    algorithm_version = adapter.algorithm_version
+    source_pin = adapter.source_pin
+    ngram_len = adapter.ngram_len
+    depth = adapter.depth
     fingerprint = adapter.configuration_fingerprint()
+    require_clean_string("adapter_id", adapter_id)
+    require_clean_string("adapter_algorithm_version", algorithm_version)
+    if not isinstance(source_pin, SourcePin):
+        raise TypeError("adapter source_pin must be a SourcePin")
+    require_int("adapter ngram_len", ngram_len)
+    require_int("adapter depth", depth)
+    if ngram_len < 2:
+        raise ValueError("adapter ngram_len must be at least 2")
+    if depth <= 0:
+        raise ValueError("adapter depth must be positive")
     require_sha256("adapter configuration fingerprint", fingerprint)
     signals = adapter.signals(normalized_token_ids, eos_token_id)
     if not isinstance(signals, AdapterSignals):
         raise TypeError("adapter signals() must return AdapterSignals")
-    if signals.depth != adapter.depth:
+    if (
+        adapter.adapter_id != adapter_id
+        or adapter.algorithm_version != algorithm_version
+        or adapter.source_pin != source_pin
+        or adapter.ngram_len != ngram_len
+        or adapter.depth != depth
+        or adapter.configuration_fingerprint() != fingerprint
+    ):
+        raise ValueError("adapter identity changed while computing observation signals")
+    if signals.depth != depth:
         raise ValueError("adapter signals depth does not match adapter depth")
-    expected_count = max(0, len(normalized_token_ids) - adapter.ngram_len + 1)
+    expected_count = max(0, len(normalized_token_ids) - ngram_len + 1)
     if signals.observation_count != expected_count:
         raise ValueError("adapter signals observation count does not match token geometry")
-    source_pin = adapter.source_pin
     records = tuple(
         NativeObservationRecord(
             sample_id=sample_id,
-            adapter_id=adapter.adapter_id,
-            adapter_algorithm_version=adapter.algorithm_version,
+            adapter_id=adapter_id,
+            adapter_algorithm_version=algorithm_version,
             adapter_config_hash=fingerprint,
             source_id=source_pin.source_id,
             source_commit=source_pin.commit,
             eos_token_id=eos_token_id,
             index=index,
             token_start=index,
-            token_end_exclusive=index + adapter.ngram_len,
-            ngram=normalized_token_ids[index : index + adapter.ngram_len],
-            context=normalized_token_ids[index : index + adapter.ngram_len - 1],
-            current_token=normalized_token_ids[index + adapter.ngram_len - 1],
+            token_end_exclusive=index + ngram_len,
+            ngram=normalized_token_ids[index : index + ngram_len],
+            context=normalized_token_ids[index : index + ngram_len - 1],
+            current_token=normalized_token_ids[index + ngram_len - 1],
             repeated=not signals.context_mask[index],
             context_valid=signals.context_mask[index],
             eos_valid=signals.eos_mask[index],
@@ -238,13 +261,13 @@ def build_native_observations(
     )
     return NativeObservationBatch(
         sample_id=sample_id,
-        adapter_id=adapter.adapter_id,
-        adapter_algorithm_version=adapter.algorithm_version,
+        adapter_id=adapter_id,
+        adapter_algorithm_version=algorithm_version,
         adapter_config_hash=fingerprint,
         source_id=source_pin.source_id,
         source_commit=source_pin.commit,
-        ngram_len=adapter.ngram_len,
-        depth=adapter.depth,
+        ngram_len=ngram_len,
+        depth=depth,
         token_ids=normalized_token_ids,
         eos_token_id=eos_token_id,
         records=records,

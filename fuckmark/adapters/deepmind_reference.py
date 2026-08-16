@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from .._validation import normalize_token_sequence, require_int
 from ..hashing import sha256_json
 from ..types import SourcePin
-from ._lcg import INT64_MAX, INT64_MIN, accumulate_hash
+from ._lcg import BoundedHashHistory, INT64_MAX, INT64_MIN, accumulate_hash
 from .base import AdapterSignals
 
 
@@ -95,23 +95,24 @@ class DeepMindReferenceConfig:
         object.__setattr__(self, "keys", normalized_keys)
 
     @classmethod
-    def from_mapping(cls, config: Mapping[str, object]) -> DeepMindReferenceConfig:
+    def from_mapping(cls, config: Mapping[str, object]) -> "DeepMindReferenceConfig":
         if not isinstance(config, Mapping):
             raise TypeError("config must be a mapping")
-        if any(not isinstance(key, str) for key in config):
+        snapshot = dict(config)
+        if any(not isinstance(key, str) for key in snapshot):
             raise TypeError("config keys must be strings")
-        fields = frozenset(config)
+        fields = frozenset(snapshot)
         if fields != _CONFIG_FIELDS:
             missing = sorted(_CONFIG_FIELDS - fields)
             extra = sorted(fields - _CONFIG_FIELDS)
             raise ValueError(f"DeepMind reference config fields do not match schema: missing={missing}, extra={extra}")
-        keys = config["keys"]
+        keys = snapshot["keys"]
         if not isinstance(keys, (tuple, list)):
             raise TypeError("keys must be a tuple or list of integers")
         return cls(
-            ngram_len=config["ngram_len"],
+            ngram_len=snapshot["ngram_len"],
             keys=tuple(keys),
-            context_history_size=config["context_history_size"],
+            context_history_size=snapshot["context_history_size"],
         )
 
 
@@ -190,14 +191,14 @@ class DeepMindReferenceAdapter:
 
     def _context_repetition_mask(self, token_ids: Sequence[int]) -> tuple[bool, ...]:
         count = _observation_count(len(token_ids), self.ngram_len)
-        history = [0] * self._config.context_history_size
+        history = BoundedHashHistory(self._config.context_history_size)
         output: list[bool] = []
         context_len = self.ngram_len - 1
         for start in range(count):
             context = token_ids[start : start + context_len]
             context_hash = accumulate_hash(self._hash_iv, context)
-            output.append(context_hash not in history)
-            history = [context_hash, *history[:-1]]
+            output.append(not history.contains(context_hash))
+            history.push(context_hash)
         return tuple(output)
 
     def compute_context_repetition_mask(self, token_ids: Sequence[int]) -> tuple[bool, ...]:

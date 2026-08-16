@@ -3,10 +3,10 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
-from .._validation import require_bool, require_clean_string, normalize_token_sequence, require_int
+from .._validation import normalize_token_sequence, require_bool, require_clean_string, require_int
 from ..hashing import sha256_bytes, sha256_json
 from ..types import SourcePin
-from ._lcg import INT64_MAX, INT64_MIN, accumulate_hash
+from ._lcg import BoundedHashHistory, INT64_MAX, INT64_MIN, accumulate_hash
 from .base import AdapterSignals
 
 
@@ -25,6 +25,7 @@ SOURCE_PIN = SourcePin(
 )
 _TORCH_SEED_MIN = -(1 << 63)
 _TORCH_SEED_MAX = (1 << 64) - 1
+_TORCH_TABLE_CHUNK_SIZE = 1 << 16
 _CONFIG_FIELDS = frozenset(
     {
         "ngram_len",
@@ -57,17 +58,41 @@ def _validate_source_eos(eos_token_id: int) -> None:
         raise ValueError("eos_token_id must fit signed int64 for Hugging Face source conformance")
 
 
-def _normalize_sampling_table(sampling_table: Sequence[int], expected_size: int) -> tuple[int, ...]:
-    if not isinstance(sampling_table, Sequence) or isinstance(sampling_table, (str, bytes, bytearray)):
+def _normalize_sampling_table(sampling_table: Sequence[int] | bytes | bytearray, expected_size: int) -> bytes:
+    if isinstance(sampling_table, (bytes, bytearray)):
+        output = bytes(sampling_table)
+        if len(output) != expected_size:
+            raise ValueError("sampling_table length must match sampling_table_size")
+        if any(value not in (0, 1) for value in output):
+            raise ValueError("sampling_table must contain only binary integers")
+        return output
+    if not isinstance(sampling_table, Sequence) or isinstance(sampling_table, str):
         raise TypeError("sampling_table must be a sequence of binary integers")
-    output = tuple(sampling_table)
-    if len(output) != expected_size:
+    if len(sampling_table) != expected_size:
         raise ValueError("sampling_table length must match sampling_table_size")
-    for value in output:
+    output = bytearray(expected_size)
+    count = 0
+    for index, value in enumerate(sampling_table):
+        if index >= expected_size:
+            raise ValueError("sampling_table length changed during normalization")
         require_int("sampling table value", value)
         if value not in (0, 1):
             raise ValueError("sampling_table must contain only binary integers")
-    return output
+        output[index] = value
+        count += 1
+    if count != expected_size:
+        raise ValueError("sampling_table length changed during normalization")
+    return bytes(output)
+
+
+def _torch_sampling_table_bytes(table) -> bytes:
+    table = table.cpu()
+    size = int(table.numel())
+    output = bytearray(size)
+    for start in range(0, size, _TORCH_TABLE_CHUNK_SIZE):
+        end = min(start + _TORCH_TABLE_CHUNK_SIZE, size)
+        output[start:end] = bytes(table[start:end].tolist())
+    return bytes(output)
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,28 +134,31 @@ class HuggingFaceSynthIDConfig:
         object.__setattr__(self, "keys", normalized_keys)
 
     @classmethod
-    def from_mapping(cls, config: Mapping[str, object]) -> HuggingFaceSynthIDConfig:
+    def from_mapping(cls, config: Mapping[str, object]) -> "HuggingFaceSynthIDConfig":
         if not isinstance(config, Mapping):
             raise TypeError("config must be a mapping")
-        if any(not isinstance(key, str) for key in config):
+        snapshot = dict(config)
+        if any(not isinstance(key, str) for key in snapshot):
             raise TypeError("config keys must be strings")
-        fields = frozenset(config)
+        fields = frozenset(snapshot)
         required = frozenset({"ngram_len", "keys"})
         if not required <= fields or not fields <= _CONFIG_FIELDS:
             missing = sorted(required - fields)
             extra = sorted(fields - _CONFIG_FIELDS)
-            raise ValueError(f"Hugging Face SynthID config fields do not match schema: missing={missing}, extra={extra}")
-        keys = config["keys"]
+            raise ValueError(
+                f"Hugging Face SynthID config fields do not match schema: missing={missing}, extra={extra}"
+            )
+        keys = snapshot["keys"]
         if not isinstance(keys, (tuple, list)):
             raise TypeError("keys must be a tuple or list of integers")
         return cls(
-            ngram_len=config["ngram_len"],
+            ngram_len=snapshot["ngram_len"],
             keys=tuple(keys),
-            context_history_size=config.get("context_history_size", 1024),
-            sampling_table_seed=config.get("sampling_table_seed", 0),
-            sampling_table_size=config.get("sampling_table_size", 2**16),
-            skip_first_ngram_calls=config.get("skip_first_ngram_calls", False),
-            debug_mode=config.get("debug_mode", False),
+            context_history_size=snapshot.get("context_history_size", 1024),
+            sampling_table_seed=snapshot.get("sampling_table_seed", 0),
+            sampling_table_size=snapshot.get("sampling_table_size", 2**16),
+            skip_first_ngram_calls=snapshot.get("skip_first_ngram_calls", False),
+            debug_mode=snapshot.get("debug_mode", False),
         )
 
 
@@ -140,14 +168,14 @@ class HuggingFaceSynthIDAdapter:
     def __init__(
         self,
         config: HuggingFaceSynthIDConfig,
-        sampling_table: Sequence[int],
+        sampling_table: Sequence[int] | bytes | bytearray,
         sampling_table_provenance: str,
     ) -> None:
         if not isinstance(config, HuggingFaceSynthIDConfig):
             raise TypeError("config must be a HuggingFaceSynthIDConfig")
         require_clean_string("sampling_table_provenance", sampling_table_provenance)
         table = _normalize_sampling_table(sampling_table, config.sampling_table_size)
-        table_hash = sha256_bytes(bytes(table))
+        table_hash = sha256_bytes(table)
         self._config = config
         self._sampling_table = table
         self._sampling_table_hash = table_hash
@@ -163,7 +191,9 @@ class HuggingFaceSynthIDAdapter:
         )
 
     @classmethod
-    def from_torch(cls, config: HuggingFaceSynthIDConfig, device: str = "cpu") -> HuggingFaceSynthIDAdapter:
+    def from_torch(cls, config: HuggingFaceSynthIDConfig, device: str = "cpu") -> "HuggingFaceSynthIDAdapter":
+        if not isinstance(config, HuggingFaceSynthIDConfig):
+            raise TypeError("config must be a HuggingFaceSynthIDConfig")
         require_clean_string("device", device)
         try:
             import torch
@@ -178,7 +208,7 @@ class HuggingFaceSynthIDAdapter:
             device=device,
         )
         provenance = f"torch={torch.__version__};device={device}"
-        return cls(config, tuple(int(value) for value in table.cpu().tolist()), provenance)
+        return cls(config, _torch_sampling_table_bytes(table), provenance)
 
     @property
     def adapter_id(self) -> str:
@@ -237,13 +267,13 @@ class HuggingFaceSynthIDAdapter:
 
     def _context_repetition_mask(self, token_ids: Sequence[int]) -> tuple[bool, ...]:
         count = _observation_count(len(token_ids), self.ngram_len)
-        history = [0] * self._config.context_history_size
+        history = BoundedHashHistory(self._config.context_history_size)
         output: list[bool] = []
         context_len = self.ngram_len - 1
         for start in range(count):
             context_hash = accumulate_hash(1, token_ids[start : start + context_len])
-            output.append(context_hash not in history)
-            history = [context_hash, *history[:-1]]
+            output.append(not history.contains(context_hash))
+            history.push(context_hash)
         return tuple(output)
 
     def compute_context_repetition_mask(self, token_ids: Sequence[int]) -> tuple[bool, ...]:
