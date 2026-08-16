@@ -66,7 +66,12 @@ def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
     assert "I don't agree." in rendered
 
 
-def test_pyproject_installs_exact_FuckMark_console_command() -> None:
+def test_pyproject_installs_all_FuckMark_console_command_aliases() -> None:
     root = Path(__file__).resolve().parents[1]
     payload = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
-    assert payload["project"]["scripts"] == {"FuckMark": "fuckmark.cli:main"}
+    expected = {
+        "FuckMark": "fuckmark.cli:main",
+        "Fuckmark": "fuckmark.cli:main",
+        "fuckmark": "fuckmark.cli:main",
+    }
+    assert payload["project"]["scripts"] == expected
