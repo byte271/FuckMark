@@ -3,11 +3,12 @@ from __future__ import annotations
 import math
 import re
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
 
 from .._validation import require_bool, require_clean_string, require_int, require_sha256
 from ..corpus import KeySplit
-from ..detectors import DetectorFamily
+from ..detectors import ComparisonOperator, DetectorFamily
 from ..hashing import sha256_json
 from ..transforms import SchedulePolicy
 from .e20_execution import E20_EXPERIMENT_ID
@@ -17,6 +18,7 @@ E20_OUTCOME_ROW_ALGORITHM_VERSION = "e20-outcome-row-v1"
 E20_FAILURE_ROW_ALGORITHM_VERSION = "e20-failure-row-v1"
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _IMMUTABLE_REVISION_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
+_UTC_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 _ALLOWED_E20_SCHEDULES = (
     SchedulePolicy.RANDOM_VALID,
     SchedulePolicy.EVEN_SPACING,
@@ -71,6 +73,21 @@ _OUTCOME_REASON_CODES = frozenset(
         ExperimentReasonCode.HUMAN_FIDELITY_MATERIAL_CHANGE,
     }
 )
+_FAILURE_STAGE_BY_REASON = {
+    ExperimentReasonCode.REALIZED_BUDGET_EXCEEDED: E20FailureStage.TRANSFORM,
+    ExperimentReasonCode.PROTECTED_SPAN_CONFLICT: E20FailureStage.FIDELITY,
+    ExperimentReasonCode.HARD_INVARIANT_FAILURE: E20FailureStage.FIDELITY,
+    ExperimentReasonCode.ALIGNMENT_AMBIGUOUS: E20FailureStage.ALIGNMENT,
+    ExperimentReasonCode.TOKENIZATION_FAILURE: E20FailureStage.TOKENIZATION,
+    ExperimentReasonCode.GENERATION_EARLY_EOS: E20FailureStage.GENERATION,
+    ExperimentReasonCode.DETECTOR_SCORE_NA: E20FailureStage.DETECTOR,
+    ExperimentReasonCode.ZERO_VALID_OBSERVATIONS: E20FailureStage.OBSERVATION,
+    ExperimentReasonCode.CALIBRATION_MISSING: E20FailureStage.CALIBRATION,
+    ExperimentReasonCode.SOURCE_PIN_MISMATCH: E20FailureStage.SOURCE,
+    ExperimentReasonCode.SEALED_KEY_CONTAMINATION: E20FailureStage.SEALED_DATA,
+    ExperimentReasonCode.UPSTREAM_API_CHANGED: E20FailureStage.SOURCE,
+    ExperimentReasonCode.EXTERNAL_INTERFACE_UNAVAILABLE: E20FailureStage.EXTERNAL,
+}
 
 
 def _probability(name: str, value: float | int) -> float:
@@ -89,6 +106,15 @@ def _finite(name: str, value: float | int) -> float:
     if not math.isfinite(number):
         raise ValueError(f"{name} must be finite")
     return number
+
+
+def _require_utc_timestamp(name: str, value: str) -> None:
+    require_clean_string(name, value)
+    if _UTC_TIMESTAMP_RE.fullmatch(value) is None:
+        raise ValueError(f"{name} must use canonical second-resolution UTC form")
+    parsed = datetime.fromisoformat(value[:-1] + "+00:00")
+    if parsed.tzinfo is None or parsed.utcoffset() != UTC.utcoffset(parsed):
+        raise ValueError(f"{name} must represent UTC")
 
 
 @dataclass(frozen=True, slots=True)
@@ -383,8 +409,10 @@ class E20DetectorFields:
     checkpoint_hash: str | None
     calibration_bundle_hash: str
     threshold_hash: str
+    comparison_operator: ComparisonOperator
     target_fpr: float
     threshold_value: float
+    robust_scale: float
     pristine_raw_score: float
     transformed_raw_score: float
     pristine_standardized_margin: float
@@ -405,17 +433,44 @@ class E20DetectorFields:
             require_sha256("checkpoint_hash", self.checkpoint_hash)
         if self.detector_family is DetectorFamily.BAYESIAN and self.checkpoint_hash is None:
             raise ValueError("Bayesian E20 detector rows require a checkpoint hash")
+        if not isinstance(self.comparison_operator, ComparisonOperator):
+            raise TypeError("comparison_operator must be a ComparisonOperator")
         target = _probability("target_fpr", self.target_fpr)
         if target <= 0.0 or target >= 1.0:
             raise ValueError("target_fpr must be strictly between 0 and 1")
         object.__setattr__(self, "target_fpr", target)
-        object.__setattr__(self, "threshold_value", _probability("threshold_value", self.threshold_value))
-        object.__setattr__(self, "pristine_raw_score", _probability("pristine_raw_score", self.pristine_raw_score))
-        object.__setattr__(self, "transformed_raw_score", _probability("transformed_raw_score", self.transformed_raw_score))
-        object.__setattr__(self, "pristine_standardized_margin", _finite("pristine_standardized_margin", self.pristine_standardized_margin))
-        object.__setattr__(self, "transformed_standardized_margin", _finite("transformed_standardized_margin", self.transformed_standardized_margin))
+        threshold = _probability("threshold_value", self.threshold_value)
+        object.__setattr__(self, "threshold_value", threshold)
+        scale = _finite("robust_scale", self.robust_scale)
+        if scale <= 0.0:
+            raise ValueError("robust_scale must be positive")
+        object.__setattr__(self, "robust_scale", scale)
+        pristine = _probability("pristine_raw_score", self.pristine_raw_score)
+        transformed = _probability("transformed_raw_score", self.transformed_raw_score)
+        object.__setattr__(self, "pristine_raw_score", pristine)
+        object.__setattr__(self, "transformed_raw_score", transformed)
+        pristine_margin = _finite("pristine_standardized_margin", self.pristine_standardized_margin)
+        transformed_margin = _finite("transformed_standardized_margin", self.transformed_standardized_margin)
+        expected_pristine_margin = (pristine - threshold) / scale
+        expected_transformed_margin = (transformed - threshold) / scale
+        if not math.isclose(pristine_margin, expected_pristine_margin, rel_tol=1e-12, abs_tol=1e-12):
+            raise ValueError("pristine_standardized_margin does not match score, threshold, and robust scale")
+        if not math.isclose(transformed_margin, expected_transformed_margin, rel_tol=1e-12, abs_tol=1e-12):
+            raise ValueError("transformed_standardized_margin does not match score, threshold, and robust scale")
+        object.__setattr__(self, "pristine_standardized_margin", pristine_margin)
+        object.__setattr__(self, "transformed_standardized_margin", transformed_margin)
         require_bool("pristine_decision", self.pristine_decision)
         require_bool("transformed_decision", self.transformed_decision)
+        if self.comparison_operator is ComparisonOperator.GREATER_THAN_OR_EQUAL:
+            expected_pristine_decision = pristine >= threshold
+            expected_transformed_decision = transformed >= threshold
+        else:
+            expected_pristine_decision = pristine > threshold
+            expected_transformed_decision = transformed > threshold
+        if self.pristine_decision != expected_pristine_decision:
+            raise ValueError("pristine_decision does not match fixed threshold semantics")
+        if self.transformed_decision != expected_transformed_decision:
+            raise ValueError("transformed_decision does not match fixed threshold semantics")
 
 
 @dataclass(frozen=True, slots=True)
@@ -441,8 +496,7 @@ class E20AuditFields:
 
     def __post_init__(self) -> None:
         require_clean_string("worker_version", self.worker_version)
-        if re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", self.timestamp_utc) is None:
-            raise ValueError("timestamp_utc must use canonical second-resolution UTC form")
+        _require_utc_timestamp("timestamp_utc", self.timestamp_utc)
         for name, value in (
             ("environment_snapshot_hash", self.environment_snapshot_hash),
             ("authorization_hash", self.authorization_hash),
@@ -500,6 +554,11 @@ class E20OutcomeRow:
         for name, value, expected_type in groups:
             if not isinstance(value, expected_type):
                 raise TypeError(f"{name} must be an {expected_type.__name__}")
+        if self.generation.realized_length != self.text.source_token_count:
+            raise ValueError("source_token_count must equal the frozen generated continuation length")
+        expected_matched = self.observation.preserved_count + self.observation.replaced_count
+        if self.gvalues.matched_observation_count != expected_matched:
+            raise ValueError("g-value matched observation count does not match aligned observation geometry")
         reason = self.fidelity.reason_codes[0]
         if reason is ExperimentReasonCode.NO_ELIGIBLE_TRANSFORM:
             if self.transform.eligible:
@@ -521,13 +580,16 @@ class E20OutcomeRow:
                     self.observation.replaced_count,
                     self.observation.dropped_count,
                     self.observation.added_count,
+                    self.gvalues.hamming_difference_count,
                 )
             ):
-                raise ValueError("NO_ELIGIBLE_TRANSFORM rows must preserve edit and observation geometry")
+                raise ValueError("NO_ELIGIBLE_TRANSFORM rows must preserve edit, observation, and g-value geometry")
             if self.observation.original_valid_count != self.observation.transformed_valid_count:
                 raise ValueError("NO_ELIGIBLE_TRANSFORM rows must preserve valid observation count")
             if self.observation.preserved_count != self.observation.original_valid_count:
                 raise ValueError("NO_ELIGIBLE_TRANSFORM rows must preserve every valid observation")
+            if self.gvalues.matched_observation_count != self.observation.original_valid_count:
+                raise ValueError("NO_ELIGIBLE_TRANSFORM rows must match every original valid observation")
             if (
                 self.detector.pristine_raw_score != self.detector.transformed_raw_score
                 or self.detector.pristine_standardized_margin != self.detector.transformed_standardized_margin
@@ -651,6 +713,9 @@ class E20FailureRow:
             raise TypeError("reason_code must be an ExperimentReasonCode")
         if self.reason_code in _OUTCOME_REASON_CODES:
             raise ValueError("complete outcome reason codes cannot be represented as E20FailureRow")
+        expected_stage = _FAILURE_STAGE_BY_REASON.get(self.reason_code)
+        if expected_stage is None or self.stage is not expected_stage:
+            raise ValueError("E20 failure reason code does not match the required failure stage")
         require_sha256("source_sample_record_hash", self.source_sample_record_hash)
         require_sha256("detail_hash", self.detail_hash)
         if not isinstance(self.audit, E20AuditFields):
