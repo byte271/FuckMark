@@ -102,9 +102,11 @@ from .types import RunIdentity, SourcePin
 from .transforms import (
     TASK29_FIDELITY_READINESS_ALGORITHM_VERSION,
     FidelityReadinessStatus,
+    FidelityReadinessVerificationError,
     FidelityRuleReadiness,
     Task29FidelityReadinessReport,
     build_task29_fidelity_readiness,
+    verify_task29_fidelity_readiness,
     FIDELITY_EVIDENCE_ALGORITHM_VERSION,
     BlindHumanFidelityAudit,
     BlindReviewJudgment,
@@ -197,9 +199,11 @@ from .transforms import (
 __all__ = [
     "TASK29_FIDELITY_READINESS_ALGORITHM_VERSION",
     "FidelityReadinessStatus",
+    "FidelityReadinessVerificationError",
     "FidelityRuleReadiness",
     "Task29FidelityReadinessReport",
     "build_task29_fidelity_readiness",
+    "verify_task29_fidelity_readiness",
     "FIDELITY_EVIDENCE_ALGORITHM_VERSION",
     "BlindHumanFidelityAudit",
     "BlindReviewJudgment",
