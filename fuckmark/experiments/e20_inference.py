@@ -25,7 +25,7 @@ from .e20_execution import E20ExecutionAuthorization
 
 
 E20_INFERENCE_ALGORITHM_VERSION = "e20-inference-v2"
-E20_DECISION_TEST_ALGORITHM_VERSION = "paired-exact-mcnemar-binomial-logsum-v2"
+E20_DECISION_TEST_ALGORITHM_VERSION = "paired-exact-mcnemar-binomial-logcomb-v2"
 E20_CONTINUOUS_TEST_ALGORITHM_VERSION = "paired-sign-flip-splitmix64-v1"
 E20_SIGN_FLIP_REPLICATES = 10_000
 _MASK64 = (1 << 64) - 1
@@ -166,12 +166,11 @@ def _exact_binomial_two_sided(successes: int, trials: int) -> float:
         raise ValueError("invalid exact binomial count")
     if trials == 0 or successes * 2 >= trials:
         return 1.0
-    log_probability_at_successes = (
-        math.lgamma(trials + 1)
-        - math.lgamma(successes + 1)
-        - math.lgamma(trials - successes + 1)
-        - trials * _LOG_TWO
-    )
+    # Keep the binomial coefficient as an exact Python integer. math.log accepts
+    # arbitrarily large ints without first converting the coefficient to a float,
+    # avoiding both the old overflow and the cancellation from subtracting lgamma
+    # terms at confirmatory-scale N.
+    log_probability_at_successes = math.log(math.comb(trials, successes)) - trials * _LOG_TWO
     scaled_tail = 1.0
     scaled_term = 1.0
     for index in range(successes, 0, -1):
