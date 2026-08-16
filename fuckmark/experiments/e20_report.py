@@ -7,6 +7,7 @@ from enum import Enum
 
 from .._validation import require_bool, require_int, require_sha256
 from ..corpus import CorpusManifest
+from ..detectors import ExactBinomialInterval, exact_binomial_interval
 from ..hashing import sha256_json
 from .confirmatory import ConfirmatoryPreregistration
 from .confirmatory_detector_readiness import (
@@ -28,7 +29,7 @@ from .e20_key_analysis import E20KeyAnalysisBundle, verify_e20_key_analysis_bund
 from .e20_rows import E20HumanFidelityStatus, ExperimentReasonCode
 
 
-E20_REPORT_ALGORITHM_VERSION = "e20-report-v3"
+E20_REPORT_ALGORITHM_VERSION = "e20-report-v4"
 
 
 class E20ReportStatus(str, Enum):
@@ -36,6 +37,7 @@ class E20ReportStatus(str, Enum):
     BLOCKED_FIDELITY_AUDIT = "BLOCKED_FIDELITY_AUDIT"
     INCOMPLETE_FAILURE_ROWS = "INCOMPLETE_FAILURE_ROWS"
     INCOMPLETE_INFERENCE = "INCOMPLETE_INFERENCE"
+    INCOMPLETE_PRIMARY_METRICS = "INCOMPLETE_PRIMARY_METRICS"
     CONFIRMATORY_EVALUABLE = "CONFIRMATORY_EVALUABLE"
 
 
@@ -48,6 +50,7 @@ class E20HumanFidelitySummary:
     cannot_judge_count: int
     hard_invariant_failure_count: int
     equivalent_or_minor_rate: float | None
+    equivalent_or_minor_interval: ExactBinomialInterval | None
     gate_passed: bool
     summary_hash: str
 
@@ -71,10 +74,12 @@ class E20HumanFidelitySummary:
             raise ValueError("human fidelity reviewed counts do not close")
         if self.reviewed_transform_count > self.unique_transform_count:
             raise ValueError("human fidelity reviewed transform count cannot exceed unique transform count")
-        if self.equivalent_or_minor_rate is None:
-            if self.reviewed_transform_count != 0:
-                raise ValueError("reviewed transforms require equivalent-or-minor rate")
+        if self.reviewed_transform_count == 0:
+            if self.equivalent_or_minor_rate is not None or self.equivalent_or_minor_interval is not None:
+                raise ValueError("unreviewed fidelity summary cannot contain rate or interval")
         else:
+            if self.equivalent_or_minor_rate is None:
+                raise ValueError("reviewed transforms require equivalent-or-minor rate")
             if isinstance(self.equivalent_or_minor_rate, bool) or not isinstance(
                 self.equivalent_or_minor_rate, (int, float)
             ):
@@ -83,6 +88,21 @@ class E20HumanFidelitySummary:
             if not math.isfinite(rate) or rate < 0.0 or rate > 1.0:
                 raise ValueError("equivalent_or_minor_rate must be in [0, 1]")
             object.__setattr__(self, "equivalent_or_minor_rate", rate)
+            if not isinstance(self.equivalent_or_minor_interval, ExactBinomialInterval):
+                raise TypeError("reviewed transforms require an exact binomial confidence interval")
+            if not math.isclose(
+                self.equivalent_or_minor_interval.confidence_level,
+                0.95,
+                rel_tol=0.0,
+                abs_tol=1e-15,
+            ):
+                raise ValueError("human fidelity confidence interval must use 95% confidence")
+            if not (
+                self.equivalent_or_minor_interval.lower
+                <= rate
+                <= self.equivalent_or_minor_interval.upper
+            ):
+                raise ValueError("human fidelity rate must lie inside its exact confidence interval")
         require_bool("gate_passed", self.gate_passed)
         require_sha256("summary_hash", self.summary_hash)
         if self.summary_hash != sha256_json(self._payload()):
@@ -98,6 +118,7 @@ class E20HumanFidelitySummary:
             "cannot_judge_count": self.cannot_judge_count,
             "hard_invariant_failure_count": self.hard_invariant_failure_count,
             "equivalent_or_minor_rate": self.equivalent_or_minor_rate,
+            "equivalent_or_minor_interval": self.equivalent_or_minor_interval,
             "gate_passed": self.gate_passed,
         }
 
@@ -300,6 +321,7 @@ def _human_fidelity_summary(
         for row in result_bundle.failure_rows
     )
     rate = None if reviewed == 0 else favorable / reviewed
+    interval = None if reviewed == 0 else exact_binomial_interval(favorable, reviewed, 0.95)
     gate_passed = (
         reviewed >= preregistration.fidelity_gate.minimum_audited_samples
         and hard_failures <= preregistration.fidelity_gate.maximum_hard_invariant_violations
@@ -315,6 +337,7 @@ def _human_fidelity_summary(
         "cannot_judge_count": cannot_judge,
         "hard_invariant_failure_count": hard_failures,
         "equivalent_or_minor_rate": rate,
+        "equivalent_or_minor_interval": interval,
         "gate_passed": gate_passed,
     }
     return E20HumanFidelitySummary(
@@ -325,6 +348,7 @@ def _human_fidelity_summary(
         cannot_judge,
         hard_failures,
         rate,
+        interval,
         gate_passed,
         sha256_json(payload),
     )
@@ -461,7 +485,7 @@ def build_e20_confirmatory_report(
     elif any(value.status is not E20InferenceStatus.COMPLETE for value in inference.inferences):
         status = E20ReportStatus.INCOMPLETE_INFERENCE
     elif not all(value.headline_eligible for value in ordered_headlines):
-        status = E20ReportStatus.INCOMPLETE_INFERENCE
+        status = E20ReportStatus.INCOMPLETE_PRIMARY_METRICS
     else:
         status = E20ReportStatus.CONFIRMATORY_EVALUABLE
     payload = {
