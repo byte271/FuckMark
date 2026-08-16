@@ -140,7 +140,6 @@ class E20InferenceBundle:
             raise ValueError("E20 inference family size must equal the preregistered condition-hypothesis cell count")
         if any(value.family_size != self.family_size for value in self.inferences):
             raise ValueError("all inference cells must carry the same frozen family size")
-        require_sha256("bundle_hash", self.bundle_hash)
         if self.bundle_hash != sha256_json(self._payload()):
             raise ValueError("bundle_hash does not match E20 inference bundle")
 
@@ -164,15 +163,14 @@ def _exact_binomial_two_sided(successes: int, trials: int) -> float:
         raise ValueError("invalid exact binomial count")
     if trials == 0:
         return 1.0
-    tail = math.fsum(math.comb(trials, index) for index in range(successes + 1)) / (2 ** trials)
+    tail = math.fsum(math.comb(trials, index) for index in range(successes + 1)) / (2**trials)
     return min(1.0, 2.0 * tail)
 
 
 def _mcnemar_p_value(rows) -> float:
     losses = sum(row.detector.pristine_decision and not row.detector.transformed_decision for row in rows)
     gains = sum((not row.detector.pristine_decision) and row.detector.transformed_decision for row in rows)
-    discordant = losses + gains
-    return _exact_binomial_two_sided(min(losses, gains), discordant)
+    return _exact_binomial_two_sided(min(losses, gains), losses + gains)
 
 
 class _SplitMix64:
@@ -189,7 +187,12 @@ class _SplitMix64:
         return (value ^ (value >> 31)) & _MASK64
 
 
-def _sign_flip_p_value(execution_id: str, condition_id: str, hypothesis_id: str, differences: tuple[float, ...]) -> float:
+def _sign_flip_p_value(
+    execution_id: str,
+    condition_id: str,
+    hypothesis_id: str,
+    differences: tuple[float, ...],
+) -> float:
     if not differences:
         return 1.0
     observed = abs(math.fsum(differences) / len(differences))
@@ -209,8 +212,7 @@ def _sign_flip_p_value(execution_id: str, condition_id: str, hypothesis_id: str,
         )
         rng = _SplitMix64(seed)
         flipped = math.fsum(
-            value if (rng.next_u64() & 1) else -value
-            for value in differences
+            value if (rng.next_u64() & 1) else -value for value in differences
         ) / len(differences)
         if abs(flipped) + 1e-15 >= observed:
             extreme += 1
@@ -226,36 +228,21 @@ def _metric_effect(aggregate_condition, metric_id: E20MetricId) -> float | None:
     if len(candidates) != 1:
         raise ValueError("confirmatory aggregate is missing the required primary metric")
     metric = candidates[0]
-    if metric.status is not E20MetricStatus.COMPLETE:
-        return None
-    return metric.estimate
+    return metric.estimate if metric.status is E20MetricStatus.COMPLETE else None
 
 
-def _raw_inference(
-    condition,
-    hypothesis,
-    aggregate_condition,
-    rows,
-    family_size: int,
-    execution_id: str,
-):
+def _raw_inference(condition, hypothesis, aggregate_condition, rows, execution_id: str):
     if not aggregate_condition.headline_eligible:
-        return (
-            E20InferenceStatus.INCOMPLETE_FAILURE_ROWS,
-            None,
-            None,
-            None,
-        )
+        return (E20InferenceStatus.INCOMPLETE_FAILURE_ROWS, None, None, None)
     if hypothesis.primary_outcome is ConfirmatoryPrimaryOutcome.TPR_CHANGE_AT_ONE_PERCENT_FPR:
         effect = _metric_effect(aggregate_condition, E20MetricId.TPR_CHANGE)
         if effect is None:
             return (E20InferenceStatus.INCOMPLETE_FAILURE_ROWS, None, None, None)
-        p_value = _mcnemar_p_value(rows)
         return (
             E20InferenceStatus.COMPLETE,
             effect,
             E20_DECISION_TEST_ALGORITHM_VERSION,
-            p_value,
+            _mcnemar_p_value(rows),
         )
     if hypothesis.primary_outcome is ConfirmatoryPrimaryOutcome.STANDARDIZED_MARGIN_DROP:
         effect = _metric_effect(aggregate_condition, E20MetricId.STANDARDIZED_MARGIN_DROP)
@@ -274,12 +261,15 @@ def _raw_inference(
     return (E20InferenceStatus.UNSUPPORTED_PRIMARY_OUTCOME, None, None, None)
 
 
-def _holm_adjust(raw_cells, family_size: int):
+def _holm_adjust(raw_cells, family_size: int) -> dict[int, float]:
     complete = sorted(
-        (index, value[3])
-        for index, value in enumerate(raw_cells)
-        if value[0] is E20InferenceStatus.COMPLETE
-    , key=lambda item: (item[1], item[0]))
+        (
+            (index, value[3])
+            for index, value in enumerate(raw_cells)
+            if value[0] is E20InferenceStatus.COMPLETE
+        ),
+        key=lambda item: (item[1], item[0]),
+    )
     adjusted: dict[int, float] = {}
     running = 0.0
     for rank, (index, p_value) in enumerate(complete, start=1):
@@ -322,7 +312,7 @@ def build_e20_inference_bundle(
         cells.append((condition, hypothesis, aggregate_by_condition[condition.condition_id], rows))
     family_size = len(cells)
     raw = tuple(
-        _raw_inference(condition, hypothesis, aggregate_condition, rows, family_size, result_bundle.execution_id)
+        _raw_inference(condition, hypothesis, aggregate_condition, rows, result_bundle.execution_id)
         for condition, hypothesis, aggregate_condition, rows in cells
     )
     adjusted = _holm_adjust(raw, family_size)
