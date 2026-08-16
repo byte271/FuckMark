@@ -1,0 +1,15 @@
+{
+  "checkpoint_algorithm_version": "deepmind-bayesian-checkpoint-v1",
+  "source_id": "deepmind-synthid-text-reference",
+  "source_commit": "addb4a158143c7c6851a1308f78b89fceed59683",
+  "watermarking_depth": 3,
+  "base_rate": 0.35,
+  "beta": [-1.0, -0.5, 0.25],
+  "delta": [
+    [0.0, 0.0, 0.0],
+    [0.4, 0.0, 0.0],
+    [-0.3, 0.2, 0.0]
+  ],
+  "fixture_kind": "synthetic-source-conformance",
+  "checkpoint_hash": "22e0c688cad0b53de2b90174601e17bf0b1866852df5c6073fa54702de329ffa"
+}
