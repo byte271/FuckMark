@@ -49,6 +49,16 @@ def _add_fenced_code(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -
         cursor = end
 
 
+def _find_inline_code_closer(text: str, start: int, end: int, run_length: int) -> re.Match[str] | None:
+    for match in _INLINE_CODE_RUN_RE.finditer(text, start, end):
+        if len(match.group()) != run_length:
+            continue
+        if _is_escaped(text, match.start()):
+            continue
+        return match
+    return None
+
+
 def _add_inline_code(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
     cursor = 0
     while True:
@@ -63,8 +73,8 @@ def _add_inline_code(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -
             cursor = opening.end()
             continue
         end_of_line = _line_end(text, opening.end())
-        closing = text.find(run, opening.end(), end_of_line)
-        end = end_of_line if closing < 0 else closing + len(run)
+        closing = _find_inline_code_closer(text, opening.end(), end_of_line, len(run))
+        end = end_of_line if closing is None else closing.end()
         _append(raw, opening.start(), end, ProtectedSpanKind.CODE)
         cursor = max(end, opening.end())
 
