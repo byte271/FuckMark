@@ -11,7 +11,7 @@ from .lexical_audit import (
     LexicalRuleAudit,
     LexicalRulePromotionError,
     create_lexical_rule_audit,
-    require_release_eligible_lexical_rules,
+    require_complete_lexical_audit_summaries,
 )
 from .lexical_rules import (
     LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION,
@@ -155,7 +155,7 @@ __all__ = [
     "development_syntax_rules",
     "development_transform_registry",
     "release_transform_registry",
-    "require_release_eligible_lexical_rules",
+    "require_complete_lexical_audit_summaries",
     "validate_protected_invariants",
     "verify_lexical_retokenization_fixture",
     "verify_syntax_retokenization_fixture",
