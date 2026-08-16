@@ -1,0 +1,90 @@
+name: Transform provenance binding
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/finalize-transform-provenance.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Provenance tests
+        run: python -m pytest -q tests/test_transform_provenance.py
+      - name: Full suite
+        run: python -m pytest -q
+
+  commit:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Rebase latest main
+        run: git fetch origin main && git reset --hard origin/main
+      - name: Export verified provenance API
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('fuckmark/experiments/__init__.py')
+          text = path.read_text()
+          import_block = '''from .transform_provenance import (\n    DEVELOPMENT_TRANSFORM_PROVENANCE_VERSION,\n    TransformProvenanceError,\n    VerifiedTransformProvenance,\n    build_verified_transform_row,\n    verify_transform_provenance,\n)\n'''
+          if 'from .transform_provenance import (' not in text:
+              marker = 'from .transform_analysis import ('
+              assert marker in text
+              text = text.replace(marker, import_block + marker, 1)
+          names = (
+              'DEVELOPMENT_TRANSFORM_PROVENANCE_VERSION',
+              'TransformProvenanceError',
+              'VerifiedTransformProvenance',
+              'build_verified_transform_row',
+              'verify_transform_provenance',
+          )
+          for name in names:
+              quoted = f'    "{name}",\n'
+              if quoted not in text:
+                  marker = '    "calibrate_tiny_dev_detector",\n'
+                  assert marker in text
+                  text = text.replace(marker, quoted + marker, 1)
+          path.write_text(text)
+          PY
+      - name: Install latest tree
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Full latest-main suite
+        run: python -m pytest -q
+      - name: Commit verified provenance
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f --ignore-unmatch \
+            .github/workflows/patch-schedule-identity.yml \
+            .github/workflows/patch-experiment-key-blind.yml \
+            .github/workflows/patch-calibration-interval.yml \
+            .github/workflows/finalize-task27-hardening.yml \
+            .github/workflows/finalize-transform-provenance.yml
+          git add fuckmark/experiments/__init__.py fuckmark/experiments/transform_provenance.py tests/test_transform_provenance.py
+          git commit -m "Bind development rows to verified transform provenance"
+          git push origin HEAD:main
+          git push origin --delete __probe_invalid__ || true
