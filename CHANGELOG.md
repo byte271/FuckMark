@@ -4,6 +4,18 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added source-conformant Mean and Weighted Mean detector primitives matching the pinned DeepMind detector formulas on golden and randomized g-value/mask fixtures.
+- Added explicit zero-valid-observation failure behavior so detector runs cannot silently emit NaN scores or disappear from analysis.
+- Added normalized source-defined Weighted Mean layer weights with strict finite, non-negative, non-zero validation.
+- Added structured detector compatibility results with `SUPPORTED`, `UNSUPPORTED`, and `UNVERIFIED` states.
+- Added fail-closed Bayesian compatibility until watermark mode, Bernoulli(0.5) assumptions, checkpoint identity, and source-compatible configuration are bound.
+- Added immutable uncalibrated detector evidence carrying detector identity, adapter identity, source revisions, valid-observation count, score direction, raw score, and normalized weights.
+- Added detector regression fixtures covering all-zero, all-one, alternating, mixed-depth, depth 1/2/30, single-valid, mixed-mask, zero-valid, repetition-mask, and EOS-mask cases.
+- Hardened alignment validation to require the canonical minimum-distance deterministic traceback rather than accepting merely self-consistent alternative alignments.
+- Added a separate alignment-step resource limit so extremely unbalanced sequences cannot bypass the dynamic-programming cell limit and allocate unbounded step objects.
+- Replaced Python-object Hugging Face sampling tables with compact byte storage and chunked Torch conversion.
+- Replaced preallocated repeated-context history lists with sparse bounded hash history while preserving the source-defined zero-initialized semantics.
+- Added adapter-identity stability checks around native observation signal computation.
 - Added strict source-pin loading and a deterministic source-pin registry with duplicate-key and schema-drift rejection.
 - Added the implementation-neutral watermark adapter protocol and deterministic adapter registry.
 - Added a pinned DeepMind SynthID Text reference observation adapter.

@@ -44,7 +44,11 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 23. Source-conformant Hugging Face sampling-table reproduction through an optional Torch bridge
 24. Adapter-specific behavioral fingerprints with sampling-table hashing
 25. Cross-implementation isolation between the DeepMind reference and Hugging Face observation paths
+26. Source-conformant Mean scoring over valid g-values
+27. Source-conformant Weighted Mean scoring with normalized layer weights
+28. Explicit detector compatibility states with fail-closed Bayesian handling
+29. Immutable uncalibrated detector evidence bound to adapter and detector identity
 
-The detector layer, transformation rules, calibration, and experiments remain intentionally outside this layer.
+Bayesian checkpoint training, fixed-FPR calibration, transformation rules, experiments, and reporting remain intentionally outside this layer.
 
 Python source is English-only and contains no comments or docstrings.
