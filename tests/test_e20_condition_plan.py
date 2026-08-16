@@ -29,6 +29,14 @@ def test_condition_plan_replays_preregistered_budget_config_hash() -> None:
         * len(preregistration.target_fprs)
         * len(preregistration.calibration_bundles)
     )
+    assert len(plan.transform_condition_ids) == len(preregistration.schedules)
+    for schedule in preregistration.schedules:
+        ids = {
+            value.transform_condition_id
+            for value in plan.conditions
+            if value.schedule_policy is schedule
+        }
+        assert len(ids) == 1
     verify_e20_condition_plan(plan, preregistration)
 
 
@@ -61,6 +69,7 @@ def test_condition_plan_rejects_unknown_hypothesis_class_even_when_hash_matches(
         tuple(
             E20Condition.create(
                 value.condition_id,
+                value.transform_condition_id,
                 value.schedule_policy,
                 value.budget,
                 value.budget_unit,
@@ -84,6 +93,7 @@ def test_condition_plan_rejects_unknown_calibration_bundle_even_when_hash_matche
     first = full.conditions[0]
     bad_first = E20Condition.create(
         first.condition_id,
+        first.transform_condition_id,
         first.schedule_policy,
         first.budget,
         first.budget_unit,
@@ -103,6 +113,7 @@ def test_condition_plan_rejects_semantically_duplicate_condition_without_silent_
     bundle_hash = preregistration_inputs().calibration_bundles[0].bundle_hash
     condition = E20Condition.create(
         "first",
+        "random-valid-budget-1",
         SchedulePolicy.RANDOM_VALID,
         1,
         "operation",
@@ -112,6 +123,7 @@ def test_condition_plan_rejects_semantically_duplicate_condition_without_silent_
     )
     duplicate = E20Condition.create(
         "second",
+        "random-valid-budget-1",
         SchedulePolicy.RANDOM_VALID,
         1,
         "operation",
@@ -121,3 +133,29 @@ def test_condition_plan_rejects_semantically_duplicate_condition_without_silent_
     )
     with pytest.raises(ValueError, match="unique by execution semantics"):
         build_e20_condition_plan((condition, duplicate))
+
+
+def test_condition_plan_rejects_different_transform_ids_for_same_schedule_budget() -> None:
+    bundle_hashes = tuple(value.bundle_hash for value in preregistration_inputs().calibration_bundles)
+    first = E20Condition.create(
+        "first",
+        "transform-a",
+        SchedulePolicy.RANDOM_VALID,
+        1,
+        "operation",
+        0.01,
+        bundle_hashes[0],
+        "H13-primary",
+    )
+    second = E20Condition.create(
+        "second",
+        "transform-b",
+        SchedulePolicy.RANDOM_VALID,
+        1,
+        "operation",
+        0.01,
+        bundle_hashes[1],
+        "H13-primary",
+    )
+    with pytest.raises(ValueError, match="must reuse one transform_condition_id"):
+        build_e20_condition_plan((first, second))
