@@ -7,12 +7,13 @@ from dataclasses import dataclass
 from .._validation import require_int, require_sha256
 from ..corpus import CorpusManifest
 from ..hashing import sha256_json
+from .confirmatory import ConfirmatoryPreregistration
 from .e20_conditions import E20ConditionPlan
 from .e20_execution import E20ExecutionAuthorization
 from .e20_rows import E20FailureRow, E20OutcomeRow, ExperimentReasonCode
 
 
-E20_RESULT_BUNDLE_ALGORITHM_VERSION = "e20-result-bundle-v1"
+E20_RESULT_BUNDLE_ALGORITHM_VERSION = "e20-result-bundle-v2"
 
 
 class E20ResultBundleError(ValueError):
@@ -72,12 +73,10 @@ class E20ResultBundle:
             raise ValueError("E20 result row hashes must be unique")
         if not isinstance(self.reason_counts, tuple):
             raise TypeError("reason_counts must be a tuple")
-        expected_reason_order = tuple(ExperimentReasonCode)
-        if tuple(value.reason_code for value in self.reason_counts) != expected_reason_order:
+        if tuple(value.reason_code for value in self.reason_counts) != tuple(ExperimentReasonCode):
             raise ValueError("reason_counts must contain every reason code exactly once in frozen enum order")
-        for value in self.reason_counts:
-            if not isinstance(value, E20ReasonCount):
-                raise TypeError("reason_counts must contain E20ReasonCount values")
+        if any(not isinstance(value, E20ReasonCount) for value in self.reason_counts):
+            raise TypeError("reason_counts must contain E20ReasonCount values")
         for name, value in (
             ("expected_row_count", self.expected_row_count),
             ("observed_row_count", self.observed_row_count),
@@ -126,6 +125,30 @@ class E20ResultBundle:
 
 def _row_key(row: E20OutcomeRow | E20FailureRow) -> tuple[str, str]:
     return row.identity.sample_id, row.identity.condition_id
+
+
+def _compatible_condition_ids(
+    preregistration: ConfirmatoryPreregistration,
+    condition_plan: E20ConditionPlan,
+    watermark_config_hash: str,
+) -> tuple[str, ...]:
+    try:
+        track = preregistration.watermark_tracks.track_for(watermark_config_hash)
+    except KeyError as error:
+        raise E20ResultBundleError(
+            "E20 corpus sample watermark configuration is outside the sealed generation tracks"
+        ) from error
+    bundle_by_hash = {value.bundle_hash: value for value in preregistration.calibration_bundles}
+    result = []
+    for condition in condition_plan.conditions:
+        bundle = bundle_by_hash.get(condition.calibration_bundle_hash)
+        if bundle is None:
+            raise E20ResultBundleError("E20 condition references a calibration bundle outside preregistration")
+        if track.matches_detector_identity(bundle.detector_identity):
+            result.append(condition.condition_id)
+    if not result:
+        raise E20ResultBundleError("sealed generation track has no compatible E20 evaluation condition")
+    return tuple(result)
 
 
 def _verify_shared_transforms(
@@ -192,6 +215,7 @@ def _verify_shared_transforms(
 
 def build_e20_result_bundle(
     authorization: E20ExecutionAuthorization,
+    preregistration: ConfirmatoryPreregistration,
     corpus_manifest: CorpusManifest,
     condition_plan: E20ConditionPlan,
     outcome_rows: Sequence[E20OutcomeRow],
@@ -199,12 +223,18 @@ def build_e20_result_bundle(
 ) -> E20ResultBundle:
     if not isinstance(authorization, E20ExecutionAuthorization):
         raise TypeError("authorization must be an E20ExecutionAuthorization")
+    if not isinstance(preregistration, ConfirmatoryPreregistration):
+        raise TypeError("preregistration must be a ConfirmatoryPreregistration")
     if not isinstance(corpus_manifest, CorpusManifest):
         raise TypeError("corpus_manifest must be a CorpusManifest")
     if not isinstance(condition_plan, E20ConditionPlan):
         raise TypeError("condition_plan must be an E20ConditionPlan")
+    if authorization.preregistration_hash != preregistration.preregistration_hash:
+        raise E20ResultBundleError("preregistration does not match E20 authorization")
     if corpus_manifest.manifest_hash != authorization.corpus_manifest_hash:
         raise E20ResultBundleError("corpus manifest does not match E20 authorization")
+    if condition_plan.plan_hash != authorization.budget_config_hash:
+        raise E20ResultBundleError("condition plan does not match E20 authorization")
     outcomes = tuple(outcome_rows)
     failures = tuple(failure_rows)
     if any(not isinstance(value, E20OutcomeRow) for value in outcomes):
@@ -212,8 +242,15 @@ def build_e20_result_bundle(
     if any(not isinstance(value, E20FailureRow) for value in failures):
         raise TypeError("failure_rows must contain E20FailureRow values")
     conditions = {value.condition_id: value for value in condition_plan.conditions}
-    sample_ids = {value.sample_id for value in corpus_manifest.samples}
-    expected_keys = {(sample_id, condition_id) for sample_id in sample_ids for condition_id in conditions}
+    sample_by_id = {value.sample_id: value for value in corpus_manifest.samples}
+    expected_keys: set[tuple[str, str]] = set()
+    for sample in corpus_manifest.samples:
+        for condition_id in _compatible_condition_ids(
+            preregistration,
+            condition_plan,
+            sample.watermark.watermark_config_hash,
+        ):
+            expected_keys.add((sample.sample_id, condition_id))
     observed_rows = (*outcomes, *failures)
     observed_keys = tuple(_row_key(value) for value in observed_rows)
     if len(set(observed_keys)) != len(observed_keys):
@@ -222,12 +259,17 @@ def build_e20_result_bundle(
     missing = expected_keys - observed_key_set
     extra = observed_key_set - expected_keys
     if missing or extra:
-        raise E20ResultBundleError(
-            f"E20 result coverage mismatch: missing={len(missing)} extra={len(extra)}"
-        )
+        raise E20ResultBundleError(f"E20 result coverage mismatch: missing={len(missing)} extra={len(extra)}")
     for row in observed_rows:
         if row.identity.execution_id != authorization.execution_id or row.identity.run_id != authorization.execution_id:
             raise E20ResultBundleError("E20 result row belongs to a different sealed execution")
+        sample = sample_by_id[row.identity.sample_id]
+        if row.identity.condition_id not in _compatible_condition_ids(
+            preregistration,
+            condition_plan,
+            sample.watermark.watermark_config_hash,
+        ):
+            raise E20ResultBundleError("E20 row evaluation condition is incompatible with the source generation track")
     for row in outcomes:
         condition = conditions[row.identity.condition_id]
         if row.detector.calibration_bundle_hash != condition.calibration_bundle_hash:
@@ -249,8 +291,6 @@ def build_e20_result_bundle(
     for row in ordered_failures:
         counts[row.reason_code] += 1
     reason_counts = tuple(E20ReasonCount(reason, counts[reason]) for reason in ExperimentReasonCode)
-    expected_count = len(expected_keys)
-    observed_count = len(observed_rows)
     payload = {
         "algorithm_version": E20_RESULT_BUNDLE_ALGORITHM_VERSION,
         "execution_id": authorization.execution_id,
@@ -260,8 +300,8 @@ def build_e20_result_bundle(
         "outcome_rows": ordered_outcomes,
         "failure_rows": ordered_failures,
         "reason_counts": reason_counts,
-        "expected_row_count": expected_count,
-        "observed_row_count": observed_count,
+        "expected_row_count": len(expected_keys),
+        "observed_row_count": len(observed_rows),
         "outcome_row_count": len(ordered_outcomes),
         "failure_row_count": len(ordered_failures),
     }
@@ -274,8 +314,8 @@ def build_e20_result_bundle(
         ordered_outcomes,
         ordered_failures,
         reason_counts,
-        expected_count,
-        observed_count,
+        len(expected_keys),
+        len(observed_rows),
         len(ordered_outcomes),
         len(ordered_failures),
         sha256_json(payload),
@@ -285,6 +325,7 @@ def build_e20_result_bundle(
 def verify_e20_result_bundle(
     bundle: E20ResultBundle,
     authorization: E20ExecutionAuthorization,
+    preregistration: ConfirmatoryPreregistration,
     corpus_manifest: CorpusManifest,
     condition_plan: E20ConditionPlan,
 ) -> None:
@@ -292,6 +333,7 @@ def verify_e20_result_bundle(
         raise TypeError("bundle must be an E20ResultBundle")
     expected = build_e20_result_bundle(
         authorization,
+        preregistration,
         corpus_manifest,
         condition_plan,
         bundle.outcome_rows,
