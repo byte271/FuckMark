@@ -53,6 +53,14 @@ class PristineBaselineSummary:
             raise TypeError("tpr_interval must be an ExactBinomialInterval")
         if not self.tpr_interval.lower <= self.tpr <= self.tpr_interval.upper:
             raise ValueError("tpr must lie inside its exact binomial interval")
+        from .calibration_statistics import exact_binomial_interval
+        expected_interval = exact_binomial_interval(
+            self.detected_count,
+            self.sample_count,
+            self.tpr_interval.confidence_level,
+        )
+        if self.tpr_interval != expected_interval:
+            raise ValueError("tpr_interval does not match exact binomial interval")
         if not isinstance(self.status, BaselineStatus):
             raise TypeError("status must be a BaselineStatus")
         expected_status = BaselineStatus.PASS if self.tpr >= self.interpretability_floor else BaselineStatus.BELOW_FLOOR
