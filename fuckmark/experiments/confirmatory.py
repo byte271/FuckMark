@@ -15,16 +15,17 @@ from ..transforms.registry import TRANSFORM_REGISTRY_ALGORITHM_VERSION
 from ..transforms.rules import TransformRule, default_contraction_rules, validate_rules
 from ..transforms.scheduler import ScheduleGeometryMode, SchedulePolicy
 from ..types import SourcePin
+from .confirmatory_tracks import (
+    ConfirmatoryWatermarkTrackManifest,
+    verify_confirmatory_watermark_track_manifest,
+)
 
 
-CONFIRMATORY_PREREGISTRATION_ALGORITHM_VERSION = "confirmatory-preregistration-v1"
+CONFIRMATORY_PREREGISTRATION_ALGORITHM_VERSION = "confirmatory-preregistration-v2"
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _UNRESOLVED_RE = re.compile(r"(?:\bTODO\b|\bTBD\b|<[^<>]+>)", re.IGNORECASE)
 _REQUIRED_SOURCE_IDS = frozenset(
-    {
-        "deepmind-synthid-text-reference",
-        "huggingface-transformers-synthid",
-    }
+    {"deepmind-synthid-text-reference", "huggingface-transformers-synthid"}
 )
 _REQUIRED_SCHEDULES = (
     SchedulePolicy.RANDOM_VALID,
@@ -114,7 +115,7 @@ class ConfirmatoryFidelityGate:
         minimum_audited_samples: int = 50,
         minimum_equivalent_or_minor_rate: float = 0.95,
         maximum_hard_invariant_violations: int = 0,
-    ) -> ConfirmatoryFidelityGate:
+    ) -> "ConfirmatoryFidelityGate":
         payload = {
             "review_policy_id": BLIND_HUMAN_REVIEW_POLICY_ID,
             "minimum_audited_samples": minimum_audited_samples,
@@ -152,7 +153,7 @@ class ConfirmatoryBootstrapPlan:
         return {"replicates": self.replicates, "confidence_level": self.confidence_level}
 
     @classmethod
-    def create(cls, replicates: int = 10_000, confidence_level: float = 0.95) -> ConfirmatoryBootstrapPlan:
+    def create(cls, replicates: int = 10_000, confidence_level: float = 0.95) -> "ConfirmatoryBootstrapPlan":
         payload = {"replicates": replicates, "confidence_level": float(confidence_level)}
         return cls(replicates, confidence_level, sha256_json(payload))
 
@@ -186,7 +187,7 @@ class ConfirmatoryHypothesis:
         hypothesis_id: str,
         statement: str,
         primary_outcome: ConfirmatoryPrimaryOutcome,
-    ) -> ConfirmatoryHypothesis:
+    ) -> "ConfirmatoryHypothesis":
         payload = {
             "hypothesis_id": hypothesis_id,
             "statement": statement,
@@ -203,6 +204,7 @@ class ConfirmatoryPreregistration:
     source_pins: tuple[SourcePin, ...]
     model_tokenizers: tuple[ModelTokenizerIdentity, ...]
     calibration_bundles: tuple[CalibrationBundle, ...]
+    watermark_tracks: ConfirmatoryWatermarkTrackManifest
     domains: tuple[CorpusDomain, ...]
     length_buckets: tuple[int, ...]
     final_n_per_core_cell: int
@@ -236,6 +238,13 @@ class ConfirmatoryPreregistration:
         self._validate_sources()
         self._validate_models()
         self._validate_calibration()
+        if not isinstance(self.watermark_tracks, ConfirmatoryWatermarkTrackManifest):
+            raise TypeError("watermark_tracks must be a ConfirmatoryWatermarkTrackManifest")
+        verify_confirmatory_watermark_track_manifest(
+            self.watermark_tracks,
+            self.source_pins,
+            tuple(bundle.detector_identity for bundle in self.calibration_bundles),
+        )
         if self.domains != tuple(CorpusDomain):
             raise ValueError("confirmatory domains must contain all four frozen corpus domains in canonical order")
         if self.length_buckets != TARGET_LENGTHS:
@@ -307,8 +316,7 @@ class ConfirmatoryPreregistration:
             raise ValueError("model_tokenizers must be canonically ordered")
         if len({value.identity_hash for value in self.model_tokenizers}) != len(self.model_tokenizers):
             raise ValueError("model_tokenizers must be unique")
-        families = {(value.model_id, value.tokenizer_id) for value in self.model_tokenizers}
-        if len(families) < 2:
+        if len({(value.model_id, value.tokenizer_id) for value in self.model_tokenizers}) < 2:
             raise ValueError("confirmatory matrix requires at least two distinct model/tokenizer families")
 
     def _validate_calibration(self) -> None:
@@ -365,8 +373,7 @@ class ConfirmatoryPreregistration:
             raise ValueError("confirmatory target_fprs must include the primary 1% FPR operating point")
         object.__setattr__(self, "target_fprs", targets)
         for bundle in self.calibration_bundles:
-            bundle_targets = tuple(value.target_fpr for value in bundle.thresholds)
-            if bundle_targets != targets:
+            if tuple(value.target_fpr for value in bundle.thresholds) != targets:
                 raise ValueError("every calibration bundle must freeze exactly the preregistered target FPRs")
 
     def _validate_hypotheses(self) -> None:
@@ -398,6 +405,7 @@ class ConfirmatoryPreregistration:
             "source_pins": self.source_pins,
             "model_tokenizers": self.model_tokenizers,
             "calibration_bundles": self.calibration_bundles,
+            "watermark_tracks": self.watermark_tracks,
             "domains": tuple(value.value for value in self.domains),
             "length_buckets": self.length_buckets,
             "final_n_per_core_cell": self.final_n_per_core_cell,
@@ -430,6 +438,7 @@ class ConfirmatoryPreregistrationInputs:
     source_pins: tuple[SourcePin, ...]
     model_tokenizers: tuple[ModelTokenizerIdentity, ...]
     calibration_bundles: tuple[CalibrationBundle, ...]
+    watermark_tracks: ConfirmatoryWatermarkTrackManifest
     final_n_per_core_cell: int
     power_analysis_hash: str
     transform_rules: tuple[TransformRule, ...]
@@ -466,6 +475,7 @@ def create_confirmatory_preregistration(inputs: ConfirmatoryPreregistrationInput
         "source_pins": source_pins,
         "model_tokenizers": model_tokenizers,
         "calibration_bundles": calibration_bundles,
+        "watermark_tracks": inputs.watermark_tracks,
         "domains": tuple(value.value for value in CorpusDomain),
         "length_buckets": TARGET_LENGTHS,
         "final_n_per_core_cell": inputs.final_n_per_core_cell,
@@ -496,6 +506,7 @@ def create_confirmatory_preregistration(inputs: ConfirmatoryPreregistrationInput
         source_pins,
         model_tokenizers,
         calibration_bundles,
+        inputs.watermark_tracks,
         tuple(CorpusDomain),
         TARGET_LENGTHS,
         inputs.final_n_per_core_cell,
