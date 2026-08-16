@@ -3,11 +3,15 @@ from dataclasses import replace
 import pytest
 
 from fuckmark.adapters import DeepMindReferenceAdapter, DeepMindReferenceConfig
+from fuckmark.corpus import CorpusSplit, WatermarkLabel
 from fuckmark.detectors import (
     DetectorArtifactVerificationError,
     apply_calibration,
+    evaluate_pristine_baseline,
     mean_evidence,
     verify_calibrated_detector_result,
+    verify_calibration_bundle,
+    verify_pristine_baseline_summary,
     verify_uncalibrated_detector_evidence,
     weighted_mean_evidence,
 )
@@ -65,6 +69,21 @@ def test_mean_family_evidence_replay_rejects_self_valid_score_forgery() -> None:
         verify_uncalibrated_detector_evidence(batch, forged)
 
 
+def test_calibration_bundle_replay_rejects_other_valid_negative_evidence() -> None:
+    artifact = tiny_dev_artifact()
+    rows = calibration_evidence()
+    binding = calibrate_tiny_dev_detector(artifact, rows)
+    verify_calibration_bundle(rows, binding.calibration_bundle)
+    changed = list(rows)
+    first = changed[0]
+    changed[0] = replace(
+        first,
+        raw_score=min(1.0, first.raw_score + 0.4),
+    )
+    with pytest.raises(DetectorArtifactVerificationError, match="calibration bundle does not replay exactly"):
+        verify_calibration_bundle(tuple(changed), binding.calibration_bundle)
+
+
 def test_calibrated_result_replay_rejects_rehashed_bundle_field_forgery() -> None:
     artifact = tiny_dev_artifact()
     binding = calibrate_tiny_dev_detector(artifact, calibration_evidence())
@@ -85,3 +104,28 @@ def test_calibrated_result_replay_rejects_rehashed_bundle_field_forgery() -> Non
     assert forged.result_hash != result.result_hash
     with pytest.raises(DetectorArtifactVerificationError, match="does not replay exactly"):
         verify_calibrated_detector_result(evidence, binding.calibration_bundle, forged)
+
+
+def test_pristine_baseline_replay_rejects_other_valid_calibrated_results() -> None:
+    artifact = tiny_dev_artifact()
+    binding = calibrate_tiny_dev_detector(artifact, calibration_evidence())
+    positive_ids = {
+        sample.sample_id
+        for sample in artifact.manifest.samples
+        if sample.split is CorpusSplit.ATTACK_DEVELOPMENT
+        and sample.label is WatermarkLabel.WATERMARKED
+    }
+    results = tuple(
+        apply_calibration(evidence, binding.calibration_bundle, 0.01)
+        for evidence in attack_evidence()
+        if evidence.sample_id in positive_ids
+    )
+    changed_results = tuple(
+        apply_calibration(evidence, binding.calibration_bundle, 0.01)
+        for evidence in attack_evidence(underpowered=True)
+        if evidence.sample_id in positive_ids
+    )
+    summary = evaluate_pristine_baseline(results)
+    verify_pristine_baseline_summary(results, summary)
+    with pytest.raises(DetectorArtifactVerificationError, match="pristine baseline summary does not replay exactly"):
+        verify_pristine_baseline_summary(changed_results, summary)
