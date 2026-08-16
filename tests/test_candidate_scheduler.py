@@ -185,7 +185,7 @@ def test_scheduler_rejects_incomplete_cost_map_and_invalid_budget_seed() -> None
     scheduler = CandidateScheduler()
     with pytest.raises(ValueError, match="non-negative"):
         scheduler.schedule(scheduler_input, SchedulePolicy.LEFT_TO_RIGHT, -1)
-    with pytest.raises(ValueError, match="2\^64"):
+    with pytest.raises(ValueError, match=r"2\^64"):
         scheduler.schedule(scheduler_input, SchedulePolicy.LEFT_TO_RIGHT, 1, seed=1 << 64)
 
 
