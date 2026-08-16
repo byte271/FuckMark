@@ -33,6 +33,7 @@ _REQUIRED_SCHEDULES = (
     SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND,
 )
 _REQUIRED_REPLACEMENT_BIN_UPPER_BOUNDS = (0.05, 0.15, 0.25, 0.35, 0.50, 1.0)
+_CONFIRMATORY_BOOTSTRAP_STRATIFY_BY = ("model", "tokenizer", "domain", "length")
 
 
 class ConfirmatoryPrimaryOutcome(str, Enum):
@@ -148,6 +149,10 @@ class ConfirmatoryBootstrapPlan:
         require_sha256("plan_hash", self.plan_hash)
         if self.plan_hash != sha256_json(self._payload()):
             raise ValueError("plan_hash does not match confirmatory bootstrap plan")
+
+    @property
+    def stratify_by(self) -> tuple[str, ...]:
+        return _CONFIRMATORY_BOOTSTRAP_STRATIFY_BY
 
     def _payload(self) -> dict[str, object]:
         return {"replicates": self.replicates, "confidence_level": self.confidence_level}
