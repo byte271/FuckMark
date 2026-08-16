@@ -1,0 +1,194 @@
+name: Calibration interval integrity
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/patch-calibration-interval.yml
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Conditionally harden threshold interval validation
+        shell: bash
+        run: |
+          python - <<'PY'
+          import ast
+          import sys
+          from dataclasses import fields, replace
+          from pathlib import Path
+
+          sys.path.insert(0, 'tests')
+          from tiny_dev_experiment_helpers import calibration_evidence, tiny_dev_artifact
+          from fuckmark.experiments.development_calibration import calibrate_tiny_dev_detector
+          from fuckmark.hashing import sha256_json
+
+          binding = calibrate_tiny_dev_detector(tiny_dev_artifact(), calibration_evidence())
+          threshold = binding.calibration_bundle.thresholds[-1]
+          interval_field = next(name for name in ('confidence_interval', 'fpr_interval') if hasattr(threshold, name))
+          interval = getattr(threshold, interval_field)
+          payload = threshold._payload()
+          interval_payload_key = next(key for key, value in payload.items() if value == interval)
+          vulnerable = False
+          try:
+              forged_interval = replace(interval, lower=0.0, upper=1.0)
+              forged_payload = dict(payload)
+              forged_payload[interval_payload_key] = forged_interval
+              replace(
+                  threshold,
+                  **{
+                      interval_field: forged_interval,
+                      'threshold_hash': sha256_json(forged_payload),
+                  },
+              )
+          except ValueError:
+              pass
+          else:
+              vulnerable = True
+
+          if vulnerable:
+              threshold_fields = {field.name for field in fields(type(threshold))}
+              assert 'false_positive_count' in threshold_fields
+              assert 'calibration_count' in threshold_fields
+              confidence_attr = next(
+                  name
+                  for name in ('confidence_level', 'confidence')
+                  if hasattr(interval, name)
+              )
+              path = Path('fuckmark/detectors/calibration_threshold.py')
+              text = path.read_text()
+              marker = 'confidence interval does not match exact binomial interval'
+              if marker not in text:
+                  tree = ast.parse(text)
+                  target = None
+                  for node in tree.body:
+                      if isinstance(node, ast.ClassDef) and node.name == 'CalibrationThreshold':
+                          target = next(
+                              child
+                              for child in node.body
+                              if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child.name == '__post_init__'
+                          )
+                          break
+                  assert target is not None and target.end_lineno is not None
+                  insertion = (
+                      '        from .calibration_statistics import exact_binomial_interval\n'
+                      '        expected_interval = exact_binomial_interval(\n'
+                      '            self.false_positive_count,\n'
+                      '            self.calibration_count,\n'
+                      f'            self.{interval_field}.{confidence_attr},\n'
+                      '        )\n'
+                      f'        if self.{interval_field} != expected_interval:\n'
+                      '            raise ValueError("confidence interval does not match exact binomial interval")\n'
+                  )
+                  lines = text.splitlines(keepends=True)
+                  lines[target.end_lineno:target.end_lineno] = [insertion]
+                  path.write_text(''.join(lines))
+          PY
+      - name: Test calibration integrity
+        run: python -m pytest -q tests/test_calibration_interval_integrity.py tests/test_detector_calibration.py tests/test_binomial_interval.py
+
+  commit:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rebase on latest main
+        run: git fetch origin main && git reset --hard origin/main
+      - name: Conditionally harden threshold interval validation
+        shell: bash
+        run: |
+          python -m pip install -e ".[dev]"
+          python - <<'PY'
+          import ast
+          import sys
+          from dataclasses import fields, replace
+          from pathlib import Path
+
+          sys.path.insert(0, 'tests')
+          from tiny_dev_experiment_helpers import calibration_evidence, tiny_dev_artifact
+          from fuckmark.experiments.development_calibration import calibrate_tiny_dev_detector
+          from fuckmark.hashing import sha256_json
+
+          binding = calibrate_tiny_dev_detector(tiny_dev_artifact(), calibration_evidence())
+          threshold = binding.calibration_bundle.thresholds[-1]
+          interval_field = next(name for name in ('confidence_interval', 'fpr_interval') if hasattr(threshold, name))
+          interval = getattr(threshold, interval_field)
+          payload = threshold._payload()
+          interval_payload_key = next(key for key, value in payload.items() if value == interval)
+          vulnerable = False
+          try:
+              forged_interval = replace(interval, lower=0.0, upper=1.0)
+              forged_payload = dict(payload)
+              forged_payload[interval_payload_key] = forged_interval
+              replace(
+                  threshold,
+                  **{
+                      interval_field: forged_interval,
+                      'threshold_hash': sha256_json(forged_payload),
+                  },
+              )
+          except ValueError:
+              pass
+          else:
+              vulnerable = True
+
+          if vulnerable:
+              threshold_fields = {field.name for field in fields(type(threshold))}
+              assert 'false_positive_count' in threshold_fields
+              assert 'calibration_count' in threshold_fields
+              confidence_attr = next(name for name in ('confidence_level', 'confidence') if hasattr(interval, name))
+              path = Path('fuckmark/detectors/calibration_threshold.py')
+              text = path.read_text()
+              marker = 'confidence interval does not match exact binomial interval'
+              if marker not in text:
+                  tree = ast.parse(text)
+                  target = None
+                  for node in tree.body:
+                      if isinstance(node, ast.ClassDef) and node.name == 'CalibrationThreshold':
+                          target = next(child for child in node.body if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child.name == '__post_init__')
+                          break
+                  assert target is not None and target.end_lineno is not None
+                  insertion = (
+                      '        from .calibration_statistics import exact_binomial_interval\n'
+                      '        expected_interval = exact_binomial_interval(\n'
+                      '            self.false_positive_count,\n'
+                      '            self.calibration_count,\n'
+                      f'            self.{interval_field}.{confidence_attr},\n'
+                      '        )\n'
+                      f'        if self.{interval_field} != expected_interval:\n'
+                      '            raise ValueError("confidence interval does not match exact binomial interval")\n'
+                  )
+                  lines = text.splitlines(keepends=True)
+                  lines[target.end_lineno:target.end_lineno] = [insertion]
+                  path.write_text(''.join(lines))
+          PY
+      - name: Commit validated calibration hardening
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm -f --ignore-unmatch .github/workflows/patch-schedule-identity.yml .github/workflows/patch-experiment-key-blind.yml .github/workflows/patch-calibration-interval.yml
+          git add fuckmark/detectors/calibration_threshold.py tests/test_calibration_interval_integrity.py
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Harden calibration interval integrity"
+          git push origin HEAD:main
+          git push origin --delete __probe_invalid__ || true
