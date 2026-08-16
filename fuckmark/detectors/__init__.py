@@ -40,6 +40,8 @@ from .types import (
 from .verification import (
     DetectorArtifactVerificationError,
     verify_calibrated_detector_result,
+    verify_calibration_bundle,
+    verify_pristine_baseline_summary,
     verify_uncalibrated_detector_evidence,
 )
 
@@ -77,6 +79,8 @@ __all__ = [
     "mean_score",
     "require_supported_detector",
     "verify_calibrated_detector_result",
+    "verify_calibration_bundle",
+    "verify_pristine_baseline_summary",
     "verify_uncalibrated_detector_evidence",
     "weighted_mean_evidence",
     "weighted_mean_score",
