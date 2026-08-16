@@ -16,15 +16,25 @@ from .registry import (
     default_transform_registry,
 )
 from .rules import RULE_ALGORITHM_VERSION, LiteralTransformRule, default_contraction_rules
+from .scheduler import (
+    CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
+    CandidateScheduler,
+    KeyBlindScheduleInput,
+    SchedulePolicy,
+    ScheduleResult,
+    SchedulerCandidate,
+)
 from .schema import CandidateRejectionReason, HardInvariantReason, InvariantStatus, ProtectedSpanKind, TransformFamily, TransformTier
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
 
 __all__ = [
+    "CANDIDATE_SCHEDULER_ALGORITHM_VERSION",
     "CandidateConflict",
     "CandidateEnumeration",
     "CandidateRejection",
     "CandidateRejectionReason",
+    "CandidateScheduler",
     "HARD_INVARIANT_ALGORITHM_VERSION",
     "HardInvariantReason",
     "HardInvariantReport",
@@ -33,6 +43,7 @@ __all__ = [
     "validate_hard_invariants",
     "InvariantDifference",
     "InvariantStatus",
+    "KeyBlindScheduleInput",
     "LiteralTransformRule",
     "PROTECTED_SPAN_ALGORITHM_VERSION",
     "ProtectedInvariantReport",
@@ -41,6 +52,9 @@ __all__ = [
     "ProtectedSpanKind",
     "ProtectedSpanManifest",
     "RULE_ALGORITHM_VERSION",
+    "SchedulePolicy",
+    "ScheduleResult",
+    "SchedulerCandidate",
     "TRANSFORM_APPLY_ALGORITHM_VERSION",
     "TRANSFORM_REGISTRY_ALGORITHM_VERSION",
     "TransformCandidate",
