@@ -59,7 +59,14 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 38. Separate captured-generation and decoded/re-tokenized token tracks for the same source text
 39. Matched watermarked/control validation with frozen non-watermark generation parameters and explicit seed policy
 40. Exact-output deduplication, TEST_KEYS isolation, target-length feasibility, and corpus integrity hashes
+41. Immutable protected-span extraction for URLs, emails, IPs, numeric values, dates, currency, code, Markdown destinations, quotations, paths, CLI flags, citations, math, configured identifiers, and user-marked entities
+42. Overlap-merged protected-span manifests with exact UTF-8 content hashes and post-transform protected-content validation
+43. Versioned deterministic literal transform rules with a narrow built-in English negation-contraction ruleset
+44. Candidate enumeration with explicit precondition failures, protected-overlap rejection, canonical conflict graphs, and input-bound candidate identities
+45. Explicit-candidate application with independent enumeration replay, exact operation geometry, immutable traces, and deterministic byte-identical replay
+46. Canonical negation and modality signatures that make hard-invariant validation reject semantic polarity or obligation changes
+47. Transform dependency isolation with no detector, watermark-key, network, model, or neural inference access in the transform package
 
-Bayesian checkpoint training, transformation rules, experiments, aggregation, and reporting remain intentionally outside this layer.
+Bayesian checkpoint training, candidate scheduling, realized-budget rollback, lexical/syntax rules, experiments, aggregation, and reporting remain intentionally outside this layer.
 
 Python source is English-only and contains no comments or docstrings.

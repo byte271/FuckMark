@@ -4,6 +4,13 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added immutable protected-span extraction for URLs, emails, IP literals, numeric values, dates, currency, percentages, code, Markdown destinations, quotations, file paths, CLI flags, citations, math, configured identifiers, and user-marked entities.
+- Added overlap-merged protected-span manifests plus hard-invariant comparison over exact protected content.
+- Added deterministic canonical negation and modality signatures so transform application fails closed if a rule changes polarity, possibility, ability, obligation, or commitment markers.
+- Added a versioned deterministic transform registry with a deliberately narrow built-in English negation-contraction ruleset and no network/model inference path.
+- Added candidate precondition failures, protected-overlap rejection before application, canonical candidate conflict graphs, and input-bound candidate identities.
+- Added explicit-candidate transformation traces with independent enumeration replay, exact source/output operation geometry, deterministic seed provenance, and byte-identical replay guarantees.
+- Added adversarial transform regressions for forged enumerations, conflict omission, all-caps blocks, Unicode apostrophes, sentence casing, newline boundaries, Markdown lists, protected conflicts, and rule reapplication.
 - Added immutable corpus manifests with content-addressed prompt and sample records, deterministic ordering, and self-validating manifest hashes.
 - Added exact prompt provenance and license records with English v1 scope, exact UTF-8 hashing, prompt-family partition enforcement, and duplicate-prompt leakage rejection.
 - Added immutable model/tokenizer identities covering pinned revisions, chat-template identity, special-token maps, BOS/EOS policy, padding side, and token IDs.
