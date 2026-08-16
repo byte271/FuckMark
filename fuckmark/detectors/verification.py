@@ -1,8 +1,16 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from ..native_observations import NativeObservationBatch
 from .calibration_apply import apply_calibration
-from .calibration_types import CalibratedDetectorResult, CalibrationBundle
+from .calibration_baseline import evaluate_pristine_baseline
+from .calibration_build import calibrate_detector
+from .calibration_types import (
+    CalibratedDetectorResult,
+    CalibrationBundle,
+    PristineBaselineSummary,
+)
 from .mean import MEAN_ALGORITHM_VERSION, WEIGHTED_MEAN_ALGORITHM_VERSION, _evidence
 from .types import DetectorFamily, UncalibratedDetectorEvidence
 
@@ -41,6 +49,25 @@ def verify_uncalibrated_detector_evidence(
         )
 
 
+def verify_calibration_bundle(
+    negative_evidence: Sequence[UncalibratedDetectorEvidence],
+    bundle: CalibrationBundle,
+) -> None:
+    if not isinstance(bundle, CalibrationBundle):
+        raise TypeError("bundle must be a CalibrationBundle")
+    expected = calibrate_detector(
+        negative_evidence,
+        bundle.scope,
+        target_fprs=tuple(threshold.target_fpr for threshold in bundle.thresholds),
+        comparison_operator=bundle.comparison_operator,
+        confidence_level=bundle.confidence_level,
+    )
+    if bundle != expected:
+        raise DetectorArtifactVerificationError(
+            "calibration bundle does not replay exactly from the supplied negative evidence"
+        )
+
+
 def verify_calibrated_detector_result(
     evidence: UncalibratedDetectorEvidence,
     bundle: CalibrationBundle,
@@ -56,4 +83,21 @@ def verify_calibrated_detector_result(
     if result != expected:
         raise DetectorArtifactVerificationError(
             "calibrated detector result does not replay exactly from the supplied evidence and calibration bundle"
+        )
+
+
+def verify_pristine_baseline_summary(
+    results: Sequence[CalibratedDetectorResult],
+    summary: PristineBaselineSummary,
+) -> None:
+    if not isinstance(summary, PristineBaselineSummary):
+        raise TypeError("summary must be a PristineBaselineSummary")
+    expected = evaluate_pristine_baseline(
+        results,
+        interpretability_floor=summary.interpretability_floor,
+        confidence_level=summary.tpr_interval.confidence_level,
+    )
+    if summary != expected:
+        raise DetectorArtifactVerificationError(
+            "pristine baseline summary does not replay exactly from the supplied calibrated results"
         )
