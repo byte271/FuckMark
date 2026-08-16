@@ -6,6 +6,7 @@ from fuckmark.transforms.fidelity_evidence import (
     FidelityLabel,
     FidelityReviewSample,
     GrammarFixture,
+    GrammarFixtureDisposition,
     create_blind_human_fidelity_audit,
 )
 from fuckmark.transforms.fidelity_verification import FidelityEvidenceVerificationError
@@ -102,8 +103,13 @@ def test_source_grounded_syntax_evidence_replays_to_development_complete_only() 
 def test_source_grounded_syntax_evidence_rejects_wrong_grammar_output() -> None:
     evidence = _evidence()
     grammar = list(evidence.grammar_fixtures)
-    first = grammar[0]
-    grammar[0] = GrammarFixture.candidate(
+    index = next(
+        position
+        for position, fixture in enumerate(grammar)
+        if fixture.disposition is GrammarFixtureDisposition.CANDIDATE
+    )
+    first = grammar[index]
+    grammar[index] = GrammarFixture.candidate(
         first.rule_hash,
         first.fixture_id,
         first.source_text,
