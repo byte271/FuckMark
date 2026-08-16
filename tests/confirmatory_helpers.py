@@ -32,7 +32,11 @@ from fuckmark.experiments.confirmatory import (
     ConfirmatoryPrimaryOutcome,
     MultipleTestingMethod,
 )
-from fuckmark.hashing import sha256_text
+from fuckmark.experiments.confirmatory_keys import (
+    ConfirmatoryTestKeyEntry,
+    build_confirmatory_test_key_manifest,
+)
+from fuckmark.hashing import sha256_bytes, sha256_text
 from fuckmark.native_observations import build_native_observations
 from fuckmark.transforms import ScheduleGeometryMode, build_task29_fidelity_readiness, default_transform_registry
 
@@ -144,6 +148,33 @@ def preregistration_inputs(
         sealed_test_key_hash=sha256_text("sealed-test-key-commitment"),
         sealed_test_corpus_hash=sha256_text("sealed-test-corpus-commitment"),
     )
+
+
+def confirmatory_test_key_manifest(
+    inputs: ConfirmatoryPreregistrationInputs,
+    *,
+    omit_last: bool = False,
+    include_extra: bool = False,
+):
+    entries = [
+        ConfirmatoryTestKeyEntry.create(
+            key_id=f"test-key-{model_index}",
+            watermark_config_hash=sha256_text(f"watermark-config-{model_index}"),
+            key_material_commitment_hash=sha256_bytes(f"secret-test-key-{model_index}".encode("utf-8")),
+        )
+        for model_index, _ in enumerate(inputs.model_tokenizers)
+    ]
+    if omit_last:
+        entries = entries[:-1]
+    if include_extra:
+        entries.append(
+            ConfirmatoryTestKeyEntry.create(
+                key_id="unused-test-key",
+                watermark_config_hash=sha256_text("unused-watermark-config"),
+                key_material_commitment_hash=sha256_bytes(b"unused-secret-test-key"),
+            )
+        )
+    return build_confirmatory_test_key_manifest(entries)
 
 
 def confirmatory_manifest(inputs: ConfirmatoryPreregistrationInputs, omit_last_pair: bool = False):
