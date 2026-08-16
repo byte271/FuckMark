@@ -54,6 +54,14 @@ class CalibrationThreshold:
             raise TypeError("fpr_interval must be an ExactBinomialInterval")
         if not self.fpr_interval.lower <= self.achieved_fpr <= self.fpr_interval.upper:
             raise ValueError("achieved_fpr must lie inside its exact binomial interval")
+        from .calibration_statistics import exact_binomial_interval
+        expected_interval = exact_binomial_interval(
+            self.false_positive_count,
+            self.calibration_count,
+            self.fpr_interval.confidence_level,
+        )
+        if self.fpr_interval != expected_interval:
+            raise ValueError("confidence interval does not match exact binomial interval")
         require_sha256("calibration_input_hash", self.calibration_input_hash)
         require_sha256("threshold_hash", self.threshold_hash)
         expected_hash = sha256_json(
