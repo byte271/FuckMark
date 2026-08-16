@@ -7,7 +7,7 @@ from .._validation import require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
 from .hard_invariants import validate_hard_invariants
-from .lexical_audit import LexicalRuleAudit, require_release_eligible_lexical_rules
+from .lexical_audit import LexicalRuleAudit, LexicalRulePromotionError
 from .lexical_rules import LexicalTemplateRule, development_lexical_rules
 from .protected import ProtectedSpanExtractor
 from .protected_artifacts import ProtectedSpan, UserProtectedRange
@@ -193,9 +193,12 @@ def development_transform_registry(identifiers: Sequence[str] = ()) -> Transform
 
 
 def release_transform_registry(
-    lexical_rules: Sequence[LexicalTemplateRule],
-    lexical_audits: Sequence[LexicalRuleAudit],
+    lexical_rules: Sequence[LexicalTemplateRule] = (),
+    lexical_audits: Sequence[LexicalRuleAudit] = (),
     identifiers: Sequence[str] = (),
 ) -> TransformRegistry:
-    approved = require_release_eligible_lexical_rules(lexical_rules, lexical_audits)
-    return TransformRegistry((*default_contraction_rules(), *approved), identifiers)
+    if lexical_rules or lexical_audits:
+        raise LexicalRulePromotionError(
+            "release promotion requires source-grounded verified fidelity evidence; summary audit artifacts cannot authorize release"
+        )
+    return TransformRegistry(default_contraction_rules(), identifiers)
