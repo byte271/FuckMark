@@ -70,6 +70,20 @@ def test_unclosed_inline_code_is_protected_to_line_end() -> None:
     assert not default_transform_registry().enumerate(text).candidates
 
 
+def test_escaped_inline_code_closer_does_not_terminate_protection() -> None:
+    text = r"Use `do not \` and do not wait"
+    span = _single_kind(text, ProtectedSpanKind.CODE)
+    assert span.exact_text == r"`do not \` and do not wait"
+    assert not default_transform_registry().enumerate(text).candidates
+
+
+def test_longer_backtick_run_does_not_close_shorter_inline_code_run() -> None:
+    text = "Use ``do not```x` and do not wait"
+    span = _single_kind(text, ProtectedSpanKind.CODE)
+    assert span.exact_text == "``do not```x` and do not wait"
+    assert not default_transform_registry().enumerate(text).candidates
+
+
 def test_unclosed_dollar_math_is_protected_to_line_end() -> None:
     text = "$do not change"
     span = _single_kind(text, ProtectedSpanKind.MATH)
