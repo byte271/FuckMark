@@ -14,6 +14,8 @@ from fuckmark.corpus import (
     WatermarkLabel,
 )
 from fuckmark.corpus.tiny_dev import (
+    TINY_DEV_ATTACK_PAIRS_PER_DOMAIN,
+    TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN,
     TINY_DEV_CORPUS_ALGORITHM_VERSION,
     TINY_DEV_DOMAINS,
     TINY_DEV_SPLITS,
@@ -23,6 +25,12 @@ from fuckmark.corpus.tiny_dev import (
 from fuckmark.hashing import sha256_text
 
 
+def _pairs_for_split(split: CorpusSplit) -> int:
+    if split is CorpusSplit.THRESHOLD_CALIBRATION:
+        return TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN
+    return TINY_DEV_ATTACK_PAIRS_PER_DOMAIN
+
+
 def _records():
     model = model_identity()
     prompts = []
@@ -30,41 +38,41 @@ def _records():
     seed = 1
     for split in TINY_DEV_SPLITS:
         for domain in TINY_DEV_DOMAINS:
-            cell = f"{split.value}-{domain.value}"
-            prompt_record = PromptRecord.create(
-                prompt_id=f"prompt-{cell}",
-                prompt_family_id=f"family-{cell}",
-                domain=domain,
-                split=split,
-                source_id="tiny-dev-test-prompts",
-                source_hash=SOURCE_HASH,
-                license_id="CC0-1.0",
-                provenance="tests/test_tiny_dev_corpus.py",
-                text=f"Write a short English response for the {cell} fixture.",
-            )
-            prompts.append(prompt_record)
-            match_id = f"match-{cell}"
-            for label in (WatermarkLabel.UNWATERMARKED, WatermarkLabel.WATERMARKED):
-                suffix = seed + 100
-                tokens = generation_tokens((7, 8, 9, suffix), model)
-                samples.append(
-                    CorpusSample.create(
-                        sample_id=f"sample-{cell}-{label.value}",
-                        match_id=match_id,
-                        prompt_id=prompt_record.prompt_id,
-                        prompt_family_id=prompt_record.prompt_family_id,
-                        domain=domain,
-                        split=split,
-                        label=label,
-                        text=f"Fixture output {cell} {label.value} seed {seed}.",
-                        model=model,
-                        generation=generation(seed),
-                        watermark=watermark(KeySplit.DEV),
-                        target_length=64,
-                        generation_tokens=tokens,
-                    )
+            for pair_index in range(_pairs_for_split(split)):
+                cell = f"{split.value}-{domain.value}-{pair_index:02d}"
+                prompt_record = PromptRecord.create(
+                    prompt_id=f"prompt-{cell}",
+                    prompt_family_id=f"family-{cell}",
+                    domain=domain,
+                    split=split,
+                    source_id="tiny-dev-test-prompts",
+                    source_hash=SOURCE_HASH,
+                    license_id="CC0-1.0",
+                    provenance="tests/test_tiny_dev_corpus.py",
+                    text=f"Write a short English response for the {cell} fixture.",
                 )
-                seed += 1
+                prompts.append(prompt_record)
+                match_id = f"match-{cell}"
+                for label in (WatermarkLabel.UNWATERMARKED, WatermarkLabel.WATERMARKED):
+                    tokens = generation_tokens((7, 8, 9, seed + 100), model)
+                    samples.append(
+                        CorpusSample.create(
+                            sample_id=f"sample-{cell}-{label.value}",
+                            match_id=match_id,
+                            prompt_id=prompt_record.prompt_id,
+                            prompt_family_id=prompt_record.prompt_family_id,
+                            domain=domain,
+                            split=split,
+                            label=label,
+                            text=f"Fixture output {cell} {label.value} seed {seed}.",
+                            model=model,
+                            generation=generation(seed),
+                            watermark=watermark(KeySplit.DEV),
+                            target_length=64,
+                            generation_tokens=tokens,
+                        )
+                    )
+                    seed += 1
     return prompts, samples
 
 
@@ -86,23 +94,31 @@ def _alternate_model() -> ModelTokenizerIdentity:
     )
 
 
-def test_tiny_dev_corpus_builds_frozen_two_split_four_domain_matrix() -> None:
+def test_tiny_dev_corpus_builds_calibration_resolvable_profile() -> None:
     prompts, samples = _records()
     artifact = build_tiny_dev_corpus("tiny-dev-test", prompts, samples)
     assert artifact.algorithm_version == TINY_DEV_CORPUS_ALGORITHM_VERSION
     assert artifact.target_length == 64
-    assert artifact.pairs_per_cell == 1
+    assert artifact.calibration_pairs_per_domain == 25
+    assert artifact.attack_pairs_per_domain == 1
     assert artifact.required_splits == TINY_DEV_SPLITS
     assert artifact.required_domains == TINY_DEV_DOMAINS
-    assert len(artifact.manifest.prompts) == 8
-    assert len(artifact.manifest.samples) == 16
-    assert len({sample.match_id for sample in artifact.manifest.samples}) == 8
+    assert len(artifact.manifest.prompts) == 104
+    assert len(artifact.manifest.samples) == 208
+    assert len({sample.match_id for sample in artifact.manifest.samples}) == 104
+    calibration_negatives = tuple(
+        sample
+        for sample in artifact.manifest.samples
+        if sample.split is CorpusSplit.THRESHOLD_CALIBRATION
+        and sample.label is WatermarkLabel.UNWATERMARKED
+    )
+    assert len(calibration_negatives) == 100
     assert all(sample.watermark.key_split is KeySplit.DEV for sample in artifact.manifest.samples)
     assert {
         (cell.split, cell.domain, cell.pair_count)
         for cell in artifact.cells
     } == {
-        (split, domain, 1)
+        (split, domain, _pairs_for_split(split))
         for split in TINY_DEV_SPLITS
         for domain in TINY_DEV_DOMAINS
     }
@@ -111,16 +127,20 @@ def test_tiny_dev_corpus_builds_frozen_two_split_four_domain_matrix() -> None:
 def test_tiny_dev_corpus_replays_byte_identically() -> None:
     prompts, samples = _records()
     first = build_tiny_dev_corpus("tiny-dev-test", prompts, samples)
-    for _ in range(10):
+    for _ in range(3):
         assert build_tiny_dev_corpus("tiny-dev-test", prompts, samples) == first
 
 
-def test_tiny_dev_corpus_rejects_missing_split_domain_cell() -> None:
+def test_tiny_dev_corpus_rejects_missing_split_domain_pair() -> None:
     prompts, samples = _records()
-    removed_prompt = prompts[-1]
-    prompts = prompts[:-1]
-    samples = [sample for sample in samples if sample.prompt_id != removed_prompt.prompt_id]
-    with pytest.raises(TinyDevCorpusError, match="sixteen|eight|one prompt"):
+    attack_prompt = next(
+        prompt
+        for prompt in prompts
+        if prompt.split is CorpusSplit.ATTACK_DEVELOPMENT
+    )
+    prompts = [prompt for prompt in prompts if prompt.prompt_id != attack_prompt.prompt_id]
+    samples = [sample for sample in samples if sample.prompt_id != attack_prompt.prompt_id]
+    with pytest.raises(TinyDevCorpusError, match="208|104|one prompt"):
         build_tiny_dev_corpus("tiny-dev-test", prompts, samples)
 
 
@@ -140,8 +160,10 @@ def test_tiny_dev_corpus_rejects_mixed_model_identity() -> None:
         if sample.match_id != target_match:
             changed.append(sample)
             continue
-        continuation = sample.generation_tokens.continuation_token_ids
-        changed_tokens = generation_tokens(continuation, alternate_model)
+        changed_tokens = generation_tokens(
+            sample.generation_tokens.continuation_token_ids,
+            alternate_model,
+        )
         changed.append(
             CorpusSample.create(
                 sample_id=sample.sample_id,
