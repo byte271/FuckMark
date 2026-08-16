@@ -1,3 +1,24 @@
+from .calibration import (
+    CALIBRATION_ALGORITHM_VERSION,
+    apply_calibration,
+    calibrate_detector,
+    evaluate_pristine_baseline,
+    exact_binomial_interval,
+)
+from .calibration_types import (
+    BaselineStatus,
+    CalibratedDetectorResult,
+    CalibrationBundle,
+    CalibrationIdentityError,
+    CalibrationResolutionError,
+    CalibrationScope,
+    CalibrationThreshold,
+    ComparisonOperator,
+    DetectorCalibrationIdentity,
+    ExactBinomialInterval,
+    NullQuantile,
+    PristineBaselineSummary,
+)
 from .compatibility import evaluate_detector_compatibility, require_supported_detector
 from .mean import (
     MEAN_ALGORITHM_VERSION,
@@ -19,16 +40,33 @@ from .types import (
 
 
 __all__ = [
+    "BaselineStatus",
+    "CALIBRATION_ALGORITHM_VERSION",
+    "CalibratedDetectorResult",
+    "CalibrationBundle",
+    "CalibrationIdentityError",
+    "CalibrationResolutionError",
+    "CalibrationScope",
+    "CalibrationThreshold",
+    "ComparisonOperator",
     "CompatibilityStatus",
+    "DetectorCalibrationIdentity",
     "DetectorCompatibility",
     "DetectorCompatibilityError",
     "DetectorFamily",
+    "ExactBinomialInterval",
     "MEAN_ALGORITHM_VERSION",
+    "NullQuantile",
+    "PristineBaselineSummary",
     "ScoreDirection",
     "UncalibratedDetectorEvidence",
     "WEIGHTED_MEAN_ALGORITHM_VERSION",
     "ZeroValidObservationsError",
+    "apply_calibration",
+    "calibrate_detector",
     "evaluate_detector_compatibility",
+    "evaluate_pristine_baseline",
+    "exact_binomial_interval",
     "mean_evidence",
     "mean_score",
     "require_supported_detector",

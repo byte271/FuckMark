@@ -48,7 +48,11 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 27. Source-conformant Weighted Mean scoring with normalized layer weights
 28. Explicit detector compatibility states with fail-closed Bayesian handling
 29. Immutable uncalibrated detector evidence bound to adapter identity, detector identity, and the exact native observation batch hash
+30. Conservative finite-sample fixed-FPR calibration with explicit `>` or `>=` threshold semantics
+31. Empirical null quantiles, robust null scale, and exact Clopper-Pearson FPR intervals
+32. Immutable calibration scopes, detector identities, threshold hashes, and calibration-bundle hashes
+33. Calibrated detector decisions with standardized margins and pristine-baseline interpretability gates
 
-Bayesian checkpoint training, fixed-FPR calibration, transformation rules, experiments, and reporting remain intentionally outside this layer.
+Bayesian checkpoint training, transformation rules, experiments, aggregation, and reporting remain intentionally outside this layer.
 
 Python source is English-only and contains no comments or docstrings.

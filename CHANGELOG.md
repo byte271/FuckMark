@@ -4,6 +4,11 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added conservative finite-sample fixed-FPR calibration over unwatermarked control evidence with observed-score thresholds and no interpolation.
+- Added explicit `>` and `>=` threshold semantics, empirical achieved-FPR accounting, and exact equal-tailed Clopper-Pearson uncertainty intervals.
+- Bound calibration artifacts to immutable corpus scope, detector identity, negative manifests, statistical method identities, threshold hashes, and calibration-bundle hashes.
+- Added robust null center and scale estimates plus standardized detector margins for calibrated evidence comparison.
+- Added pristine-watermarked baseline summaries with exact TPR intervals and a default 80% interpretability floor before downstream perturbation claims.
 - Fixed Weighted Mean floating-point boundary drift that could produce scores slightly above 1.0 or make evidence reject its own mathematically valid score.
 - Changed Mean and Weighted Mean component algorithm identities to v2 because detector result rows and serialized evidence changed while the project version remains v0.1.0.
 - Bound uncalibrated detector evidence to the exact native observation batch with a canonical SHA-256 digest so distinct detector inputs cannot collapse to identical evidence records.
