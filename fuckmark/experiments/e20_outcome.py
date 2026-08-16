@@ -36,6 +36,48 @@ def _require_condition_bundle(
         )
 
 
+def _require_generation_track(
+    preregistration: ConfirmatoryPreregistration,
+    source_sample: CorpusSample,
+    adapter: WatermarkAdapter,
+    calibration_bundle: CalibrationBundle,
+) -> None:
+    try:
+        track = preregistration.watermark_tracks.track_for(
+            source_sample.watermark.watermark_config_hash
+        )
+    except KeyError as error:
+        raise E20RowVerificationError(
+            "source sample watermark configuration is outside the sealed generation tracks"
+        ) from error
+    if (
+        adapter.adapter_id != track.adapter_id
+        or adapter.algorithm_version != track.adapter_algorithm_version
+        or adapter.configuration_fingerprint() != track.adapter_config_hash
+        or adapter.source_pin.source_id != track.source_id
+        or adapter.source_pin.commit != track.source_commit
+    ):
+        raise E20RowVerificationError(
+            "observation adapter does not match the source sample sealed generation track"
+        )
+    if not track.matches_detector_identity(calibration_bundle.detector_identity):
+        raise E20RowVerificationError(
+            "runtime detector bundle is not source/config compatible with the source sample generation track"
+        )
+
+
+def _preflight(
+    preregistration: ConfirmatoryPreregistration,
+    condition_plan: E20ConditionPlan,
+    source_sample: CorpusSample,
+    adapter: WatermarkAdapter,
+    calibration_bundle: CalibrationBundle,
+    condition_id: str,
+) -> None:
+    _require_condition_bundle(condition_plan, condition_id, calibration_bundle)
+    _require_generation_track(preregistration, source_sample, adapter, calibration_bundle)
+
+
 def build_e20_outcome_row(
     authorization: E20ExecutionAuthorization,
     ledger: E20RunLedger,
@@ -61,7 +103,14 @@ def build_e20_outcome_row(
     human_status: E20HumanFidelityStatus = E20HumanFidelityStatus.NOT_SELECTED,
     human_adjudication_hash: str | None = None,
 ) -> E20OutcomeRow:
-    _require_condition_bundle(condition_plan, condition_id, calibration_bundle)
+    _preflight(
+        preregistration,
+        condition_plan,
+        source_sample,
+        adapter,
+        calibration_bundle,
+        condition_id,
+    )
     return _build_e20_outcome_row(
         authorization,
         ledger,
@@ -114,7 +163,14 @@ def verify_e20_outcome_row(
     human_status: E20HumanFidelityStatus = E20HumanFidelityStatus.NOT_SELECTED,
     human_adjudication_hash: str | None = None,
 ) -> None:
-    _require_condition_bundle(condition_plan, condition_id, calibration_bundle)
+    _preflight(
+        preregistration,
+        condition_plan,
+        source_sample,
+        adapter,
+        calibration_bundle,
+        condition_id,
+    )
     _verify_e20_outcome_row(
         row,
         authorization,
