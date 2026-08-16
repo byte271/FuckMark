@@ -9,6 +9,7 @@ from .._validation import require_bool, require_int, require_sha256
 from ..corpus import CorpusManifest
 from ..detectors import ExactBinomialInterval, exact_binomial_interval
 from ..hashing import sha256_json
+from ..transforms import BlindHumanFidelityAudit
 from .confirmatory import ConfirmatoryPreregistration
 from .confirmatory_detector_readiness import (
     ConfirmatoryDetectorReadinessReport,
@@ -24,12 +25,13 @@ from .e20_aggregate_verification import verify_e20_aggregate_bundle
 from .e20_bundle import E20ReasonCount, E20ResultBundle
 from .e20_conditions import E20ConditionPlan
 from .e20_execution import E20ExecutionAuthorization
+from .e20_human_audit import E20HumanAuditSelection, verify_e20_human_audit_evidence
 from .e20_inference import E20InferenceBundle, E20InferenceStatus, verify_e20_inference_bundle
 from .e20_key_analysis import E20KeyAnalysisBundle, verify_e20_key_analysis_bundle
 from .e20_rows import E20HumanFidelityStatus, ExperimentReasonCode
 
 
-E20_REPORT_ALGORITHM_VERSION = "e20-report-v4"
+E20_REPORT_ALGORITHM_VERSION = "e20-report-v5"
 
 
 class E20ReportStatus(str, Enum):
@@ -51,6 +53,9 @@ class E20HumanFidelitySummary:
     hard_invariant_failure_count: int
     equivalent_or_minor_rate: float | None
     equivalent_or_minor_interval: ExactBinomialInterval | None
+    audit_verified: bool
+    selection_hash: str | None
+    audit_hash: str | None
     gate_passed: bool
     summary_hash: str
 
@@ -103,7 +108,17 @@ class E20HumanFidelitySummary:
                 <= self.equivalent_or_minor_interval.upper
             ):
                 raise ValueError("human fidelity rate must lie inside its exact confidence interval")
+        require_bool("audit_verified", self.audit_verified)
+        if self.audit_verified:
+            if self.selection_hash is None or self.audit_hash is None:
+                raise ValueError("verified human fidelity summary requires selection and audit hashes")
+            require_sha256("selection_hash", self.selection_hash)
+            require_sha256("audit_hash", self.audit_hash)
+        elif self.selection_hash is not None or self.audit_hash is not None:
+            raise ValueError("unverified human fidelity summary cannot bind selection or audit hashes")
         require_bool("gate_passed", self.gate_passed)
+        if self.gate_passed and not self.audit_verified:
+            raise ValueError("human fidelity gate cannot pass without replay-verified blind audit evidence")
         require_sha256("summary_hash", self.summary_hash)
         if self.summary_hash != sha256_json(self._payload()):
             raise ValueError("summary_hash does not match E20 human fidelity summary")
@@ -119,6 +134,9 @@ class E20HumanFidelitySummary:
             "hard_invariant_failure_count": self.hard_invariant_failure_count,
             "equivalent_or_minor_rate": self.equivalent_or_minor_rate,
             "equivalent_or_minor_interval": self.equivalent_or_minor_interval,
+            "audit_verified": self.audit_verified,
+            "selection_hash": self.selection_hash,
+            "audit_hash": self.audit_hash,
             "gate_passed": self.gate_passed,
         }
 
@@ -300,7 +318,29 @@ def _human_fidelity_summary(
     result_bundle: E20ResultBundle,
     condition_plan: E20ConditionPlan,
     preregistration: ConfirmatoryPreregistration,
+    corpus_manifest: CorpusManifest | None = None,
+    human_audit_selection: E20HumanAuditSelection | None = None,
+    human_audit_evidence: BlindHumanFidelityAudit | None = None,
 ) -> E20HumanFidelitySummary:
+    if (human_audit_selection is None) != (human_audit_evidence is None):
+        raise ValueError("human-audit selection and evidence must be supplied together")
+    audit_verified = False
+    selection_hash = None
+    audit_hash = None
+    if human_audit_selection is not None and human_audit_evidence is not None:
+        if corpus_manifest is None:
+            raise ValueError("corpus manifest is required to verify human-audit evidence")
+        verify_e20_human_audit_evidence(
+            human_audit_selection,
+            human_audit_evidence,
+            result_bundle,
+            preregistration,
+            corpus_manifest,
+            condition_plan,
+        )
+        audit_verified = True
+        selection_hash = human_audit_selection.selection_hash
+        audit_hash = human_audit_evidence.audit_hash
     condition_by_id = {value.condition_id: value for value in condition_plan.conditions}
     unique: dict[tuple[str, str], E20HumanFidelityStatus] = {}
     for row in result_bundle.outcome_rows:
@@ -323,7 +363,8 @@ def _human_fidelity_summary(
     rate = None if reviewed == 0 else favorable / reviewed
     interval = None if reviewed == 0 else exact_binomial_interval(favorable, reviewed, 0.95)
     gate_passed = (
-        reviewed >= preregistration.fidelity_gate.minimum_audited_samples
+        audit_verified
+        and reviewed >= preregistration.fidelity_gate.minimum_audited_samples
         and hard_failures <= preregistration.fidelity_gate.maximum_hard_invariant_violations
         and rate is not None
         and rate >= preregistration.fidelity_gate.minimum_equivalent_or_minor_rate
@@ -338,6 +379,9 @@ def _human_fidelity_summary(
         "hard_invariant_failure_count": hard_failures,
         "equivalent_or_minor_rate": rate,
         "equivalent_or_minor_interval": interval,
+        "audit_verified": audit_verified,
+        "selection_hash": selection_hash,
+        "audit_hash": audit_hash,
         "gate_passed": gate_passed,
     }
     return E20HumanFidelitySummary(
@@ -349,6 +393,9 @@ def _human_fidelity_summary(
         hard_failures,
         rate,
         interval,
+        audit_verified,
+        selection_hash,
+        audit_hash,
         gate_passed,
         sha256_json(payload),
     )
@@ -364,6 +411,8 @@ def build_e20_confirmatory_report(
     corpus_manifest: CorpusManifest,
     condition_plan: E20ConditionPlan,
     authorization: E20ExecutionAuthorization,
+    human_audit_selection: E20HumanAuditSelection | None = None,
+    human_audit_evidence: BlindHumanFidelityAudit | None = None,
 ) -> E20ConfirmatoryReport:
     verify_confirmatory_detector_readiness(detector_readiness, preregistration)
     verify_e20_aggregate_bundle(
@@ -391,7 +440,14 @@ def build_e20_confirmatory_report(
         condition_plan,
         authorization,
     )
-    human = _human_fidelity_summary(result_bundle, condition_plan, preregistration)
+    human = _human_fidelity_summary(
+        result_bundle,
+        condition_plan,
+        preregistration,
+        corpus_manifest,
+        human_audit_selection,
+        human_audit_evidence,
+    )
     aggregate_by_id = {value.condition_id: value for value in aggregate.conditions}
     key_by_id = {value.condition_id: value for value in key_analysis.summaries}
     inference_by_id = {value.condition_id: value for value in inference.inferences}
@@ -528,6 +584,8 @@ def verify_e20_confirmatory_report(
     corpus_manifest: CorpusManifest,
     condition_plan: E20ConditionPlan,
     authorization: E20ExecutionAuthorization,
+    human_audit_selection: E20HumanAuditSelection | None = None,
+    human_audit_evidence: BlindHumanFidelityAudit | None = None,
 ) -> None:
     if not isinstance(report, E20ConfirmatoryReport):
         raise TypeError("report must be an E20ConfirmatoryReport")
@@ -541,6 +599,8 @@ def verify_e20_confirmatory_report(
         corpus_manifest,
         condition_plan,
         authorization,
+        human_audit_selection,
+        human_audit_evidence,
     )
     if report != expected:
         raise ValueError(

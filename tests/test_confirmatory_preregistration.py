@@ -21,6 +21,8 @@ def test_confirmatory_preregistration_freezes_core_matrix_without_generating_tes
     assert preregistration.matched_negative_base_sample_count == 8_000
     assert preregistration.task29_readiness.selection_frozen
     assert preregistration.task29_readiness.confirmatory_scale_ready
+    assert preregistration.human_audit_plan.target_sample_count == 50
+    assert preregistration.human_audit_plan.quartile_count == 4
     assert tuple(threshold.target_fpr for threshold in preregistration.calibration_bundles[0].thresholds) == (0.01,)
 
 

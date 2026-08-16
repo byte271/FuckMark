@@ -32,6 +32,7 @@ from fuckmark.experiments.confirmatory import (
     ConfirmatoryPrimaryOutcome,
     MultipleTestingMethod,
 )
+from fuckmark.experiments.confirmatory_human_audit import ConfirmatoryHumanAuditPlan
 from fuckmark.experiments.confirmatory_keys import (
     ConfirmatoryTestKeyEntry,
     build_confirmatory_test_key_manifest,
@@ -199,6 +200,7 @@ def preregistration_inputs(
         budget_config_hash=plan.plan_hash,
         target_fprs=target_fprs,
         fidelity_gate=ConfirmatoryFidelityGate.create(),
+        human_audit_plan=ConfirmatoryHumanAuditPlan.create(50, 2718281828),
         bootstrap_plan=ConfirmatoryBootstrapPlan.create(),
         multiple_testing_method=MultipleTestingMethod.HOLM_BONFERRONI,
         hypotheses=(

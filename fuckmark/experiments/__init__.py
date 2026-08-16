@@ -30,6 +30,14 @@ from .confirmatory_detector_readiness import (
     build_confirmatory_detector_readiness,
     verify_confirmatory_detector_readiness,
 )
+from .confirmatory_human_audit import (
+    CONFIRMATORY_HUMAN_AUDIT_BLINDING_ALGORITHM_VERSION,
+    CONFIRMATORY_HUMAN_AUDIT_DEGRADATION_TARGET_FPR,
+    CONFIRMATORY_HUMAN_AUDIT_PLAN_ALGORITHM_VERSION,
+    CONFIRMATORY_HUMAN_AUDIT_QUARTILE_COUNT,
+    CONFIRMATORY_HUMAN_AUDIT_SELECTION_ALGORITHM_VERSION,
+    ConfirmatoryHumanAuditPlan,
+)
 from .confirmatory_keys import (
     CONFIRMATORY_TEST_KEY_MANIFEST_ALGORITHM_VERSION,
     ConfirmatoryTestKeyEntry,
@@ -135,6 +143,17 @@ from .e20_failure_verification import (
     E20FailureVerificationError,
     build_e20_failure_row,
     verify_e20_failure_row,
+)
+from .e20_human_audit import (
+    E20_HUMAN_AUDIT_SELECTION_ALGORITHM_VERSION,
+    E20HumanAuditCell,
+    E20HumanAuditEvidenceError,
+    E20HumanAuditSelection,
+    E20HumanAuditSelectionEntry,
+    E20HumanAuditSelectionError,
+    build_e20_human_audit_selection,
+    verify_e20_human_audit_evidence,
+    verify_e20_human_audit_selection,
 )
 from .e20_inference import (
     E20_CONTINUOUS_TEST_ALGORITHM_VERSION,

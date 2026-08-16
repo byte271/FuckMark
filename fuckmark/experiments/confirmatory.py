@@ -15,13 +15,14 @@ from ..transforms.registry import TRANSFORM_REGISTRY_ALGORITHM_VERSION
 from ..transforms.rules import TransformRule, default_contraction_rules, validate_rules
 from ..transforms.scheduler import ScheduleGeometryMode, SchedulePolicy
 from ..types import SourcePin
+from .confirmatory_human_audit import ConfirmatoryHumanAuditPlan
 from .confirmatory_tracks import (
     ConfirmatoryWatermarkTrackManifest,
     verify_confirmatory_watermark_track_manifest,
 )
 
 
-CONFIRMATORY_PREREGISTRATION_ALGORITHM_VERSION = "confirmatory-preregistration-v2"
+CONFIRMATORY_PREREGISTRATION_ALGORITHM_VERSION = "confirmatory-preregistration-v3"
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _UNRESOLVED_RE = re.compile(r"(?:\bTODO\b|\bTBD\b|<[^<>]+>)", re.IGNORECASE)
 _REQUIRED_SOURCE_IDS = frozenset(
@@ -226,6 +227,7 @@ class ConfirmatoryPreregistration:
     target_fprs: tuple[float, ...]
     primary_outcomes: tuple[ConfirmatoryPrimaryOutcome, ...]
     fidelity_gate: ConfirmatoryFidelityGate
+    human_audit_plan: ConfirmatoryHumanAuditPlan
     bootstrap_plan: ConfirmatoryBootstrapPlan
     multiple_testing_method: MultipleTestingMethod
     hypotheses: tuple[ConfirmatoryHypothesis, ...]
@@ -276,6 +278,12 @@ class ConfirmatoryPreregistration:
             raise ValueError("confirmatory primary outcomes must contain all five frozen estimands in order")
         if not isinstance(self.fidelity_gate, ConfirmatoryFidelityGate):
             raise TypeError("fidelity_gate must be a ConfirmatoryFidelityGate")
+        if not isinstance(self.human_audit_plan, ConfirmatoryHumanAuditPlan):
+            raise TypeError("human_audit_plan must be a ConfirmatoryHumanAuditPlan")
+        if self.human_audit_plan.review_policy_id != self.fidelity_gate.review_policy_id:
+            raise ValueError("human-audit plan and fidelity gate must use the same frozen review policy")
+        if self.human_audit_plan.target_sample_count < self.fidelity_gate.minimum_audited_samples:
+            raise ValueError("human-audit per-cell target cannot be weaker than the fidelity gate sample minimum")
         if not isinstance(self.bootstrap_plan, ConfirmatoryBootstrapPlan):
             raise TypeError("bootstrap_plan must be a ConfirmatoryBootstrapPlan")
         if not isinstance(self.multiple_testing_method, MultipleTestingMethod):
@@ -427,6 +435,7 @@ class ConfirmatoryPreregistration:
             "target_fprs": self.target_fprs,
             "primary_outcomes": tuple(value.value for value in self.primary_outcomes),
             "fidelity_gate": self.fidelity_gate,
+            "human_audit_plan": self.human_audit_plan,
             "bootstrap_plan": self.bootstrap_plan,
             "multiple_testing_method": self.multiple_testing_method.value,
             "hypotheses": self.hypotheses,
@@ -452,6 +461,7 @@ class ConfirmatoryPreregistrationInputs:
     budget_config_hash: str
     target_fprs: tuple[float, ...]
     fidelity_gate: ConfirmatoryFidelityGate
+    human_audit_plan: ConfirmatoryHumanAuditPlan
     bootstrap_plan: ConfirmatoryBootstrapPlan
     multiple_testing_method: MultipleTestingMethod
     hypotheses: tuple[ConfirmatoryHypothesis, ...]
@@ -497,6 +507,7 @@ def create_confirmatory_preregistration(inputs: ConfirmatoryPreregistrationInput
         "target_fprs": target_fprs,
         "primary_outcomes": tuple(value.value for value in PRIMARY_OUTCOMES),
         "fidelity_gate": inputs.fidelity_gate,
+        "human_audit_plan": inputs.human_audit_plan,
         "bootstrap_plan": inputs.bootstrap_plan,
         "multiple_testing_method": inputs.multiple_testing_method.value if isinstance(inputs.multiple_testing_method, MultipleTestingMethod) else inputs.multiple_testing_method,
         "hypotheses": hypotheses,
@@ -528,6 +539,7 @@ def create_confirmatory_preregistration(inputs: ConfirmatoryPreregistrationInput
         target_fprs,
         PRIMARY_OUTCOMES,
         inputs.fidelity_gate,
+        inputs.human_audit_plan,
         inputs.bootstrap_plan,
         inputs.multiple_testing_method,
         hypotheses,
