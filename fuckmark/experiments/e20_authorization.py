@@ -12,8 +12,10 @@ from .confirmatory_corpus import ConfirmatoryCorpusSeal
 from .confirmatory_keys import ConfirmatoryTestKeyManifest
 from .e20_conditions import E20ConditionPlan, verify_e20_condition_plan
 from .e20_execution import (
+    E20AuthorizationError,
     E20ExecutionAuthorization,
     E20RunLedger,
+    E20VerificationError,
     authorize_e20_execution as _authorize_e20_execution_from_hash,
     verify_e20_execution_authorization as _verify_e20_execution_authorization_from_hash,
 )
@@ -44,7 +46,12 @@ def authorize_e20_execution(
     task29_syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
     task29_tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
 ) -> E20ExecutionAuthorization:
-    verify_e20_condition_plan(condition_plan, preregistration)
+    try:
+        verify_e20_condition_plan(condition_plan, preregistration)
+    except Exception as error:
+        raise E20AuthorizationError(
+            "E20 condition plan did not replay exactly from the sealed preregistration"
+        ) from error
     return _authorize_e20_execution_from_hash(
         preregistration,
         corpus_seal,
@@ -94,7 +101,12 @@ def verify_e20_execution_authorization(
     task29_syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
     task29_tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
 ) -> None:
-    verify_e20_condition_plan(condition_plan, preregistration)
+    try:
+        verify_e20_condition_plan(condition_plan, preregistration)
+    except Exception as error:
+        raise E20VerificationError(
+            "E20 condition plan does not replay exactly from the sealed preregistration"
+        ) from error
     _verify_e20_execution_authorization_from_hash(
         authorization,
         preregistration,
