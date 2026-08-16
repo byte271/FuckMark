@@ -36,6 +36,10 @@ from fuckmark.experiments.confirmatory_keys import (
     ConfirmatoryTestKeyEntry,
     build_confirmatory_test_key_manifest,
 )
+from fuckmark.experiments.confirmatory_tracks import (
+    ConfirmatoryWatermarkTrack,
+    build_confirmatory_watermark_track_manifest,
+)
 from fuckmark.experiments.e20_conditions import E20Condition, build_e20_condition_plan
 from fuckmark.hashing import sha256_bytes, sha256_text
 from fuckmark.native_observations import build_native_observations
@@ -59,6 +63,50 @@ def _model(index: int) -> ModelTokenizerIdentity:
         add_bos_token=False,
         add_eos_token=False,
     )
+
+
+def _adapters():
+    deepmind = DeepMindReferenceAdapter(
+        DeepMindReferenceConfig(
+            ngram_len=3,
+            keys=(11, 22, 33),
+            context_history_size=8,
+        )
+    )
+    hf_config = HuggingFaceSynthIDConfig(
+        ngram_len=3,
+        keys=(11, 22, 33),
+        context_history_size=8,
+        sampling_table_seed=7,
+        sampling_table_size=64,
+    )
+    huggingface = HuggingFaceSynthIDAdapter(
+        hf_config,
+        bytes(index % 2 for index in range(64)),
+        "test-fixture-table-v1",
+    )
+    return deepmind, huggingface
+
+
+def confirmatory_watermark_tracks():
+    deepmind, huggingface = _adapters()
+    tracks = (
+        ConfirmatoryWatermarkTrack.create(
+            sha256_text("watermark-config-0"),
+            deepmind.adapter_id,
+            deepmind.algorithm_version,
+            deepmind.configuration_fingerprint(),
+            deepmind.source_pin,
+        ),
+        ConfirmatoryWatermarkTrack.create(
+            sha256_text("watermark-config-1"),
+            huggingface.adapter_id,
+            huggingface.algorithm_version,
+            huggingface.configuration_fingerprint(),
+            huggingface.source_pin,
+        ),
+    )
+    return build_confirmatory_watermark_track_manifest(tracks)
 
 
 def _negative_evidence(adapter, prefix: str):
@@ -89,25 +137,7 @@ def _bundle_and_evidence(adapter, prefix: str, target_fprs: tuple[float, ...] = 
 
 
 def calibration_materials(target_fprs: tuple[float, ...] = (0.01,)):
-    deepmind = DeepMindReferenceAdapter(
-        DeepMindReferenceConfig(
-            ngram_len=3,
-            keys=(11, 22, 33),
-            context_history_size=8,
-        )
-    )
-    hf_config = HuggingFaceSynthIDConfig(
-        ngram_len=3,
-        keys=(11, 22, 33),
-        context_history_size=8,
-        sampling_table_seed=7,
-        sampling_table_size=64,
-    )
-    huggingface = HuggingFaceSynthIDAdapter(
-        hf_config,
-        bytes(index % 2 for index in range(64)),
-        "test-fixture-table-v1",
-    )
+    deepmind, huggingface = _adapters()
     rows = (
         _bundle_and_evidence(deepmind, "deepmind", target_fprs),
         _bundle_and_evidence(huggingface, "huggingface", target_fprs),
