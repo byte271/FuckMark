@@ -56,7 +56,7 @@ def _negative_evidence(adapter, prefix: str):
     )
 
 
-def _bundle(adapter, prefix: str, target_fprs: tuple[float, ...] = (0.01,)):
+def _bundle_and_evidence(adapter, prefix: str, target_fprs: tuple[float, ...] = (0.01,)):
     scope = CalibrationScope.create(
         corpus_id=f"{prefix}-calibration",
         population_id="negative-calibration",
@@ -64,10 +64,12 @@ def _bundle(adapter, prefix: str, target_fprs: tuple[float, ...] = (0.01,)):
         token_track="original-generation-token-ids",
         prompt_boundary_mode="continuation-only",
     )
-    return calibrate_detector(_negative_evidence(adapter, prefix), scope, target_fprs=target_fprs)
+    evidence = _negative_evidence(adapter, prefix)
+    bundle = calibrate_detector(evidence, scope, target_fprs=target_fprs)
+    return bundle, evidence
 
 
-def _calibration_bundles(target_fprs: tuple[float, ...] = (0.01,)):
+def calibration_materials(target_fprs: tuple[float, ...] = (0.01,)):
     deepmind = DeepMindReferenceAdapter(
         DeepMindReferenceConfig(
             ngram_len=3,
@@ -87,22 +89,26 @@ def _calibration_bundles(target_fprs: tuple[float, ...] = (0.01,)):
         bytes(index % 2 for index in range(64)),
         "test-fixture-table-v1",
     )
-    return (
-        _bundle(deepmind, "deepmind", target_fprs),
-        _bundle(huggingface, "huggingface", target_fprs),
+    rows = (
+        _bundle_and_evidence(deepmind, "deepmind", target_fprs),
+        _bundle_and_evidence(huggingface, "huggingface", target_fprs),
     )
+    bundles = tuple(value[0] for value in rows)
+    evidence = {value[0].bundle_hash: value[1] for value in rows}
+    return bundles, evidence
 
 
 def preregistration_inputs(
     final_n_per_core_cell: int = 200,
     target_fprs: tuple[float, ...] = (0.01,),
 ) -> ConfirmatoryPreregistrationInputs:
+    bundles, _ = calibration_materials(target_fprs)
     return ConfirmatoryPreregistrationInputs(
         code_commit="d" * 40,
         spec_revision_hash=sha256_text("fuckmark-master-spec-v2"),
         source_pins=(DEEPMIND_REFERENCE_SOURCE_PIN, HUGGINGFACE_SYNTHID_SOURCE_PIN),
         model_tokenizers=(_model(0), _model(1)),
-        calibration_bundles=_calibration_bundles(target_fprs),
+        calibration_bundles=bundles,
         final_n_per_core_cell=final_n_per_core_cell,
         power_analysis_hash=sha256_text("confirmatory-power-analysis-v1"),
         transform_rules=default_transform_registry().rules,
