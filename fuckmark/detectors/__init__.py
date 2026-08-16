@@ -1,3 +1,10 @@
+from .bayesian_evidence import (
+    BAYESIAN_EVIDENCE_ALGORITHM_VERSION,
+    BAYESIAN_UNVERIFIED_REASON,
+    BayesianDetectorEvidence,
+    build_bayesian_evidence,
+    verify_bayesian_evidence,
+)
 from .calibration import (
     CALIBRATION_ALGORITHM_VERSION,
     apply_calibration,
@@ -47,7 +54,10 @@ from .verification import (
 
 
 __all__ = [
+    "BAYESIAN_EVIDENCE_ALGORITHM_VERSION",
+    "BAYESIAN_UNVERIFIED_REASON",
     "BaselineStatus",
+    "BayesianDetectorEvidence",
     "CALIBRATION_ALGORITHM_VERSION",
     "CalibratedDetectorResult",
     "CalibrationBundle",
@@ -71,6 +81,7 @@ __all__ = [
     "WEIGHTED_MEAN_ALGORITHM_VERSION",
     "ZeroValidObservationsError",
     "apply_calibration",
+    "build_bayesian_evidence",
     "calibrate_detector",
     "evaluate_detector_compatibility",
     "evaluate_pristine_baseline",
@@ -78,6 +89,7 @@ __all__ = [
     "mean_evidence",
     "mean_score",
     "require_supported_detector",
+    "verify_bayesian_evidence",
     "verify_calibrated_detector_result",
     "verify_calibration_bundle",
     "verify_pristine_baseline_summary",
