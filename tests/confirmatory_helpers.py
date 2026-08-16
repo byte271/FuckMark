@@ -67,11 +67,7 @@ def _model(index: int) -> ModelTokenizerIdentity:
 
 def _adapters():
     deepmind = DeepMindReferenceAdapter(
-        DeepMindReferenceConfig(
-            ngram_len=3,
-            keys=(11, 22, 33),
-            context_history_size=8,
-        )
+        DeepMindReferenceConfig(ngram_len=3, keys=(11, 22, 33), context_history_size=8)
     )
     hf_config = HuggingFaceSynthIDConfig(
         ngram_len=3,
@@ -90,23 +86,24 @@ def _adapters():
 
 def confirmatory_watermark_tracks():
     deepmind, huggingface = _adapters()
-    tracks = (
-        ConfirmatoryWatermarkTrack.create(
-            sha256_text("watermark-config-0"),
-            deepmind.adapter_id,
-            deepmind.algorithm_version,
-            deepmind.configuration_fingerprint(),
-            deepmind.source_pin,
-        ),
-        ConfirmatoryWatermarkTrack.create(
-            sha256_text("watermark-config-1"),
-            huggingface.adapter_id,
-            huggingface.algorithm_version,
-            huggingface.configuration_fingerprint(),
-            huggingface.source_pin,
-        ),
+    return build_confirmatory_watermark_track_manifest(
+        (
+            ConfirmatoryWatermarkTrack.create(
+                sha256_text("watermark-config-0"),
+                deepmind.adapter_id,
+                deepmind.algorithm_version,
+                deepmind.configuration_fingerprint(),
+                deepmind.source_pin,
+            ),
+            ConfirmatoryWatermarkTrack.create(
+                sha256_text("watermark-config-1"),
+                huggingface.adapter_id,
+                huggingface.algorithm_version,
+                huggingface.configuration_fingerprint(),
+                huggingface.source_pin,
+            ),
+        )
     )
-    return build_confirmatory_watermark_track_manifest(tracks)
 
 
 def _negative_evidence(adapter, prefix: str):
@@ -193,6 +190,7 @@ def preregistration_inputs(
         source_pins=(DEEPMIND_REFERENCE_SOURCE_PIN, HUGGINGFACE_SYNTHID_SOURCE_PIN),
         model_tokenizers=(_model(0), _model(1)),
         calibration_bundles=bundles,
+        watermark_tracks=confirmatory_watermark_tracks(),
         final_n_per_core_cell=final_n_per_core_cell,
         power_analysis_hash=sha256_text("confirmatory-power-analysis-v1"),
         transform_rules=default_transform_registry().rules,
