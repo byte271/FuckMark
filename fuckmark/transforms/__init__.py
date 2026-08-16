@@ -1,6 +1,12 @@
 from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate
 from .hard_invariants import HARD_INVARIANT_ALGORITHM_VERSION, HardInvariantReport, HardInvariantSignature, hard_invariant_signature, validate_hard_invariants
 from .invariants import validate_protected_invariants
+from .lexical_rules import (
+    LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION,
+    LexicalConstruction,
+    LexicalTemplateRule,
+    development_lexical_rules,
+)
 from .protected import PROTECTED_SPAN_ALGORITHM_VERSION, ProtectedSpanExtractor
 from .protected_artifacts import (
     InvariantDifference,
@@ -15,7 +21,7 @@ from .registry import (
     TransformRegistry,
     default_transform_registry,
 )
-from .rules import RULE_ALGORITHM_VERSION, LiteralTransformRule, default_contraction_rules
+from .rules import RULE_ALGORITHM_VERSION, LiteralTransformRule, TransformRule, default_contraction_rules
 from .scheduler import (
     CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
     CandidateScheduler,
@@ -47,6 +53,9 @@ __all__ = [
     "InvariantDifference",
     "InvariantStatus",
     "KeyBlindScheduleInput",
+    "LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION",
+    "LexicalConstruction",
+    "LexicalTemplateRule",
     "LiteralTransformRule",
     "PROTECTED_SPAN_ALGORITHM_VERSION",
     "ProtectedInvariantReport",
@@ -66,10 +75,12 @@ __all__ = [
     "TransformOperation",
     "TransformRegistry",
     "TransformResult",
+    "TransformRule",
     "TransformTier",
     "TransformationTrace",
     "UserProtectedRange",
     "default_contraction_rules",
     "default_transform_registry",
+    "development_lexical_rules",
     "validate_protected_invariants",
 ]
