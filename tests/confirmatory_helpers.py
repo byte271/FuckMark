@@ -135,9 +135,11 @@ def confirmatory_condition_plan(
                 SchedulePolicy.EVEN_SPACING,
                 SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND,
             ):
+                transform_condition_id = f"{policy.value.lower()}-budget-1"
                 conditions.append(
                     E20Condition.create(
-                        condition_id=f"{policy.value.lower()}-budget-1-fpr-{suffix}-bundle-{bundle_suffix}",
+                        condition_id=f"{transform_condition_id}-fpr-{suffix}-bundle-{bundle_suffix}",
+                        transform_condition_id=transform_condition_id,
                         schedule_policy=policy,
                         budget=1,
                         budget_unit="operation",
