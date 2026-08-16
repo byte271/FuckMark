@@ -43,9 +43,9 @@ class E20ReportStatus(str, Enum):
 class E20HumanFidelitySummary:
     unique_transform_count: int
     reviewed_transform_count: int
-    equivalent_count: int
-    minor_change_count: int
+    equivalent_or_minor_count: int
     material_change_count: int
+    cannot_judge_count: int
     hard_invariant_failure_count: int
     equivalent_or_minor_rate: float | None
     gate_passed: bool
@@ -55,18 +55,18 @@ class E20HumanFidelitySummary:
         for name, value in (
             ("unique_transform_count", self.unique_transform_count),
             ("reviewed_transform_count", self.reviewed_transform_count),
-            ("equivalent_count", self.equivalent_count),
-            ("minor_change_count", self.minor_change_count),
+            ("equivalent_or_minor_count", self.equivalent_or_minor_count),
             ("material_change_count", self.material_change_count),
+            ("cannot_judge_count", self.cannot_judge_count),
             ("hard_invariant_failure_count", self.hard_invariant_failure_count),
         ):
             require_int(name, value)
             if value < 0:
                 raise ValueError(f"{name} must be non-negative")
-        if self.reviewed_transform_count != self.equivalent_count + self.minor_change_count + self.material_change_count:
-            raise ValueError("human fidelity review counts do not close")
-        if self.reviewed_transform_count > self.unique_transform_count:
-            raise ValueError("reviewed transform count cannot exceed unique transform count")
+        if self.reviewed_transform_count != self.equivalent_or_minor_count + self.material_change_count:
+            raise ValueError("human fidelity adjudicated review counts do not close")
+        if self.reviewed_transform_count + self.cannot_judge_count > self.unique_transform_count:
+            raise ValueError("human fidelity audited transform counts cannot exceed unique transform count")
         if self.equivalent_or_minor_rate is None:
             if self.reviewed_transform_count != 0:
                 raise ValueError("reviewed transforms require equivalent-or-minor rate")
@@ -87,9 +87,9 @@ class E20HumanFidelitySummary:
             "algorithm_version": E20_REPORT_ALGORITHM_VERSION,
             "unique_transform_count": self.unique_transform_count,
             "reviewed_transform_count": self.reviewed_transform_count,
-            "equivalent_count": self.equivalent_count,
-            "minor_change_count": self.minor_change_count,
+            "equivalent_or_minor_count": self.equivalent_or_minor_count,
             "material_change_count": self.material_change_count,
+            "cannot_judge_count": self.cannot_judge_count,
             "hard_invariant_failure_count": self.hard_invariant_failure_count,
             "equivalent_or_minor_rate": self.equivalent_or_minor_rate,
             "gate_passed": self.gate_passed,
@@ -271,25 +271,18 @@ def _human_fidelity_summary(
         if previous is not row.fidelity.human_status:
             raise ValueError("human fidelity status changed across detector evaluations of the same transform")
     counts: Counter[E20HumanFidelityStatus] = Counter(unique.values())
-    reviewed = sum(
-        counts[value]
-        for value in (
-            E20HumanFidelityStatus.EQUIVALENT,
-            E20HumanFidelityStatus.MINOR_CHANGE,
-            E20HumanFidelityStatus.MATERIAL_CHANGE,
-        )
-    )
-    equivalent = counts[E20HumanFidelityStatus.EQUIVALENT]
-    minor = counts[E20HumanFidelityStatus.MINOR_CHANGE]
+    favorable = counts[E20HumanFidelityStatus.EQUIVALENT_OR_MINOR]
     material = counts[E20HumanFidelityStatus.MATERIAL_CHANGE]
+    cannot_judge = counts[E20HumanFidelityStatus.CANNOT_JUDGE]
+    reviewed = favorable + material
     hard_failures = sum(
         row.reason_code is ExperimentReasonCode.HARD_INVARIANT_FAILURE
         for row in result_bundle.failure_rows
     )
-    rate = None if reviewed == 0 else (equivalent + minor) / reviewed
+    rate = None if reviewed == 0 else favorable / reviewed
     gate_passed = (
-        reviewed >= preregistration.fidelity_gate.minimum_blind_review_samples
-        and hard_failures <= preregistration.fidelity_gate.hard_invariant_failures_allowed
+        reviewed >= preregistration.fidelity_gate.minimum_audited_samples
+        and hard_failures <= preregistration.fidelity_gate.maximum_hard_invariant_violations
         and rate is not None
         and rate >= preregistration.fidelity_gate.minimum_equivalent_or_minor_rate
     )
@@ -297,9 +290,9 @@ def _human_fidelity_summary(
         "algorithm_version": E20_REPORT_ALGORITHM_VERSION,
         "unique_transform_count": len(unique),
         "reviewed_transform_count": reviewed,
-        "equivalent_count": equivalent,
-        "minor_change_count": minor,
+        "equivalent_or_minor_count": favorable,
         "material_change_count": material,
+        "cannot_judge_count": cannot_judge,
         "hard_invariant_failure_count": hard_failures,
         "equivalent_or_minor_rate": rate,
         "gate_passed": gate_passed,
@@ -307,9 +300,9 @@ def _human_fidelity_summary(
     return E20HumanFidelitySummary(
         len(unique),
         reviewed,
-        equivalent,
-        minor,
+        favorable,
         material,
+        cannot_judge,
         hard_failures,
         rate,
         gate_passed,
