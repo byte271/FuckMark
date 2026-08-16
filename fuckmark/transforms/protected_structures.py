@@ -8,6 +8,7 @@ from .schema import ProtectedSpanKind
 
 
 _INLINE_CODE_RUN_RE = re.compile(r"`+")
+_DOLLAR_RUN_RE = re.compile(r"\$+")
 
 
 _FENCE_OPEN_RE = re.compile(r"(?m)^[ \t]{0,3}(`{3,}|~{3,})[^\n]*(?:\n|$)")
@@ -215,6 +216,16 @@ def _looks_like_currency_dollar(text: str, index: int) -> bool:
     return re.match(r"\s*[-+]?(?:\d|\.\d)", suffix) is not None
 
 
+def _find_dollar_closer(text: str, start: int, end: int, run_length: int) -> re.Match[str] | None:
+    for match in _DOLLAR_RUN_RE.finditer(text, start, end):
+        if len(match.group()) != run_length:
+            continue
+        if _is_escaped(text, match.start()):
+            continue
+        return match
+    return None
+
+
 def _add_dollar_math(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
     index = 0
     while index < len(text):
@@ -222,27 +233,20 @@ def _add_dollar_math(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -
             index += 1
             continue
         if text.startswith("$$", index):
-            closing = text.find("$$", index + 2)
-            end = len(text) if closing < 0 else closing + 2
+            opening_end = index + 2
+            closing = _find_dollar_closer(text, opening_end, len(text), 2)
+            end = len(text) if closing is None else closing.end()
             _append(raw, index, end, ProtectedSpanKind.MATH)
-            index = max(end, index + 2)
+            index = max(end, opening_end)
             continue
         if _looks_like_currency_dollar(text, index):
             index += 1
             continue
         end_of_line = _line_end(text, index + 1)
-        closing = index + 1
-        while True:
-            closing = text.find("$", closing, end_of_line)
-            if closing < 0:
-                _append(raw, index, end_of_line, ProtectedSpanKind.MATH)
-                index = max(end_of_line, index + 1)
-                break
-            if not _is_escaped(text, closing):
-                _append(raw, index, closing + 1, ProtectedSpanKind.MATH)
-                index = closing + 1
-                break
-            closing += 1
+        closing = _find_dollar_closer(text, index + 1, end_of_line, 1)
+        end = end_of_line if closing is None else closing.end()
+        _append(raw, index, end, ProtectedSpanKind.MATH)
+        index = max(end, index + 1)
 
 
 def _add_delimited_math(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
