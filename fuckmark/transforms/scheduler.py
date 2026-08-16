@@ -482,7 +482,7 @@ class CandidateScheduler:
         best_selected: tuple[str, ...] = ()
         best_cost = 0
         best_coverage = 0
-        for (cost, covered, _), selected in states.items():
+        for (cost, _, covered), selected in states.items():
             coverage = union_size(covered)
             if coverage > best_coverage:
                 best_selected = selected
