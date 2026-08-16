@@ -8,6 +8,8 @@ from fuckmark.corpus import (
     CorpusSample,
     CorpusSplit,
     KeySplit,
+    ModelTokenizerIdentity,
+    PaddingSide,
     PromptRecord,
     WatermarkLabel,
 )
@@ -18,6 +20,7 @@ from fuckmark.corpus.tiny_dev import (
     TinyDevCorpusError,
     build_tiny_dev_corpus,
 )
+from fuckmark.hashing import sha256_text
 
 
 def _records():
@@ -65,6 +68,24 @@ def _records():
     return prompts, samples
 
 
+def _alternate_model() -> ModelTokenizerIdentity:
+    return ModelTokenizerIdentity.create(
+        model_id="example/other-model",
+        model_revision="d" * 40,
+        tokenizer_id="example/other-tokenizer",
+        tokenizer_revision="e" * 40,
+        chat_template_present=False,
+        chat_template_hash=sha256_text(""),
+        special_token_map_hash=sha256_text("{}"),
+        padding_side=PaddingSide.LEFT,
+        bos_token_id=None,
+        eos_token_id=2,
+        pad_token_id=0,
+        add_bos_token=False,
+        add_eos_token=False,
+    )
+
+
 def test_tiny_dev_corpus_builds_frozen_two_split_four_domain_matrix() -> None:
     prompts, samples = _records()
     artifact = build_tiny_dev_corpus("tiny-dev-test", prompts, samples)
@@ -103,47 +124,72 @@ def test_tiny_dev_corpus_rejects_missing_split_domain_cell() -> None:
         build_tiny_dev_corpus("tiny-dev-test", prompts, samples)
 
 
-def test_tiny_dev_corpus_rejects_test_keys() -> None:
-    prompts, samples = _records()
+def test_corpus_sample_rejects_test_keys_before_tiny_dev_construction() -> None:
+    _, samples = _records()
     victim = samples[0]
-    changed = replace(victim, watermark=watermark(KeySplit.TEST), record_hash="0" * 64)
-    with pytest.raises(ValueError, match="record_hash"):
-        build_tiny_dev_corpus("tiny-dev-test", prompts, [changed, *samples[1:]])
+    with pytest.raises(ValueError, match="TEST_KEYS"):
+        replace(victim, watermark=watermark(KeySplit.TEST), record_hash="0" * 64)
 
 
 def test_tiny_dev_corpus_rejects_mixed_model_identity() -> None:
     prompts, samples = _records()
-    victim = samples[0]
-    alternate_model = replace(
-        victim.model,
-        model_id="example/other-model",
-        identity_hash="0" * 64,
-    )
-    with pytest.raises(ValueError, match="identity_hash"):
-        replace(victim, model=alternate_model, record_hash="0" * 64)
+    target_match = samples[0].match_id
+    alternate_model = _alternate_model()
+    changed = []
+    for sample in samples:
+        if sample.match_id != target_match:
+            changed.append(sample)
+            continue
+        continuation = sample.generation_tokens.continuation_token_ids
+        changed_tokens = generation_tokens(continuation, alternate_model)
+        changed.append(
+            CorpusSample.create(
+                sample_id=sample.sample_id,
+                match_id=sample.match_id,
+                prompt_id=sample.prompt_id,
+                prompt_family_id=sample.prompt_family_id,
+                domain=sample.domain,
+                split=sample.split,
+                label=sample.label,
+                text=sample.text,
+                model=alternate_model,
+                generation=sample.generation,
+                watermark=sample.watermark,
+                target_length=sample.target_length,
+                generation_tokens=changed_tokens,
+            )
+        )
+    with pytest.raises(TinyDevCorpusError, match="one model/tokenizer identity"):
+        build_tiny_dev_corpus("tiny-dev-test", prompts, changed)
 
 
 def test_tiny_dev_corpus_rejects_mixed_generation_signature() -> None:
     prompts, samples = _records()
-    victim = samples[0]
-    changed_generation = generation(victim.generation.seed, temperature=0.7)
-    changed = CorpusSample.create(
-        sample_id=victim.sample_id,
-        match_id=victim.match_id,
-        prompt_id=victim.prompt_id,
-        prompt_family_id=victim.prompt_family_id,
-        domain=victim.domain,
-        split=victim.split,
-        label=victim.label,
-        text=victim.text,
-        model=victim.model,
-        generation=changed_generation,
-        watermark=victim.watermark,
-        target_length=victim.target_length,
-        generation_tokens=victim.generation_tokens,
-    )
-    with pytest.raises(Exception, match="matched non-watermark|generation matching"):
-        build_tiny_dev_corpus("tiny-dev-test", prompts, [changed, *samples[1:]])
+    target_match = samples[0].match_id
+    changed = []
+    for sample in samples:
+        if sample.match_id != target_match:
+            changed.append(sample)
+            continue
+        changed.append(
+            CorpusSample.create(
+                sample_id=sample.sample_id,
+                match_id=sample.match_id,
+                prompt_id=sample.prompt_id,
+                prompt_family_id=sample.prompt_family_id,
+                domain=sample.domain,
+                split=sample.split,
+                label=sample.label,
+                text=sample.text,
+                model=sample.model,
+                generation=generation(sample.generation.seed, temperature=0.7),
+                watermark=sample.watermark,
+                target_length=sample.target_length,
+                generation_tokens=sample.generation_tokens,
+            )
+        )
+    with pytest.raises(TinyDevCorpusError, match="one generation matching signature"):
+        build_tiny_dev_corpus("tiny-dev-test", prompts, changed)
 
 
 def test_tiny_dev_corpus_inherits_exact_output_deduplication() -> None:
@@ -213,8 +259,8 @@ def test_tiny_dev_corpus_inherits_prompt_family_partition_firewall() -> None:
         build_tiny_dev_corpus("tiny-dev-test", changed_prompts, changed_samples)
 
 
-def test_tiny_dev_corpus_artifact_rejects_tampering() -> None:
+def test_tiny_dev_corpus_artifact_rejects_hash_tampering() -> None:
     prompts, samples = _records()
     artifact = build_tiny_dev_corpus("tiny-dev-test", prompts, samples)
     with pytest.raises(ValueError, match="artifact_hash"):
-        replace(artifact, model_identity_hash="f" * 64)
+        replace(artifact, artifact_hash="f" * 64)
