@@ -35,12 +35,15 @@ class TransformTier(str, Enum):
 class TransformFamily(str, Enum):
     CONTRACTION = "contraction"
     ORTHOGRAPHY = "orthography"
+    LEXICAL_TEMPLATE = "lexical_template"
+    SYNTAX_TEMPLATE = "syntax_template"
 
 
 class CandidateRejectionReason(str, Enum):
     PROTECTED_OVERLAP = "protected_overlap"
     ALL_CAPS_BLOCKED = "all_caps_blocked"
     UNSUPPORTED_CASE = "unsupported_case"
+    PRECONDITION_FAILED = "precondition_failed"
 
 
 class InvariantStatus(str, Enum):
