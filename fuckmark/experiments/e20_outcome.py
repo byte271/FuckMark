@@ -54,8 +54,8 @@ def _require_generation_track(
         adapter.adapter_id != track.adapter_id
         or adapter.algorithm_version != track.adapter_algorithm_version
         or adapter.configuration_fingerprint() != track.adapter_config_hash
-        or adapter.source_pin.source_id != track.source_id
-        or adapter.source_pin.commit != track.source_commit
+        or adapter.source_pin.source_id != track.source_pin.source_id
+        or adapter.source_pin.commit != track.source_pin.commit
     ):
         raise E20RowVerificationError(
             "observation adapter does not match the source sample sealed generation track"
