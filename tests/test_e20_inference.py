@@ -1,4 +1,4 @@
-from math import isclose
+from math import comb, isclose
 
 from test_e20_aggregate import _outcome_for
 from test_e20_bundle import _bundle_fixture
@@ -54,6 +54,24 @@ def test_exact_mcnemar_binomial_two_sided_known_value() -> None:
     assert _exact_binomial_two_sided(0, 10) == 2.0 / (2 ** 10)
     assert _exact_binomial_two_sided(0, 0) == 1.0
     assert _exact_binomial_two_sided(5, 10) == 1.0
+
+
+def test_exact_mcnemar_binomial_matches_direct_small_reference() -> None:
+    expected = 2.0 * sum(comb(100, index) for index in range(41)) / (2 ** 100)
+    assert isclose(
+        _exact_binomial_two_sided(40, 100),
+        expected,
+        rel_tol=0.0,
+        abs_tol=2e-15,
+    )
+
+
+def test_exact_mcnemar_binomial_remains_finite_at_confirmatory_scale() -> None:
+    value = _exact_binomial_two_sided(1800, 4000)
+    assert 0.0 < value < 1.0
+    assert isclose(value, 2.721567768251934e-10, rel_tol=1e-12, abs_tol=0.0)
+    assert _exact_binomial_two_sided(2000, 4000) == 1.0
+    assert _exact_binomial_two_sided(0, 4000) > 0.0
 
 
 def test_inference_uses_paired_decision_changes_and_holm_family_size_without_dropping_failed_cells() -> None:
