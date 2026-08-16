@@ -249,7 +249,7 @@ def confirmatory_manifest(inputs: ConfirmatoryPreregistrationInputs, omit_last_p
         mask = (0, 0, 1, 1)
         for label_index, label in enumerate((WatermarkLabel.WATERMARKED, WatermarkLabel.UNWATERMARKED)):
             serial = cell_index * 2 + label_index
-            continuation = (100_000 + serial, 200_000 + serial)
+            continuation = tuple(100_000 + serial * 16 + offset for offset in range(8))
             tokens = GenerationTokenRecord.create(
                 input_token_ids=input_ids,
                 attention_mask=mask,
