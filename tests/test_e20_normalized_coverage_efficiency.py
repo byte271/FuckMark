@@ -66,7 +66,6 @@ def test_coverage_efficiency_uses_observation_replacement_per_normalized_token_e
     assert E20MetricId.COVERAGE_EFFICIENCY.value == (
         "observation_replacement_per_normalized_token_edit"
     )
-    # Fixture geometry: replacement ratio = 2/6; normalized token edit = 1/8.
     assert isclose(metric.estimate, (2 / 6) / (1 / 8), rel_tol=0.0, abs_tol=1e-15)
 
 
