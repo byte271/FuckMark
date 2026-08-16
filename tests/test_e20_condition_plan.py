@@ -10,6 +10,7 @@ from fuckmark.experiments.e20_conditions import (
     build_e20_condition_plan,
     verify_e20_condition_plan,
 )
+from fuckmark.hashing import sha256_text
 from fuckmark.transforms import SchedulePolicy
 
 
@@ -20,6 +21,14 @@ def test_condition_plan_replays_preregistered_budget_config_hash() -> None:
     assert plan.plan_hash == preregistration.budget_config_hash
     assert {value.schedule_policy for value in plan.conditions} == set(preregistration.schedules)
     assert {value.target_fpr for value in plan.conditions} == set(preregistration.target_fprs)
+    assert {value.calibration_bundle_hash for value in plan.conditions} == {
+        value.bundle_hash for value in preregistration.calibration_bundles
+    }
+    assert len(plan.conditions) == (
+        len(preregistration.schedules)
+        * len(preregistration.target_fprs)
+        * len(preregistration.calibration_bundles)
+    )
     verify_e20_condition_plan(plan, preregistration)
 
 
@@ -32,9 +41,8 @@ def test_condition_plan_rejects_opaque_hash_mismatch() -> None:
         verify_e20_condition_plan(confirmatory_condition_plan(), preregistration)
 
 
-def test_condition_plan_rejects_missing_preregistered_schedule() -> None:
+def test_condition_plan_rejects_missing_preregistered_schedule_bundle_cell() -> None:
     inputs = preregistration_inputs()
-    preregistration = create_confirmatory_preregistration(inputs)
     full = confirmatory_condition_plan()
     reduced = build_e20_condition_plan(
         tuple(value for value in full.conditions if value.schedule_policy is not SchedulePolicy.EVEN_SPACING)
@@ -42,7 +50,7 @@ def test_condition_plan_rejects_missing_preregistered_schedule() -> None:
     preregistration = create_confirmatory_preregistration(
         replace(inputs, budget_config_hash=reduced.plan_hash)
     )
-    with pytest.raises(E20ConditionPlanError, match="every preregistered schedule"):
+    with pytest.raises(E20ConditionPlanError, match="exactly cover"):
         verify_e20_condition_plan(reduced, preregistration)
 
 
@@ -57,6 +65,7 @@ def test_condition_plan_rejects_unknown_hypothesis_class_even_when_hash_matches(
                 value.budget,
                 value.budget_unit,
                 value.target_fpr,
+                value.calibration_bundle_hash,
                 "not-preregistered",
             )
             for value in full.conditions
@@ -69,13 +78,36 @@ def test_condition_plan_rejects_unknown_hypothesis_class_even_when_hash_matches(
         verify_e20_condition_plan(bad, preregistration)
 
 
+def test_condition_plan_rejects_unknown_calibration_bundle_even_when_hash_matches() -> None:
+    inputs = preregistration_inputs()
+    full = confirmatory_condition_plan()
+    first = full.conditions[0]
+    bad_first = E20Condition.create(
+        first.condition_id,
+        first.schedule_policy,
+        first.budget,
+        first.budget_unit,
+        first.target_fpr,
+        sha256_text("not-a-preregistered-calibration-bundle"),
+        first.hypothesis_class,
+    )
+    bad = build_e20_condition_plan((bad_first, *full.conditions[1:]))
+    preregistration = create_confirmatory_preregistration(
+        replace(inputs, budget_config_hash=bad.plan_hash)
+    )
+    with pytest.raises(E20ConditionPlanError, match="calibration bundle outside"):
+        verify_e20_condition_plan(bad, preregistration)
+
+
 def test_condition_plan_rejects_semantically_duplicate_condition_without_silent_dedup() -> None:
+    bundle_hash = preregistration_inputs().calibration_bundles[0].bundle_hash
     condition = E20Condition.create(
         "first",
         SchedulePolicy.RANDOM_VALID,
         1,
         "operation",
         0.01,
+        bundle_hash,
         "H13-primary",
     )
     duplicate = E20Condition.create(
@@ -84,6 +116,7 @@ def test_condition_plan_rejects_semantically_duplicate_condition_without_silent_
         1,
         "operation",
         0.01,
+        bundle_hash,
         "H13-primary",
     )
     with pytest.raises(ValueError, match="unique by execution semantics"):
