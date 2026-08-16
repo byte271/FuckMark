@@ -19,6 +19,13 @@ from .lexical_rules import (
     LexicalTemplateRule,
     development_lexical_rules,
 )
+from .lexical_tokenization import (
+    LEXICAL_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION,
+    LexicalRetokenizationFixture,
+    LexicalRetokenizationVerificationError,
+    capture_lexical_retokenization_fixture,
+    verify_lexical_retokenization_fixture,
+)
 from .protected import PROTECTED_SPAN_ALGORITHM_VERSION, ProtectedSpanExtractor
 from .protected_artifacts import (
     InvariantDifference,
@@ -68,10 +75,13 @@ __all__ = [
     "InvariantDifference",
     "InvariantStatus",
     "KeyBlindScheduleInput",
+    "LEXICAL_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION",
     "LEXICAL_RULE_AUDIT_ALGORITHM_VERSION",
     "LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION",
     "LexicalAuditStatus",
     "LexicalConstruction",
+    "LexicalRetokenizationFixture",
+    "LexicalRetokenizationVerificationError",
     "LexicalRuleAudit",
     "LexicalRulePromotionError",
     "LexicalTemplateRule",
@@ -101,6 +111,7 @@ __all__ = [
     "TransformTier",
     "TransformationTrace",
     "UserProtectedRange",
+    "capture_lexical_retokenization_fixture",
     "create_lexical_rule_audit",
     "default_contraction_rules",
     "default_transform_registry",
@@ -109,4 +120,5 @@ __all__ = [
     "release_transform_registry",
     "require_release_eligible_lexical_rules",
     "validate_protected_invariants",
+    "verify_lexical_retokenization_fixture",
 ]
