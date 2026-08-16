@@ -101,6 +101,7 @@ from .source_registry import SourcePinRegistry, load_source_pin
 from .types import RunIdentity, SourcePin
 from .transforms import (
     BLIND_HUMAN_REVIEW_POLICY_ID,
+    LEXICAL_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION,
     LEXICAL_RULE_AUDIT_ALGORITHM_VERSION,
     LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION,
     PROTECTED_SPAN_ALGORITHM_VERSION,
@@ -119,6 +120,8 @@ from .transforms import (
     InvariantStatus,
     LexicalAuditStatus,
     LexicalConstruction,
+    LexicalRetokenizationFixture,
+    LexicalRetokenizationVerificationError,
     LexicalRuleAudit,
     LexicalRulePromotionError,
     LexicalTemplateRule,
@@ -137,6 +140,7 @@ from .transforms import (
     TransformTier,
     TransformationTrace,
     UserProtectedRange,
+    capture_lexical_retokenization_fixture,
     create_lexical_rule_audit,
     default_contraction_rules,
     default_transform_registry,
@@ -147,6 +151,7 @@ from .transforms import (
     require_release_eligible_lexical_rules,
     validate_hard_invariants,
     validate_protected_invariants,
+    verify_lexical_retokenization_fixture,
 )
 
 __all__ = [
@@ -196,6 +201,7 @@ __all__ = [
     "canonical_json_bytes",
     "canonical_json_text",
     "canonicalize",
+    "capture_lexical_retokenization_fixture",
     "ComparisonOperator",
     "CompatibilityStatus",
     "conserved_runs",
@@ -226,10 +232,13 @@ __all__ = [
     "HuggingFaceSynthIDAdapter",
     "HuggingFaceSynthIDConfig",
     "Interval",
+    "LEXICAL_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION",
     "LEXICAL_RULE_AUDIT_ALGORITHM_VERSION",
     "LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION",
     "LexicalAuditStatus",
     "LexicalConstruction",
+    "LexicalRetokenizationFixture",
+    "LexicalRetokenizationVerificationError",
     "LexicalRuleAudit",
     "LexicalRulePromotionError",
     "LexicalTemplateRule",
@@ -266,6 +275,7 @@ __all__ = [
     "validate_alignment",
     "verify_calibrated_detector_result",
     "verify_calibration_bundle",
+    "verify_lexical_retokenization_fixture",
     "verify_native_observation_batch",
     "verify_pristine_baseline_summary",
     "verify_uncalibrated_detector_evidence",
