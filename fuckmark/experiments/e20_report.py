@@ -28,7 +28,7 @@ from .e20_key_analysis import E20KeyAnalysisBundle, verify_e20_key_analysis_bund
 from .e20_rows import E20HumanFidelityStatus, ExperimentReasonCode
 
 
-E20_REPORT_ALGORITHM_VERSION = "e20-report-v2"
+E20_REPORT_ALGORITHM_VERSION = "e20-report-v3"
 
 
 class E20ReportStatus(str, Enum):
@@ -114,6 +114,7 @@ class E20HeadlineCondition:
     tpr_change_ci_upper: float | None
     transformed_tpr: float | None
     standardized_margin_drop: float | None
+    coverage_efficiency: float | None
     decision_loss_rate: float | None
     holm_adjusted_p_value: float | None
     key_summary_hash: str
@@ -142,6 +143,7 @@ class E20HeadlineCondition:
             "tpr_change_ci_upper",
             "transformed_tpr",
             "standardized_margin_drop",
+            "coverage_efficiency",
             "decision_loss_rate",
             "holm_adjusted_p_value",
         ):
@@ -162,12 +164,13 @@ class E20HeadlineCondition:
                 self.tpr_change_ci_upper,
                 self.transformed_tpr,
                 self.standardized_margin_drop,
+                self.coverage_efficiency,
                 self.decision_loss_rate,
                 self.holm_adjusted_p_value,
             )
             if any(value is None for value in required):
                 raise ValueError(
-                    "headline-eligible condition requires complete effect, interval, and inference fields"
+                    "headline-eligible condition requires complete primary effects, interval, and inference fields"
                 )
             if self.failure_row_count != 0:
                 raise ValueError("headline-eligible condition cannot contain failure rows")
@@ -188,6 +191,7 @@ class E20HeadlineCondition:
             "tpr_change_ci_upper": self.tpr_change_ci_upper,
             "transformed_tpr": self.transformed_tpr,
             "standardized_margin_drop": self.standardized_margin_drop,
+            "coverage_efficiency": self.coverage_efficiency,
             "decision_loss_rate": self.decision_loss_rate,
             "holm_adjusted_p_value": self.holm_adjusted_p_value,
             "key_summary_hash": self.key_summary_hash,
@@ -387,6 +391,11 @@ def build_e20_confirmatory_report(
             E20AnalysisPopulation.POLICY_ALL,
             E20MetricId.STANDARDIZED_MARGIN_DROP,
         )
+        coverage_efficiency = _metric(
+            aggregate_condition,
+            E20AnalysisPopulation.POLICY_ALL,
+            E20MetricId.COVERAGE_EFFICIENCY,
+        )
         decision_loss = _metric(
             aggregate_condition,
             E20AnalysisPopulation.PRISTINE_POSITIVE,
@@ -400,6 +409,7 @@ def build_e20_confirmatory_report(
             and tpr_change.status is E20MetricStatus.COMPLETE
             and transformed_tpr.status is E20MetricStatus.COMPLETE
             and margin_drop.status is E20MetricStatus.COMPLETE
+            and coverage_efficiency.status is E20MetricStatus.COMPLETE
             and decision_loss.status is E20MetricStatus.COMPLETE
         )
         interval = tpr_change.confidence_interval
@@ -415,6 +425,7 @@ def build_e20_confirmatory_report(
             "tpr_change_ci_upper": None if interval is None else interval.upper,
             "transformed_tpr": transformed_tpr.estimate,
             "standardized_margin_drop": margin_drop.estimate,
+            "coverage_efficiency": coverage_efficiency.estimate,
             "decision_loss_rate": decision_loss.estimate,
             "holm_adjusted_p_value": inference_cell.holm_adjusted_p_value,
             "key_summary_hash": key_summary.summary_hash,
@@ -432,6 +443,7 @@ def build_e20_confirmatory_report(
                 None if interval is None else interval.upper,
                 transformed_tpr.estimate,
                 margin_drop.estimate,
+                coverage_efficiency.estimate,
                 decision_loss.estimate,
                 inference_cell.holm_adjusted_p_value,
                 key_summary.summary_hash,
@@ -447,6 +459,8 @@ def build_e20_confirmatory_report(
     elif result_bundle.failure_row_count:
         status = E20ReportStatus.INCOMPLETE_FAILURE_ROWS
     elif any(value.status is not E20InferenceStatus.COMPLETE for value in inference.inferences):
+        status = E20ReportStatus.INCOMPLETE_INFERENCE
+    elif not all(value.headline_eligible for value in ordered_headlines):
         status = E20ReportStatus.INCOMPLETE_INFERENCE
     else:
         status = E20ReportStatus.CONFIRMATORY_EVALUABLE
