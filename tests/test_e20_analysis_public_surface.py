@@ -11,7 +11,7 @@ def test_e20_analysis_chain_is_public_and_versioned() -> None:
     assert experiments.E20_AGGREGATOR_ALGORITHM_VERSION == "e20-aggregator-v1"
     assert experiments.E20_KEY_ANALYSIS_ALGORITHM_VERSION == "e20-key-analysis-v1"
     assert experiments.E20_INFERENCE_ALGORITHM_VERSION == "e20-inference-v1"
-    assert experiments.E20_REPORT_ALGORITHM_VERSION == "e20-report-v1"
+    assert experiments.E20_REPORT_ALGORITHM_VERSION == "e20-report-v2"
     assert callable(experiments.build_e20_aggregate_bundle)
     assert callable(experiments.verify_e20_aggregate_bundle)
     assert callable(experiments.build_e20_key_analysis_bundle)
