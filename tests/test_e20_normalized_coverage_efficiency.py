@@ -1,10 +1,13 @@
 from math import isclose
+from types import SimpleNamespace
 
 from test_e20_aggregate import _outcome_for
 from test_e20_bundle import _bundle_fixture
 from fuckmark.experiments.e20_aggregate import (
     E20AnalysisPopulation,
     E20MetricId,
+    E20MetricStatus,
+    _coverage_efficiency_estimate,
     build_e20_aggregate_bundle,
 )
 from fuckmark.experiments.e20_bundle import build_e20_result_bundle
@@ -65,3 +68,20 @@ def test_coverage_efficiency_uses_observation_replacement_per_normalized_token_e
     )
     # Fixture geometry: replacement ratio = 2/6; normalized token edit = 1/8.
     assert isclose(metric.estimate, (2 / 6) / (1 / 8), rel_tol=0.0, abs_tol=1e-15)
+
+
+def test_coverage_efficiency_fails_closed_for_zero_token_edit_denominator() -> None:
+    row = SimpleNamespace(fidelity=SimpleNamespace(token_edit_distance=0))
+    metric = _coverage_efficiency_estimate(
+        "a" * 64,
+        "zero-token-edit-condition",
+        E20AnalysisPopulation.POLICY_ALL,
+        (row,),
+        {},
+        1,
+        0,
+        object(),
+    )
+    assert metric.status is E20MetricStatus.ZERO_TOKEN_EDIT_DENOMINATOR
+    assert metric.estimate is None
+    assert metric.confidence_interval is None
