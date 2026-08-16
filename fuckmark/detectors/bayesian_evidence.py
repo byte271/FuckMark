@@ -141,7 +141,7 @@ def build_bayesian_evidence(
         raise TypeError("batch must be a NativeObservationBatch")
     if not isinstance(checkpoint, BayesianCheckpoint):
         raise TypeError("checkpoint must be a BayesianCheckpoint")
-    if batch.depth != checkpoint.depth:
+    if batch.depth != checkpoint.watermarking_depth:
         raise ValueError("observation batch depth must match Bayesian checkpoint depth")
     g_values = tuple(record.g_values for record in batch.records)
     mask = tuple(record.valid for record in batch.records)
