@@ -33,7 +33,18 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 12. Overlap-aware interval merging and union coverage
 13. Strict public-boundary type and identity validation
 14. Project-name and version regression checks
+15. Strict source-pin registry and duplicate-safe JSON loading
+16. Adapter protocol and deterministic adapter registry
+17. Pinned DeepMind SynthID Text reference observation adapter
+18. Signed-int64 source-conformant n-gram hashing and g-value generation
+19. Source-conformant bounded context-repetition masks
+20. Source-conformant EOS observation masks
+21. Immutable native observation batches with separated mask semantics
+22. Pinned Hugging Face Transformers SynthID observation adapter
+23. Source-conformant Hugging Face sampling-table reproduction through an optional Torch bridge
+24. Adapter-specific behavioral fingerprints with sampling-table hashing
+25. Cross-implementation isolation between the DeepMind reference and Hugging Face observation paths
 
-Detector adapters, source-conformance fixtures, watermark-native observation records, transformation rules, calibration, and experiments remain intentionally outside this foundation layer.
+The detector layer, transformation rules, calibration, and experiments remain intentionally outside this layer.
 
 Python source is English-only and contains no comments or docstrings.

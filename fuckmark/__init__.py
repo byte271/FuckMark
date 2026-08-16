@@ -1,6 +1,24 @@
 __project_name__ = "FuckMark"
 __version__ = "0.1.0"
 
+from .adapters import (
+    DEEPMIND_REFERENCE_ADAPTER_ID,
+    DEEPMIND_REFERENCE_ALGORITHM_VERSION,
+    DEEPMIND_REFERENCE_SOURCE_PIN,
+    AdapterRegistry,
+    AdapterSignals,
+    DeepMindReferenceAdapter,
+    DeepMindReferenceConfig,
+    HUGGINGFACE_SYNTHID_ADAPTER_ID,
+    HUGGINGFACE_SYNTHID_ALGORITHM_VERSION,
+    HUGGINGFACE_SYNTHID_SOURCE_PIN,
+    HuggingFaceSynthIDAdapter,
+    HuggingFaceSynthIDConfig,
+    WatermarkAdapter,
+    create_deepmind_reference_adapter,
+    create_huggingface_synthid_adapter,
+    default_adapter_registry,
+)
 from .alignment import (
     AlignmentOp,
     AlignmentResult,
@@ -12,6 +30,7 @@ from .alignment import (
 from .config import canonical_json_bytes, canonical_json_text, canonicalize
 from .coverage import Interval, merge_intervals, substitution_observation_interval, union_size
 from .hashing import derive_seed, sha256_bytes, sha256_file, sha256_json, sha256_text
+from .native_observations import NativeObservationBatch, NativeObservationRecord, build_native_observations
 from .observations import (
     StructuralObservationDiff,
     StructuralObservationState,
@@ -21,28 +40,50 @@ from .observations import (
     structural_observation_diff,
     summarize_structural_observations,
 )
+from .source_registry import SourcePinRegistry, load_source_pin
 from .types import RunIdentity, SourcePin
 
 __all__ = [
     "__project_name__",
     "__version__",
+    "AdapterRegistry",
+    "AdapterSignals",
     "AlignmentOp",
     "AlignmentResult",
     "AlignmentStep",
+    "DEEPMIND_REFERENCE_ADAPTER_ID",
+    "DEEPMIND_REFERENCE_ALGORITHM_VERSION",
+    "DEEPMIND_REFERENCE_SOURCE_PIN",
+    "DeepMindReferenceAdapter",
+    "DeepMindReferenceConfig",
+    "HUGGINGFACE_SYNTHID_ADAPTER_ID",
+    "HUGGINGFACE_SYNTHID_ALGORITHM_VERSION",
+    "HUGGINGFACE_SYNTHID_SOURCE_PIN",
+    "HuggingFaceSynthIDAdapter",
+    "HuggingFaceSynthIDConfig",
     "Interval",
+    "NativeObservationBatch",
+    "NativeObservationRecord",
     "RunIdentity",
     "SourcePin",
+    "SourcePinRegistry",
     "StructuralObservationDiff",
     "StructuralObservationState",
     "StructuralObservationSummary",
     "TokenNgram",
+    "WatermarkAdapter",
     "align_tokens",
+    "build_native_observations",
     "build_token_ngrams",
     "canonical_json_bytes",
     "canonical_json_text",
     "canonicalize",
     "conserved_runs",
+    "create_deepmind_reference_adapter",
+    "create_huggingface_synthid_adapter",
+    "default_adapter_registry",
     "derive_seed",
+    "load_source_pin",
     "merge_intervals",
     "sha256_bytes",
     "sha256_file",

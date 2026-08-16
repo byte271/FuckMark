@@ -1,24 +1,16 @@
 from __future__ import annotations
 
 import re
-import unicodedata
 from dataclasses import dataclass
 from pathlib import PurePosixPath
+
+from ._validation import require_clean_string, require_sha256
 
 
 _GIT_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 _IMMUTABLE_REVISION_RE = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
-_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _REPOSITORY_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
-
-def _require_clean_string(name: str, value: str) -> None:
-    if not isinstance(value, str):
-        raise TypeError(f"{name} must be a string")
-    if not value or value.strip() != value:
-        raise ValueError(f"{name} must be non-empty and must not have surrounding whitespace")
-    if any(unicodedata.category(character) in {"Cc", "Cf", "Cs"} for character in value):
-        raise ValueError(f"{name} must not contain control or formatting characters")
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,10 +22,10 @@ class SourcePin:
     critical_files: tuple[str, ...]
 
     def __post_init__(self) -> None:
-        _require_clean_string("source_id", self.source_id)
-        _require_clean_string("repository", self.repository)
-        _require_clean_string("commit", self.commit)
-        _require_clean_string("license_id", self.license_id)
+        require_clean_string("source_id", self.source_id)
+        require_clean_string("repository", self.repository)
+        require_clean_string("commit", self.commit)
+        require_clean_string("license_id", self.license_id)
         if _REPOSITORY_RE.fullmatch(self.repository) is None:
             raise ValueError("repository must use owner/name form")
         owner, name = self.repository.split("/", 1)
@@ -47,7 +39,7 @@ class SourcePin:
         if not normalized_files:
             raise ValueError("critical_files must not be empty")
         for path in normalized_files:
-            _require_clean_string("critical file path", path)
+            require_clean_string("critical file path", path)
             if "\\" in path:
                 raise ValueError("critical file paths must use forward slashes")
             parsed = PurePosixPath(path)
@@ -111,7 +103,7 @@ class RunIdentity:
             self.experiment_config_hash,
         )
         for name, value in zip(names, values):
-            _require_clean_string(name, value)
+            require_clean_string(name, value)
         if _GIT_SHA_RE.fullmatch(self.git_commit) is None:
             raise ValueError("git_commit must be a full lowercase 40-character Git revision")
         if _GIT_SHA_RE.fullmatch(self.adapter_source_commit) is None:
@@ -128,5 +120,4 @@ class RunIdentity:
             ("experiment_config_hash", self.experiment_config_hash),
         )
         for name, value in hash_fields:
-            if _SHA256_RE.fullmatch(value) is None:
-                raise ValueError(f"{name} must be a lowercase SHA-256 hexadecimal digest")
+            require_sha256(name, value)
