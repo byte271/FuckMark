@@ -28,7 +28,7 @@ from .e20_key_analysis import E20KeyAnalysisBundle, verify_e20_key_analysis_bund
 from .e20_rows import E20HumanFidelityStatus, ExperimentReasonCode
 
 
-E20_REPORT_ALGORITHM_VERSION = "e20-report-v1"
+E20_REPORT_ALGORITHM_VERSION = "e20-report-v2"
 
 
 class E20ReportStatus(str, Enum):
@@ -63,15 +63,21 @@ class E20HumanFidelitySummary:
             require_int(name, value)
             if value < 0:
                 raise ValueError(f"{name} must be non-negative")
-        if self.reviewed_transform_count != self.equivalent_or_minor_count + self.material_change_count:
-            raise ValueError("human fidelity adjudicated review counts do not close")
-        if self.reviewed_transform_count + self.cannot_judge_count > self.unique_transform_count:
-            raise ValueError("human fidelity audited transform counts cannot exceed unique transform count")
+        if self.reviewed_transform_count != (
+            self.equivalent_or_minor_count
+            + self.material_change_count
+            + self.cannot_judge_count
+        ):
+            raise ValueError("human fidelity reviewed counts do not close")
+        if self.reviewed_transform_count > self.unique_transform_count:
+            raise ValueError("human fidelity reviewed transform count cannot exceed unique transform count")
         if self.equivalent_or_minor_rate is None:
             if self.reviewed_transform_count != 0:
                 raise ValueError("reviewed transforms require equivalent-or-minor rate")
         else:
-            if isinstance(self.equivalent_or_minor_rate, bool) or not isinstance(self.equivalent_or_minor_rate, (int, float)):
+            if isinstance(self.equivalent_or_minor_rate, bool) or not isinstance(
+                self.equivalent_or_minor_rate, (int, float)
+            ):
                 raise TypeError("equivalent_or_minor_rate must be a real number or None")
             rate = float(self.equivalent_or_minor_rate)
             if not math.isfinite(rate) or rate < 0.0 or rate > 1.0:
@@ -118,7 +124,11 @@ class E20HeadlineCondition:
         require_sha256("calibration_bundle_hash", self.calibration_bundle_hash)
         require_int("expected_row_count", self.expected_row_count)
         require_int("failure_row_count", self.failure_row_count)
-        if self.expected_row_count <= 0 or self.failure_row_count < 0 or self.failure_row_count > self.expected_row_count:
+        if (
+            self.expected_row_count <= 0
+            or self.failure_row_count < 0
+            or self.failure_row_count > self.expected_row_count
+        ):
             raise ValueError("invalid E20 headline row counts")
         if isinstance(self.target_fpr, bool) or not isinstance(self.target_fpr, (int, float)):
             raise TypeError("target_fpr must be a real number")
@@ -156,7 +166,9 @@ class E20HeadlineCondition:
                 self.holm_adjusted_p_value,
             )
             if any(value is None for value in required):
-                raise ValueError("headline-eligible condition requires complete effect, interval, and inference fields")
+                raise ValueError(
+                    "headline-eligible condition requires complete effect, interval, and inference fields"
+                )
             if self.failure_row_count != 0:
                 raise ValueError("headline-eligible condition cannot contain failure rows")
         require_sha256("headline_hash", self.headline_hash)
@@ -224,7 +236,9 @@ class E20ConfirmatoryReport:
             raise ValueError("headline conditions must be canonically ordered")
         if not isinstance(self.status, E20ReportStatus):
             raise TypeError("status must be an E20ReportStatus")
-        if self.status is E20ReportStatus.CONFIRMATORY_EVALUABLE and not all(value.headline_eligible for value in self.headlines):
+        if self.status is E20ReportStatus.CONFIRMATORY_EVALUABLE and not all(
+            value.headline_eligible for value in self.headlines
+        ):
             raise ValueError("confirmatory-evaluable report requires every headline condition to be eligible")
         require_sha256("report_hash", self.report_hash)
         if self.report_hash != sha256_json(self._payload()):
@@ -269,12 +283,14 @@ def _human_fidelity_summary(
         key = (row.identity.sample_id, condition.transform_condition_id)
         previous = unique.setdefault(key, row.fidelity.human_status)
         if previous is not row.fidelity.human_status:
-            raise ValueError("human fidelity status changed across detector evaluations of the same transform")
+            raise ValueError(
+                "human fidelity status changed across detector evaluations of the same transform"
+            )
     counts: Counter[E20HumanFidelityStatus] = Counter(unique.values())
     favorable = counts[E20HumanFidelityStatus.EQUIVALENT_OR_MINOR]
     material = counts[E20HumanFidelityStatus.MATERIAL_CHANGE]
     cannot_judge = counts[E20HumanFidelityStatus.CANNOT_JUDGE]
-    reviewed = favorable + material
+    reviewed = favorable + material + cannot_judge
     hard_failures = sum(
         row.reason_code is ExperimentReasonCode.HARD_INVARIANT_FAILURE
         for row in result_bundle.failure_rows
@@ -356,10 +372,26 @@ def build_e20_confirmatory_report(
         aggregate_condition = aggregate_by_id[condition.condition_id]
         key_summary = key_by_id[condition.condition_id]
         inference_cell = inference_by_id[condition.condition_id]
-        tpr_change = _metric(aggregate_condition, E20AnalysisPopulation.POLICY_ALL, E20MetricId.TPR_CHANGE)
-        transformed_tpr = _metric(aggregate_condition, E20AnalysisPopulation.POLICY_ALL, E20MetricId.TRANSFORMED_TPR)
-        margin_drop = _metric(aggregate_condition, E20AnalysisPopulation.POLICY_ALL, E20MetricId.STANDARDIZED_MARGIN_DROP)
-        decision_loss = _metric(aggregate_condition, E20AnalysisPopulation.PRISTINE_POSITIVE, E20MetricId.DECISION_LOSS_RATE)
+        tpr_change = _metric(
+            aggregate_condition,
+            E20AnalysisPopulation.POLICY_ALL,
+            E20MetricId.TPR_CHANGE,
+        )
+        transformed_tpr = _metric(
+            aggregate_condition,
+            E20AnalysisPopulation.POLICY_ALL,
+            E20MetricId.TRANSFORMED_TPR,
+        )
+        margin_drop = _metric(
+            aggregate_condition,
+            E20AnalysisPopulation.POLICY_ALL,
+            E20MetricId.STANDARDIZED_MARGIN_DROP,
+        )
+        decision_loss = _metric(
+            aggregate_condition,
+            E20AnalysisPopulation.PRISTINE_POSITIVE,
+            E20MetricId.DECISION_LOSS_RATE,
+        )
         eligible = (
             aggregate_condition.headline_eligible
             and human.gate_passed
@@ -473,4 +505,6 @@ def verify_e20_confirmatory_report(
         authorization,
     )
     if report != expected:
-        raise ValueError("E20 confirmatory report does not replay exactly from sealed analysis artifacts")
+        raise ValueError(
+            "E20 confirmatory report does not replay exactly from sealed analysis artifacts"
+        )
