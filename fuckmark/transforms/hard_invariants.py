@@ -11,7 +11,7 @@ from .protected_artifacts import ProtectedInvariantReport, UserProtectedRange
 from .schema import HardInvariantReason, InvariantStatus
 
 
-HARD_INVARIANT_ALGORITHM_VERSION = "hard-invariant-validator-v1"
+HARD_INVARIANT_ALGORITHM_VERSION = "hard-invariant-validator-v2"
 _WORD_RE = re.compile(r"[A-Za-z]+(?:['’][A-Za-z]+)?")
 _CONTRACTED_NEGATIONS = {
     "don't": ("do:not", None),
@@ -50,7 +50,9 @@ _EXPANDED_NEGATION_AUX = {
     "had": None,
 }
 _MODAL_WORDS = frozenset(("can", "will", "should", "would", "could", "must", "may", "might", "shall"))
-_STANDALONE_NEGATIONS = frozenset(("never", "no", "neither", "nor"))
+_STANDALONE_NEGATIONS = frozenset(("never", "no", "neither", "nor", "none", "nothing", "nobody", "nowhere", "without"))
+_OBLIGATION_WORDS = frozenset(("must", "required", "mandatory", "obliged", "obligated"))
+_PERMISSION_WORDS = frozenset(("may", "allowed", "permitted"))
 
 
 @dataclass(frozen=True, slots=True)
@@ -66,8 +68,10 @@ class HardInvariantSignature:
             raise ValueError("negations must contain non-empty strings")
         if any(not isinstance(value, str) or not value for value in modalities):
             raise ValueError("modalities must contain non-empty strings")
+        object.__setattr__(self, "negations", negations)
+        object.__setattr__(self, "modalities", modalities)
         require_sha256("signature_hash", self.signature_hash)
-        if self.signature_hash != sha256_json({"negations": negations, "modalities": modalities}):
+        if self.signature_hash != sha256_json({"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "negations": negations, "modalities": modalities}):
             raise ValueError("signature_hash does not match hard invariant signature")
 
 
@@ -96,12 +100,20 @@ class HardInvariantReport:
             raise TypeError("reasons must contain HardInvariantReason values")
         if reasons != tuple(sorted(set(reasons), key=lambda value: value.value)):
             raise ValueError("reasons must be unique and sorted")
-        if self.status is InvariantStatus.PASS and reasons:
-            raise ValueError("passing hard invariant reports cannot contain reasons")
-        if self.status is InvariantStatus.FAIL and not reasons:
-            raise ValueError("failing hard invariant reports must contain reasons")
+        object.__setattr__(self, "reasons", reasons)
         if self.protected_report.original_hash != self.original_hash or self.protected_report.transformed_hash != self.transformed_hash:
             raise ValueError("protected report hashes must match hard invariant report")
+        expected: list[HardInvariantReason] = []
+        if self.protected_report.status is InvariantStatus.FAIL:
+            expected.append(HardInvariantReason.PROTECTED_CONTENT_CHANGED)
+        if self.original_signature.negations != self.transformed_signature.negations:
+            expected.append(HardInvariantReason.NEGATION_CHANGED)
+        if self.original_signature.modalities != self.transformed_signature.modalities:
+            expected.append(HardInvariantReason.MODALITY_CHANGED)
+        expected_reasons = tuple(sorted(expected, key=lambda value: value.value))
+        expected_status = InvariantStatus.PASS if not expected_reasons else InvariantStatus.FAIL
+        if reasons != expected_reasons or self.status is not expected_status:
+            raise ValueError("hard invariant status or reasons do not match component reports")
         require_sha256("report_hash", self.report_hash)
         if self.report_hash != sha256_json(self._payload()):
             raise ValueError("report_hash does not match hard invariant report")
@@ -158,13 +170,21 @@ def hard_invariant_signature(text: str) -> HardInvariantSignature:
             negations.append(word)
         if word in _MODAL_WORDS:
             modalities.append(word)
+        if word in _OBLIGATION_WORDS:
+            modalities.append(f"obligation:{word}")
+        if word in _PERMISSION_WORDS:
+            modalities.append(f"permission:{word}")
+        if word == "have" and index + 1 < len(words) and words[index + 1] == "to":
+            modalities.append("obligation:have_to")
+        if word == "need" and index + 1 < len(words) and words[index + 1] == "to":
+            modalities.append("obligation:need_to")
         index += 1
     negation_tuple = tuple(negations)
     modality_tuple = tuple(modalities)
     return HardInvariantSignature(
         negation_tuple,
         modality_tuple,
-        sha256_json({"negations": negation_tuple, "modalities": modality_tuple}),
+        sha256_json({"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "negations": negation_tuple, "modalities": modality_tuple}),
     )
 
 

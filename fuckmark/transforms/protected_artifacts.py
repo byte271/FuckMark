@@ -6,6 +6,10 @@ from .._validation import require_clean_string, require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .schema import InvariantStatus, ProtectedSpanKind
 
+
+PROTECTED_INVARIANT_ALGORITHM_VERSION = "protected-invariant-validator-v2"
+
+
 @dataclass(frozen=True, slots=True)
 class UserProtectedRange:
     start: int
@@ -50,6 +54,7 @@ class ProtectedSpan:
         normalized_kinds = tuple(sorted(set(kinds), key=lambda kind: kind.value))
         if kinds != normalized_kinds:
             raise ValueError("kinds must be unique and sorted by value")
+        object.__setattr__(self, "kinds", kinds)
         require_sha256("text_hash", self.text_hash)
         require_sha256("span_hash", self.span_hash)
         if self.text_hash != sha256_text(self.exact_text):
@@ -87,8 +92,10 @@ class ProtectedSpanManifest:
         ranges = tuple(self.user_ranges)
         if any(not isinstance(value, UserProtectedRange) for value in ranges):
             raise TypeError("user_ranges must contain UserProtectedRange values")
-        if ranges != tuple(sorted(ranges, key=lambda value: (value.start, value.end, value.label))):
+        if ranges != tuple(sorted(ranges, key=lambda value: (value.start, value.end, value.label, value.range_hash))):
             raise ValueError("user_ranges must be canonically ordered")
+        if len({(value.start, value.end) for value in ranges}) != len(ranges):
+            raise ValueError("user_ranges must not duplicate protected geometry")
         spans = tuple(self.spans)
         if any(not isinstance(value, ProtectedSpan) for value in spans):
             raise TypeError("spans must contain ProtectedSpan values")
@@ -97,6 +104,9 @@ class ProtectedSpanManifest:
         for left, right in zip(spans, spans[1:]):
             if left.end > right.start:
                 raise ValueError("protected spans must not overlap after merging")
+        object.__setattr__(self, "identifiers", identifiers)
+        object.__setattr__(self, "user_ranges", ranges)
+        object.__setattr__(self, "spans", spans)
         require_sha256("manifest_hash", self.manifest_hash)
         if self.manifest_hash != sha256_json(self._payload()):
             raise ValueError("manifest_hash does not match protected span manifest")
@@ -145,20 +155,19 @@ class ProtectedInvariantReport:
         differences = tuple(self.differences)
         if any(not isinstance(value, InvariantDifference) for value in differences):
             raise TypeError("differences must contain InvariantDifference values")
-        if self.status is InvariantStatus.PASS and differences:
-            raise ValueError("passing invariant reports cannot contain differences")
-        if self.status is InvariantStatus.FAIL and not differences:
-            raise ValueError("failing invariant reports must contain differences")
+        object.__setattr__(self, "differences", differences)
+        expected_status = InvariantStatus.PASS if not differences else InvariantStatus.FAIL
+        if self.status is not expected_status:
+            raise ValueError("status does not match invariant differences")
         require_sha256("report_hash", self.report_hash)
         if self.report_hash != sha256_json(self._payload()):
             raise ValueError("report_hash does not match invariant report")
 
     def _payload(self) -> dict[str, object]:
         return {
+            "algorithm_version": PROTECTED_INVARIANT_ALGORITHM_VERSION,
             "status": self.status.value,
             "original_hash": self.original_hash,
             "transformed_hash": self.transformed_hash,
             "differences": self.differences,
         }
-
-

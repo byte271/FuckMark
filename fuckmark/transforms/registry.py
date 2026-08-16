@@ -4,7 +4,7 @@ from collections.abc import Sequence
 
 from .._validation import require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
-from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
+from .candidate_artifacts import CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
 from .hard_invariants import validate_hard_invariants
 from .protected import ProtectedSpanExtractor
 from .protected_artifacts import ProtectedSpan, UserProtectedRange
@@ -12,8 +12,11 @@ from .rules import LiteralTransformRule, default_contraction_rules, validate_rul
 from .schema import CandidateRejectionReason, InvariantStatus
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
-TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v1"
-TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v1"
+
+TRANSFORM_REGISTRY_ALGORITHM_VERSION = "transform-registry-v2"
+TRANSFORM_APPLY_ALGORITHM_VERSION = "explicit-candidate-apply-v2"
+_MAX_ENUMERATION_ITEMS = 100_000
+
 
 def _span_overlaps(start: int, end: int, span: ProtectedSpan) -> bool:
     return start < span.end and span.start < end
@@ -71,7 +74,6 @@ def _make_candidate(input_hash: str, rule: LiteralTransformRule, start: int, end
     return TransformCandidate(candidate_id, input_hash, rule.rule_id, rule.version, rule.rule_hash, rule.family, rule.tier, start, end, source_text, replacement)
 
 
-
 class TransformRegistry:
     __slots__ = ("_rules", "_ruleset_hash", "_extractor")
 
@@ -106,6 +108,8 @@ class TransformRegistry:
         rejections: list[CandidateRejection] = []
         for rule in self._rules:
             for match in rule.pattern().finditer(text):
+                if len(candidates) + len(rejections) >= _MAX_ENUMERATION_ITEMS:
+                    raise ValueError("candidate enumeration exceeded resource limit")
                 start, end = match.span()
                 source_text = text[start:end]
                 overlaps = tuple(span for span in protected.spans if _span_overlaps(start, end, span))
@@ -233,6 +237,10 @@ class TransformRegistry:
             cursor = candidate.end
         chunks.append(enumeration.input_text[cursor:])
         output_text = "".join(chunks)
+        input_hash = enumeration.input_hash
+        output_hash = sha256_text(output_text)
+        if selected and output_hash == input_hash:
+            raise ValueError("non-empty candidate selection produced no net text change")
         invariant_report = validate_hard_invariants(
             enumeration.input_text,
             output_text,
@@ -241,14 +249,12 @@ class TransformRegistry:
         )
         if invariant_report.status is not InvariantStatus.PASS:
             raise ValueError("transformation violated hard content invariants")
-        input_hash = enumeration.input_hash
-        output_hash = sha256_text(output_text)
         selected_tuple = tuple(selected_ids)
         operation_tuple = tuple(operations)
         trace_payload = {
             "algorithm_version": TRANSFORM_APPLY_ALGORITHM_VERSION,
             "registry_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION,
-            "selection_policy_id": "explicit-candidate-ids-v1",
+            "selection_policy_id": "explicit-candidate-ids-v2",
             "seed": seed,
             "input_hash": input_hash,
             "output_hash": output_hash,
@@ -263,7 +269,7 @@ class TransformRegistry:
         trace = TransformationTrace(
             TRANSFORM_APPLY_ALGORITHM_VERSION,
             TRANSFORM_REGISTRY_ALGORITHM_VERSION,
-            "explicit-candidate-ids-v1",
+            "explicit-candidate-ids-v2",
             seed,
             input_hash,
             output_hash,

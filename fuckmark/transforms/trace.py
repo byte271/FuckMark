@@ -8,6 +8,7 @@ from .candidate_artifacts import CandidateRejection
 from .hard_invariants import HardInvariantReport
 from .schema import InvariantStatus
 
+
 @dataclass(frozen=True, slots=True)
 class TransformOperation:
     candidate_id: str
@@ -88,11 +89,15 @@ class TransformationTrace:
         for name, value in (("input_hash", self.input_hash), ("output_hash", self.output_hash), ("ruleset_hash", self.ruleset_hash), ("enumeration_hash", self.enumeration_hash), ("trace_hash", self.trace_hash)):
             require_sha256(name, value)
         selected = tuple(self.selected_candidate_ids)
+        operations = tuple(self.operations)
+        failures = tuple(self.precondition_failures)
+        object.__setattr__(self, "selected_candidate_ids", selected)
+        object.__setattr__(self, "operations", operations)
+        object.__setattr__(self, "precondition_failures", failures)
         for value in selected:
             require_sha256("selected_candidate_id", value)
         if len(set(selected)) != len(selected):
             raise ValueError("selected candidate IDs must be unique")
-        operations = tuple(self.operations)
         if any(not isinstance(value, TransformOperation) for value in operations):
             raise TypeError("operations must contain TransformOperation values")
         if tuple(value.candidate_id for value in operations) != selected:
@@ -102,7 +107,14 @@ class TransformationTrace:
         for left, right in zip(operations, operations[1:]):
             if left.source_end > right.source_start or left.output_end > right.output_start:
                 raise ValueError("operations must not overlap in source or output geometry")
-        failures = tuple(self.precondition_failures)
+            if right.source_start - left.source_end != right.output_start - left.output_end:
+                raise ValueError("operation source and output gaps must preserve unchanged text geometry")
+        if operations and operations[0].source_start != operations[0].output_start:
+            raise ValueError("first operation must preserve unchanged prefix geometry")
+        if operations and self.input_hash == self.output_hash:
+            raise ValueError("non-empty transformation traces must change the output hash")
+        if not operations and self.input_hash != self.output_hash:
+            raise ValueError("empty transformation traces must preserve the output hash")
         if any(not isinstance(value, CandidateRejection) for value in failures):
             raise TypeError("precondition_failures must contain CandidateRejection values")
         if failures != tuple(sorted(failures, key=lambda value: (value.start, value.end, value.rule_id, value.reason.value, value.rejection_hash))):
@@ -150,8 +162,11 @@ class TransformResult:
             raise TypeError("trace must be a TransformationTrace")
         if self.trace.output_hash != sha256_text(self.output_text):
             raise ValueError("trace output hash does not match output_text")
+        for operation in self.trace.operations:
+            if operation.output_end > len(self.output_text):
+                raise ValueError("operation output span extends beyond output_text")
+            if self.output_text[operation.output_start:operation.output_end] != operation.after_text:
+                raise ValueError("operation output geometry does not match output_text")
         require_sha256("result_hash", self.result_hash)
         if self.result_hash != sha256_json({"output_text": self.output_text, "trace": self.trace}):
             raise ValueError("result_hash does not match transform result")
-
-

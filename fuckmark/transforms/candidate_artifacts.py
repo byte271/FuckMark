@@ -8,6 +8,10 @@ from ..hashing import sha256_json, sha256_text
 from .protected_artifacts import ProtectedSpanManifest
 from .schema import CandidateRejectionReason, TransformFamily, TransformTier
 
+
+_MAX_CONFLICTS = 100_000
+
+
 @dataclass(frozen=True, slots=True)
 class TransformCandidate:
     candidate_id: str
@@ -89,6 +93,7 @@ class CandidateRejection:
         hashes = tuple(self.protected_span_hashes)
         if hashes != tuple(sorted(set(hashes))):
             raise ValueError("protected_span_hashes must be unique and sorted")
+        object.__setattr__(self, "protected_span_hashes", hashes)
         for value in hashes:
             require_sha256("protected_span_hash", value)
         if self.reason is CandidateRejectionReason.PROTECTED_OVERLAP and not hashes:
@@ -132,6 +137,10 @@ class CandidateConflict:
         return {"first_candidate_id": self.first_candidate_id, "second_candidate_id": self.second_candidate_id}
 
 
+def _overlap(start: int, end: int, other_start: int, other_end: int) -> bool:
+    return start < other_end and other_start < end
+
+
 @dataclass(frozen=True, slots=True)
 class CandidateEnumeration:
     algorithm_version: str
@@ -159,6 +168,9 @@ class CandidateEnumeration:
         candidates = tuple(self.candidates)
         rejections = tuple(self.rejections)
         conflicts = tuple(self.conflicts)
+        object.__setattr__(self, "candidates", candidates)
+        object.__setattr__(self, "rejections", rejections)
+        object.__setattr__(self, "conflicts", conflicts)
         if any(not isinstance(value, TransformCandidate) for value in candidates):
             raise TypeError("candidates must contain TransformCandidate values")
         if any(not isinstance(value, CandidateRejection) for value in rejections):
@@ -178,9 +190,22 @@ class CandidateEnumeration:
         for value in candidates:
             if value.end > len(self.input_text) or self.input_text[value.start:value.end] != value.source_text:
                 raise ValueError("candidate source span does not match enumeration input")
+            if any(_overlap(value.start, value.end, span.start, span.end) for span in self.protected_manifest.spans):
+                raise ValueError("candidate overlaps a protected span")
+        span_by_hash = {span.span_hash: span for span in self.protected_manifest.spans}
         for value in rejections:
             if value.end > len(self.input_text) or self.input_text[value.start:value.end] != value.source_text:
                 raise ValueError("rejection source span does not match enumeration input")
+            if value.reason is CandidateRejectionReason.PROTECTED_OVERLAP:
+                expected = tuple(sorted(
+                    span.span_hash
+                    for span in self.protected_manifest.spans
+                    if _overlap(value.start, value.end, span.start, span.end)
+                ))
+                if value.protected_span_hashes != expected:
+                    raise ValueError("protected overlap rejection does not match protected geometry")
+            elif any(hash_value not in span_by_hash for hash_value in value.protected_span_hashes):
+                raise ValueError("rejection references an unknown protected span")
         for span in self.protected_manifest.spans:
             if span.end > len(self.input_text) or self.input_text[span.start:span.end] != span.exact_text:
                 raise ValueError("protected span does not match enumeration input")
@@ -211,17 +236,17 @@ class CandidateEnumeration:
         }
 
 
-
 def _build_conflicts(candidates: Sequence[TransformCandidate]) -> tuple[CandidateConflict, ...]:
+    materialized = tuple(candidates)
     output: list[CandidateConflict] = []
-    for index, left in enumerate(candidates):
-        for right in candidates[index + 1:]:
+    for index, left in enumerate(materialized):
+        for right in materialized[index + 1:]:
             if right.start >= left.end:
                 break
             if left.start < right.end and right.start < left.end:
+                if len(output) >= _MAX_CONFLICTS:
+                    raise ValueError("candidate conflict graph exceeded resource limit")
                 first, second = sorted((left.candidate_id, right.candidate_id))
                 payload = {"first_candidate_id": first, "second_candidate_id": second}
                 output.append(CandidateConflict(first, second, sha256_json(payload)))
     return tuple(sorted(output, key=lambda value: (value.first_candidate_id, value.second_candidate_id)))
-
-

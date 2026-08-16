@@ -9,7 +9,7 @@ from ..hashing import sha256_json
 from .schema import TransformFamily, TransformTier
 
 
-RULE_ALGORITHM_VERSION = "literal-transform-rule-v1"
+RULE_ALGORITHM_VERSION = "literal-transform-rule-v2"
 
 
 @dataclass(frozen=True, slots=True)
@@ -98,13 +98,14 @@ class LiteralTransformRule:
         )
 
     def pattern(self) -> re.Pattern[str]:
-        escaped = re.escape(self.source)
+        literal = rf"(?ai:{re.escape(self.source)})"
+        pattern = literal
         if self.whole_word:
             if self.source[0].isalnum() or self.source[0] == "_":
-                escaped = rf"(?<!\w){escaped}"
+                pattern = rf"(?<!\w){pattern}"
             if self.source[-1].isalnum() or self.source[-1] == "_":
-                escaped = rf"{escaped}(?!\w)"
-        return re.compile(escaped, re.IGNORECASE)
+                pattern = rf"{pattern}(?!\w)"
+        return re.compile(pattern)
 
 
 def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
@@ -119,7 +120,7 @@ def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
     return tuple(
         LiteralTransformRule.create(
             rule_id=rule_id,
-            version="v1",
+            version="v2",
             family=TransformFamily.CONTRACTION,
             tier=TransformTier.SURFACE,
             source=source,
