@@ -233,8 +233,8 @@ def build_e20_result_bundle(
         raise E20ResultBundleError("preregistration does not match E20 authorization")
     if corpus_manifest.manifest_hash != authorization.corpus_manifest_hash:
         raise E20ResultBundleError("corpus manifest does not match E20 authorization")
-    if condition_plan.plan_hash != authorization.budget_config_hash:
-        raise E20ResultBundleError("condition plan does not match E20 authorization")
+    if condition_plan.plan_hash != preregistration.budget_config_hash:
+        raise E20ResultBundleError("condition plan does not match the preregistered budget configuration")
     outcomes = tuple(outcome_rows)
     failures = tuple(failure_rows)
     if any(not isinstance(value, E20OutcomeRow) for value in outcomes):
