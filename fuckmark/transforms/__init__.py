@@ -32,6 +32,8 @@ from .registry import (
     TRANSFORM_REGISTRY_ALGORITHM_VERSION,
     TransformRegistry,
     default_transform_registry,
+    development_transform_registry,
+    release_transform_registry,
 )
 from .rules import RULE_ALGORITHM_VERSION, LiteralTransformRule, TransformRule, default_contraction_rules
 from .scheduler import (
@@ -103,6 +105,8 @@ __all__ = [
     "default_contraction_rules",
     "default_transform_registry",
     "development_lexical_rules",
+    "development_transform_registry",
+    "release_transform_registry",
     "require_release_eligible_lexical_rules",
     "validate_protected_invariants",
 ]
