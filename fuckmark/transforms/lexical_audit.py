@@ -9,7 +9,7 @@ from ..hashing import sha256_json
 from .lexical_rules import LexicalTemplateRule
 
 
-LEXICAL_RULE_AUDIT_ALGORITHM_VERSION = "lexical-rule-fidelity-audit-v1"
+LEXICAL_RULE_AUDIT_ALGORITHM_VERSION = "lexical-rule-fidelity-audit-v2"
 BLIND_HUMAN_REVIEW_POLICY_ID = "blind-two-reviewer-tiebreak-v1"
 MINIMUM_GRAMMAR_FIXTURES_PER_CLASS = 5
 MINIMUM_HUMAN_AUDIT_SAMPLES = 50
@@ -22,7 +22,7 @@ class LexicalAuditStatus(str, Enum):
     HUMAN_FIDELITY_AUDIT_MISSING = "HUMAN_FIDELITY_AUDIT_MISSING"
     BLOCKED_HARD_INVARIANT = "BLOCKED_HARD_INVARIANT"
     BLOCKED_HUMAN_FIDELITY = "BLOCKED_HUMAN_FIDELITY"
-    RELEASE_ELIGIBLE = "RELEASE_ELIGIBLE"
+    EVIDENCE_SUMMARY_COMPLETE = "EVIDENCE_SUMMARY_COMPLETE"
 
 
 class LexicalRulePromotionError(ValueError):
@@ -76,9 +76,8 @@ class LexicalRuleAudit:
         if self.human_sample_count == 0:
             if self.human_review_policy_id is not None:
                 raise ValueError("human_review_policy_id must be absent when no human audit exists")
-        else:
-            if self.human_review_policy_id != BLIND_HUMAN_REVIEW_POLICY_ID:
-                raise ValueError("human fidelity audit must use the frozen blind review policy")
+        elif self.human_review_policy_id != BLIND_HUMAN_REVIEW_POLICY_ID:
+            raise ValueError("human fidelity audit must use the frozen blind review policy")
         if not isinstance(self.status, LexicalAuditStatus):
             raise TypeError("status must be a LexicalAuditStatus")
         expected_status = _audit_status(
@@ -91,14 +90,14 @@ class LexicalRuleAudit:
             self.hard_invariant_violation_count,
         )
         if self.status is not expected_status:
-            raise ValueError("lexical audit status does not match supplied evidence")
+            raise ValueError("lexical audit status does not match supplied evidence summary")
         require_sha256("audit_hash", self.audit_hash)
         if self.audit_hash != sha256_json(self._payload()):
             raise ValueError("audit_hash does not match lexical rule audit")
 
     @property
-    def release_eligible(self) -> bool:
-        return self.status is LexicalAuditStatus.RELEASE_ELIGIBLE
+    def evidence_summary_complete(self) -> bool:
+        return self.status is LexicalAuditStatus.EVIDENCE_SUMMARY_COMPLETE
 
     def _payload(self) -> dict[str, object]:
         return {
@@ -136,7 +135,7 @@ def _audit_status(
         return LexicalAuditStatus.BLOCKED_HARD_INVARIANT
     if material_change_count or equivalent_or_minor_count / human_sample_count < MINIMUM_EQUIVALENT_OR_MINOR_RATE:
         return LexicalAuditStatus.BLOCKED_HUMAN_FIDELITY
-    return LexicalAuditStatus.RELEASE_ELIGIBLE
+    return LexicalAuditStatus.EVIDENCE_SUMMARY_COMPLETE
 
 
 def create_lexical_rule_audit(
@@ -194,7 +193,7 @@ def create_lexical_rule_audit(
     )
 
 
-def require_release_eligible_lexical_rules(
+def require_complete_lexical_audit_summaries(
     rules: Sequence[LexicalTemplateRule],
     audits: Sequence[LexicalRuleAudit],
 ) -> tuple[LexicalTemplateRule, ...]:
@@ -205,24 +204,24 @@ def require_release_eligible_lexical_rules(
     rule_tuple = tuple(rules)
     audit_tuple = tuple(audits)
     if not rule_tuple:
-        raise LexicalRulePromotionError("lexical release requires at least one rule")
+        raise LexicalRulePromotionError("lexical audit summary requires at least one rule")
     if any(not isinstance(rule, LexicalTemplateRule) for rule in rule_tuple):
         raise TypeError("rules must contain LexicalTemplateRule values")
     if any(not isinstance(audit, LexicalRuleAudit) for audit in audit_tuple):
         raise TypeError("audits must contain LexicalRuleAudit values")
     if len({rule.rule_hash for rule in rule_tuple}) != len(rule_tuple):
-        raise LexicalRulePromotionError("lexical release rules must be unique")
+        raise LexicalRulePromotionError("lexical audit summary rules must be unique")
     by_rule_hash = {audit.rule_hash: audit for audit in audit_tuple}
     if len(by_rule_hash) != len(audit_tuple):
-        raise LexicalRulePromotionError("lexical release audits must be unique by rule hash")
+        raise LexicalRulePromotionError("lexical audit summaries must be unique by rule hash")
     expected_hashes = {rule.rule_hash for rule in rule_tuple}
     if set(by_rule_hash) != expected_hashes:
-        raise LexicalRulePromotionError("lexical release audits must exactly match the requested rules")
+        raise LexicalRulePromotionError("lexical audit summaries must exactly match the requested rules")
     blocked = tuple(
         (rule.rule_id, by_rule_hash[rule.rule_hash].status.value)
         for rule in rule_tuple
-        if not by_rule_hash[rule.rule_hash].release_eligible
+        if not by_rule_hash[rule.rule_hash].evidence_summary_complete
     )
     if blocked:
-        raise LexicalRulePromotionError(f"lexical rules are not release eligible: {blocked}")
+        raise LexicalRulePromotionError(f"lexical evidence summaries are incomplete: {blocked}")
     return tuple(sorted(rule_tuple, key=lambda rule: (rule.rule_id, rule.version, rule.rule_hash)))
