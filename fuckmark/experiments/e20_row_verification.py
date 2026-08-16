@@ -329,11 +329,11 @@ def build_e20_outcome_row(
         authorization,
         corpus_manifest,
         source_sample.sample_id,
-        condition.condition_id,
+        condition.transform_condition_id,
         "schedule",
     )
     if schedule_result.seed != expected_seed:
-        raise E20RowVerificationError("schedule result seed does not match sealed deterministic seed derivation")
+        raise E20RowVerificationError("schedule result seed does not match sealed deterministic transform seed derivation")
     if transform_result.trace.seed != schedule_result.seed:
         raise E20RowVerificationError("transform trace seed does not match schedule seed")
     if transform_result.trace.selected_candidate_ids != schedule_result.selected_candidate_ids:
@@ -348,9 +348,9 @@ def build_e20_outcome_row(
     transformed_token_ids = transformed_tokens.token_ids
     if original_batch.sample_id != source_sample.sample_id or original_batch.token_ids != original_tokens:
         raise E20RowVerificationError("original observation batch does not bind to source generation tokens")
-    expected_transformed_batch_id = f"{source_sample.sample_id}:{condition.condition_id}:transformed"
+    expected_transformed_batch_id = f"{source_sample.sample_id}:{condition.transform_condition_id}:transformed"
     if transformed_batch.sample_id != expected_transformed_batch_id or transformed_batch.token_ids != transformed_token_ids:
-        raise E20RowVerificationError("transformed observation batch does not use the canonical condition-bound identity and token sequence")
+        raise E20RowVerificationError("transformed observation batch does not use the canonical transform-bound identity and token sequence")
     verify_native_observation_batch(original_batch, adapter)
     verify_native_observation_batch(transformed_batch, adapter)
     verify_uncalibrated_detector_evidence(original_batch, original_evidence)
