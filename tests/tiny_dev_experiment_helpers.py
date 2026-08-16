@@ -93,3 +93,37 @@ def calibration_evidence():
         )
         for index, sample_id in enumerate(sample_ids)
     )
+
+
+def attack_evidence(underpowered: bool = False):
+    artifact = tiny_dev_artifact()
+    samples = tuple(
+        sorted(
+            (
+                sample
+                for sample in artifact.manifest.samples
+                if sample.split is CorpusSplit.ATTACK_DEVELOPMENT
+            ),
+            key=lambda sample: sample.sample_id,
+        )
+    )
+    base = _base_evidence()
+    positive_index = 0
+    negative_index = 0
+    output = []
+    for sample in samples:
+        if sample.label is WatermarkLabel.WATERMARKED:
+            score = 0.02 + positive_index * 0.005 if underpowered else 0.80 + positive_index * 0.02
+            positive_index += 1
+        else:
+            score = 0.01 + negative_index * 0.01
+            negative_index += 1
+        output.append(
+            replace(
+                base,
+                sample_id=sample.sample_id,
+                observation_batch_hash=sha256_text(f"attack-observation-{sample.sample_id}-{underpowered}"),
+                raw_score=score,
+            )
+        )
+    return tuple(output)
