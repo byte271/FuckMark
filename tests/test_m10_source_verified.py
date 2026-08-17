@@ -86,7 +86,9 @@ def _fixture():
         power_input,
         power_result,
     )
-    preregistration = create_confirmatory_preregistration(preregistration_inputs())
+    inputs = preregistration_inputs(final_n_per_core_cell=power_result.selected_sample_count)
+    inputs = replace(inputs, power_analysis_hash=power_result.result_hash)
+    preregistration = create_confirmatory_preregistration(inputs)
     return registry, experiments, power_input, power_result, source_verified_m6, preregistration
 
 
@@ -160,6 +162,50 @@ def test_source_verified_m10_replays_m6_sources_before_release_builder(monkeypat
             power_input,
             power_result,
             preregistration,
+        )
+
+
+def test_source_verified_m10_rejects_preregistration_from_different_power_analysis(monkeypatch) -> None:
+    registry, experiments, power_input, power_result, source_verified_m6, preregistration = _fixture()
+    monkeypatch.setattr(
+        m10_source_verified,
+        "_build_m10_release_manifest",
+        lambda *args, **kwargs: pytest.fail("low-level M10 builder must not run after power binding failure"),
+    )
+    wrong_inputs = preregistration_inputs(final_n_per_core_cell=power_result.selected_sample_count)
+    wrong_inputs = replace(wrong_inputs, power_analysis_hash=sha256_text("different-power-analysis"))
+    wrong_preregistration = create_confirmatory_preregistration(wrong_inputs)
+
+    with pytest.raises(ValueError, match="power analysis result"):
+        build_source_verified_m10_release_manifest(
+            source_verified_m6,
+            registry,
+            experiments,
+            power_input,
+            power_result,
+            wrong_preregistration,
+        )
+
+
+def test_source_verified_m10_rejects_preregistered_final_n_not_selected_by_power(monkeypatch) -> None:
+    registry, experiments, power_input, power_result, source_verified_m6, preregistration = _fixture()
+    monkeypatch.setattr(
+        m10_source_verified,
+        "_build_m10_release_manifest",
+        lambda *args, **kwargs: pytest.fail("low-level M10 builder must not run after final N binding failure"),
+    )
+    wrong_inputs = preregistration_inputs(final_n_per_core_cell=power_result.selected_sample_count + 1)
+    wrong_inputs = replace(wrong_inputs, power_analysis_hash=power_result.result_hash)
+    wrong_preregistration = create_confirmatory_preregistration(wrong_inputs)
+
+    with pytest.raises(ValueError, match="final N"):
+        build_source_verified_m10_release_manifest(
+            source_verified_m6,
+            registry,
+            experiments,
+            power_input,
+            power_result,
+            wrong_preregistration,
         )
 
 
