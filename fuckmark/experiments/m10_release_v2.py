@@ -36,8 +36,11 @@ from .e21_execution import E21RunLedger, E21RunState, verify_e21_run_ledger
 from .e21_fidelity_summary import build_verified_e21_fidelity_summary
 from .e21_human_audit import E21HumanAuditSelection
 from .e21_inference import E21PrimaryInference, verify_e21_primary_inference
-from .e21_replication import E21ReplicationComparison, E21ReplicationStatus
-from .e21_replication_verified import verify_verified_e21_replication_comparison
+from .e21_replication import E21ReplicationStatus
+from .e21_replication_verified import (
+    E21VerifiedReplicationBundle,
+    verify_verified_e21_replication_bundle,
+)
 from .e21_rerun import E21ExecutionAuthorization, E21RerunSeal, verify_e21_rerun_seal
 from .m6_readiness import M6ReadinessReport, verify_m6_readiness
 from .registry import default_development_experiment_registry
@@ -174,7 +177,7 @@ def build_m10_release_manifest(
     e21_result_bundle: E21ResultBundle,
     e21_analysis: E21PrimaryAnalysis,
     e21_inference: E21PrimaryInference,
-    e21_replication: E21ReplicationComparison,
+    e21_replication: E21VerifiedReplicationBundle,
     *,
     release_code_commit: str,
     limitations: tuple[str, ...] = (),
@@ -281,7 +284,7 @@ def build_m10_release_manifest(
         e21_corpus_manifest,
         condition_plan,
     )
-    verify_verified_e21_replication_comparison(
+    verify_verified_e21_replication_bundle(
         e21_replication,
         e20_report,
         e21_authorization,
@@ -296,6 +299,8 @@ def build_m10_release_manifest(
         e21_human_audit_selection,
         e21_human_audit_evidence,
     )
+    if e21_replication.e21_fidelity_summary_hash != e21_fidelity.summary_hash:
+        raise M10ReleaseError("E21 verified replication does not bind the release fidelity summary")
     ordered_limitations = tuple(sorted(set(limitations)))
     for value in ordered_limitations:
         require_clean_string("limitation", value)
@@ -303,7 +308,7 @@ def build_m10_release_manifest(
         e20_report.status is E20ReportStatus.CONFIRMATORY_EVALUABLE
         and e20_report.human_fidelity.gate_passed
         and e21_fidelity.gate_passed
-        and e21_replication.status is E21ReplicationStatus.DESCRIPTIVE_COMPLETE
+        and e21_replication.comparison.status is E21ReplicationStatus.DESCRIPTIVE_COMPLETE
     )
     if complete:
         if ordered_limitations:
@@ -336,7 +341,7 @@ def build_m10_release_manifest(
         "e21_analysis_hash": e21_analysis.analysis_hash,
         "e21_inference_hash": e21_inference.inference_hash,
         "e21_fidelity_summary_hash": e21_fidelity.summary_hash,
-        "e21_replication_hash": e21_replication.comparison_hash,
+        "e21_replication_hash": e21_replication.bundle_hash,
         "limitations": ordered_limitations,
         "status": status.value,
     }
@@ -361,7 +366,7 @@ def build_m10_release_manifest(
         e21_analysis.analysis_hash,
         e21_inference.inference_hash,
         e21_fidelity.summary_hash,
-        e21_replication.comparison_hash,
+        e21_replication.bundle_hash,
         ordered_limitations,
         status,
         sha256_json(payload),
