@@ -20,6 +20,7 @@ from .synthid_smoke_hf import DEFAULT_KEYS, DEFAULT_NGRAM_LEN
 
 
 SOURCE_MANIFEST_ALGORITHM_VERSION = "synthid-high-repetition-source-manifest-v1"
+GENERATION_FAILURE_ALGORITHM_VERSION = "synthid-high-repetition-generation-failure-v1"
 RUN_BUNDLE_ALGORITHM_VERSION = "synthid-high-repetition-run-bundle-v1"
 _STRATA = (
     RepetitionStratum.Q1_LOW,
@@ -34,6 +35,7 @@ class _RecordingBackend:
         self._backend = backend
         self._prompt_ids = dict(prompt_ids)
         self.generated: list[dict[str, object]] = []
+        self.failures: list[dict[str, object]] = []
 
     @property
     def backend_id(self) -> str:
@@ -71,12 +73,25 @@ class _RecordingBackend:
         prompt_id = self._prompt_ids.get((prompt, seed))
         if prompt_id is None:
             raise RuntimeError("generation request is not part of the frozen prompt set")
-        text = self._backend.generate(prompt, seed, watermarked=watermarked)
+        label = "WATERMARKED" if watermarked else "CONTROL"
+        try:
+            text = self._backend.generate(prompt, seed, watermarked=watermarked)
+        except Exception as error:
+            self.failures.append(
+                {
+                    "prompt_id": prompt_id,
+                    "generation_seed": seed,
+                    "label": label,
+                    "error_type": type(error).__name__,
+                    "error_message": str(error),
+                }
+            )
+            raise
         self.generated.append(
             {
                 "prompt_id": prompt_id,
                 "generation_seed": seed,
-                "label": "WATERMARKED" if watermarked else "CONTROL",
+                "label": label,
                 "source_text": text,
             }
         )
@@ -97,7 +112,39 @@ def _write_fsynced(path: Path, value: object) -> None:
         os.fsync(handle.fileno())
 
 
+def _build_failure_manifest(backend: _RecordingBackend, prompts, error: Exception) -> dict[str, object]:
+    prompt_rows = tuple(
+        {
+            "prompt_id": row.prompt_id,
+            "generation_seed": row.seed,
+            "prompt_hash": sha256_text(row.text),
+        }
+        for row in prompts
+    )
+    payload = {
+        "algorithm_version": GENERATION_FAILURE_ALGORITHM_VERSION,
+        "detector_scores_used": False,
+        "selection_feedback_used": False,
+        "backend_id": backend.backend_id,
+        "backend_version": backend.backend_version,
+        "model_id": backend.model_id,
+        "ngram_len": backend.ngram_len,
+        "eos_token_id": backend.eos_token_id,
+        "context_history_size": backend.context_history_size,
+        "prompt_set_hash": sha256_json(prompt_rows),
+        "prompt_count": len(prompt_rows),
+        "expected_source_count": len(prompt_rows) * 2,
+        "successful_source_count": len(backend.generated),
+        "generation_failures": tuple(backend.failures),
+        "phase_error_type": type(error).__name__,
+        "phase_error_message": str(error),
+    }
+    return {**payload, "failure_manifest_hash": sha256_json(payload)}
+
+
 def _build_source_manifest(backend: _RecordingBackend, expected_source_count: int) -> dict[str, object]:
+    if backend.failures:
+        raise RuntimeError("source manifest cannot be built after a generation failure")
     if len(backend.generated) != expected_source_count:
         raise RuntimeError("recorded source count does not match the frozen prompt plan")
     base_rows: list[dict[str, object]] = []
@@ -207,6 +254,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--budgets", type=_parse_budgets, default=(1, 2, 4))
     parser.add_argument("--schedule-seed", type=int, default=9800)
     parser.add_argument("--exact-max-candidates", type=int, default=16)
+    parser.add_argument("--failure-json", type=Path, default=Path("artifacts/synthid-high-repetition-generation-failure.json"))
     parser.add_argument("--source-manifest-json", type=Path, default=Path("artifacts/synthid-high-repetition-source-manifest.json"))
     parser.add_argument("--plan-json", type=Path, default=Path("artifacts/synthid-high-repetition-detector-plan.json"))
     parser.add_argument("--json", type=Path, default=Path("artifacts/synthid-high-repetition-detector.json"))
@@ -235,14 +283,22 @@ def main(argv: list[str] | None = None) -> int:
         keys=DEFAULT_KEYS,
     )
     backend = _RecordingBackend(raw_backend, prompt_ids)
-    plan = build_high_repetition_detector_plan(
-        prompts,
-        backend,
-        _registry(args.registry),
-        budgets=args.budgets,
-        schedule_seed=args.schedule_seed,
-        exact_max_candidates=args.exact_max_candidates,
-    )
+    try:
+        plan = build_high_repetition_detector_plan(
+            prompts,
+            backend,
+            _registry(args.registry),
+            budgets=args.budgets,
+            schedule_seed=args.schedule_seed,
+            exact_max_candidates=args.exact_max_candidates,
+        )
+    except Exception as error:
+        failure_manifest = _build_failure_manifest(backend, prompts, error)
+        _write_fsynced(args.failure_json, failure_manifest)
+        sys.stderr.write(f"failure_manifest_hash={failure_manifest['failure_manifest_hash']}\n")
+        sys.stderr.write(f"failure_json={args.failure_json.as_posix()}\n")
+        raise
+
     source_manifest = _build_source_manifest(backend, len(prompts) * 2)
     _validate_plan_against_source_manifest(plan, source_manifest)
     _write_fsynced(args.source_manifest_json, source_manifest)
