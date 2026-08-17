@@ -218,6 +218,32 @@ from .e20_sealed_authorization import (
     authorize_sealed_e20_execution,
     verify_sealed_e20_execution_authorization,
 )
+from .e21_execution import (
+    E21_RUN_LEDGER_ALGORITHM_VERSION,
+    E21InvalidationReason,
+    E21RunEvent,
+    E21RunLedger,
+    E21RunState,
+    E21RunTransitionError,
+    E21RunVerificationError,
+    complete_e21_run,
+    create_e21_run_ledger,
+    invalidate_e21_run,
+    start_e21_run,
+    verify_e21_run_ledger,
+)
+from .e21_rerun import (
+    E21_EXECUTION_AUTHORIZATION_ALGORITHM_VERSION,
+    E21_EXPERIMENT_ID,
+    E21_RERUN_SEAL_ALGORITHM_VERSION,
+    E21ExecutionAuthorization,
+    E21RerunError,
+    E21RerunSeal,
+    authorize_e21_execution,
+    build_e21_rerun_seal,
+    verify_e21_execution_authorization,
+    verify_e21_rerun_seal,
+)
 from .extended_analysis import (
     EXTENDED_ANALYSIS_ALGORITHM_VERSION,
     EXTENDED_ANALYSIS_ROW_VERSION,
