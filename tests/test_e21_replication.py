@@ -2,7 +2,7 @@ from dataclasses import replace
 
 import pytest
 
-from test_e20_execution import T0, T1, T2, _sealed_execution_fixture
+from test_e20_execution import T0, T1, T2, _authorize
 from test_e21_rerun import _rerun_manifest
 from fuckmark.environment import capture_environment
 from fuckmark.experiments.e20_bundle import E20ReasonCount
@@ -144,7 +144,7 @@ def _fixture():
         key_manifest,
         _,
         common,
-    ) = _sealed_execution_fixture()
+    ) = _authorize()
     e20_report = _e20_report(e20_authorization, condition_plan)
     e20_ledger = create_e20_run_ledger(e20_authorization, T0)
     e20_ledger = start_e20_run(e20_ledger, T1)
