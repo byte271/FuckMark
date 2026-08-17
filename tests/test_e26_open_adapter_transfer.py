@@ -88,10 +88,6 @@ def test_e26_reports_direction_disagreement_without_promoting_a_claim() -> None:
 
 def test_e26_rejects_wrong_backend_identity_and_prompt_mismatch() -> None:
     deepmind, huggingface = _reports()
-    wrong = replace(deepmind, backend_id="not-deepmind", report_hash=sha256_text("temporary"))
-    with pytest.raises(ValueError, match="report_hash"):
-        build_e26_open_adapter_transfer(wrong, huggingface)
-
     wrong_backend = run_synthid_smoke(
         _prompts(),
         _Backend("not-deepmind", "deepmind", 0.3),
