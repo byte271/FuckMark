@@ -4,6 +4,7 @@ from ..adapters import WatermarkAdapter
 from ..corpus import CorpusManifest, CorpusSample, TextOnlyTokenRecord
 from ..detectors import CalibratedDetectorResult, CalibrationBundle, UncalibratedDetectorEvidence
 from ..detectors.bayesian_artifacts import BayesianReadinessArtifactBundle
+from ..hashing import sha256_text
 from ..native_observations import NativeObservationBatch
 from ..transforms import KeyBlindScheduleInput, ScheduleResult
 from ..transforms.trace import TransformResult
@@ -15,7 +16,12 @@ from .confirmatory_outcome_replay import (
 from .e20_conditions import E20ConditionPlan
 from .e21_execution import E21RunLedger, E21RunState, verify_e21_run_ledger
 from .e21_rerun import E21ExecutionAuthorization
-from .e21_rows import E21HumanFidelityStatus, E21IdentityFields, E21OutcomeRow
+from .e21_rows import (
+    E21AuditFields,
+    E21HumanFidelityStatus,
+    E21IdentityFields,
+    E21OutcomeRow,
+)
 from .e21_seed import derive_e21_condition_seed
 
 
@@ -100,6 +106,21 @@ def build_e21_outcome_row(
         )
     except ConfirmatoryOutcomeReplayError as error:
         raise E21RowVerificationError(str(error)) from error
+    audit = fields[-1]
+    audit = E21AuditFields(
+        audit.worker_version,
+        audit.timestamp_utc,
+        audit.environment_snapshot_hash,
+        audit.authorization_hash,
+        audit.ledger_hash,
+        tuple(
+            sorted(
+                set(audit.artifact_hashes)
+                | {sha256_text(E21_ROW_REPLAY_ALGORITHM_VERSION)}
+            )
+        ),
+    )
+    fields = (*fields[:-1], audit)
     identity = E21IdentityFields(
         authorization.execution_id,
         authorization.execution_id,
