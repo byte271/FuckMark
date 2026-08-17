@@ -90,8 +90,13 @@ def test_m6_evidence_cannot_target_pre_m6_experiment() -> None:
 
 def test_m6_evidence_is_bound_to_registry_definition_hash() -> None:
     registry, evidence = _all_evidence()
-    corrupted = replace(evidence[0], definition_hash="f" * 64, evidence_hash=sha256_text("different"))
-    with pytest.raises(ValueError):
+    corrupted = M6ExperimentEvidence.create(
+        evidence[0].experiment_id,
+        "f" * 64,
+        evidence[0].partition,
+        evidence[0].artifact_hash,
+    )
+    with pytest.raises(ValueError, match="definition hash"):
         build_m6_readiness(registry, (corrupted,) + evidence[1:], _power())
 
 
