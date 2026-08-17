@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .._validation import require_sha256
 from ..corpus import CorpusManifest, CorpusSample
+from ..hashing import sha256_text
 from .confirmatory import ConfirmatoryPreregistration
 from .e20_conditions import E20ConditionPlan, verify_e20_condition_plan
 from .e20_rows import ExperimentReasonCode
@@ -87,7 +88,16 @@ def build_e21_failure_row(
         authorization.environment_snapshot_hash,
         authorization.authorization_hash,
         ledger.ledger_hash,
-        tuple(sorted({source_sample.record_hash, detail_hash, condition.condition_hash})),
+        tuple(
+            sorted(
+                {
+                    source_sample.record_hash,
+                    detail_hash,
+                    condition.condition_hash,
+                    sha256_text(E21_FAILURE_REPLAY_ALGORITHM_VERSION),
+                }
+            )
+        ),
     )
     return E21FailureRow.create(
         identity,
