@@ -18,6 +18,7 @@ from ..public_eligibility import (
     build_huggingface_public_eligibility,
 )
 from ..transforms import (
+    CandidateEnumeration,
     CandidateScheduler,
     KeyBlindScheduleInput,
     ScheduleGeometryMode,
@@ -203,6 +204,9 @@ class EligibilityGeometryVariant:
             raise ValueError("geometry-positive candidate count exceeds candidate count")
         if self.predicted_coverage_count > self.source_observation_count:
             raise ValueError("predicted coverage exceeds source observations")
+        if self.basis is EligibilityGeometryBasis.PUBLIC_ELIGIBLE:
+            if self.predicted_coverage_count > self.public_valid_observation_count:
+                raise ValueError("eligible predicted coverage exceeds public valid observations")
         object.__setattr__(self, "pristine_score", _finite("pristine_score", self.pristine_score))
         object.__setattr__(self, "transformed_score", _finite("transformed_score", self.transformed_score))
         require_sha256("schedule_result_hash", self.schedule_result_hash)
@@ -406,7 +410,9 @@ def _prepare(
     source_text: str,
     source_tokens: tuple[int, ...],
     eligibility: PublicEligibilityMask,
+    backend: SynthIDEligibilityGeometryBackend,
     registry: TransformRegistry,
+    enumeration: CandidateEnumeration,
     scheduler_input: KeyBlindScheduleInput,
     basis: EligibilityGeometryBasis,
     budget: int,
@@ -418,10 +424,322 @@ def _prepare(
         budget,
         schedule_seed,
     )
-    transformed = registry.apply(scheduler_input_enumeration := registry.enumerate(source_text), schedule.selected_candidate_ids, seed=schedule_seed)
-    if scheduler_input_enumeration.enumeration_hash != scheduler_input.enumeration_hash:
-        raise ValueError("eligible geometry scheduler input does not match replayed enumeration")
-    transformed_tokens = tuple(source_tokens if transformed.output_text == source_text else ())
-    if not transformed_tokens:
-        raise RuntimeError("eligible geometry preparation requires transformed tokenization")
-    raise RuntimeError("unreachable eligible geometry tokenization placeholder")
+    transformed = registry.apply(enumeration, schedule.selected_candidate_ids, seed=schedule_seed)
+    transformed_tokens = tuple(backend.tokenize(transformed.output_text))
+    alignment = align_tokens(source_tokens, transformed_tokens)
+    diffs = structural_observation_diff(source_tokens, transformed_tokens, backend.ngram_len, alignment)
+    disrupted = tuple(row for row in diffs if row.state is not StructuralObservationState.PRESERVED)
+    valid_disrupted = tuple(row for row in disrupted if eligibility.valid_mask[row.original_index])
+    return _Prepared(
+        prompt.prompt_id,
+        prompt.seed,
+        label,
+        basis,
+        budget,
+        source_text,
+        transformed.output_text,
+        len(source_tokens),
+        eligibility.observation_count,
+        eligibility.valid_count,
+        eligibility.repeated_count,
+        len(enumeration.candidates),
+        sum(bool(candidate.coverage_intervals) for candidate in scheduler_input.candidates),
+        schedule.covered_interval_size,
+        schedule.selected_candidate_ids,
+        schedule.total_cost,
+        len(disrupted),
+        len(valid_disrupted),
+        schedule.result_hash,
+    )
+
+
+def _variant(value: _Prepared, schedule_seed: int, pristine_score: float, transformed_score: float) -> EligibilityGeometryVariant:
+    payload = {
+        "prompt_id": value.prompt_id,
+        "generation_seed": value.generation_seed,
+        "label": value.label.value,
+        "basis": value.basis.value,
+        "budget": value.budget,
+        "schedule_seed": schedule_seed,
+        "source_text": value.source_text,
+        "transformed_text": value.transformed_text,
+        "source_token_count": value.source_token_count,
+        "source_observation_count": value.source_observation_count,
+        "public_valid_observation_count": value.public_valid_observation_count,
+        "public_repeated_observation_count": value.public_repeated_observation_count,
+        "candidate_count": value.candidate_count,
+        "geometry_positive_candidate_count": value.geometry_positive_candidate_count,
+        "predicted_coverage_count": value.predicted_coverage_count,
+        "selected_candidate_ids": value.selected_candidate_ids,
+        "realized_edit_cost": value.realized_edit_cost,
+        "realized_total_disrupted_count": value.realized_total_disrupted_count,
+        "realized_valid_disrupted_count": value.realized_valid_disrupted_count,
+        "pristine_score": pristine_score,
+        "transformed_score": transformed_score,
+        "schedule_result_hash": value.schedule_result_hash,
+    }
+    return EligibilityGeometryVariant(
+        value.prompt_id,
+        value.generation_seed,
+        value.label,
+        value.basis,
+        value.budget,
+        schedule_seed,
+        value.source_text,
+        value.transformed_text,
+        value.source_token_count,
+        value.source_observation_count,
+        value.public_valid_observation_count,
+        value.public_repeated_observation_count,
+        value.candidate_count,
+        value.geometry_positive_candidate_count,
+        value.predicted_coverage_count,
+        value.selected_candidate_ids,
+        value.realized_edit_cost,
+        value.realized_total_disrupted_count,
+        value.realized_valid_disrupted_count,
+        pristine_score,
+        transformed_score,
+        value.schedule_result_hash,
+        sha256_json(payload),
+    )
+
+
+def _pair(all_variant: EligibilityGeometryVariant, eligible_variant: EligibilityGeometryVariant) -> EligibilityGeometryPair:
+    same_selection = all_variant.selected_candidate_ids == eligible_variant.selected_candidate_ids
+    if all_variant.realized_edit_cost == eligible_variant.realized_edit_cost == 0:
+        status = EligibilityPairStatus.INELIGIBLE
+        valid_advantage = None
+        score_advantage = None
+    elif all_variant.realized_edit_cost != eligible_variant.realized_edit_cost:
+        status = EligibilityPairStatus.COST_MISMATCH
+        valid_advantage = None
+        score_advantage = None
+    else:
+        status = EligibilityPairStatus.MATCHED
+        valid_advantage = eligible_variant.valid_disruption_per_edit - all_variant.valid_disruption_per_edit
+        score_advantage = eligible_variant.score_drop - all_variant.score_drop
+    payload = {
+        "prompt_id": all_variant.prompt_id,
+        "generation_seed": all_variant.generation_seed,
+        "label": all_variant.label.value,
+        "budget": all_variant.budget,
+        "all_variant_hash": all_variant.variant_hash,
+        "eligible_variant_hash": eligible_variant.variant_hash,
+        "same_selection": same_selection,
+        "valid_disruption_advantage": valid_advantage,
+        "score_drop_advantage": score_advantage,
+        "status": status.value,
+    }
+    return EligibilityGeometryPair(
+        all_variant.prompt_id,
+        all_variant.generation_seed,
+        all_variant.label,
+        all_variant.budget,
+        all_variant.variant_hash,
+        eligible_variant.variant_hash,
+        same_selection,
+        valid_advantage,
+        score_advantage,
+        status,
+        sha256_json(payload),
+    )
+
+
+def _mean_pair(pairs: tuple[EligibilityGeometryPair, ...], label: GeometryLabel, field: str) -> float | None:
+    values = tuple(
+        float(getattr(pair, field))
+        for pair in pairs
+        if pair.status is EligibilityPairStatus.MATCHED and pair.label is label
+    )
+    if not values:
+        return None
+    return statistics.fmean(values)
+
+
+def run_synthid_eligible_geometry_pilot(
+    prompts: Sequence[SynthIDSmokePrompt],
+    backend: SynthIDEligibilityGeometryBackend,
+    registry: TransformRegistry,
+    *,
+    budgets: Sequence[int] = (1, 2, 4),
+    schedule_seed: int = 0,
+) -> SynthIDEligibilityGeometryReport:
+    prompt_values = tuple(prompts)
+    if not prompt_values or any(not isinstance(prompt, SynthIDSmokePrompt) for prompt in prompt_values):
+        raise ValueError("prompts must contain SynthIDSmokePrompt values")
+    if len({prompt.prompt_id for prompt in prompt_values}) != len(prompt_values):
+        raise ValueError("prompt IDs must be unique")
+    if not isinstance(backend, SynthIDEligibilityGeometryBackend):
+        raise TypeError("backend must satisfy SynthIDEligibilityGeometryBackend")
+    if not isinstance(registry, TransformRegistry):
+        raise TypeError("registry must be a TransformRegistry")
+    budget_values = tuple(sorted(set(budgets)))
+    if not budget_values or any(isinstance(value, bool) or not isinstance(value, int) or value <= 0 for value in budget_values):
+        raise ValueError("budgets must contain positive integers")
+    require_int("schedule_seed", schedule_seed)
+    if not 0 <= schedule_seed < 1 << 64:
+        raise ValueError("schedule_seed must be a 64-bit unsigned integer")
+    require_int("backend.ngram_len", backend.ngram_len)
+    require_int("backend.eos_token_id", backend.eos_token_id)
+    require_int("backend.context_history_size", backend.context_history_size)
+    if backend.ngram_len < 2:
+        raise ValueError("backend.ngram_len must be at least 2")
+    if backend.eos_token_id < 0:
+        raise ValueError("backend.eos_token_id must be non-negative")
+    if backend.context_history_size <= 0:
+        raise ValueError("backend.context_history_size must be positive")
+    require_sha256("backend.detector_config_hash", backend.detector_config_hash)
+
+    sources: list[tuple[SynthIDSmokePrompt, GeometryLabel, str]] = []
+    for prompt in prompt_values:
+        sources.append((prompt, GeometryLabel.CONTROL, backend.generate(prompt.text, prompt.seed, watermarked=False)))
+        sources.append((prompt, GeometryLabel.WATERMARKED, backend.generate(prompt.text, prompt.seed, watermarked=True)))
+
+    prepared: list[_Prepared] = []
+    source_fractions: dict[tuple[str, GeometryLabel], float] = {}
+    for prompt, label, source_text in sources:
+        if not isinstance(source_text, str):
+            raise TypeError("backend.generate must return strings")
+        source_tokens = tuple(backend.tokenize(source_text))
+        if len(source_tokens) < backend.ngram_len:
+            raise ValueError("generated source is too short for eligible geometry analysis")
+        eligibility = build_huggingface_public_eligibility(
+            source_tokens,
+            backend.eos_token_id,
+            backend.ngram_len,
+            backend.context_history_size,
+        )
+        source_fractions[(prompt.prompt_id, label)] = eligibility.valid_count / eligibility.observation_count
+        enumeration = registry.enumerate(source_text)
+        all_coverage = build_public_candidate_coverage(
+            registry,
+            enumeration,
+            backend.tokenize,
+            backend.ngram_len,
+        )
+        eligible_coverage = filter_candidate_coverage_by_public_eligibility(all_coverage, eligibility)
+        scheduler_inputs = {
+            EligibilityGeometryBasis.ALL_OBSERVATIONS: KeyBlindScheduleInput.from_enumeration(
+                enumeration,
+                coverage_intervals=all_coverage,
+                budget_unit="operation",
+                geometry_mode=ScheduleGeometryMode.TOKENIZER_AWARE_PUBLIC,
+            ),
+            EligibilityGeometryBasis.PUBLIC_ELIGIBLE: KeyBlindScheduleInput.from_enumeration(
+                enumeration,
+                coverage_intervals=eligible_coverage,
+                budget_unit="operation",
+                geometry_mode=ScheduleGeometryMode.TOKENIZER_AWARE_PUBLIC,
+            ),
+        }
+        for budget in budget_values:
+            for basis in (EligibilityGeometryBasis.ALL_OBSERVATIONS, EligibilityGeometryBasis.PUBLIC_ELIGIBLE):
+                prepared.append(
+                    _prepare(
+                        prompt,
+                        label,
+                        source_text,
+                        source_tokens,
+                        eligibility,
+                        backend,
+                        registry,
+                        enumeration,
+                        scheduler_inputs[basis],
+                        basis,
+                        budget,
+                        schedule_seed,
+                    )
+                )
+
+    score_cache: dict[str, float] = {}
+    for row in prepared:
+        for text in (row.source_text, row.transformed_text):
+            if text not in score_cache:
+                score_cache[text] = _finite("backend.score", backend.score(text))
+    variants = tuple(
+        _variant(row, schedule_seed, score_cache[row.source_text], score_cache[row.transformed_text])
+        for row in prepared
+    )
+
+    groups: dict[tuple[str, int, GeometryLabel, int], list[EligibilityGeometryVariant]] = {}
+    for variant in variants:
+        groups.setdefault(
+            (variant.prompt_id, variant.generation_seed, variant.label, variant.budget),
+            [],
+        ).append(variant)
+    pairs: list[EligibilityGeometryPair] = []
+    for key in sorted(groups, key=lambda value: (value[0], value[1], value[2].value, value[3])):
+        group = groups[key]
+        all_rows = tuple(row for row in group if row.basis is EligibilityGeometryBasis.ALL_OBSERVATIONS)
+        eligible_rows = tuple(row for row in group if row.basis is EligibilityGeometryBasis.PUBLIC_ELIGIBLE)
+        if len(all_rows) != 1 or len(eligible_rows) != 1:
+            raise RuntimeError("incomplete eligible geometry basis group")
+        pairs.append(_pair(all_rows[0], eligible_rows[0]))
+    pair_values = tuple(pairs)
+    matched = tuple(pair for pair in pair_values if pair.status is EligibilityPairStatus.MATCHED)
+    control_fractions = tuple(
+        fraction
+        for (prompt_id, label), fraction in source_fractions.items()
+        if prompt_id and label is GeometryLabel.CONTROL
+    )
+    watermarked_fractions = tuple(
+        fraction
+        for (prompt_id, label), fraction in source_fractions.items()
+        if prompt_id and label is GeometryLabel.WATERMARKED
+    )
+    same_selection_rate = None
+    if matched:
+        same_selection_rate = sum(pair.same_selection for pair in matched) / len(matched)
+    summary = EligibilityGeometrySummary(
+        len(prompt_values),
+        len(sources),
+        len(variants),
+        len(pair_values),
+        len(matched),
+        budget_values,
+        statistics.fmean(control_fractions),
+        statistics.fmean(watermarked_fractions),
+        same_selection_rate,
+        _mean_pair(pair_values, GeometryLabel.CONTROL, "valid_disruption_advantage"),
+        _mean_pair(pair_values, GeometryLabel.WATERMARKED, "valid_disruption_advantage"),
+        _mean_pair(pair_values, GeometryLabel.CONTROL, "score_drop_advantage"),
+        _mean_pair(pair_values, GeometryLabel.WATERMARKED, "score_drop_advantage"),
+    )
+    payload = {
+        "algorithm_version": SYNTHID_ELIGIBLE_GEOMETRY_ALGORITHM_VERSION,
+        "selection_access_id": ELIGIBLE_SELECTION_ACCESS_ID,
+        "public_eligibility_algorithm_version": PUBLIC_ELIGIBILITY_ALGORITHM_VERSION,
+        "backend_id": backend.backend_id,
+        "backend_version": backend.backend_version,
+        "model_id": backend.model_id,
+        "detector_id": backend.detector_id,
+        "detector_config_hash": backend.detector_config_hash,
+        "transform_ruleset_hash": registry.ruleset_hash,
+        "ngram_len": backend.ngram_len,
+        "eos_token_id": backend.eos_token_id,
+        "context_history_size": backend.context_history_size,
+        "schedule_seed": schedule_seed,
+        "variants": variants,
+        "pairs": pair_values,
+        "summary": summary,
+    }
+    return SynthIDEligibilityGeometryReport(
+        SYNTHID_ELIGIBLE_GEOMETRY_ALGORITHM_VERSION,
+        ELIGIBLE_SELECTION_ACCESS_ID,
+        PUBLIC_ELIGIBILITY_ALGORITHM_VERSION,
+        backend.backend_id,
+        backend.backend_version,
+        backend.model_id,
+        backend.detector_id,
+        backend.detector_config_hash,
+        registry.ruleset_hash,
+        backend.ngram_len,
+        backend.eos_token_id,
+        backend.context_history_size,
+        schedule_seed,
+        variants,
+        pair_values,
+        summary,
+        sha256_json(payload),
+    )
