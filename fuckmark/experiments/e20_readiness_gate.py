@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 
 from ..corpus import CorpusManifest, ModelTokenizerIdentity
 from ..detectors import UncalibratedDetectorEvidence
 from ..detectors.bayesian_artifacts import BayesianReadinessArtifactBundle
 from ..environment import EnvironmentSnapshot
+from ..transforms.fidelity_verification import LexicalPromotionEvidence
+from ..transforms.syntax_fidelity_verification import SyntaxDevelopmentEvidence
 from .confirmatory import ConfirmatoryPreregistration
 from .confirmatory_corpus import ConfirmatoryCorpusSeal
 from .confirmatory_detector_readiness import (
@@ -47,6 +49,9 @@ def authorize_ready_e20_execution(
     verification_test_hashes: Sequence[str],
     model_tokenizers: Sequence[ModelTokenizerIdentity],
     calibration_negative_evidence: Mapping[str, Sequence[UncalibratedDetectorEvidence]],
+    task29_lexical_evidence: Sequence[LexicalPromotionEvidence] = (),
+    task29_syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
+    task29_tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
     bayesian_readiness_artifacts: Mapping[str, BayesianReadinessArtifactBundle] | None = None,
 ) -> E20ExecutionAuthorization:
     if not isinstance(m6_readiness, M6ReadinessReport):
@@ -110,5 +115,8 @@ def authorize_ready_e20_execution(
         verification_test_hashes=verification_test_hashes,
         model_tokenizers=model_tokenizers,
         calibration_negative_evidence=calibration_negative_evidence,
+        task29_lexical_evidence=task29_lexical_evidence,
+        task29_syntax_evidence=task29_syntax_evidence,
+        task29_tokenizers=task29_tokenizers,
         bayesian_readiness_artifacts=bayesian_readiness_artifacts,
     )
