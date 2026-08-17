@@ -87,19 +87,19 @@ def build_source_verified_m10_release_manifest(
         *release_args,
         **release_kwargs,
     )
-    if release_manifest.m6_readiness_hash != source_verified_m6.readiness.readiness_hash:
+    if release_manifest.m6_readiness_hash != source_verified_m6.readiness.report_hash:
         raise ValueError("M10 release builder returned a manifest outside the source-verified M6 chain")
 
     payload = {
         "algorithm_version": M10_SOURCE_VERIFIED_ALGORITHM_VERSION,
         "m6_source_verified_bundle_hash": source_verified_m6.bundle_hash,
-        "m6_readiness_hash": source_verified_m6.readiness.readiness_hash,
+        "m6_readiness_hash": source_verified_m6.readiness.report_hash,
         "release_manifest": release_manifest,
     }
     return M10SourceVerifiedReleaseManifest(
         M10_SOURCE_VERIFIED_ALGORITHM_VERSION,
         source_verified_m6.bundle_hash,
-        source_verified_m6.readiness.readiness_hash,
+        source_verified_m6.readiness.report_hash,
         release_manifest,
         sha256_json(payload),
     )
