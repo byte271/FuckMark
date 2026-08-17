@@ -56,35 +56,3 @@ jobs:
             grep -Fq 'Success. Copied to clipboard.' <<< "$output"
             test "$(cat "$capture")" = "I don't agree and I can't stay."
           done
-
-  synthid-smoke:
-    name: Open SynthID smoke
-    if: github.event_name == 'pull_request' && github.head_ref == 'feat/synthid-smoke-runner'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-
-      - name: Install FuckMark
-        run: python -m pip install -e .
-
-      - name: Install smoke dependencies
-        run: python -m pip install -r requirements-smoke.txt
-
-      - name: Run open SynthID smoke
-        run: python -m fuckmark.synthid_smoke_hf --model openai-community/gpt2 --device cpu --prompt-limit 6 --max-new-tokens 96
-
-      - name: Upload smoke artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: synthid-smoke
-          path: artifacts/
-          if-no-files-found: warn
