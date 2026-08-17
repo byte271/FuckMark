@@ -6,7 +6,7 @@ from enum import Enum
 
 from .._validation import require_clean_string, require_int, require_sha256
 from ..corpus import CorpusManifest, WatermarkLabel
-from ..detectors import DetectorFamily, ExactBinomialInterval, exact_binomial_interval
+from ..detectors import ExactBinomialInterval, exact_binomial_interval
 from ..hashing import sha256_json
 from .e20_bundle import E20ResultBundle
 from .e20_conditions import E20ConditionPlan
@@ -65,14 +65,12 @@ class E22FprEstimate:
         if self.positive_count < 0 or self.positive_count > self.trial_count:
             raise ValueError("positive_count must lie inside trial_count")
         rate = _probability("rate", self.rate)
-        expected = self.positive_count / self.trial_count
-        if not math.isclose(rate, expected, rel_tol=0.0, abs_tol=1e-15):
+        if not math.isclose(rate, self.positive_count / self.trial_count, rel_tol=0.0, abs_tol=1e-15):
             raise ValueError("rate does not match positive_count and trial_count")
         object.__setattr__(self, "rate", rate)
         if not isinstance(self.interval, ExactBinomialInterval):
             raise TypeError("interval must be an ExactBinomialInterval")
-        expected_interval = exact_binomial_interval(self.positive_count, self.trial_count, 0.95)
-        if self.interval != expected_interval:
+        if self.interval != exact_binomial_interval(self.positive_count, self.trial_count, 0.95):
             raise ValueError("interval must be the exact 95% binomial interval")
 
 
@@ -81,8 +79,6 @@ class E22NegativeControlCell:
     condition_id: str
     transform_condition_id: str
     estimand: E22Estimand
-    detector_family: DetectorFamily
-    detector_config_hash: str
     calibration_bundle_hash: str
     target_fpr: float
     negative_outcome_count: int
@@ -93,19 +89,18 @@ class E22NegativeControlCell:
     pristine_fpr: E22FprEstimate | None
     transformed_fpr: E22FprEstimate | None
     fpr_shift: float | None
+    mean_raw_score_shift: float | None
+    mean_standardized_margin_shift: float | None
     false_to_true_count: int
     true_to_false_count: int
     status: E22CellStatus
     cell_hash: str
 
     def __post_init__(self) -> None:
-        for name, value in (("condition_id", self.condition_id), ("transform_condition_id", self.transform_condition_id)):
-            require_clean_string(name, value)
+        require_clean_string("condition_id", self.condition_id)
+        require_clean_string("transform_condition_id", self.transform_condition_id)
         if not isinstance(self.estimand, E22Estimand):
             raise TypeError("estimand must be an E22Estimand")
-        if not isinstance(self.detector_family, DetectorFamily):
-            raise TypeError("detector_family must be a DetectorFamily")
-        require_sha256("detector_config_hash", self.detector_config_hash)
         require_sha256("calibration_bundle_hash", self.calibration_bundle_hash)
         target = _probability("target_fpr", self.target_fpr)
         if target <= 0.0 or target >= 1.0:
@@ -127,21 +122,26 @@ class E22NegativeControlCell:
             raise ValueError("material change exclusions cannot exceed negative outcomes")
         if self.no_eligible_transform_count > self.negative_outcome_count:
             raise ValueError("no-eligible count cannot exceed negative outcomes")
-        maximum_included = self.negative_outcome_count - self.material_change_exclusion_count
+        expected_included = self.negative_outcome_count - self.material_change_exclusion_count
         if self.estimand is E22Estimand.ELIGIBLE_ONLY:
-            maximum_included -= self.no_eligible_transform_count
-        if self.included_count != maximum_included:
+            expected_included -= self.no_eligible_transform_count
+        if self.included_count != expected_included:
             raise ValueError("included_count does not match the E22 estimand population")
         if self.false_to_true_count + self.true_to_false_count > self.included_count:
             raise ValueError("discordant decision counts cannot exceed included outcomes")
         if not isinstance(self.status, E22CellStatus):
             raise TypeError("status must be an E22CellStatus")
+        values = (
+            self.fpr_shift,
+            self.mean_raw_score_shift,
+            self.mean_standardized_margin_shift,
+        )
         if self.included_count == 0:
             expected_status = E22CellStatus.NO_ELIGIBLE_OUTCOMES if self.estimand is E22Estimand.ELIGIBLE_ONLY else E22CellStatus.NO_VALID_OUTCOMES
             if self.status is not expected_status:
                 raise ValueError("empty E22 cell has the wrong status")
-            if self.pristine_fpr is not None or self.transformed_fpr is not None or self.fpr_shift is not None:
-                raise ValueError("empty E22 cells cannot carry FPR estimates")
+            if self.pristine_fpr is not None or self.transformed_fpr is not None or any(value is not None for value in values):
+                raise ValueError("empty E22 cells cannot carry detector estimates")
             if self.false_to_true_count or self.true_to_false_count:
                 raise ValueError("empty E22 cells cannot carry discordant decisions")
         else:
@@ -151,13 +151,16 @@ class E22NegativeControlCell:
                 raise TypeError("estimated E22 cells require pristine and transformed FPR estimates")
             if self.pristine_fpr.trial_count != self.included_count or self.transformed_fpr.trial_count != self.included_count:
                 raise ValueError("E22 FPR trial counts must equal included_count")
-            if self.fpr_shift is None:
-                raise ValueError("estimated E22 cells require fpr_shift")
-            shift = _finite("fpr_shift", self.fpr_shift)
-            expected_shift = self.transformed_fpr.rate - self.pristine_fpr.rate
-            if not math.isclose(shift, expected_shift, rel_tol=0.0, abs_tol=1e-15):
+            if any(value is None for value in values):
+                raise ValueError("estimated E22 cells require all detector shift estimates")
+            fpr_shift = _finite("fpr_shift", self.fpr_shift)
+            raw_shift = _finite("mean_raw_score_shift", self.mean_raw_score_shift)
+            margin_shift = _finite("mean_standardized_margin_shift", self.mean_standardized_margin_shift)
+            if not math.isclose(fpr_shift, self.transformed_fpr.rate - self.pristine_fpr.rate, rel_tol=0.0, abs_tol=1e-15):
                 raise ValueError("fpr_shift does not match transformed minus pristine FPR")
-            object.__setattr__(self, "fpr_shift", shift)
+            object.__setattr__(self, "fpr_shift", fpr_shift)
+            object.__setattr__(self, "mean_raw_score_shift", raw_shift)
+            object.__setattr__(self, "mean_standardized_margin_shift", margin_shift)
         require_sha256("cell_hash", self.cell_hash)
         if self.cell_hash != sha256_json(self._payload()):
             raise ValueError("cell_hash does not match E22 negative-control cell")
@@ -167,8 +170,6 @@ class E22NegativeControlCell:
             "condition_id": self.condition_id,
             "transform_condition_id": self.transform_condition_id,
             "estimand": self.estimand.value,
-            "detector_family": self.detector_family.value,
-            "detector_config_hash": self.detector_config_hash,
             "calibration_bundle_hash": self.calibration_bundle_hash,
             "target_fpr": self.target_fpr,
             "negative_outcome_count": self.negative_outcome_count,
@@ -179,6 +180,8 @@ class E22NegativeControlCell:
             "pristine_fpr": self.pristine_fpr,
             "transformed_fpr": self.transformed_fpr,
             "fpr_shift": self.fpr_shift,
+            "mean_raw_score_shift": self.mean_raw_score_shift,
+            "mean_standardized_margin_shift": self.mean_standardized_margin_shift,
             "false_to_true_count": self.false_to_true_count,
             "true_to_false_count": self.true_to_false_count,
             "status": self.status.value,
@@ -231,18 +234,17 @@ class E22TransformedNegativeReport:
         if len({(value.condition_id, value.estimand) for value in self.cells}) != len(self.cells):
             raise ValueError("E22 cells must be unique by condition and estimand")
         policy_cells = tuple(value for value in self.cells if value.estimand is E22Estimand.POLICY_ALL)
-        expected_negative_outcomes = sum(value.negative_outcome_count for value in policy_cells)
-        expected_negative_failures = sum(value.negative_failure_count for value in policy_cells)
-        if expected_negative_outcomes != self.negative_outcome_count or expected_negative_failures != self.negative_failure_count:
-            raise ValueError("E22 policy-all cells do not account for every negative result row")
+        if sum(value.negative_outcome_count for value in policy_cells) != self.negative_outcome_count:
+            raise ValueError("E22 policy-all cells do not account for every negative outcome")
+        if sum(value.negative_failure_count for value in policy_cells) != self.negative_failure_count:
+            raise ValueError("E22 policy-all cells do not account for every negative failure")
         positive_shifts = tuple(value.fpr_shift for value in policy_cells if value.fpr_shift is not None and value.fpr_shift > 0.0)
         expected_maximum = max(positive_shifts) if positive_shifts else None
         if expected_maximum is None:
             if self.maximum_positive_fpr_shift is not None:
                 raise ValueError("maximum_positive_fpr_shift must be None when no positive shift exists")
-        else:
-            if self.maximum_positive_fpr_shift is None or not math.isclose(self.maximum_positive_fpr_shift, expected_maximum, rel_tol=0.0, abs_tol=1e-15):
-                raise ValueError("maximum_positive_fpr_shift does not match E22 cells")
+        elif self.maximum_positive_fpr_shift is None or not math.isclose(self.maximum_positive_fpr_shift, expected_maximum, rel_tol=0.0, abs_tol=1e-15):
+            raise ValueError("maximum_positive_fpr_shift does not match E22 cells")
         if not isinstance(self.status, E22AnalysisStatus):
             raise TypeError("status must be an E22AnalysisStatus")
         expected_status = E22AnalysisStatus.COMPLETE if any(value.status is E22CellStatus.ESTIMATED for value in policy_cells) else E22AnalysisStatus.NO_ESTIMATE
@@ -273,40 +275,27 @@ def _estimate(decisions: tuple[bool, ...]) -> E22FprEstimate:
     return E22FprEstimate(positives, trials, positives / trials, exact_binomial_interval(positives, trials, 0.95))
 
 
+def _mean_shift(outcomes: tuple[E20OutcomeRow, ...], transformed_name: str, pristine_name: str) -> float:
+    return math.fsum(getattr(row.detector, transformed_name) - getattr(row.detector, pristine_name) for row in outcomes) / len(outcomes)
+
+
 def _build_cell(condition, outcomes: tuple[E20OutcomeRow, ...], failure_count: int, estimand: E22Estimand) -> E22NegativeControlCell:
-    if outcomes:
-        first = outcomes[0]
-        detector_family = first.detector.detector_family
-        detector_config_hash = first.detector.detector_config_hash
-        calibration_bundle_hash = first.detector.calibration_bundle_hash
-        target_fpr = first.detector.target_fpr
-        for row in outcomes[1:]:
-            if (
-                row.detector.detector_family is not detector_family
-                or row.detector.detector_config_hash != detector_config_hash
-                or row.detector.calibration_bundle_hash != calibration_bundle_hash
-                or row.detector.target_fpr != target_fpr
-            ):
-                raise ValueError("E22 condition contains inconsistent detector evaluation identities")
-    else:
-        detector_family = DetectorFamily.MEAN
-        detector_config_hash = condition.calibration_bundle_hash
-        calibration_bundle_hash = condition.calibration_bundle_hash
-        target_fpr = condition.target_fpr
-    if calibration_bundle_hash != condition.calibration_bundle_hash or target_fpr != condition.target_fpr:
-        raise ValueError("E22 outcome detector evaluation does not match its condition plan cell")
+    for row in outcomes:
+        if row.detector.calibration_bundle_hash != condition.calibration_bundle_hash or row.detector.target_fpr != condition.target_fpr:
+            raise ValueError("E22 outcome detector evaluation does not match its condition plan cell")
     material = tuple(row for row in outcomes if row.fidelity.reason_codes[0] is ExperimentReasonCode.HUMAN_FIDELITY_MATERIAL_CHANGE)
     no_eligible = tuple(row for row in outcomes if row.fidelity.reason_codes[0] is ExperimentReasonCode.NO_ELIGIBLE_TRANSFORM)
-    valid = tuple(row for row in outcomes if row not in material)
+    valid = tuple(row for row in outcomes if row.fidelity.reason_codes[0] is not ExperimentReasonCode.HUMAN_FIDELITY_MATERIAL_CHANGE)
     if estimand is E22Estimand.ELIGIBLE_ONLY:
         valid = tuple(row for row in valid if row.transform.eligible)
-    included_count = len(valid)
     pristine = _estimate(tuple(row.detector.pristine_decision for row in valid)) if valid else None
     transformed = _estimate(tuple(row.detector.transformed_decision for row in valid)) if valid else None
+    shift = transformed.rate - pristine.rate if pristine is not None and transformed is not None else None
+    raw_shift = _mean_shift(valid, "transformed_raw_score", "pristine_raw_score") if valid else None
+    margin_shift = _mean_shift(valid, "transformed_standardized_margin", "pristine_standardized_margin") if valid else None
     false_to_true = sum(not row.detector.pristine_decision and row.detector.transformed_decision for row in valid)
     true_to_false = sum(row.detector.pristine_decision and not row.detector.transformed_decision for row in valid)
-    shift = transformed.rate - pristine.rate if pristine is not None and transformed is not None else None
-    if included_count:
+    if valid:
         status = E22CellStatus.ESTIMATED
     elif estimand is E22Estimand.ELIGIBLE_ONLY:
         status = E22CellStatus.NO_ELIGIBLE_OUTCOMES
@@ -316,18 +305,18 @@ def _build_cell(condition, outcomes: tuple[E20OutcomeRow, ...], failure_count: i
         "condition_id": condition.condition_id,
         "transform_condition_id": condition.transform_condition_id,
         "estimand": estimand.value,
-        "detector_family": detector_family.value,
-        "detector_config_hash": detector_config_hash,
-        "calibration_bundle_hash": calibration_bundle_hash,
-        "target_fpr": target_fpr,
+        "calibration_bundle_hash": condition.calibration_bundle_hash,
+        "target_fpr": condition.target_fpr,
         "negative_outcome_count": len(outcomes),
         "negative_failure_count": failure_count,
         "material_change_exclusion_count": len(material),
         "no_eligible_transform_count": len(no_eligible),
-        "included_count": included_count,
+        "included_count": len(valid),
         "pristine_fpr": pristine,
         "transformed_fpr": transformed,
         "fpr_shift": shift,
+        "mean_raw_score_shift": raw_shift,
+        "mean_standardized_margin_shift": margin_shift,
         "false_to_true_count": false_to_true,
         "true_to_false_count": true_to_false,
         "status": status.value,
@@ -336,18 +325,18 @@ def _build_cell(condition, outcomes: tuple[E20OutcomeRow, ...], failure_count: i
         condition.condition_id,
         condition.transform_condition_id,
         estimand,
-        detector_family,
-        detector_config_hash,
-        calibration_bundle_hash,
-        target_fpr,
+        condition.calibration_bundle_hash,
+        condition.target_fpr,
         len(outcomes),
         failure_count,
         len(material),
         len(no_eligible),
-        included_count,
+        len(valid),
         pristine,
         transformed,
         shift,
+        raw_shift,
+        margin_shift,
         false_to_true,
         true_to_false,
         status,
@@ -381,16 +370,15 @@ def build_e22_transformed_negative_report(result_bundle: E20ResultBundle, corpus
             failures_by_condition[row.identity.condition_id] = failures_by_condition.get(row.identity.condition_id, 0) + 1
     observed_condition_ids = set(outcomes_by_condition) | set(failures_by_condition)
     condition_by_id = {value.condition_id: value for value in condition_plan.conditions}
-    unknown_conditions = observed_condition_ids - set(condition_by_id)
-    if unknown_conditions:
+    if observed_condition_ids - set(condition_by_id):
         raise ValueError("E22 negative rows reference conditions outside the bound condition plan")
     cells = []
     for condition_id in sorted(observed_condition_ids):
         condition = condition_by_id[condition_id]
         outcomes = tuple(sorted(outcomes_by_condition.get(condition_id, ()), key=lambda value: (value.identity.sample_id, value.row_hash)))
-        failures = failures_by_condition.get(condition_id, 0)
-        cells.append(_build_cell(condition, outcomes, failures, E22Estimand.POLICY_ALL))
-        cells.append(_build_cell(condition, outcomes, failures, E22Estimand.ELIGIBLE_ONLY))
+        failure_count = failures_by_condition.get(condition_id, 0)
+        cells.append(_build_cell(condition, outcomes, failure_count, E22Estimand.POLICY_ALL))
+        cells.append(_build_cell(condition, outcomes, failure_count, E22Estimand.ELIGIBLE_ONLY))
     ordered_cells = tuple(sorted(cells, key=lambda value: (value.condition_id, value.estimand.value, value.cell_hash)))
     negative_outcome_count = sum(len(value) for value in outcomes_by_condition.values())
     negative_failure_count = sum(failures_by_condition.values())
