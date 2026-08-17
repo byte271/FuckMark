@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 
 import pytest
 
+from fuckmark.config import canonical_json_text
+from fuckmark.e26_open_adapter_transfer import synthid_smoke_report_from_mapping
 from fuckmark.experiments.e26_open_adapter_transfer import (
     DEEPMIND_BACKEND_ID,
     HUGGINGFACE_BACKEND_ID,
@@ -107,6 +110,24 @@ def test_e26_rejects_wrong_backend_identity_and_prompt_mismatch() -> None:
     )
     with pytest.raises(ValueError, match="same prompt IDs"):
         build_e26_open_adapter_transfer(deepmind, mismatch)
+
+
+def test_e26_smoke_json_roundtrip_is_hash_preserving_and_fail_closed() -> None:
+    deepmind, _ = _reports()
+    mapping = json.loads(canonical_json_text(deepmind))
+    loaded = synthid_smoke_report_from_mapping(mapping)
+    assert loaded == deepmind
+    assert loaded.report_hash == deepmind.report_hash
+
+    tampered = json.loads(canonical_json_text(deepmind))
+    tampered["results"][0]["watermark_score_drop"] = 123.0
+    with pytest.raises(ValueError, match="result_hash"):
+        synthid_smoke_report_from_mapping(tampered)
+
+    extra = json.loads(canonical_json_text(deepmind))
+    extra["unexpected"] = True
+    with pytest.raises(ValueError, match="fields do not match schema"):
+        synthid_smoke_report_from_mapping(extra)
 
 
 def test_e26_report_rejects_tampering() -> None:
