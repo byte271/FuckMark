@@ -6,8 +6,8 @@ from fuckmark.experiments.m10_release import (
 )
 
 
-def test_m10_release_v2_binds_e21_fidelity_summary_hash() -> None:
-    assert M10_RELEASE_ALGORITHM_VERSION == "m10-release-readiness-v2"
+def test_m10_release_v3_binds_e21_fidelity_summary_hash() -> None:
+    assert M10_RELEASE_ALGORITHM_VERSION == "m10-release-readiness-v3"
     names = tuple(value.name for value in fields(M10ReleaseManifest))
     assert "e20_fidelity_summary_hash" in names
     assert "e21_fidelity_summary_hash" in names
