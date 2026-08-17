@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from .._validation import require_sha256
 from ..hashing import sha256_json
 from .confirmatory import ConfirmatoryPreregistration
+from .e20_source_verified_authorization import E20SourceVerifiedAuthorization
 from .m10_release_v3 import M10ReleaseManifest, build_m10_release_manifest as _build_m10_release_manifest
 from .m6_source_verified import (
     M6ExperimentReplayInput,
@@ -15,7 +16,7 @@ from .power_analysis import PowerAnalysisInput, PowerAnalysisResult
 from .registry import DevelopmentExperimentRegistry
 
 
-M10_SOURCE_VERIFIED_ALGORITHM_VERSION = "m10-source-verified-m6-v1"
+M10_SOURCE_VERIFIED_ALGORITHM_VERSION = "m10-source-verified-chain-v2"
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,18 +24,27 @@ class M10SourceVerifiedReleaseManifest:
     algorithm_version: str
     m6_source_verified_bundle_hash: str
     m6_readiness_hash: str
+    e20_source_verified_authorization_hash: str
+    e20_authorization_hash: str
     release_manifest: M10ReleaseManifest
     manifest_hash: str
 
     def __post_init__(self) -> None:
         if self.algorithm_version != M10_SOURCE_VERIFIED_ALGORITHM_VERSION:
             raise ValueError("unsupported source-verified M10 algorithm version")
-        require_sha256("m6_source_verified_bundle_hash", self.m6_source_verified_bundle_hash)
-        require_sha256("m6_readiness_hash", self.m6_readiness_hash)
+        for name, value in (
+            ("m6_source_verified_bundle_hash", self.m6_source_verified_bundle_hash),
+            ("m6_readiness_hash", self.m6_readiness_hash),
+            ("e20_source_verified_authorization_hash", self.e20_source_verified_authorization_hash),
+            ("e20_authorization_hash", self.e20_authorization_hash),
+        ):
+            require_sha256(name, value)
         if not isinstance(self.release_manifest, M10ReleaseManifest):
             raise TypeError("release_manifest must be an M10ReleaseManifest")
         if self.release_manifest.m6_readiness_hash != self.m6_readiness_hash:
             raise ValueError("M10 release manifest does not bind the verified M6 readiness report")
+        if self.release_manifest.e20_authorization_hash != self.e20_authorization_hash:
+            raise ValueError("M10 release manifest does not bind the source-verified E20 authorization")
         require_sha256("manifest_hash", self.manifest_hash)
         if self.manifest_hash != sha256_json(self._payload()):
             raise ValueError("manifest_hash does not match source-verified M10 release manifest")
@@ -44,8 +54,27 @@ class M10SourceVerifiedReleaseManifest:
             "algorithm_version": self.algorithm_version,
             "m6_source_verified_bundle_hash": self.m6_source_verified_bundle_hash,
             "m6_readiness_hash": self.m6_readiness_hash,
+            "e20_source_verified_authorization_hash": self.e20_source_verified_authorization_hash,
+            "e20_authorization_hash": self.e20_authorization_hash,
             "release_manifest": self.release_manifest,
         }
+
+
+def _verify_e20_chain(
+    e20_source_verified_authorization: E20SourceVerifiedAuthorization,
+    source_verified_m6: M6SourceVerifiedReadiness,
+    preregistration: ConfirmatoryPreregistration,
+) -> None:
+    if not isinstance(e20_source_verified_authorization, E20SourceVerifiedAuthorization):
+        raise TypeError("e20_source_verified_authorization must be an E20SourceVerifiedAuthorization")
+    if e20_source_verified_authorization.preregistration_hash != preregistration.preregistration_hash:
+        raise ValueError("source-verified E20 authorization does not bind the release preregistration")
+    if e20_source_verified_authorization.m6_source_verified_bundle_hash != source_verified_m6.bundle_hash:
+        raise ValueError("source-verified E20 authorization does not bind the verified M6 bundle")
+    if e20_source_verified_authorization.m6_readiness_hash != source_verified_m6.readiness.report_hash:
+        raise ValueError("source-verified E20 authorization does not bind the verified M6 readiness report")
+    if e20_source_verified_authorization.power_evidence_hash != source_verified_m6.power_evidence.evidence_hash:
+        raise ValueError("source-verified E20 authorization does not bind the verified power evidence")
 
 
 def build_source_verified_m10_release_manifest(
@@ -55,6 +84,7 @@ def build_source_verified_m10_release_manifest(
     power_input: PowerAnalysisInput,
     power_result: PowerAnalysisResult,
     preregistration: ConfirmatoryPreregistration,
+    e20_source_verified_authorization: E20SourceVerifiedAuthorization,
     *release_args,
     **release_kwargs,
 ) -> M10SourceVerifiedReleaseManifest:
@@ -85,6 +115,7 @@ def build_source_verified_m10_release_manifest(
         raise ValueError("confirmatory preregistration does not bind the source-verified power analysis evidence")
     if preregistration.final_n_per_core_cell != source_verified_m6.power_evidence.final_n_per_core_cell:
         raise ValueError("confirmatory preregistration final N does not match source-verified power analysis")
+    _verify_e20_chain(e20_source_verified_authorization, source_verified_m6, preregistration)
 
     release_manifest = _build_m10_release_manifest(
         preregistration,
@@ -94,17 +125,23 @@ def build_source_verified_m10_release_manifest(
     )
     if release_manifest.m6_readiness_hash != source_verified_m6.readiness.report_hash:
         raise ValueError("M10 release builder returned a manifest outside the source-verified M6 chain")
+    if release_manifest.e20_authorization_hash != e20_source_verified_authorization.authorization.authorization_hash:
+        raise ValueError("M10 release builder returned a manifest outside the source-verified E20 authorization chain")
 
     payload = {
         "algorithm_version": M10_SOURCE_VERIFIED_ALGORITHM_VERSION,
         "m6_source_verified_bundle_hash": source_verified_m6.bundle_hash,
         "m6_readiness_hash": source_verified_m6.readiness.report_hash,
+        "e20_source_verified_authorization_hash": e20_source_verified_authorization.envelope_hash,
+        "e20_authorization_hash": e20_source_verified_authorization.authorization.authorization_hash,
         "release_manifest": release_manifest,
     }
     return M10SourceVerifiedReleaseManifest(
         M10_SOURCE_VERIFIED_ALGORITHM_VERSION,
         source_verified_m6.bundle_hash,
         source_verified_m6.readiness.report_hash,
+        e20_source_verified_authorization.envelope_hash,
+        e20_source_verified_authorization.authorization.authorization_hash,
         release_manifest,
         sha256_json(payload),
     )
@@ -118,6 +155,7 @@ def verify_source_verified_m10_release_manifest(
     power_input: PowerAnalysisInput,
     power_result: PowerAnalysisResult,
     preregistration: ConfirmatoryPreregistration,
+    e20_source_verified_authorization: E20SourceVerifiedAuthorization,
     *release_args,
     **release_kwargs,
 ) -> None:
@@ -130,8 +168,9 @@ def verify_source_verified_m10_release_manifest(
         power_input,
         power_result,
         preregistration,
+        e20_source_verified_authorization,
         *release_args,
         **release_kwargs,
     )
     if manifest != expected:
-        raise ValueError("source-verified M10 release manifest does not replay exactly from M6 and release evidence")
+        raise ValueError("source-verified M10 release manifest does not replay exactly from M6, E20, and release evidence")
