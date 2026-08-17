@@ -104,6 +104,7 @@ class DetectorCalibrationIdentity:
     depth: int
     normalized_weights: tuple[float, ...]
     identity_hash: str
+    detector_artifact_hashes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if not isinstance(self.detector_family, DetectorFamily):
@@ -146,14 +147,21 @@ class DetectorCalibrationIdentity:
         if not math.isclose(math.fsum(normalized_weights), float(self.depth), rel_tol=1e-12, abs_tol=1e-12):
             raise ValueError("normalized_weights must sum to depth")
         object.__setattr__(self, "normalized_weights", normalized_weights)
-        expected_config_hash = sha256_json(
-            {
-                "detector_family": self.detector_family.value,
-                "algorithm_version": self.detector_algorithm_version,
-                "detector_source_commit": self.detector_source_commit,
-                "normalized_weights": normalized_weights,
-            }
-        )
+        if not isinstance(self.detector_artifact_hashes, tuple):
+            raise TypeError("detector_artifact_hashes must be a tuple")
+        if self.detector_artifact_hashes != tuple(sorted(set(self.detector_artifact_hashes))):
+            raise ValueError("detector_artifact_hashes must be unique and canonically ordered")
+        for value in self.detector_artifact_hashes:
+            require_sha256("detector artifact hash", value)
+        config_payload = {
+            "detector_family": self.detector_family.value,
+            "algorithm_version": self.detector_algorithm_version,
+            "detector_source_commit": self.detector_source_commit,
+            "normalized_weights": normalized_weights,
+        }
+        if self.detector_artifact_hashes:
+            config_payload["detector_artifact_hashes"] = self.detector_artifact_hashes
+        expected_config_hash = sha256_json(config_payload)
         if self.detector_config_hash != expected_config_hash:
             raise ValueError("detector_config_hash does not match detector calibration identity fields")
         expected = sha256_json(self._payload(normalized_weights))
@@ -161,7 +169,7 @@ class DetectorCalibrationIdentity:
             raise ValueError("identity_hash does not match detector calibration identity")
 
     def _payload(self, weights: tuple[float, ...]) -> dict[str, object]:
-        return {
+        payload = {
             "detector_family": self.detector_family.value,
             "detector_algorithm_version": self.detector_algorithm_version,
             "detector_config_hash": self.detector_config_hash,
@@ -176,6 +184,9 @@ class DetectorCalibrationIdentity:
             "depth": self.depth,
             "normalized_weights": weights,
         }
+        if self.detector_artifact_hashes:
+            payload["detector_artifact_hashes"] = self.detector_artifact_hashes
+        return payload
 
     @classmethod
     def from_evidence(cls, evidence: UncalibratedDetectorEvidence) -> DetectorCalibrationIdentity:
@@ -196,6 +207,8 @@ class DetectorCalibrationIdentity:
             "depth": evidence.depth,
             "normalized_weights": evidence.normalized_weights,
         }
+        if evidence.detector_artifact_hashes:
+            payload["detector_artifact_hashes"] = evidence.detector_artifact_hashes
         return cls(
             detector_family=evidence.detector_family,
             detector_algorithm_version=evidence.detector_algorithm_version,
@@ -211,4 +224,5 @@ class DetectorCalibrationIdentity:
             depth=evidence.depth,
             normalized_weights=evidence.normalized_weights,
             identity_hash=sha256_json(payload),
+            detector_artifact_hashes=evidence.detector_artifact_hashes,
         )
