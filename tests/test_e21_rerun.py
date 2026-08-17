@@ -22,7 +22,10 @@ from fuckmark.hashing import sha256_text
 
 def _rerun_manifest(e20_manifest, *, seed_offset: int = 10_000, drop_last: bool = False):
     samples = []
-    source_samples = e20_manifest.samples[:-1] if drop_last else e20_manifest.samples
+    source_samples = e20_manifest.samples
+    if drop_last:
+        last_match_id = source_samples[-1].match_id
+        source_samples = tuple(value for value in source_samples if value.match_id != last_match_id)
     for sample in source_samples:
         generation = GenerationParameters.create(
             seed=sample.generation.seed + seed_offset,
