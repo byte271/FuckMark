@@ -1,6 +1,7 @@
 import pytest
 
 from test_bayesian_artifacts import _batch, _chain, _checkpoint
+from test_bayesian_calibration import _trained_checkpoint
 from fuckmark.detectors.bayesian_artifacts import BayesianReadinessArtifactBundle
 from fuckmark.detectors.bayesian_calibration import bayesian_calibration_evidence
 from fuckmark.detectors.verification import (
@@ -45,7 +46,7 @@ def test_bayesian_detector_replay_rejects_artifacts_from_another_checkpoint() ->
         first.checkpoint,
         first.readiness,
     )
-    second_checkpoint = _checkpoint(True)
+    second_checkpoint = _trained_checkpoint(0.45)
     readiness, provenance, sanity = _chain(second_checkpoint)
     second = BayesianReadinessArtifactBundle.create(
         readiness,
@@ -53,8 +54,9 @@ def test_bayesian_detector_replay_rejects_artifacts_from_another_checkpoint() ->
         sanity,
         second_checkpoint,
     )
-    verify_uncalibrated_detector_evidence(
-        batch,
-        evidence,
-        bayesian_artifacts=second,
-    )
+    with pytest.raises(DetectorArtifactVerificationError, match="does not replay"):
+        verify_uncalibrated_detector_evidence(
+            batch,
+            evidence,
+            bayesian_artifacts=second,
+        )
