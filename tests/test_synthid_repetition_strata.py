@@ -110,7 +110,7 @@ def test_repetition_strata_report_fails_closed_on_tamper() -> None:
     with pytest.raises(ValueError, match="report_hash"):
         replace(report, schedule_seed=99)
     with pytest.raises(ValueError, match="record_hash"):
-        replace(report.records[0], repeated_count=0)
+        replace(report.records[0], record_hash="0" * 64)
 
 
 def test_repetition_strata_rejects_duplicate_prompt_ids() -> None:
