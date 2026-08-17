@@ -253,6 +253,23 @@ from .e21_failure_verification import (
     build_e21_failure_row,
     verify_e21_failure_row,
 )
+from .e21_fidelity_summary import (
+    E21_HUMAN_FIDELITY_SUMMARY_ALGORITHM_VERSION,
+    E21VerifiedFidelitySummary,
+    build_verified_e21_fidelity_summary,
+    e21_hard_invariant_failure_count,
+)
+from .e21_human_audit_v2 import (
+    E21_HUMAN_AUDIT_SELECTION_ALGORITHM_VERSION,
+    E21HumanAuditCell,
+    E21HumanAuditEvidenceError,
+    E21HumanAuditSelection,
+    E21HumanAuditSelectionEntry,
+    E21HumanAuditSelectionError,
+    build_e21_human_audit_selection,
+    verify_e21_human_audit_evidence,
+    verify_e21_human_audit_selection,
+)
 from .e21_inference import (
     E21_PRIMARY_INFERENCE_ALGORITHM_VERSION,
     E21PrimaryInference,
@@ -275,7 +292,11 @@ from .e21_replication import (
     E21ReplicationStatus,
 )
 from .e21_replication_verified import (
+    E21_VERIFIED_REPLICATION_ALGORITHM_VERSION,
+    E21VerifiedReplicationBundle,
+    build_verified_e21_replication_bundle,
     build_verified_e21_replication_comparison,
+    verify_verified_e21_replication_bundle,
     verify_verified_e21_replication_comparison,
 )
 from .e21_rerun import (
@@ -337,6 +358,13 @@ from .extended_analysis import (
     run_e18_detector_disagreement,
     run_e19_per_depth_drift,
     verify_extended_analysis_result,
+)
+from .m10_release import (
+    M10_RELEASE_ALGORITHM_VERSION,
+    M10ReleaseError,
+    M10ReleaseManifest,
+    M10ReleaseStatus,
+    build_m10_release_manifest,
 )
 from .m6_readiness import (
     M6_READINESS_ALGORITHM_VERSION,
