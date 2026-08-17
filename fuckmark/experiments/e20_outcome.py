@@ -9,6 +9,7 @@ from ..detectors import (
     UncalibratedDetectorEvidence,
 )
 from ..detectors.bayesian_artifacts import BayesianReadinessArtifactBundle
+from ..hashing import sha256_text
 from ..native_observations import NativeObservationBatch
 from ..transforms import KeyBlindScheduleInput, ScheduleResult
 from ..transforms.trace import TransformResult
@@ -32,7 +33,15 @@ from .e20_row_verification import (
     E20RowVerificationError,
     build_e20_outcome_row as _build_e20_outcome_row,
 )
-from .e20_rows import E20HumanFidelityStatus, E20IdentityFields, E20OutcomeRow
+from .e20_rows import (
+    E20AuditFields,
+    E20HumanFidelityStatus,
+    E20IdentityFields,
+    E20OutcomeRow,
+)
+
+
+E20_BAYESIAN_ROW_REPLAY_ALGORITHM_VERSION = "e20-bayesian-row-replay-v1"
 
 
 def _require_condition_bundle(
@@ -167,6 +176,21 @@ def _build_bayesian_e20_outcome_row(
         )
     except ConfirmatoryOutcomeReplayError as error:
         raise E20RowVerificationError(str(error)) from error
+    audit = fields[-1]
+    audit = E20AuditFields(
+        audit.worker_version,
+        audit.timestamp_utc,
+        audit.environment_snapshot_hash,
+        audit.authorization_hash,
+        audit.ledger_hash,
+        tuple(
+            sorted(
+                set(audit.artifact_hashes)
+                | {sha256_text(E20_BAYESIAN_ROW_REPLAY_ALGORITHM_VERSION)}
+            )
+        ),
+    )
+    fields = (*fields[:-1], audit)
     identity = E20IdentityFields(
         authorization.execution_id,
         authorization.execution_id,
@@ -330,6 +354,7 @@ def verify_e20_outcome_row(
 
 __all__ = [
     "E20_ALIGNMENT_ALGORITHM_VERSION",
+    "E20_BAYESIAN_ROW_REPLAY_ALGORITHM_VERSION",
     "E20_ROW_REPLAY_ALGORITHM_VERSION",
     "E20_TEXT_METRIC_ALGORITHM_VERSION",
     "E20RowVerificationError",
