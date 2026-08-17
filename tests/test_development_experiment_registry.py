@@ -12,11 +12,11 @@ from fuckmark.experiments.registry import (
 from fuckmark.transforms import SchedulePolicy
 
 
-def test_registry_freezes_e02_through_e11_in_exact_order() -> None:
+def test_registry_freezes_e02_through_e19_in_exact_order() -> None:
     registry = default_development_experiment_registry()
     assert registry.version == DEVELOPMENT_EXPERIMENT_REGISTRY_VERSION
     assert tuple(definition.experiment_id for definition in registry.definitions) == tuple(DevelopmentExperimentId)
-    assert len(registry.definitions) == 10
+    assert len(registry.definitions) == 18
 
 
 def test_mechanism_experiments_do_not_require_calibration_or_scheduler_access() -> None:
@@ -53,7 +53,7 @@ def test_e09_e10_e11_freeze_key_blind_scheduler_contracts() -> None:
     assert "detector-score" in e11.failure_rule
 
 
-def test_e02_and_transform_outcome_experiments_require_frozen_calibration() -> None:
+def test_detector_outcome_experiments_require_frozen_calibration() -> None:
     registry = default_development_experiment_registry()
     for experiment_id in (
         DevelopmentExperimentId.E02,
@@ -62,8 +62,57 @@ def test_e02_and_transform_outcome_experiments_require_frozen_calibration() -> N
         DevelopmentExperimentId.E09,
         DevelopmentExperimentId.E10,
         DevelopmentExperimentId.E11,
+        DevelopmentExperimentId.E14,
+        DevelopmentExperimentId.E15,
+        DevelopmentExperimentId.E16,
+        DevelopmentExperimentId.E17,
+        DevelopmentExperimentId.E18,
     ):
         assert registry.get(experiment_id).requires_calibration is True
+
+
+def test_e12_through_e19_freeze_spec_objectives_and_failure_boundaries() -> None:
+    registry = default_development_experiment_registry()
+    e12 = registry.get(DevelopmentExperimentId.E12)
+    e13 = registry.get(DevelopmentExperimentId.E13)
+    e14 = registry.get(DevelopmentExperimentId.E14)
+    e15 = registry.get(DevelopmentExperimentId.E15)
+    e16 = registry.get(DevelopmentExperimentId.E16)
+    e17 = registry.get(DevelopmentExperimentId.E17)
+    e18 = registry.get(DevelopmentExperimentId.E18)
+    e19 = registry.get(DevelopmentExperimentId.E19)
+    assert "orthography" in e12.objective
+    assert "semantic or code mutation" in e12.failure_rule
+    assert "contraction and expansion" in e13.objective
+    assert "Ambiguous morphology" in e13.failure_rule
+    assert "64 through 1024" in e14.objective
+    assert "Raw edit-count" in e14.failure_rule
+    assert "four frozen domains" in e15.objective
+    assert "domain-specific" in e15.failure_rule
+    assert "key split not used for policy tuning" in e16.objective
+    assert "TEST_KEYS" in e16.evidence_criterion
+    assert "TEST_KEYS" in e16.failure_rule
+    assert "tokenizer and model families" in e17.objective
+    assert "universal" in e17.failure_rule
+    assert "Mean, Weighted Mean, and Bayesian" in e18.objective
+    assert "Mean-only" in e18.failure_rule
+    assert "every g-value depth" in e19.objective
+    assert "global mean alone" in e19.failure_rule
+
+
+def test_e12_through_e17_preserve_key_blind_transform_boundary() -> None:
+    registry = default_development_experiment_registry()
+    for experiment_id in (
+        DevelopmentExperimentId.E12,
+        DevelopmentExperimentId.E13,
+        DevelopmentExperimentId.E14,
+        DevelopmentExperimentId.E15,
+        DevelopmentExperimentId.E16,
+        DevelopmentExperimentId.E17,
+    ):
+        assert registry.get(experiment_id).selection_access is TransformSelectionAccess.KEY_BLIND
+    for experiment_id in (DevelopmentExperimentId.E18, DevelopmentExperimentId.E19):
+        assert registry.get(experiment_id).selection_access is TransformSelectionAccess.NOT_APPLICABLE
 
 
 def test_registry_hash_rejects_tampering() -> None:
