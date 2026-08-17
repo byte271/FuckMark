@@ -8,11 +8,9 @@ from .e20_report import E20ConfirmatoryReport
 from .e21_analysis import E21PrimaryAnalysis
 from .e21_bundle import E21ResultBundle
 from .e21_execution import E21RunLedger, E21RunState, verify_e21_run_ledger
+from .e21_fidelity_summary import build_verified_e21_fidelity_summary
 from .e21_fidelity_verified import build_fidelity_bound_e21_headline_evidence
-from .e21_human_audit import (
-    E21HumanAuditSelection,
-    build_e21_human_fidelity_summary,
-)
+from .e21_human_audit import E21HumanAuditSelection
 from .e21_inference import E21PrimaryInference
 from .e21_replication import (
     E21ReplicationComparison,
@@ -58,7 +56,7 @@ def build_verified_e21_replication_comparison(
         raise E21ReplicationError("E21 inference does not bind the completed result bundle")
     if e21_inference.analysis_hash != e21_analysis.analysis_hash:
         raise E21ReplicationError("E21 inference does not bind the supplied analysis")
-    fidelity_summary = build_e21_human_fidelity_summary(
+    fidelity_summary = build_verified_e21_fidelity_summary(
         human_audit_selection,
         human_audit_evidence,
         e21_result_bundle,
@@ -112,4 +110,6 @@ def verify_verified_e21_replication_comparison(
         human_audit_evidence,
     )
     if comparison != expected:
-        raise E21ReplicationError("verified E21 replication comparison does not replay from analysis, inference, and blind fidelity artifacts")
+        raise E21ReplicationError(
+            "verified E21 replication comparison does not replay from analysis, inference, and blind fidelity artifacts"
+        )
