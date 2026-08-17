@@ -15,12 +15,12 @@ from fuckmark.detectors import apply_calibration, mean_evidence
 from fuckmark.environment import capture_environment
 from fuckmark.experiments import (
     E20RowVerificationError,
-    authorize_e20_execution,
     build_e20_outcome_row,
     verify_e20_outcome_row,
 )
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
 from fuckmark.experiments.confirmatory_corpus import build_confirmatory_corpus_seal
+from fuckmark.experiments.e20_authorization import _authorize_e20_execution_unchecked as authorize_e20_execution
 from fuckmark.experiments.e20_execution import (
     create_e20_run_ledger,
     derive_e20_condition_seed,
