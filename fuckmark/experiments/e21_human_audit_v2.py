@@ -10,7 +10,7 @@ from ..transforms import BlindHumanFidelityAudit
 from .confirmatory import ConfirmatoryPreregistration
 from .e20_conditions import E20ConditionPlan
 from .e21_bundle import E21ResultBundle
-from .e21_human_audit import (
+from ._e21_human_audit_legacy import (
     E21HumanAuditCell,
     E21HumanAuditEvidenceError,
     E21HumanAuditSelection as _LegacyE21HumanAuditSelection,
