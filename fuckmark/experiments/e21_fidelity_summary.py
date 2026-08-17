@@ -77,6 +77,8 @@ class E21VerifiedFidelitySummary:
         ):
             raise ValueError("E21 verified fidelity rate must lie inside its confidence interval")
         require_bool("gate_passed", self.gate_passed)
+        if self.gate_passed and self.hard_invariant_failure_count != 0:
+            raise ValueError("E21 fidelity gate cannot pass with a hard-invariant failure")
         require_sha256("summary_hash", self.summary_hash)
         if self.summary_hash != sha256_json(self._payload()):
             raise ValueError("summary_hash does not match E21 verified fidelity summary")
@@ -95,6 +97,15 @@ class E21VerifiedFidelitySummary:
             "equivalent_or_minor_interval": self.equivalent_or_minor_interval,
             "gate_passed": self.gate_passed,
         }
+
+
+def e21_hard_invariant_failure_count(result_bundle: E21ResultBundle) -> int:
+    if not isinstance(result_bundle, E21ResultBundle):
+        raise TypeError("result_bundle must be an E21ResultBundle")
+    return sum(
+        row.reason_code is ExperimentReasonCode.HARD_INVARIANT_FAILURE
+        for row in result_bundle.failure_rows
+    ) + sum(not row.fidelity.hard_pass for row in result_bundle.outcome_rows)
 
 
 def build_verified_e21_fidelity_summary(
@@ -124,10 +135,7 @@ def build_verified_e21_fidelity_summary(
     favorable = counts[FidelityLabel.EQUIVALENT_OR_MINOR]
     material = counts[FidelityLabel.MATERIAL_CHANGE]
     cannot = counts[FidelityLabel.CANNOT_JUDGE]
-    hard_failures = sum(
-        row.reason_code is ExperimentReasonCode.HARD_INVARIANT_FAILURE
-        for row in result_bundle.failure_rows
-    ) + sum(not row.fidelity.hard_pass for row in result_bundle.outcome_rows)
+    hard_failures = e21_hard_invariant_failure_count(result_bundle)
     rate = favorable / reviewed
     interval = exact_binomial_interval(favorable, reviewed, 0.95)
     gate = preregistration.fidelity_gate
