@@ -15,6 +15,7 @@ from .synthid_smoke_hf import (
     HuggingFaceSynthIDSmokeBackend,
 )
 from .transforms import development_transform_registry, release_transform_registry
+from .transforms.mechanism_registry import mechanism_stress_transform_registry
 
 
 class HuggingFaceSynthIDGeometryBackend(HuggingFaceSynthIDSmokeBackend):
@@ -52,6 +53,16 @@ def _load_prompts(path: Path | None, limit: int, seed_base: int) -> tuple[SynthI
         SynthIDSmokePrompt(f"geometry-{index + 1:03d}", text, seed_base + index)
         for index, text in enumerate(values)
     )
+
+
+def _registry(name: str):
+    if name == "release":
+        return release_transform_registry()
+    if name == "development":
+        return development_transform_registry()
+    if name == "mechanism":
+        return mechanism_stress_transform_registry()
+    raise ValueError("unknown registry")
 
 
 def _write_variant_csv(path: Path, report) -> None:
@@ -157,7 +168,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--top-p", type=float, default=0.95)
-    parser.add_argument("--registry", choices=("release", "development"), default="release")
+    parser.add_argument("--registry", choices=("release", "development", "mechanism"), default="release")
     parser.add_argument("--budgets", type=_parse_budgets, default=(1, 2))
     parser.add_argument("--random-seed-count", type=int, default=8)
     parser.add_argument("--schedule-seed-base", type=int, default=9200)
@@ -184,7 +195,7 @@ def main(argv: list[str] | None = None) -> int:
         ngram_len=DEFAULT_NGRAM_LEN,
         keys=DEFAULT_KEYS,
     )
-    registry = release_transform_registry() if args.registry == "release" else development_transform_registry()
+    registry = _registry(args.registry)
     random_seeds = tuple(args.schedule_seed_base + offset + 1 for offset in range(args.random_seed_count))
     report = run_synthid_geometry_pilot(
         prompts,
@@ -210,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.write(f"mean_control_disruption_advantage={summary.mean_control_disruption_advantage}\n")
     sys.stdout.write(f"mean_watermarked_disruption_advantage={summary.mean_watermarked_disruption_advantage}\n")
     sys.stdout.write(f"mean_control_score_drop_advantage={summary.mean_control_score_drop_advantage}\n")
-    sys.stdout.write(f"mean_watermarked_score_drop_advantage={summary.mean_watermarked_score_drop_advantage}\n")
+    sys.stdout.write(f"mean_watermarked_score_drop_advantage={summary.mean_watermark_score_drop_advantage}\n")
     sys.stdout.write(f"json={args.json.as_posix()}\n")
     sys.stdout.write(f"variants_csv={args.variants_csv.as_posix()}\n")
     sys.stdout.write(f"pairs_csv={args.pairs_csv.as_posix()}\n")
