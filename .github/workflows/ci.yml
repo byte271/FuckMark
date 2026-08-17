@@ -33,3 +33,26 @@ jobs:
 
       - name: Test
         run: python -m pytest -q
+
+      - name: Test installed CLI end to end
+        shell: bash
+        run: |
+          set -euo pipefail
+          test_bin="$RUNNER_TEMP/fuckmark-bin"
+          mkdir -p "$test_bin"
+          cat > "$test_bin/wl-copy" <<'SH'
+          #!/usr/bin/env sh
+          cat > "$FUCKMARK_CLIPBOARD_CAPTURE"
+          SH
+          chmod +x "$test_bin/wl-copy"
+          export PATH="$test_bin:$PATH"
+          for command in FuckMark Fuckmark fuckmark; do
+            command -v "$command"
+            capture="$RUNNER_TEMP/${command}.clipboard"
+            export FUCKMARK_CLIPBOARD_CAPTURE="$capture"
+            output="$(printf 'I do not agree and I cannot stay.\nok\n' | "$command")"
+            printf '%s\n' "$output"
+            grep -Fq 'Processing...' <<< "$output"
+            grep -Fq 'Success. Copied to clipboard.' <<< "$output"
+            test "$(cat "$capture")" = "I don't agree and I can't stay."
+          done
