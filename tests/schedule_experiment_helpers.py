@@ -42,6 +42,7 @@ def schedule_row(
     replacement_count: int = 10,
     margin_drop: float = 0.10,
     secret_access_observed: bool = False,
+    key_split: KeySplit = KeySplit.DEV,
 ):
     detector_identity_hash, threshold_hash, threshold_value = threshold_identity()
     pristine_score = 0.90
@@ -50,14 +51,14 @@ def schedule_row(
         source_sample_id=sample.sample_id,
         prompt_family_id=sample.prompt_family_id,
         source_text_hash=sha256_text(sample.text),
-        transformed_text_hash=sha256_text(f"{sample.text}|{policy.value}|{variant}|{realized_cost}|{coverage}|{replacement_count}|{margin_drop}|{secret_access_observed}"),
-        key_split=KeySplit.DEV,
+        transformed_text_hash=sha256_text(f"{sample.text}|{policy.value}|{variant}|{realized_cost}|{coverage}|{replacement_count}|{margin_drop}|{secret_access_observed}|{key_split.value}"),
+        key_split=key_split,
         detector_identity_hash=detector_identity_hash,
         threshold_hash=threshold_hash,
         threshold_value=threshold_value,
         candidate_pool_hash=sha256_text(pool_id),
         scheduler_input_hash=sha256_text(f"scheduler-input-{pool_id}"),
-        schedule_result_hash=sha256_text(f"schedule-result-{sample.sample_id}-{policy.value}-{variant}-{realized_cost}-{coverage}-{replacement_count}-{secret_access_observed}"),
+        schedule_result_hash=sha256_text(f"schedule-result-{sample.sample_id}-{policy.value}-{variant}-{realized_cost}-{coverage}-{replacement_count}-{secret_access_observed}-{key_split.value}"),
         schedule_policy=policy,
         schedule_seed=seed,
         budget=budget,
