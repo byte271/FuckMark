@@ -11,6 +11,7 @@ from .experiments.synthid_smoke import SynthIDSmokePrompt
 from .synthid_geometry_hf import HuggingFaceSynthIDGeometryBackend
 from .synthid_smoke_hf import DEFAULT_KEYS, DEFAULT_NGRAM_LEN
 from .transforms import development_transform_registry, release_transform_registry
+from .transforms.mechanism_registry import mechanism_stress_transform_registry
 
 
 MECHANISM_STRESS_PROMPTS = (
@@ -165,7 +166,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--top-p", type=float, default=0.95)
-    parser.add_argument("--registry", choices=("release", "development"), default="release")
+    parser.add_argument("--registry", choices=("release", "development", "mechanism"), default="release")
     parser.add_argument("--budgets", type=_parse_budgets, default=(1, 2, 4))
     parser.add_argument("--random-seed-count", type=int, default=8)
     parser.add_argument("--schedule-seed-base", type=int, default=9300)
@@ -173,6 +174,16 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--opportunities-csv", type=Path, default=Path("artifacts/synthid-schedule-stress-opportunities.csv"))
     parser.add_argument("--schedules-csv", type=Path, default=Path("artifacts/synthid-schedule-stress-schedules.csv"))
     return parser
+
+
+def _registry(name: str):
+    if name == "release":
+        return release_transform_registry()
+    if name == "development":
+        return development_transform_registry()
+    if name == "mechanism":
+        return mechanism_stress_transform_registry()
+    raise ValueError("unknown registry")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -192,7 +203,7 @@ def main(argv: list[str] | None = None) -> int:
         ngram_len=DEFAULT_NGRAM_LEN,
         keys=DEFAULT_KEYS,
     )
-    registry = release_transform_registry() if args.registry == "release" else development_transform_registry()
+    registry = _registry(args.registry)
     random_seeds = tuple(args.schedule_seed_base + offset + 1 for offset in range(args.random_seed_count))
     report = run_synthid_schedule_stress(
         prompts,

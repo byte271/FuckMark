@@ -26,6 +26,7 @@ on:
         options:
           - release
           - development
+          - mechanism
       budgets:
         description: Comma-separated operation budgets
         required: true
