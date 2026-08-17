@@ -241,8 +241,11 @@ from .e21_rerun import (
     E21RerunSeal,
     authorize_e21_execution,
     build_e21_rerun_seal,
-    verify_e21_execution_authorization,
     verify_e21_rerun_seal,
+)
+from .e21_verification import (
+    E21AuthorizationVerificationError,
+    verify_e21_execution_authorization,
 )
 from .extended_analysis import (
     EXTENDED_ANALYSIS_ALGORITHM_VERSION,
