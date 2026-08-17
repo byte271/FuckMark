@@ -1,3 +1,8 @@
+from .bayesian_calibration import (
+    BAYESIAN_CALIBRATION_EVIDENCE_VERSION,
+    bayesian_calibration_evidence,
+    verify_bayesian_calibration_evidence,
+)
 from .bayesian_evidence import (
     BAYESIAN_EVIDENCE_ALGORITHM_VERSION,
     BAYESIAN_UNVERIFIED_REASON,
@@ -72,6 +77,7 @@ from .verification import (
 
 
 __all__ = [
+    "BAYESIAN_CALIBRATION_EVIDENCE_VERSION",
     "BAYESIAN_CONFIRMATORY_READINESS_VERSION",
     "BAYESIAN_EVIDENCE_ALGORITHM_VERSION",
     "BAYESIAN_LR_SCHEDULE_ID",
@@ -113,6 +119,7 @@ __all__ = [
     "WEIGHTED_MEAN_ALGORITHM_VERSION",
     "ZeroValidObservationsError",
     "apply_calibration",
+    "bayesian_calibration_evidence",
     "build_bayesian_confirmatory_readiness",
     "build_bayesian_evidence",
     "calibrate_detector",
@@ -122,6 +129,7 @@ __all__ = [
     "mean_evidence",
     "mean_score",
     "require_supported_detector",
+    "verify_bayesian_calibration_evidence",
     "verify_bayesian_confirmatory_readiness",
     "verify_bayesian_evidence",
     "verify_calibrated_detector_result",
