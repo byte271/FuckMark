@@ -9,12 +9,15 @@ from confirmatory_helpers import (
     preregistration_inputs,
 )
 from fuckmark.environment import capture_environment
-from fuckmark.experiments import authorize_e20_execution, verify_e20_execution_authorization
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
 from fuckmark.experiments.confirmatory_corpus import build_confirmatory_corpus_seal
 from fuckmark.experiments.confirmatory_keys import (
     ConfirmatoryTestKeyEntry,
     build_confirmatory_test_key_manifest,
+)
+from fuckmark.experiments.e20_authorization import (
+    _authorize_e20_execution_unchecked as authorize_e20_execution,
+    _verify_e20_execution_authorization_unchecked as verify_e20_execution_authorization,
 )
 from fuckmark.experiments.e20_execution import (
     E20AuthorizationError,
@@ -149,7 +152,7 @@ def test_e20_authorization_replays_all_sealed_inputs_and_runtime_keys() -> None:
     )
 
 
-def test_public_e20_authorization_rejects_wrong_condition_plan_before_execution() -> None:
+def test_low_level_e20_authorization_rejects_wrong_condition_plan_before_execution() -> None:
     preregistration, _, corpus_seal, corpus_manifest, key_manifest, environment, common = _sealed_execution_fixture()
     wrong_plan = confirmatory_condition_plan((0.05,))
     with pytest.raises(E20AuthorizationError, match="condition plan"):
