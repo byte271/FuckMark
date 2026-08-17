@@ -96,7 +96,7 @@ def test_source_verified_m10_binds_verified_m6_bundle_before_release_manifest(mo
     monkeypatch.setattr(
         m10_source_verified,
         "_build_m10_release_manifest",
-        lambda received_preregistration, received_m6, *args, **kwargs: _fake_release(received_m6.readiness_hash),
+        lambda received_preregistration, received_m6, *args, **kwargs: _fake_release(received_m6.report_hash),
     )
 
     manifest = build_source_verified_m10_release_manifest(
@@ -111,8 +111,8 @@ def test_source_verified_m10_binds_verified_m6_bundle_before_release_manifest(mo
     assert isinstance(manifest, M10SourceVerifiedReleaseManifest)
     assert manifest.algorithm_version == M10_SOURCE_VERIFIED_ALGORITHM_VERSION
     assert manifest.m6_source_verified_bundle_hash == source_verified_m6.bundle_hash
-    assert manifest.m6_readiness_hash == source_verified_m6.readiness.readiness_hash
-    assert manifest.release_manifest.m6_readiness_hash == source_verified_m6.readiness.readiness_hash
+    assert manifest.m6_readiness_hash == source_verified_m6.readiness.report_hash
+    assert manifest.release_manifest.m6_readiness_hash == source_verified_m6.readiness.report_hash
     verify_source_verified_m10_release_manifest(
         manifest,
         source_verified_m6,
