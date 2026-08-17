@@ -35,6 +35,27 @@ On macOS the CLI uses `pbcopy`. On Windows it uses `clip`. On Linux it tries `wl
 
 This interface performs deterministic text transformation. It is not a watermark detector and does not claim to remove, defeat, or validate any proprietary watermarking system.
 
+## Open SynthID smoke experiment
+
+A development-only runner can test the current release transform against the pinned open Hugging Face SynthID implementation without using watermark keys or detector scores during transform selection.
+
+Install the package and the separate smoke dependencies:
+
+```text
+python -m pip install -e ".[dev]"
+python -m pip install -r requirements-smoke.txt
+```
+
+Run the built-in 20-prompt smoke set:
+
+```text
+python -m fuckmark.synthid_smoke_hf --model openai-community/gpt2 --prompt-limit 20
+```
+
+The runner generates matched control and watermarked continuations with the same per-prompt generation seed, transforms both groups before any detector scoring, and records pristine/transformed Weighted Mean scores. It also reports transformed-control drift so a lower watermarked score cannot hide a simultaneous false-positive increase.
+
+The default report files are `artifacts/synthid-smoke.json` and `artifacts/synthid-smoke.csv`. The artifacts directory is ignored by Git. The threshold in this smoke report is descriptive and is derived only from pristine control scores. A smoke result is development evidence, not a confirmatory result and not evidence about a proprietary watermarking system.
+
 ## Current foundation
 
 1. Canonical serialization
