@@ -1,3 +1,8 @@
+from .bayesian_artifacts import (
+    BAYESIAN_READINESS_ARTIFACT_BUNDLE_VERSION,
+    BayesianReadinessArtifactBundle,
+    verify_bayesian_readiness_artifact_bundle,
+)
 from .bayesian_calibration import (
     BAYESIAN_CALIBRATION_EVIDENCE_VERSION,
     bayesian_calibration_evidence,
@@ -82,6 +87,7 @@ __all__ = [
     "BAYESIAN_EVIDENCE_ALGORITHM_VERSION",
     "BAYESIAN_LR_SCHEDULE_ID",
     "BAYESIAN_OPTIMIZER_ID",
+    "BAYESIAN_READINESS_ARTIFACT_BUNDLE_VERSION",
     "BAYESIAN_REQUIRED_G_DISTRIBUTION",
     "BAYESIAN_REQUIRED_WATERMARK_MODE",
     "BAYESIAN_SANITY_EVIDENCE_VERSION",
@@ -93,6 +99,7 @@ __all__ = [
     "BayesianConfirmatoryReadiness",
     "BayesianConfirmatoryReadinessStatus",
     "BayesianDetectorEvidence",
+    "BayesianReadinessArtifactBundle",
     "BayesianSanityEvidence",
     "BayesianTrainingProvenance",
     "BayesianValidationMetric",
@@ -132,6 +139,7 @@ __all__ = [
     "verify_bayesian_calibration_evidence",
     "verify_bayesian_confirmatory_readiness",
     "verify_bayesian_evidence",
+    "verify_bayesian_readiness_artifact_bundle",
     "verify_calibrated_detector_result",
     "verify_calibration_bundle",
     "verify_pristine_baseline_summary",
