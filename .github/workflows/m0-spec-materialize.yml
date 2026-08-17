@@ -36,6 +36,7 @@ jobs:
           git rm -r .m0-spec-parts
           git rm .github/workflows/m0-lock-pr-probe.yml
           git rm .github/workflows/m0-spec-materialize.yml
-          git add spec.md SHA256SUMS.txt
+          git add -f spec.md
+          git add SHA256SUMS.txt
           git commit -m 'Materialize frozen revision-2 research specification'
           git push origin "HEAD:${{ github.event.pull_request.head.ref }}"
