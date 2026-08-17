@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass
 
+from .._validation import require_sha256
 from ..corpus import CorpusManifest, ModelTokenizerIdentity
 from ..detectors import UncalibratedDetectorEvidence
 from ..detectors.bayesian_artifacts import BayesianReadinessArtifactBundle
 from ..environment import EnvironmentSnapshot
+from ..hashing import sha256_json
 from ..transforms.fidelity_verification import LexicalPromotionEvidence
 from ..transforms.syntax_fidelity_verification import SyntaxDevelopmentEvidence
 from .confirmatory import ConfirmatoryPreregistration
@@ -24,8 +27,50 @@ from .power_analysis import PowerAnalysisInput, PowerAnalysisResult
 from .registry import DevelopmentExperimentRegistry
 
 
+E20_SOURCE_VERIFIED_AUTHORIZATION_ALGORITHM_VERSION = "e20-source-verified-authorization-v1"
+
+
 class E20SourceVerifiedAuthorizationError(ValueError):
     pass
+
+
+@dataclass(frozen=True, slots=True)
+class E20SourceVerifiedAuthorization:
+    algorithm_version: str
+    preregistration_hash: str
+    m6_source_verified_bundle_hash: str
+    m6_readiness_hash: str
+    power_evidence_hash: str
+    authorization: E20ExecutionAuthorization
+    envelope_hash: str
+
+    def __post_init__(self) -> None:
+        if self.algorithm_version != E20_SOURCE_VERIFIED_AUTHORIZATION_ALGORITHM_VERSION:
+            raise ValueError("unsupported source-verified E20 authorization algorithm version")
+        for name, value in (
+            ("preregistration_hash", self.preregistration_hash),
+            ("m6_source_verified_bundle_hash", self.m6_source_verified_bundle_hash),
+            ("m6_readiness_hash", self.m6_readiness_hash),
+            ("power_evidence_hash", self.power_evidence_hash),
+            ("envelope_hash", self.envelope_hash),
+        ):
+            require_sha256(name, value)
+        if not isinstance(self.authorization, E20ExecutionAuthorization):
+            raise TypeError("authorization must be an E20ExecutionAuthorization")
+        if self.authorization.preregistration_hash != self.preregistration_hash:
+            raise ValueError("raw E20 authorization does not bind the source-verified preregistration")
+        if self.envelope_hash != sha256_json(self._payload()):
+            raise ValueError("envelope_hash does not match source-verified E20 authorization")
+
+    def _payload(self) -> dict[str, object]:
+        return {
+            "algorithm_version": self.algorithm_version,
+            "preregistration_hash": self.preregistration_hash,
+            "m6_source_verified_bundle_hash": self.m6_source_verified_bundle_hash,
+            "m6_readiness_hash": self.m6_readiness_hash,
+            "power_evidence_hash": self.power_evidence_hash,
+            "authorization": self.authorization,
+        }
 
 
 def _verify_source_verified_m6_binding(
@@ -98,7 +143,7 @@ def authorize_source_verified_e20_execution(
     task29_syntax_evidence: Sequence[SyntaxDevelopmentEvidence] = (),
     task29_tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
     bayesian_readiness_artifacts: Mapping[str, BayesianReadinessArtifactBundle] | None = None,
-) -> E20ExecutionAuthorization:
+) -> E20SourceVerifiedAuthorization:
     _verify_source_verified_m6_binding(
         preregistration,
         source_verified_m6,
@@ -107,7 +152,7 @@ def authorize_source_verified_e20_execution(
         power_input,
         power_result,
     )
-    return _authorize_ready_e20_execution(
+    raw_authorization = _authorize_ready_e20_execution(
         preregistration,
         source_verified_m6.readiness,
         detector_readiness,
@@ -134,10 +179,29 @@ def authorize_source_verified_e20_execution(
         task29_tokenizers=task29_tokenizers,
         bayesian_readiness_artifacts=bayesian_readiness_artifacts,
     )
+    if not isinstance(raw_authorization, E20ExecutionAuthorization):
+        raise TypeError("existing E20 readiness gate must return an E20ExecutionAuthorization")
+    payload = {
+        "algorithm_version": E20_SOURCE_VERIFIED_AUTHORIZATION_ALGORITHM_VERSION,
+        "preregistration_hash": preregistration.preregistration_hash,
+        "m6_source_verified_bundle_hash": source_verified_m6.bundle_hash,
+        "m6_readiness_hash": source_verified_m6.readiness.report_hash,
+        "power_evidence_hash": source_verified_m6.power_evidence.evidence_hash,
+        "authorization": raw_authorization,
+    }
+    return E20SourceVerifiedAuthorization(
+        E20_SOURCE_VERIFIED_AUTHORIZATION_ALGORITHM_VERSION,
+        preregistration.preregistration_hash,
+        source_verified_m6.bundle_hash,
+        source_verified_m6.readiness.report_hash,
+        source_verified_m6.power_evidence.evidence_hash,
+        raw_authorization,
+        sha256_json(payload),
+    )
 
 
 def verify_source_verified_e20_execution_authorization(
-    authorization: E20ExecutionAuthorization,
+    envelope: E20SourceVerifiedAuthorization,
     preregistration: ConfirmatoryPreregistration,
     source_verified_m6: M6SourceVerifiedReadiness,
     registry: DevelopmentExperimentRegistry,
@@ -168,8 +232,8 @@ def verify_source_verified_e20_execution_authorization(
     task29_tokenizers: Mapping[str, Callable[[str], Sequence[int]]] | None = None,
     bayesian_readiness_artifacts: Mapping[str, BayesianReadinessArtifactBundle] | None = None,
 ) -> None:
-    if not isinstance(authorization, E20ExecutionAuthorization):
-        raise TypeError("authorization must be an E20ExecutionAuthorization")
+    if not isinstance(envelope, E20SourceVerifiedAuthorization):
+        raise TypeError("envelope must be an E20SourceVerifiedAuthorization")
     expected = authorize_source_verified_e20_execution(
         preregistration,
         source_verified_m6,
@@ -200,7 +264,7 @@ def verify_source_verified_e20_execution_authorization(
         task29_tokenizers=task29_tokenizers,
         bayesian_readiness_artifacts=bayesian_readiness_artifacts,
     )
-    if authorization != expected:
+    if envelope != expected:
         raise E20SourceVerifiedAuthorizationError(
-            "E20 execution authorization does not replay exactly through the source-verified M6 gate"
+            "E20 source-verified authorization envelope does not replay exactly"
         )
