@@ -15,6 +15,8 @@ from .confirmatory_keys import ConfirmatoryTestKeyManifest
 from .e20_authorization import authorize_e20_execution
 from .e20_conditions import E20ConditionPlan
 from .e20_execution import E20ExecutionAuthorization, E20RunLedger
+from .m6_readiness import M6ReadinessReport, verify_m6_readiness
+from .registry import default_development_experiment_registry
 
 
 class E20ReadinessGateError(ValueError):
@@ -23,6 +25,7 @@ class E20ReadinessGateError(ValueError):
 
 def authorize_ready_e20_execution(
     preregistration: ConfirmatoryPreregistration,
+    m6_readiness: M6ReadinessReport,
     detector_readiness: ConfirmatoryDetectorReadinessReport,
     condition_plan: E20ConditionPlan,
     corpus_seal: ConfirmatoryCorpusSeal,
@@ -44,6 +47,28 @@ def authorize_ready_e20_execution(
     model_tokenizers: Sequence[ModelTokenizerIdentity],
     calibration_negative_evidence: Mapping[str, Sequence[UncalibratedDetectorEvidence]],
 ) -> E20ExecutionAuthorization:
+    if not isinstance(m6_readiness, M6ReadinessReport):
+        raise TypeError("m6_readiness must be an M6ReadinessReport")
+    registry = default_development_experiment_registry()
+    verify_m6_readiness(
+        m6_readiness,
+        registry,
+        m6_readiness.evidence,
+        m6_readiness.power_analysis,
+    )
+    if not m6_readiness.ready_for_m7:
+        missing = ",".join(value.value for value in m6_readiness.missing_experiments)
+        raise E20ReadinessGateError(
+            f"M6 development readiness is incomplete: status={m6_readiness.status.value}; missing={missing}"
+        )
+    if m6_readiness.power_analysis is None:
+        raise E20ReadinessGateError("M6 readiness cannot authorize E20 without power analysis evidence")
+    if m6_readiness.power_analysis.evidence_hash != preregistration.power_analysis_hash:
+        raise E20ReadinessGateError("M6 power analysis evidence does not match preregistration")
+    if m6_readiness.power_analysis.final_n_per_core_cell != preregistration.final_n_per_core_cell:
+        raise E20ReadinessGateError("M6 final N does not match preregistration")
+    if power_analysis_hash != m6_readiness.power_analysis.evidence_hash:
+        raise E20ReadinessGateError("authorization power analysis hash does not match M6 evidence")
     if not isinstance(detector_readiness, ConfirmatoryDetectorReadinessReport):
         raise TypeError("detector_readiness must be a ConfirmatoryDetectorReadinessReport")
     verify_confirmatory_detector_readiness(detector_readiness, preregistration)
