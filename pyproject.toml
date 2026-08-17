@@ -14,6 +14,7 @@ dependencies = []
 FuckMark = "fuckmark.cli:main"
 Fuckmark = "fuckmark.cli:main"
 fuckmark = "fuckmark.cli:main"
+fuckmark-synthid-smoke = "fuckmark.synthid_smoke_hf:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3"]
