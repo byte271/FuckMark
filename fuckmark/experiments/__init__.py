@@ -218,6 +218,14 @@ from .e20_sealed_authorization import (
     authorize_sealed_e20_execution,
     verify_sealed_e20_execution_authorization,
 )
+from .e21_analysis import (
+    E21_PRIMARY_ANALYSIS_ALGORITHM_VERSION,
+    E21PrimaryAnalysis,
+    E21PrimaryAnalysisError,
+    build_e21_headline_evidence,
+    build_e21_primary_analysis,
+    verify_e21_primary_analysis,
+)
 from .e21_bundle import (
     E21_RESULT_BUNDLE_ALGORITHM_VERSION,
     E21ResultBundle,
@@ -239,6 +247,13 @@ from .e21_execution import (
     start_e21_run,
     verify_e21_run_ledger,
 )
+from .e21_inference import (
+    E21_PRIMARY_INFERENCE_ALGORITHM_VERSION,
+    E21PrimaryInference,
+    E21PrimaryInferenceError,
+    build_e21_primary_inference,
+    verify_e21_primary_inference,
+)
 from .e21_replication import (
     E21_REPLICATION_ALGORITHM_VERSION,
     E21ConditionComparison,
@@ -246,8 +261,10 @@ from .e21_replication import (
     E21ReplicationComparison,
     E21ReplicationError,
     E21ReplicationStatus,
-    build_e21_replication_comparison,
-    verify_e21_replication_comparison,
+)
+from .e21_replication_verified import (
+    build_verified_e21_replication_comparison,
+    verify_verified_e21_replication_comparison,
 )
 from .e21_rerun import (
     E21_EXECUTION_AUTHORIZATION_ALGORITHM_VERSION,
