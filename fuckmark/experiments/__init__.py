@@ -214,6 +214,37 @@ from .e20_rows import (
     E20WatermarkFields,
     ExperimentReasonCode,
 )
+from .e20_sealed_authorization import (
+    authorize_sealed_e20_execution,
+    verify_sealed_e20_execution_authorization,
+)
+from .extended_analysis import (
+    EXTENDED_ANALYSIS_ALGORITHM_VERSION,
+    EXTENDED_ANALYSIS_ROW_VERSION,
+    ExtendedAnalysisInputError,
+    ExtendedAnalysisResult,
+    ExtendedAnalysisRow,
+    ExtendedStratumSummary,
+    run_e12_surface_battery,
+    run_e13_contraction_battery,
+    run_e14_length_scaling,
+    run_e15_domain_transfer,
+    run_e16_validation_key_transfer,
+    run_e17_tokenizer_transfer,
+    run_e18_detector_disagreement,
+    run_e19_per_depth_drift,
+    verify_extended_analysis_result,
+)
+from .m6_readiness import (
+    M6_READINESS_ALGORITHM_VERSION,
+    M6EvidencePartition,
+    M6ExperimentEvidence,
+    M6PowerAnalysisEvidence,
+    M6ReadinessReport,
+    M6ReadinessStatus,
+    build_m6_readiness,
+    verify_m6_readiness,
+)
 from .mechanisms import (
     E03_ALGORITHM_VERSION,
     OBSERVATION_MECHANISM_ALGORITHM_VERSION,
@@ -224,6 +255,19 @@ from .mechanisms import (
     ObservationMechanismResult,
     run_e03_repetition_fixture,
     run_observation_mechanism,
+)
+from .power_analysis import (
+    POWER_ANALYSIS_ALGORITHM_VERSION,
+    POWER_ANALYSIS_BOOTSTRAP_METHOD,
+    POWER_ANALYSIS_SIMULATION_RNG,
+    PowerAnalysisDirection,
+    PowerAnalysisInput,
+    PowerAnalysisResult,
+    PowerAnalysisStatus,
+    PowerEstimate,
+    m6_power_evidence_from_result,
+    run_power_analysis,
+    verify_power_analysis,
 )
 from .registry import (
     DEVELOPMENT_EXPERIMENT_REGISTRY_VERSION,
