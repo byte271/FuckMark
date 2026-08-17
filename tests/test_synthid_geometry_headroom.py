@@ -126,10 +126,19 @@ def test_source_builder_uses_public_eligibility_geometry() -> None:
 
 
 def test_headroom_rejects_mismatched_candidate_geometry() -> None:
-    all_input, eligible_input = _inputs()
+    all_input, _ = _inputs()
+    registry = release_transform_registry()
+    other_enumeration = registry.enumerate(
+        "We do not stop. We should not wait. We cannot ignore facts."
+    )
+    other_coverage = {
+        candidate.candidate_id: (Interval(index, index + 1),)
+        for index, candidate in enumerate(other_enumeration.candidates)
+    }
+    other_input = KeyBlindScheduleInput.from_enumeration(
+        other_enumeration,
+        coverage_intervals=other_coverage,
+        geometry_mode=ScheduleGeometryMode.TOKENIZER_AWARE_PUBLIC,
+    )
     with pytest.raises(ValueError, match="candidate enumeration"):
-        analyze_geometry_headroom(
-            all_input,
-            replace(eligible_input, enumeration_hash=sha256_text("other"), input_artifact_hash=sha256_text("artifact")),
-            budgets=(1,),
-        )
+        analyze_geometry_headroom(all_input, other_input, budgets=(1,))
