@@ -1,3 +1,8 @@
+from dataclasses import replace
+from functools import lru_cache
+
+import pytest
+
 from test_e20_human_audit import _apply_audit as _apply_e20_audit
 from test_e20_human_audit import _audit_for_selection as _e20_audit_for_selection
 from test_e20_human_audit import _partial_outcome_bundle
@@ -9,9 +14,10 @@ from fuckmark.experiments.e20_rows import E20FidelityFields, E20HumanFidelitySta
 from fuckmark.experiments.e21_bundle import build_e21_result_bundle
 from fuckmark.experiments.e21_failure_verification import build_e21_failure_row
 from fuckmark.experiments.e21_human_audit_v2 import build_e21_human_audit_selection
+from fuckmark.experiments.e21_outcome import build_e21_outcome_row
 from fuckmark.experiments.e21_rows import E21FailureStage, E21OutcomeRow
 from fuckmark.experiments.e25_blind_fidelity import (
-    E25ReportStatus if False else E25BlindFidelityReport,
+    E25BlindFidelityReport,
     build_e25_blind_fidelity_report,
     verify_e25_blind_fidelity_report,
 )
@@ -19,6 +25,7 @@ from fuckmark.hashing import sha256_text
 from fuckmark.transforms import BlindReviewJudgment, FidelityLabel, FidelityReviewSample, create_blind_human_fidelity_audit
 
 
+@lru_cache(maxsize=1)
 def _reviewed_e20():
     authorization, preregistration, manifest, condition_plan, bundle, remaining_failures = _partial_outcome_bundle()
     selection = build_e20_human_audit_selection(bundle, preregistration, manifest, condition_plan)
@@ -34,6 +41,7 @@ def _reviewed_e20():
     return authorization, preregistration, manifest, condition_plan, reviewed_bundle, selection, audit
 
 
+@lru_cache(maxsize=1)
 def _reviewed_e21():
     artifacts = _e21_outcome_fixture()
     authorization = artifacts["authorization"]
@@ -43,10 +51,14 @@ def _reviewed_e21():
     condition_plan = artifacts["condition_plan"]
     chosen_sample = artifacts["source_sample"]
     chosen_condition_id = artifacts["condition_id"]
-    outcome = __import__("fuckmark.experiments.e21_outcome", fromlist=["build_e21_outcome_row"]).build_e21_outcome_row(**artifacts)
+    outcome = build_e21_outcome_row(**artifacts)
     failures = []
     for sample in manifest.samples:
-        for condition_id in _compatible_condition_ids(preregistration, condition_plan, sample.watermark.watermark_config_hash):
+        for condition_id in _compatible_condition_ids(
+            preregistration,
+            condition_plan,
+            sample.watermark.watermark_config_hash,
+        ):
             if sample.sample_id == chosen_sample.sample_id and condition_id == chosen_condition_id:
                 continue
             failures.append(
@@ -125,17 +137,16 @@ def _reviewed_e21():
         (reviewed_outcome,),
         tuple(failures),
     )
-    replayed = build_e21_human_audit_selection(reviewed_bundle, preregistration, manifest, condition_plan)
-    assert replayed == selection
+    assert build_e21_human_audit_selection(reviewed_bundle, preregistration, manifest, condition_plan) == selection
     return authorization, ledger, preregistration, manifest, condition_plan, reviewed_bundle, selection, audit
 
 
-def test_e25_consolidates_two_source_verified_blind_audits() -> None:
+def _report_fixture():
     e20_authorization, preregistration, e20_manifest, condition_plan, e20_bundle, e20_selection, e20_audit = _reviewed_e20()
     e21_authorization, e21_ledger, e21_preregistration, e21_manifest, e21_condition_plan, e21_bundle, e21_selection, e21_audit = _reviewed_e21()
     assert e21_preregistration.preregistration_hash == preregistration.preregistration_hash
     assert e21_condition_plan.plan_hash == condition_plan.plan_hash
-    report = build_e25_blind_fidelity_report(
+    args = (
         preregistration,
         condition_plan,
         e20_bundle,
@@ -150,6 +161,11 @@ def test_e25_consolidates_two_source_verified_blind_audits() -> None:
         e21_selection,
         e21_audit,
     )
+    return build_e25_blind_fidelity_report(*args), args
+
+
+def test_e25_consolidates_two_source_verified_blind_audits() -> None:
+    report, args = _report_fixture()
     assert isinstance(report, E25BlindFidelityReport)
     assert report.e20.reviewed_transform_count == 20
     assert report.e21.reviewed_transform_count == 1
@@ -158,44 +174,13 @@ def test_e25_consolidates_two_source_verified_blind_audits() -> None:
     assert report.combined_equivalent_or_minor_rate == 1.0
     assert report.overall_gate_passed is False
     assert any(value.selected_count == 0 and value.equivalent_or_minor_rate is None for value in report.e21.cells)
-    verify_e25_blind_fidelity_report(
-        report,
-        preregistration,
-        condition_plan,
-        e20_bundle,
-        e20_authorization,
-        e20_manifest,
-        e20_selection,
-        e20_audit,
-        e21_bundle,
-        e21_authorization,
-        e21_ledger,
-        e21_manifest,
-        e21_selection,
-        e21_audit,
-    )
+    verify_e25_blind_fidelity_report(report, *args)
 
 
-def test_e25_rejects_mismatched_run_preregistration_before_pooling() -> None:
-    e20_authorization, preregistration, e20_manifest, condition_plan, e20_bundle, e20_selection, e20_audit = _reviewed_e20()
-    e21_authorization, e21_ledger, _, e21_manifest, _, e21_bundle, e21_selection, e21_audit = _reviewed_e21()
-    try:
-        build_e25_blind_fidelity_report(
-            preregistration,
-            condition_plan,
-            e20_bundle,
-            e20_authorization,
-            e20_manifest,
-            e20_selection,
-            e20_audit,
-            e21_bundle,
-            e21_authorization,
-            e21_ledger,
-            e21_manifest,
-            e21_selection,
-            e21_audit,
-        )
-    except ValueError as error:
-        assert "E21" in str(error) or "preregistration" in str(error) or "authorization" in str(error)
-    else:
-        assert e21_bundle.condition_plan_hash == condition_plan.plan_hash
+def test_e25_does_not_allow_pooled_fidelity_to_override_failed_run_gate() -> None:
+    report, _ = _report_fixture()
+    assert report.combined_equivalent_or_minor_rate == 1.0
+    assert not report.e20.gate_passed
+    assert not report.e21.gate_passed
+    with pytest.raises(ValueError, match="both independently verified run gates"):
+        replace(report, overall_gate_passed=True)
