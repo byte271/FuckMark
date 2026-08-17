@@ -218,6 +218,13 @@ from .e20_sealed_authorization import (
     authorize_sealed_e20_execution,
     verify_sealed_e20_execution_authorization,
 )
+from .e21_bundle import (
+    E21_RESULT_BUNDLE_ALGORITHM_VERSION,
+    E21ResultBundle,
+    E21ResultBundleError,
+    build_e21_result_bundle,
+    verify_e21_result_bundle,
+)
 from .e21_execution import (
     E21_RUN_LEDGER_ALGORITHM_VERSION,
     E21InvalidationReason,
@@ -232,6 +239,16 @@ from .e21_execution import (
     start_e21_run,
     verify_e21_run_ledger,
 )
+from .e21_replication import (
+    E21_REPLICATION_ALGORITHM_VERSION,
+    E21ConditionComparison,
+    E21HeadlineEvidence,
+    E21ReplicationComparison,
+    E21ReplicationError,
+    E21ReplicationStatus,
+    build_e21_replication_comparison,
+    verify_e21_replication_comparison,
+)
 from .e21_rerun import (
     E21_EXECUTION_AUTHORIZATION_ALGORITHM_VERSION,
     E21_EXPERIMENT_ID,
@@ -242,6 +259,34 @@ from .e21_rerun import (
     authorize_e21_execution,
     build_e21_rerun_seal,
     verify_e21_rerun_seal,
+)
+from .e21_rows import (
+    E21_FAILURE_ROW_ALGORITHM_VERSION,
+    E21_OUTCOME_ROW_ALGORITHM_VERSION,
+    E21AlignmentFields,
+    E21AuditFields,
+    E21DetectorFields,
+    E21FailureRow,
+    E21FailureStage,
+    E21FidelityFields,
+    E21GValueFields,
+    E21GenerationFields,
+    E21HumanFidelityStatus,
+    E21IdentityFields,
+    E21ModelFields,
+    E21ObservationFields,
+    E21OutcomeRow,
+    E21SourceFields,
+    E21StatisticsFields,
+    E21TextFields,
+    E21TransformFields,
+    E21WatermarkFields,
+)
+from .e21_seed import (
+    E21_SEED_DERIVATION_ALGORITHM_VERSION,
+    E21SeedVerificationError,
+    derive_e21_condition_seed,
+    e21_sample_shard,
 )
 from .e21_verification import (
     E21AuthorizationVerificationError,
