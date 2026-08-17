@@ -15,6 +15,7 @@ from .e20_aggregate import (
     _condition_aggregate,
 )
 from .e20_conditions import E20ConditionPlan
+from .e20_inference import E20InferenceStatus
 from .e21_bundle import E21ResultBundle, verify_e21_result_bundle
 from .e21_execution import E21RunLedger
 from .e21_rerun import E21ExecutionAuthorization
@@ -168,13 +169,23 @@ def _metric(
 
 def build_e21_headline_evidence(
     analysis: E21PrimaryAnalysis,
+    inference,
 ):
+    from .e21_inference import E21PrimaryInference
     from .e21_replication import E21HeadlineEvidence
 
     if not isinstance(analysis, E21PrimaryAnalysis):
         raise TypeError("analysis must be an E21PrimaryAnalysis")
+    if not isinstance(inference, E21PrimaryInference):
+        raise TypeError("inference must be an E21PrimaryInference")
+    if inference.analysis_hash != analysis.analysis_hash:
+        raise E21PrimaryAnalysisError("E21 inference does not bind the supplied primary analysis")
+    inference_by_condition = {value.condition_id: value for value in inference.inferences}
     evidence = []
     for condition in analysis.conditions:
+        inference_cell = inference_by_condition.get(condition.condition_id)
+        if inference_cell is None:
+            raise E21PrimaryAnalysisError("E21 inference is missing a frozen headline condition")
         tpr_change = _metric(
             condition,
             E20AnalysisPopulation.POLICY_ALL,
@@ -207,9 +218,14 @@ def build_e21_headline_evidence(
             coverage_efficiency,
             decision_loss,
         )
-        headline_eligible = condition.headline_eligible and all(
-            value.status is E20MetricStatus.COMPLETE and value.estimate is not None
-            for value in primary
+        headline_eligible = (
+            condition.headline_eligible
+            and inference_cell.status is E20InferenceStatus.COMPLETE
+            and inference_cell.holm_adjusted_p_value is not None
+            and all(
+                value.status is E20MetricStatus.COMPLETE and value.estimate is not None
+                for value in primary
+            )
         )
         interval = tpr_change.confidence_interval
         evidence.append(
@@ -224,7 +240,7 @@ def build_e21_headline_evidence(
                 standardized_margin_drop=margin_drop.estimate,
                 coverage_efficiency=coverage_efficiency.estimate,
                 decision_loss_rate=decision_loss.estimate,
-                holm_adjusted_p_value=None,
+                holm_adjusted_p_value=inference_cell.holm_adjusted_p_value,
                 headline_eligible=headline_eligible,
             )
         )
