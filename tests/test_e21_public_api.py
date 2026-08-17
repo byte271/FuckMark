@@ -11,6 +11,8 @@ def test_e21_protocol_is_publicly_exported() -> None:
         "E21_OUTCOME_ROW_ALGORITHM_VERSION",
         "E21_FAILURE_ROW_ALGORITHM_VERSION",
         "E21_RESULT_BUNDLE_ALGORITHM_VERSION",
+        "E21_PRIMARY_ANALYSIS_ALGORITHM_VERSION",
+        "E21_PRIMARY_INFERENCE_ALGORITHM_VERSION",
         "E21_REPLICATION_ALGORITHM_VERSION",
         "E21RerunSeal",
         "E21ExecutionAuthorization",
@@ -19,6 +21,8 @@ def test_e21_protocol_is_publicly_exported() -> None:
         "E21OutcomeRow",
         "E21FailureRow",
         "E21ResultBundle",
+        "E21PrimaryAnalysis",
+        "E21PrimaryInference",
         "E21ReplicationComparison",
         "E21HeadlineEvidence",
         "E21ConditionComparison",
@@ -35,9 +39,16 @@ def test_e21_protocol_is_publicly_exported() -> None:
         "derive_e21_condition_seed",
         "build_e21_result_bundle",
         "verify_e21_result_bundle",
-        "build_e21_replication_comparison",
-        "verify_e21_replication_comparison",
+        "build_e21_primary_analysis",
+        "verify_e21_primary_analysis",
+        "build_e21_primary_inference",
+        "verify_e21_primary_inference",
+        "build_e21_headline_evidence",
+        "build_verified_e21_replication_comparison",
+        "verify_verified_e21_replication_comparison",
     )
     for name in expected:
         assert hasattr(experiments, name)
         assert name in experiments.__all__
+    assert not hasattr(experiments, "build_e21_replication_comparison")
+    assert not hasattr(experiments, "verify_e21_replication_comparison")
