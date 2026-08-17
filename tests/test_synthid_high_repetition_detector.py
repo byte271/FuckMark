@@ -12,6 +12,11 @@ from fuckmark.experiments.synthid_high_repetition_detector import (
     score_high_repetition_detector_plan,
 )
 from fuckmark.experiments.synthid_smoke import SynthIDSmokePrompt
+from fuckmark.synthid_high_repetition_detector_hf import (
+    _RecordingBackend,
+    _build_source_manifest,
+    _validate_plan_against_source_manifest,
+)
 from fuckmark.transforms import release_transform_registry
 
 
@@ -131,3 +136,34 @@ def test_high_repetition_scoring_rejects_backend_identity_drift() -> None:
     backend.backend_version = "fake-v2"
     with pytest.raises(ValueError, match="backend_version"):
         score_high_repetition_detector_plan(plan, backend)
+
+
+def test_source_manifest_retains_all_sources_and_reconstructs_the_same_q4() -> None:
+    prompts = _prompts()
+    raw = _PlanBackend(expected_generate_calls=8)
+    prompt_ids = {(row.text, row.seed): row.prompt_id for row in prompts}
+    backend = _RecordingBackend(raw, prompt_ids)
+    plan = build_high_repetition_detector_plan(
+        prompts,
+        backend,
+        release_transform_registry(),
+        budgets=(1,),
+        schedule_seed=43,
+    )
+    manifest = _build_source_manifest(backend, 8)
+    assert manifest["detector_scores_used"] is False
+    assert manifest["source_count"] == 8
+    sources = manifest["sources"]
+    assert isinstance(sources, list)
+    assert len(sources) == 8
+    q4 = tuple(row for row in sources if row["stratum"] == TARGET_STRATUM.value)
+    assert len(q4) == 2
+    _validate_plan_against_source_manifest(plan, manifest)
+
+    tampered = dict(manifest)
+    tampered_sources = [dict(row) for row in sources]
+    first_q4 = next(index for index, row in enumerate(tampered_sources) if row["stratum"] == TARGET_STRATUM.value)
+    tampered_sources[first_q4]["stratum"] = "Q1_LOW"
+    tampered["sources"] = tampered_sources
+    with pytest.raises(RuntimeError, match="Q4 plan"):
+        _validate_plan_against_source_manifest(plan, tampered)
