@@ -3,6 +3,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ..native_observations import NativeObservationBatch
+from .bayesian_artifacts import (
+    BayesianReadinessArtifactBundle,
+    verify_bayesian_readiness_artifact_bundle,
+)
+from .bayesian_calibration import verify_bayesian_calibration_evidence
 from .calibration_apply import apply_calibration
 from .calibration_baseline import evaluate_pristine_baseline
 from .calibration_build import calibrate_detector
@@ -22,27 +27,61 @@ class DetectorArtifactVerificationError(ValueError):
 def verify_uncalibrated_detector_evidence(
     batch: NativeObservationBatch,
     evidence: UncalibratedDetectorEvidence,
+    *,
+    bayesian_artifacts: BayesianReadinessArtifactBundle | None = None,
 ) -> None:
     if not isinstance(batch, NativeObservationBatch):
         raise TypeError("batch must be a NativeObservationBatch")
     if not isinstance(evidence, UncalibratedDetectorEvidence):
         raise TypeError("evidence must be UncalibratedDetectorEvidence")
     if evidence.detector_family is DetectorFamily.MEAN:
+        if bayesian_artifacts is not None:
+            raise DetectorArtifactVerificationError(
+                "Mean detector evidence cannot carry Bayesian readiness artifacts"
+            )
         algorithm_version = MEAN_ALGORITHM_VERSION
         weights = (1.0,) * batch.depth
+        expected = _evidence(
+            batch,
+            evidence.detector_family,
+            algorithm_version,
+            weights,
+        )
     elif evidence.detector_family is DetectorFamily.WEIGHTED_MEAN:
+        if bayesian_artifacts is not None:
+            raise DetectorArtifactVerificationError(
+                "Weighted Mean detector evidence cannot carry Bayesian readiness artifacts"
+            )
         algorithm_version = WEIGHTED_MEAN_ALGORITHM_VERSION
         weights = evidence.normalized_weights
+        expected = _evidence(
+            batch,
+            evidence.detector_family,
+            algorithm_version,
+            weights,
+        )
+    elif evidence.detector_family is DetectorFamily.BAYESIAN:
+        if bayesian_artifacts is None:
+            raise DetectorArtifactVerificationError(
+                "Bayesian detector evidence replay requires the complete readiness artifact bundle"
+            )
+        try:
+            verify_bayesian_readiness_artifact_bundle(bayesian_artifacts)
+            verify_bayesian_calibration_evidence(
+                evidence,
+                batch,
+                bayesian_artifacts.checkpoint,
+                bayesian_artifacts.readiness,
+            )
+        except Exception as error:
+            raise DetectorArtifactVerificationError(
+                "Bayesian detector evidence does not replay from the supplied readiness artifacts"
+            ) from error
+        return
     else:
         raise DetectorArtifactVerificationError(
             "detector evidence replay is not implemented for this detector family"
         )
-    expected = _evidence(
-        batch,
-        evidence.detector_family,
-        algorithm_version,
-        weights,
-    )
     if evidence != expected:
         raise DetectorArtifactVerificationError(
             "uncalibrated detector evidence does not replay exactly from the supplied observation batch"
