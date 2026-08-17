@@ -30,11 +30,11 @@ jobs:
           --model openai-community/gpt2
           --device cpu
           --prompt-limit 20
-          --seed-base 280000
+          --seed-base 281000
           --max-new-tokens 192
           --registry mechanism
           --budgets 1,2,4
-          --schedule-seed 9811
+          --schedule-seed 9821
       - uses: actions/upload-artifact@v4
         if: always()
         with:
