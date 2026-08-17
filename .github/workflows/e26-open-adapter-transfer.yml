@@ -1,0 +1,140 @@
+name: E26 Open Adapter Transfer
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: GPT-2-compatible Hugging Face model used by both native implementations
+        required: true
+        default: openai-community/gpt2
+        type: string
+      prompt_limit:
+        description: Number of built-in prompts
+        required: true
+        default: "20"
+        type: string
+      seed_base:
+        description: First generation seed shared by both native implementations
+        required: true
+        default: "283000"
+        type: string
+      max_new_tokens:
+        description: Generated completion tokens per sample
+        required: true
+        default: "128"
+        type: string
+      target_fpr:
+        description: Native smoke calibration target false-positive rate
+        required: true
+        default: "0.05"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  huggingface:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install CPU Torch
+        run: python -m pip install "torch>=2.4,<3" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install maintained Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Run maintained Transformers native smoke
+        run: >-
+          python -m fuckmark.synthid_smoke_hf
+          --model "${{ inputs.model }}"
+          --device cpu
+          --prompt-limit "${{ inputs.prompt_limit }}"
+          --seed-base "${{ inputs.seed_base }}"
+          --max-new-tokens "${{ inputs.max_new_tokens }}"
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --target-fpr "${{ inputs.target_fpr }}"
+          --json artifacts/huggingface.json
+          --csv artifacts/huggingface.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e26-huggingface
+          path: artifacts/
+          if-no-files-found: warn
+
+  deepmind:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install pinned DeepMind runtime
+        run: |
+          python -m pip install "torch==2.4.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install "numpy==1.26.0" "immutabledict==4.2.0" "transformers==4.43.3"
+          python -m pip install --no-deps "git+https://github.com/google-deepmind/synthid-text.git@addb4a158143c7c6851a1308f78b89fceed59683"
+      - name: Run pinned DeepMind reference native smoke
+        run: >-
+          python -m fuckmark.synthid_smoke_deepmind
+          --model "${{ inputs.model }}"
+          --device cpu
+          --prompt-limit "${{ inputs.prompt_limit }}"
+          --seed-base "${{ inputs.seed_base }}"
+          --max-new-tokens "${{ inputs.max_new_tokens }}"
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --target-fpr "${{ inputs.target_fpr }}"
+          --json artifacts/deepmind.json
+          --csv artifacts/deepmind.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e26-deepmind
+          path: artifacts/
+          if-no-files-found: warn
+
+  combine:
+    needs:
+      - huggingface
+      - deepmind
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          name: e26-huggingface
+          path: inputs/huggingface
+      - uses: actions/download-artifact@v4
+        with:
+          name: e26-deepmind
+          path: inputs/deepmind
+      - name: Build E26 transfer artifact
+        run: >-
+          python -m fuckmark.e26_open_adapter_transfer
+          --deepmind inputs/deepmind/deepmind.json
+          --huggingface inputs/huggingface/huggingface.json
+          --json artifacts/e26-open-adapter-transfer.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: e26-open-adapter-transfer
+          path: artifacts/
+          if-no-files-found: error
