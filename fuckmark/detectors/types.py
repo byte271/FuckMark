@@ -90,6 +90,7 @@ class UncalibratedDetectorEvidence:
     raw_score: float
     normalized_weights: tuple[float, ...]
     compatibility: DetectorCompatibility
+    detector_artifact_hashes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         require_clean_string("sample_id", self.sample_id)
@@ -149,14 +150,21 @@ class UncalibratedDetectorEvidence:
             raise ValueError("normalized_weights must sum to depth")
         normalized_weights = tuple(weights)
         object.__setattr__(self, "normalized_weights", normalized_weights)
-        expected_config_hash = sha256_json(
-            {
-                "detector_family": self.detector_family.value,
-                "algorithm_version": self.detector_algorithm_version,
-                "detector_source_commit": self.detector_source_commit,
-                "normalized_weights": normalized_weights,
-            }
-        )
+        if not isinstance(self.detector_artifact_hashes, tuple):
+            raise TypeError("detector_artifact_hashes must be a tuple")
+        if self.detector_artifact_hashes != tuple(sorted(set(self.detector_artifact_hashes))):
+            raise ValueError("detector_artifact_hashes must be unique and canonically ordered")
+        for value in self.detector_artifact_hashes:
+            require_sha256("detector artifact hash", value)
+        config_payload = {
+            "detector_family": self.detector_family.value,
+            "algorithm_version": self.detector_algorithm_version,
+            "detector_source_commit": self.detector_source_commit,
+            "normalized_weights": normalized_weights,
+        }
+        if self.detector_artifact_hashes:
+            config_payload["detector_artifact_hashes"] = self.detector_artifact_hashes
+        expected_config_hash = sha256_json(config_payload)
         if self.detector_config_hash != expected_config_hash:
             raise ValueError("detector_config_hash does not match detector configuration fields")
         if not isinstance(self.compatibility, DetectorCompatibility):
