@@ -87,7 +87,7 @@ def _fixture():
         power_result,
     )
     inputs = preregistration_inputs(final_n_per_core_cell=power_result.selected_sample_count)
-    inputs = replace(inputs, power_analysis_hash=power_result.result_hash)
+    inputs = replace(inputs, power_analysis_hash=source_verified_m6.power_evidence.evidence_hash)
     preregistration = create_confirmatory_preregistration(inputs)
     return registry, experiments, power_input, power_result, source_verified_m6, preregistration
 
@@ -176,7 +176,7 @@ def test_source_verified_m10_rejects_preregistration_from_different_power_analys
     wrong_inputs = replace(wrong_inputs, power_analysis_hash=sha256_text("different-power-analysis"))
     wrong_preregistration = create_confirmatory_preregistration(wrong_inputs)
 
-    with pytest.raises(ValueError, match="power analysis result"):
+    with pytest.raises(ValueError, match="power analysis evidence"):
         build_source_verified_m10_release_manifest(
             source_verified_m6,
             registry,
@@ -195,7 +195,7 @@ def test_source_verified_m10_rejects_preregistered_final_n_not_selected_by_power
         lambda *args, **kwargs: pytest.fail("low-level M10 builder must not run after final N binding failure"),
     )
     wrong_inputs = preregistration_inputs(final_n_per_core_cell=power_result.selected_sample_count + 1)
-    wrong_inputs = replace(wrong_inputs, power_analysis_hash=power_result.result_hash)
+    wrong_inputs = replace(wrong_inputs, power_analysis_hash=source_verified_m6.power_evidence.evidence_hash)
     wrong_preregistration = create_confirmatory_preregistration(wrong_inputs)
 
     with pytest.raises(ValueError, match="final N"):
