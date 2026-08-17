@@ -33,10 +33,9 @@ class _FakeBackend:
 
     def generate(self, prompt: str, seed: int, *, watermarked: bool) -> str:
         self.generate_calls += 1
-        prefix = "WMARK" if watermarked else "CTRL"
         if "plain" in prompt:
-            return f"{prefix} ordinary words remain stable."
-        return f"{prefix} do not panic. You should not drift. You cannot ignore careful testing."
+            return "Ordinary words remain stable."
+        return "We do not panic. We should not drift. We cannot ignore evidence."
 
     def tokenize(self, text: str) -> tuple[int, ...]:
         self.tokenize_calls += 1
@@ -50,8 +49,7 @@ class _FakeBackend:
         assert self.generate_calls == self.expected_generate_calls
         assert self.tokenize_calls > self.generate_calls
         self.score_calls += 1
-        base = 0.70 if "WMARK" in text else 0.45
-        return base - 0.01 * text.count("'")
+        return 0.55 - 0.01 * text.count("'")
 
 
 def _prompts() -> tuple[SynthIDSmokePrompt, ...]:
