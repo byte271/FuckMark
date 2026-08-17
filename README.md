@@ -49,7 +49,7 @@ python -m pip install -r requirements-smoke.txt
 Run the built-in 20-prompt smoke set:
 
 ```text
-fuckmark-synthid-smoke --model openai-community/gpt2 --prompt-limit 20
+python -m fuckmark.synthid_smoke_hf --model openai-community/gpt2 --prompt-limit 20
 ```
 
 The runner generates matched control and watermarked continuations with the same per-prompt generation seed, transforms both groups before any detector scoring, and records pristine/transformed Weighted Mean scores. It also reports transformed-control drift so a lower watermarked score cannot hide a simultaneous false-positive increase.
