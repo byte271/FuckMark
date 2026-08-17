@@ -50,7 +50,7 @@ class _MechanismBackend:
 
 
 def _coverage_size(intervals) -> int:
-    return sum(value.end - value.start for value in intervals)
+    return sum(value.size for value in intervals)
 
 
 def test_mechanism_rules_are_isolated_and_experimental() -> None:
