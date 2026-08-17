@@ -10,7 +10,7 @@ from typing import Protocol, runtime_checkable
 from .._validation import require_int, require_sha256
 from ..alignment import align_tokens
 from ..coverage import Interval
-from ..hashing import sha256_json, sha256_text
+from ..hashing import sha256_json
 from ..observations import StructuralObservationState, structural_observation_diff, summarize_structural_observations
 from ..transforms import (
     CandidateEnumeration,
@@ -42,28 +42,36 @@ class GeometryPairStatus(str, Enum):
 class SynthIDGeometryBackend(Protocol):
     @property
     def backend_id(self) -> str: ...
+
     @property
     def backend_version(self) -> str: ...
+
     @property
     def model_id(self) -> str: ...
+
     @property
     def detector_id(self) -> str: ...
+
     @property
     def detector_config_hash(self) -> str: ...
+
     @property
     def ngram_len(self) -> int: ...
+
     def generate(self, prompt: str, seed: int, *, watermarked: bool) -> str: ...
+
     def tokenize(self, text: str) -> tuple[int, ...]: ...
+
     def score(self, text: str) -> float: ...
 
 
 def _finite(name: str, value: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a real number")
-    value = float(value)
-    if not math.isfinite(value):
+    output = float(value)
+    if not math.isfinite(output):
         raise ValueError(f"{name} must be finite")
-    return value
+    return output
 
 
 def _intervals(indices: Sequence[int]) -> tuple[Interval, ...]:
@@ -78,7 +86,8 @@ def _intervals(indices: Sequence[int]) -> tuple[Interval, ...]:
             end += 1
         else:
             output.append(Interval(start, end))
-            start, end = value, value + 1
+            start = value
+            end = value + 1
     output.append(Interval(start, end))
     return tuple(output)
 
@@ -89,11 +98,6 @@ def build_public_candidate_coverage(
     tokenizer,
     ngram_len: int,
 ) -> dict[str, tuple[Interval, ...]]:
-    """Map candidates to original n-gram observations changed by each candidate alone.
-
-    The mapping uses only source text, deterministic candidate rules, and public tokenizer
-    geometry. It never reads watermark keys, g-values, detector scores, or decisions.
-    """
     if not isinstance(registry, TransformRegistry):
         raise TypeError("registry must be a TransformRegistry")
     if not isinstance(enumeration, CandidateEnumeration):
@@ -110,13 +114,12 @@ def build_public_candidate_coverage(
         transformed = tuple(tokenizer(single.output_text))
         alignment = align_tokens(original, transformed)
         diffs = structural_observation_diff(original, transformed, ngram_len, alignment)
-        coverage[candidate.candidate_id] = _intervals(
-            tuple(
-                row.original_index
-                for row in diffs
-                if row.state is not StructuralObservationState.PRESERVED
-            )
+        disrupted = tuple(
+            row.original_index
+            for row in diffs
+            if row.state is not StructuralObservationState.PRESERVED
         )
+        coverage[candidate.candidate_id] = _intervals(disrupted)
     return coverage
 
 
@@ -152,22 +155,34 @@ class GeometryVariant:
         if self.policy not in (SchedulePolicy.RANDOM_VALID, SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND):
             raise ValueError("unsupported geometry policy")
         for name in (
-            "generation_seed", "budget", "schedule_seed", "candidate_count",
-            "geometry_positive_candidate_count", "source_token_count", "transformed_token_count",
-            "original_observation_count", "predicted_coverage_count", "selected_count",
-            "realized_edit_cost", "preserved_count", "replaced_count", "unmapped_count",
+            "generation_seed",
+            "budget",
+            "schedule_seed",
+            "candidate_count",
+            "geometry_positive_candidate_count",
+            "source_token_count",
+            "transformed_token_count",
+            "original_observation_count",
+            "predicted_coverage_count",
+            "selected_count",
+            "realized_edit_cost",
+            "preserved_count",
+            "replaced_count",
+            "unmapped_count",
         ):
             require_int(name, getattr(self, name))
-        if self.budget <= 0 or self.realized_edit_cost < 0 or self.realized_edit_cost > self.budget:
-            raise ValueError("invalid budget or realized edit cost")
+        if self.budget <= 0:
+            raise ValueError("budget must be positive")
+        if not 0 <= self.realized_edit_cost <= self.budget:
+            raise ValueError("realized edit cost is outside budget")
         if self.realized_edit_cost != self.selected_count:
             raise ValueError("pilot uses unit operation costs")
-        if self.geometry_positive_candidate_count > self.candidate_count:
-            raise ValueError("geometry-positive candidate count exceeds candidate count")
+        if not 0 <= self.geometry_positive_candidate_count <= self.candidate_count:
+            raise ValueError("invalid geometry-positive candidate count")
         if self.preserved_count + self.replaced_count + self.unmapped_count != self.original_observation_count:
             raise ValueError("observation counts do not sum to original count")
-        if self.predicted_coverage_count > self.original_observation_count:
-            raise ValueError("predicted coverage exceeds original observation count")
+        if not 0 <= self.predicted_coverage_count <= self.original_observation_count:
+            raise ValueError("invalid predicted coverage count")
         object.__setattr__(self, "pristine_score", _finite("pristine_score", self.pristine_score))
         object.__setattr__(self, "transformed_score", _finite("transformed_score", self.transformed_score))
         require_sha256("schedule_result_hash", self.schedule_result_hash)
@@ -186,7 +201,9 @@ class GeometryVariant:
 
     @property
     def disruption_per_edit(self) -> float:
-        return 0.0 if self.realized_edit_cost == 0 else self.disrupted_count / self.realized_edit_cost
+        if self.realized_edit_cost == 0:
+            return 0.0
+        return self.disrupted_count / self.realized_edit_cost
 
     @property
     def score_drop(self) -> float:
@@ -233,20 +250,22 @@ class GeometryPair:
     pair_hash: str
 
     def __post_init__(self) -> None:
-        if not isinstance(self.label, GeometryLabel) or not isinstance(self.status, GeometryPairStatus):
-            raise TypeError("invalid pair enum")
+        if not isinstance(self.label, GeometryLabel):
+            raise TypeError("label must be a GeometryLabel")
+        if not isinstance(self.status, GeometryPairStatus):
+            raise TypeError("status must be a GeometryPairStatus")
         require_int("budget", self.budget)
         require_sha256("greedy_variant_hash", self.greedy_variant_hash)
-        require_sha256("pair_hash", self.pair_hash)
         for value in self.matched_random_variant_hashes:
             require_sha256("matched_random_variant_hash", value)
+        require_sha256("pair_hash", self.pair_hash)
         if self.status is GeometryPairStatus.MATCHED:
             if not self.matched_random_variant_hashes:
                 raise ValueError("matched pair requires random variants")
             _finite("disruption_advantage", self.disruption_advantage)
             _finite("score_drop_advantage", self.score_drop_advantage)
         elif self.disruption_advantage is not None or self.score_drop_advantage is not None:
-            raise ValueError("unmatched pairs must withhold comparison metrics")
+            raise ValueError("unmatched pairs must withhold metrics")
         if self.pair_hash != sha256_json(self.payload()):
             raise ValueError("pair_hash does not match geometry pair")
 
@@ -308,6 +327,8 @@ class SynthIDGeometryReport:
         require_sha256("report_hash", self.report_hash)
         if self.summary.variant_count != len(self.variants):
             raise ValueError("summary variant count does not match report")
+        if self.summary.matched_pair_count != sum(row.status is GeometryPairStatus.MATCHED for row in self.pairs):
+            raise ValueError("summary matched pair count does not match report")
         if self.report_hash != sha256_json(self.payload()):
             raise ValueError("report_hash does not match geometry report")
 
@@ -397,7 +418,7 @@ def _prepare(
     )
 
 
-def _variant(value: _Prepared, pristine_score: float, transformed_score: float) -> GeometryVariant:
+def _make_variant(value: _Prepared, pristine_score: float, transformed_score: float) -> GeometryVariant:
     payload = {
         "prompt_id": value.prompt_id,
         "generation_seed": value.generation_seed,
@@ -449,17 +470,25 @@ def _variant(value: _Prepared, pristine_score: float, transformed_score: float) 
     )
 
 
-def _pair(greedy: GeometryVariant, randoms: tuple[GeometryVariant, ...]) -> GeometryPair:
-    matched = tuple(row for row in randoms if row.realized_edit_cost == greedy.realized_edit_cost > 0)
+def _make_pair(greedy: GeometryVariant, randoms: tuple[GeometryVariant, ...]) -> GeometryPair:
+    matched = tuple(
+        row
+        for row in randoms
+        if greedy.realized_edit_cost > 0 and row.realized_edit_cost == greedy.realized_edit_cost
+    )
     if greedy.realized_edit_cost == 0:
         status = GeometryPairStatus.INELIGIBLE
-        disruption_advantage = score_drop_advantage = None
+        disruption_advantage = None
+        score_drop_advantage = None
     elif not matched:
         status = GeometryPairStatus.NO_MATCHED_RANDOM
-        disruption_advantage = score_drop_advantage = None
+        disruption_advantage = None
+        score_drop_advantage = None
     else:
         status = GeometryPairStatus.MATCHED
-        disruption_advantage = greedy.disruption_per_edit - statistics.fmean(row.disruption_per_edit for row in matched)
+        disruption_advantage = greedy.disruption_per_edit - statistics.fmean(
+            row.disruption_per_edit for row in matched
+        )
         score_drop_advantage = greedy.score_drop - statistics.fmean(row.score_drop for row in matched)
     matched_hashes = tuple(sorted(row.variant_hash for row in matched))
     payload = {
@@ -493,7 +522,9 @@ def _mean_pair(pairs: tuple[GeometryPair, ...], label: GeometryLabel, field: str
         for row in pairs
         if row.status is GeometryPairStatus.MATCHED and row.label is label
     )
-    return statistics.fmean(values) if values else None
+    if not values:
+        return None
+    return statistics.fmean(values)
 
 
 def run_synthid_geometry_pilot(
@@ -518,7 +549,10 @@ def run_synthid_geometry_pilot(
     random_seed_values = tuple(sorted(set(random_seeds)))
     if not budget_values or any(isinstance(value, bool) or not isinstance(value, int) or value <= 0 for value in budget_values):
         raise ValueError("budgets must contain positive integers")
-    if not random_seed_values or any(isinstance(value, bool) or not isinstance(value, int) or not 0 <= value < 1 << 64 for value in random_seed_values):
+    if not random_seed_values or any(
+        isinstance(value, bool) or not isinstance(value, int) or not 0 <= value < 1 << 64
+        for value in random_seed_values
+    ):
         raise ValueError("random_seeds must contain 64-bit unsigned integers")
     require_int("greedy_seed", greedy_seed)
     if not 0 <= greedy_seed < 1 << 64:
@@ -528,13 +562,11 @@ def run_synthid_geometry_pilot(
         raise ValueError("backend.ngram_len must be positive")
     require_sha256("backend.detector_config_hash", backend.detector_config_hash)
 
-    # Generate every matched source before any detector score is requested.
     sources: list[tuple[SynthIDSmokePrompt, GeometryLabel, str]] = []
     for prompt in prompt_values:
         sources.append((prompt, GeometryLabel.CONTROL, backend.generate(prompt.text, prompt.seed, watermarked=False)))
         sources.append((prompt, GeometryLabel.WATERMARKED, backend.generate(prompt.text, prompt.seed, watermarked=True)))
 
-    # Build public-tokenizer geometry and every transform selection before detector scoring.
     prepared: list[_Prepared] = []
     for prompt, label, source_text in sources:
         if not isinstance(source_text, str):
@@ -588,19 +620,22 @@ def run_synthid_geometry_pilot(
         for text in (row.source_text, row.transformed_text):
             if text not in score_cache:
                 score_cache[text] = _finite("backend.score", backend.score(text))
-    variants = tuple(_variant(row, score_cache[row.source_text], score_cache[row.transformed_text]) for row in prepared)
+    variants = tuple(
+        _make_variant(row, score_cache[row.source_text], score_cache[row.transformed_text])
+        for row in prepared
+    )
 
     groups: dict[tuple[str, int, GeometryLabel, int], list[GeometryVariant]] = {}
     for row in variants:
         groups.setdefault((row.prompt_id, row.generation_seed, row.label, row.budget), []).append(row)
     pairs: list[GeometryPair] = []
-    for key in sorted(groups, key=lambda row: (row[0], row[1], row[2].value, row[3])):
+    for key in sorted(groups, key=lambda value: (value[0], value[1], value[2].value, value[3])):
         group = groups[key]
         greedy = tuple(row for row in group if row.policy is SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND)
         randoms = tuple(row for row in group if row.policy is SchedulePolicy.RANDOM_VALID)
         if len(greedy) != 1 or len(randoms) != len(random_seed_values):
             raise RuntimeError("incomplete geometry policy group")
-        pairs.append(_pair(greedy[0], randoms))
+        pairs.append(_make_pair(greedy[0], randoms))
     pair_values = tuple(pairs)
 
     min_budget = budget_values[0]
@@ -612,18 +647,18 @@ def run_synthid_geometry_pilot(
     control_min = tuple(row for row in min_greedy if row.label is GeometryLabel.CONTROL)
     watermark_min = tuple(row for row in min_greedy if row.label is GeometryLabel.WATERMARKED)
     summary = GeometrySummary(
-        prompt_count=len(prompt_values),
-        source_count=len(sources),
-        variant_count=len(variants),
-        budgets=budget_values,
-        random_seed_count=len(random_seed_values),
-        min_budget_control_eligible_rate=sum(row.realized_edit_cost > 0 for row in control_min) / len(control_min),
-        min_budget_watermarked_eligible_rate=sum(row.realized_edit_cost > 0 for row in watermark_min) / len(watermark_min),
-        matched_pair_count=sum(row.status is GeometryPairStatus.MATCHED for row in pair_values),
-        mean_control_disruption_advantage=_mean_pair(pair_values, GeometryLabel.CONTROL, "disruption_advantage"),
-        mean_watermarked_disruption_advantage=_mean_pair(pair_values, GeometryLabel.WATERMARKED, "disruption_advantage"),
-        mean_control_score_drop_advantage=_mean_pair(pair_values, GeometryLabel.CONTROL, "score_drop_advantage"),
-        mean_watermarked_score_drop_advantage=_mean_pair(pair_values, GeometryLabel.WATERMARKED, "score_drop_advantage"),
+        len(prompt_values),
+        len(sources),
+        len(variants),
+        budget_values,
+        len(random_seed_values),
+        sum(row.realized_edit_cost > 0 for row in control_min) / len(control_min),
+        sum(row.realized_edit_cost > 0 for row in watermark_min) / len(watermark_min),
+        sum(row.status is GeometryPairStatus.MATCHED for row in pair_values),
+        _mean_pair(pair_values, GeometryLabel.CONTROL, "disruption_advantage"),
+        _mean_pair(pair_values, GeometryLabel.WATERMARKED, "disruption_advantage"),
+        _mean_pair(pair_values, GeometryLabel.CONTROL, "score_drop_advantage"),
+        _mean_pair(pair_values, GeometryLabel.WATERMARKED, "score_drop_advantage"),
     )
     payload = {
         "algorithm_version": SYNTHID_GEOMETRY_ALGORITHM_VERSION,
