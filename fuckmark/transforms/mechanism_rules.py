@@ -29,7 +29,6 @@ def mechanism_stress_rules() -> tuple[LiteralTransformRule, ...]:
     )
     phrase_pairs = (
         ("stress-reduce-in-order-to", "in order to", "to"),
-        ("stress-reduce-whether-or-not", "whether or not", "whether"),
         ("stress-rephrase-in-other-words", "in other words,", "that is,"),
         ("stress-rephrase-for-example", "for example,", "for instance,"),
         ("stress-rephrase-as-a-result", "as a result,", "therefore,"),
