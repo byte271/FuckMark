@@ -8,7 +8,7 @@ from ..hashing import sha256_json
 from ..transforms.scheduler import SchedulePolicy
 
 
-DEVELOPMENT_EXPERIMENT_REGISTRY_VERSION = "development-experiment-registry-v1"
+DEVELOPMENT_EXPERIMENT_REGISTRY_VERSION = "development-experiment-registry-v2"
 
 
 class DevelopmentExperimentId(str, Enum):
@@ -22,6 +22,14 @@ class DevelopmentExperimentId(str, Enum):
     E09 = "E09"
     E10 = "E10"
     E11 = "E11"
+    E12 = "E12"
+    E13 = "E13"
+    E14 = "E14"
+    E15 = "E15"
+    E16 = "E16"
+    E17 = "E17"
+    E18 = "E18"
+    E19 = "E19"
 
 
 class DevelopmentDataScope(str, Enum):
@@ -280,6 +288,94 @@ DEVELOPMENT_EXPERIMENTS = (
         "Compare realized replacement per edit under the same candidate pool and budget",
         "Any key, g-value, or detector-score access during selection contaminates the T1 experiment",
     ),
+    _definition(
+        DevelopmentExperimentId.E12,
+        "Measure whitespace, punctuation, and orthography tokenization sensitivity",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        False,
+        TransformSelectionAccess.KEY_BLIND,
+        (),
+        (),
+        "Report rule-specific tokenization and observation effects by tokenizer and domain",
+        "Any semantic or code mutation rejects the affected output",
+    ),
+    _definition(
+        DevelopmentExperimentId.E13,
+        "Measure unambiguous contraction and expansion effects",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        False,
+        TransformSelectionAccess.KEY_BLIND,
+        (),
+        (),
+        "Require fidelity pass and report the observation response by rule, density, and domain",
+        "Ambiguous morphology rejects the affected candidate",
+    ),
+    _definition(
+        DevelopmentExperimentId.E14,
+        "Measure normalized perturbation effects from 64 through 1024 generated tokens",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        True,
+        TransformSelectionAccess.KEY_BLIND,
+        (),
+        (DevelopmentExperimentId.E08,),
+        "Use matched realized observation replacement across length strata",
+        "Raw edit-count comparisons across lengths are prohibited",
+    ),
+    _definition(
+        DevelopmentExperimentId.E15,
+        "Test transform and detector effects across the four frozen domains",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        True,
+        TransformSelectionAccess.KEY_BLIND,
+        (),
+        (DevelopmentExperimentId.E08,),
+        "Report all four domain effects under the same frozen policy and budget",
+        "An effect observed in one domain must remain labeled domain-specific",
+    ),
+    _definition(
+        DevelopmentExperimentId.E16,
+        "Evaluate the frozen policy on a key split not used for policy tuning",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        True,
+        TransformSelectionAccess.KEY_BLIND,
+        (),
+        (DevelopmentExperimentId.E11,),
+        "Measure key-transfer evidence across all core strata while preserving the sealed TEST_KEYS boundary",
+        "Any TEST_KEYS material or g-value feedback used for tuning contaminates the key-generalization claim",
+    ),
+    _definition(
+        DevelopmentExperimentId.E17,
+        "Measure the same text perturbation across different tokenizer and model families",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        True,
+        TransformSelectionAccess.KEY_BLIND,
+        (),
+        (),
+        "Report tokenization, observation, and detector interactions for each tested family",
+        "A tokenizer-specific effect cannot be generalized as universal",
+    ),
+    _definition(
+        DevelopmentExperimentId.E18,
+        "Compare Mean, Weighted Mean, and Bayesian detector degradation on paired samples",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        True,
+        TransformSelectionAccess.NOT_APPLICABLE,
+        (),
+        (DevelopmentExperimentId.E02,),
+        "Compare standardized margins and TPR at fixed FPR on the same samples",
+        "Mean-only weakness cannot be reported as full detector failure",
+    ),
+    _definition(
+        DevelopmentExperimentId.E19,
+        "Measure watermark drift separately for every g-value depth",
+        DevelopmentDataScope.ATTACK_DEVELOPMENT,
+        False,
+        TransformSelectionAccess.NOT_APPLICABLE,
+        (),
+        (),
+        "Report per-depth means and covariance summaries by transform and budget",
+        "A global mean alone is insufficient evidence for per-depth drift",
+    ),
 )
 
 
@@ -300,7 +396,7 @@ class DevelopmentExperimentRegistry:
         expected_ids = tuple(DevelopmentExperimentId)
         actual_ids = tuple(value.experiment_id for value in self.definitions)
         if actual_ids != expected_ids:
-            raise ValueError("development experiment registry must contain E02 through E11 in exact order")
+            raise ValueError("development experiment registry must contain E02 through E19 in exact order")
         id_positions = {value: index for index, value in enumerate(actual_ids)}
         for definition in self.definitions:
             for dependency in definition.dependencies:
