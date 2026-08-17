@@ -14,6 +14,7 @@ from fuckmark.experiments.synthid_high_repetition_detector import (
 from fuckmark.experiments.synthid_smoke import SynthIDSmokePrompt
 from fuckmark.synthid_high_repetition_detector_hf import (
     _RecordingBackend,
+    _build_failure_manifest,
     _build_source_manifest,
     _validate_plan_against_source_manifest,
 )
@@ -61,6 +62,14 @@ class _ScoringBackend(_PlanBackend):
         assert self.generate_calls == self.expected_generate_calls
         self.score_calls += 1
         return len(self.tokenize(text)) / 1000.0
+
+
+class _FailingBackend(_PlanBackend):
+    def generate(self, prompt: str, seed: int, *, watermarked: bool) -> str:
+        if seed == 2 and not watermarked:
+            self.generate_calls += 1
+            raise RuntimeError("generation produced an empty decoded continuation")
+        return super().generate(prompt, seed, watermarked=watermarked)
 
 
 def _prompts() -> tuple[SynthIDSmokePrompt, ...]:
@@ -167,3 +176,25 @@ def test_source_manifest_retains_all_sources_and_reconstructs_the_same_q4() -> N
     tampered["sources"] = tampered_sources
     with pytest.raises(RuntimeError, match="Q4 plan"):
         _validate_plan_against_source_manifest(plan, tampered)
+
+
+def test_generation_failure_is_recorded_and_blocks_source_manifest() -> None:
+    prompts = _prompts()
+    raw = _FailingBackend(expected_generate_calls=0)
+    prompt_ids = {(row.text, row.seed): row.prompt_id for row in prompts}
+    backend = _RecordingBackend(raw, prompt_ids)
+    first = prompts[0]
+    second = prompts[1]
+    backend.generate(first.text, first.seed, watermarked=False)
+    with pytest.raises(RuntimeError, match="empty decoded continuation") as caught:
+        backend.generate(second.text, second.seed, watermarked=False)
+    assert len(backend.generated) == 1
+    assert len(backend.failures) == 1
+    failure = _build_failure_manifest(backend, prompts, caught.value)
+    assert failure["detector_scores_used"] is False
+    assert failure["selection_feedback_used"] is False
+    assert failure["successful_source_count"] == 1
+    assert failure["generation_failures"][0]["prompt_id"] == second.prompt_id
+    assert failure["generation_failures"][0]["generation_seed"] == second.seed
+    with pytest.raises(RuntimeError, match="generation failure"):
+        _build_source_manifest(backend, len(prompts) * 2)
