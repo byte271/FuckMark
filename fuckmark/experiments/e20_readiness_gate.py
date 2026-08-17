@@ -4,6 +4,7 @@ from collections.abc import Mapping, Sequence
 
 from ..corpus import CorpusManifest, ModelTokenizerIdentity
 from ..detectors import UncalibratedDetectorEvidence
+from ..detectors.bayesian_artifacts import BayesianReadinessArtifactBundle
 from ..environment import EnvironmentSnapshot
 from .confirmatory import ConfirmatoryPreregistration
 from .confirmatory_corpus import ConfirmatoryCorpusSeal
@@ -12,9 +13,9 @@ from .confirmatory_detector_readiness import (
     verify_confirmatory_detector_readiness,
 )
 from .confirmatory_keys import ConfirmatoryTestKeyManifest
-from .e20_authorization import authorize_e20_execution
-from .e20_conditions import E20ConditionPlan
+from .e20_conditions import E20ConditionPlan, verify_e20_condition_plan
 from .e20_execution import E20ExecutionAuthorization, E20RunLedger
+from .e20_sealed_authorization import authorize_sealed_e20_execution
 from .m6_readiness import M6ReadinessReport, verify_m6_readiness
 from .registry import default_development_experiment_registry
 
@@ -46,6 +47,7 @@ def authorize_ready_e20_execution(
     verification_test_hashes: Sequence[str],
     model_tokenizers: Sequence[ModelTokenizerIdentity],
     calibration_negative_evidence: Mapping[str, Sequence[UncalibratedDetectorEvidence]],
+    bayesian_readiness_artifacts: Mapping[str, BayesianReadinessArtifactBundle] | None = None,
 ) -> E20ExecutionAuthorization:
     if not isinstance(m6_readiness, M6ReadinessReport):
         raise TypeError("m6_readiness must be an M6ReadinessReport")
@@ -82,9 +84,14 @@ def authorize_ready_e20_execution(
         raise E20ReadinessGateError(
             f"E20 detector readiness is incomplete: global_missing={missing}; per_track_missing={per_track}"
         )
-    return authorize_e20_execution(
+    try:
+        verify_e20_condition_plan(condition_plan, preregistration)
+    except Exception as error:
+        raise E20ReadinessGateError(
+            "E20 condition plan did not replay exactly from the sealed preregistration"
+        ) from error
+    return authorize_sealed_e20_execution(
         preregistration,
-        condition_plan,
         corpus_seal,
         corpus_manifest,
         test_key_manifest,
@@ -99,7 +106,9 @@ def authorize_ready_e20_execution(
         code_commit=code_commit,
         spec_revision_hash=spec_revision_hash,
         power_analysis_hash=power_analysis_hash,
+        budget_config_hash=condition_plan.plan_hash,
         verification_test_hashes=verification_test_hashes,
         model_tokenizers=model_tokenizers,
         calibration_negative_evidence=calibration_negative_evidence,
+        bayesian_readiness_artifacts=bayesian_readiness_artifacts,
     )
