@@ -33,7 +33,7 @@ class _FakeBackend:
 
     def generate(self, prompt: str, seed: int, *, watermarked: bool) -> str:
         self.generate_calls += 1
-        if "plain" in prompt:
+        if prompt == "plain output please":
             return "Ordinary words remain stable."
         return "We do not panic. We should not drift. We cannot ignore evidence."
 
