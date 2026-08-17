@@ -247,12 +247,24 @@ from .e21_execution import (
     start_e21_run,
     verify_e21_run_ledger,
 )
+from .e21_failure_verification import (
+    E21_FAILURE_REPLAY_ALGORITHM_VERSION,
+    E21FailureVerificationError,
+    build_e21_failure_row,
+    verify_e21_failure_row,
+)
 from .e21_inference import (
     E21_PRIMARY_INFERENCE_ALGORITHM_VERSION,
     E21PrimaryInference,
     E21PrimaryInferenceError,
     build_e21_primary_inference,
     verify_e21_primary_inference,
+)
+from .e21_outcome import (
+    E21_ROW_REPLAY_ALGORITHM_VERSION,
+    E21RowVerificationError,
+    build_e21_outcome_row,
+    verify_e21_outcome_row,
 )
 from .e21_replication import (
     E21_REPLICATION_ALGORITHM_VERSION,
