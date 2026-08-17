@@ -57,7 +57,9 @@ def _rerun_manifest(e20_manifest, *, seed_offset: int = 10_000, drop_last: bool 
                 generation_tokens=sample.generation_tokens,
             )
         )
-    return build_corpus_manifest("confirmatory-e21-test-fixture", e20_manifest.prompts, samples)
+    used_prompt_ids = {value.prompt_id for value in samples}
+    prompts = tuple(value for value in e20_manifest.prompts if value.prompt_id in used_prompt_ids)
+    return build_corpus_manifest("confirmatory-e21-test-fixture", prompts, samples)
 
 
 def _completed_e20():
