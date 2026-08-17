@@ -13,9 +13,9 @@ from confirmatory_helpers import (
 from fuckmark.corpus import KeySplit
 from fuckmark.detectors import ComparisonOperator, DetectorFamily
 from fuckmark.environment import capture_environment
-from fuckmark.experiments import authorize_e20_execution
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
 from fuckmark.experiments.confirmatory_corpus_tracks import build_confirmatory_corpus_seal
+from fuckmark.experiments.e20_authorization import _authorize_e20_execution_unchecked as authorize_e20_execution
 from fuckmark.experiments.e20_bundle import (
     E20ReasonCount,
     E20ResultBundle,
