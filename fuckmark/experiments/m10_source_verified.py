@@ -81,6 +81,11 @@ def build_source_verified_m10_release_manifest(
         power_result,
     )
 
+    if preregistration.power_analysis_hash != power_result.result_hash:
+        raise ValueError("confirmatory preregistration does not bind the source-verified power analysis result")
+    if preregistration.final_n_per_core_cell != source_verified_m6.power_evidence.final_n_per_core_cell:
+        raise ValueError("confirmatory preregistration final N does not match source-verified power analysis")
+
     release_manifest = _build_m10_release_manifest(
         preregistration,
         source_verified_m6.readiness,
