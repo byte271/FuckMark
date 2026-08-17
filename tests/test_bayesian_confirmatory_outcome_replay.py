@@ -13,10 +13,7 @@ from fuckmark.corpus import TextOnlyTokenRecord, WatermarkLabel
 from fuckmark.detectors import apply_calibration
 from fuckmark.detectors.bayesian_calibration import bayesian_calibration_evidence
 from fuckmark.experiments.confirmatory import create_confirmatory_preregistration
-from fuckmark.experiments.confirmatory_outcome_replay import (
-    ConfirmatoryOutcomeReplayError,
-    build_confirmatory_outcome_fields,
-)
+from fuckmark.experiments.confirmatory_outcome_replay import build_confirmatory_outcome_fields
 from fuckmark.hashing import sha256_text
 from fuckmark.native_observations import build_native_observations
 from fuckmark.transforms import (
@@ -33,14 +30,16 @@ def _fixture():
     bayesian_bundle, _, artifacts = _bayesian_materials(
         inputs.model_tokenizers[0].identity_hash
     )
+    calibration_bundles = inputs.calibration_bundles + (bayesian_bundle,)
+    condition_plan = confirmatory_condition_plan(
+        calibration_bundles=calibration_bundles
+    )
     inputs = replace(
         inputs,
-        calibration_bundles=inputs.calibration_bundles + (bayesian_bundle,),
+        calibration_bundles=calibration_bundles,
+        budget_config_hash=condition_plan.plan_hash,
     )
     preregistration = create_confirmatory_preregistration(inputs)
-    condition_plan = confirmatory_condition_plan(
-        calibration_bundles=inputs.calibration_bundles
-    )
     manifest = confirmatory_manifest(inputs)
     adapter = DeepMindReferenceAdapter(
         DeepMindReferenceConfig(
