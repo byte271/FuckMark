@@ -1,4 +1,4 @@
-from .m10_release_v2 import (
+from .m10_release_v3 import (
     M10_RELEASE_ALGORITHM_VERSION,
     M10ReleaseError,
     M10ReleaseManifest,
