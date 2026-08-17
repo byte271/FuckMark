@@ -162,6 +162,10 @@ def verify_e21_human_audit_selection(
     corpus_manifest: CorpusManifest,
     condition_plan: E20ConditionPlan,
 ) -> None:
+    if isinstance(selection, _LegacyE21HumanAuditSelection):
+        raise TypeError(
+            "selection must use E21 human-audit selection v2; legacy v1 selections are not accepted"
+        )
     if not isinstance(selection, E21HumanAuditSelection):
         raise TypeError("selection must be an E21HumanAuditSelection")
     expected = build_e21_human_audit_selection(
