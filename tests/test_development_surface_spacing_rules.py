@@ -12,12 +12,13 @@ from fuckmark.transforms import (
     development_transform_registry,
     release_transform_registry,
 )
-from fuckmark.transforms.rules import SurfaceSpacingRule
+from fuckmark.transforms.rules import SURFACE_SPACING_RULE_ALGORITHM_VERSION, SurfaceSpacingRule
 from fuckmark.transforms.surface_rules import development_surface_rules
 
 
 def test_surface_spacing_rules_are_case_safe_tier_one_orthography() -> None:
     rules = development_surface_rules()
+    assert SURFACE_SPACING_RULE_ALGORITHM_VERSION == "surface-spacing-rule-v2"
     assert tuple(rule.rule_id for rule in rules) == (
         "surface-space-after-is",
         "surface-space-after-of",
