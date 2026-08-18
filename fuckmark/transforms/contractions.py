@@ -96,6 +96,15 @@ def reversible_contraction_metadata() -> tuple[ReversibleContractionMetadata, ..
         ("contract-cannot", "expand-cannot", "contraction-cannot", "cannot", "can't"),
         ("contract-will-not", "expand-will-not", "contraction-will-not", "will not", "won't"),
         ("contract-should-not", "expand-should-not", "contraction-should-not", "should not", "shouldn't"),
+        ("contract-could-not", "expand-could-not", "contraction-could-not", "could not", "couldn't"),
+        ("contract-would-not", "expand-would-not", "contraction-would-not", "would not", "wouldn't"),
+        ("contract-is-not", "expand-is-not", "contraction-is-not", "is not", "isn't"),
+        ("contract-are-not", "expand-are-not", "contraction-are-not", "are not", "aren't"),
+        ("contract-was-not", "expand-was-not", "contraction-was-not", "was not", "wasn't"),
+        ("contract-were-not", "expand-were-not", "contraction-were-not", "were not", "weren't"),
+        ("contract-has-not", "expand-has-not", "contraction-has-not", "has not", "hasn't"),
+        ("contract-have-not", "expand-have-not", "contraction-have-not", "have not", "haven't"),
+        ("contract-had-not", "expand-had-not", "contraction-had-not", "had not", "hadn't"),
     )
     return tuple(
         ReversibleContractionMetadata.create(
@@ -107,6 +116,26 @@ def reversible_contraction_metadata() -> tuple[ReversibleContractionMetadata, ..
         )
         for forward_rule_id, reverse_rule_id, group_id, expanded_form, contracted_form in rows
     )
+
+
+def development_forward_contraction_rules() -> tuple[LiteralTransformRule, ...]:
+    existing = {rule.rule_id: rule for rule in default_contraction_rules()}
+    output: list[LiteralTransformRule] = []
+    for value in reversible_contraction_metadata():
+        rule = existing.get(value.forward_rule_id)
+        if rule is None:
+            rule = LiteralTransformRule.create(
+                rule_id=value.forward_rule_id,
+                version="v1",
+                family=TransformFamily.CONTRACTION,
+                tier=TransformTier.SURFACE,
+                source=value.expanded_form,
+                replacement=value.contracted_form,
+            )
+        if rule.source != value.expanded_form or rule.replacement != value.contracted_form:
+            raise ValueError("forward contraction rule disagrees with reversible metadata")
+        output.append(rule)
+    return tuple(output)
 
 
 def reverse_contraction_rules() -> tuple[LiteralTransformRule, ...]:
@@ -124,7 +153,7 @@ def reverse_contraction_rules() -> tuple[LiteralTransformRule, ...]:
 
 
 def context_survival_contraction_rules() -> tuple[LiteralTransformRule, ...]:
-    return tuple((*default_contraction_rules(), *reverse_contraction_rules()))
+    return tuple((*development_forward_contraction_rules(), *reverse_contraction_rules()))
 
 
 def contraction_semantic_site(text: str, candidate: TransformCandidate) -> ContractionSemanticSite | None:
