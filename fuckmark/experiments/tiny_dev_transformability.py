@@ -9,8 +9,8 @@ from ..hashing import sha256_json
 from ..transforms import TransformFamily, TransformRegistry, TransformTier
 
 
-TINY_DEV_TRANSFORMABILITY_ALGORITHM_VERSION = "tiny-dev-transformability-v1"
-TINY_DEV_TRANSFORMABILITY_MIN_CANDIDATES = 4
+TINY_DEV_TRANSFORMABILITY_ALGORITHM_VERSION = "tiny-dev-transformability-v2"
+TINY_DEV_TRANSFORMABILITY_MIN_INDEPENDENT_CANDIDATES = 4
 
 
 class TinyDevTransformabilityStatus(str, Enum):
@@ -18,11 +18,24 @@ class TinyDevTransformabilityStatus(str, Enum):
     INSUFFICIENT_CANDIDATES = "INSUFFICIENT_CANDIDATES"
 
 
+def _maximum_nonoverlapping_candidate_count(candidates) -> int:
+    """Return the exact maximum cardinality for one-dimensional candidate spans."""
+    ordered = tuple(sorted(candidates, key=lambda value: (value.end, value.start, value.candidate_id)))
+    count = 0
+    cursor = -1
+    for candidate in ordered:
+        if candidate.start >= cursor:
+            count += 1
+            cursor = candidate.end
+    return count
+
+
 @dataclass(frozen=True, slots=True)
 class TinyDevTransformabilityRow:
     sample_id: str
     domain: CorpusDomain
     candidate_count: int
+    independent_candidate_count: int
     rejection_count: int
     candidate_ids: tuple[str, ...]
     rule_ids: tuple[str, ...]
@@ -35,10 +48,16 @@ class TinyDevTransformabilityRow:
         require_clean_string("sample_id", self.sample_id)
         if not isinstance(self.domain, CorpusDomain):
             raise TypeError("domain must be a CorpusDomain")
-        for name, value in (("candidate_count", self.candidate_count), ("rejection_count", self.rejection_count)):
+        for name, value in (
+            ("candidate_count", self.candidate_count),
+            ("independent_candidate_count", self.independent_candidate_count),
+            ("rejection_count", self.rejection_count),
+        ):
             require_int(name, value)
             if value < 0:
                 raise ValueError(f"{name} must be non-negative")
+        if self.independent_candidate_count > self.candidate_count:
+            raise ValueError("independent_candidate_count cannot exceed candidate_count")
         if not isinstance(self.candidate_ids, tuple) or not isinstance(self.rule_ids, tuple):
             raise TypeError("candidate_ids and rule_ids must be tuples")
         if len(self.candidate_ids) != self.candidate_count or len(self.rule_ids) != self.candidate_count:
@@ -63,6 +82,7 @@ class TinyDevTransformabilityRow:
             "sample_id": self.sample_id,
             "domain": self.domain.value,
             "candidate_count": self.candidate_count,
+            "independent_candidate_count": self.independent_candidate_count,
             "rejection_count": self.rejection_count,
             "candidate_ids": self.candidate_ids,
             "rule_ids": self.rule_ids,
@@ -78,7 +98,7 @@ class TinyDevTransformabilityAudit:
     tiny_dev_artifact_hash: str
     corpus_manifest_hash: str
     ruleset_hash: str
-    minimum_candidates_per_source: int
+    minimum_independent_candidates_per_source: int
     rows: tuple[TinyDevTransformabilityRow, ...]
     expected_source_count: int
     transformable_source_count: int
@@ -96,9 +116,9 @@ class TinyDevTransformabilityAudit:
             ("audit_hash", self.audit_hash),
         ):
             require_sha256(name, value)
-        require_int("minimum_candidates_per_source", self.minimum_candidates_per_source)
-        if self.minimum_candidates_per_source != TINY_DEV_TRANSFORMABILITY_MIN_CANDIDATES:
-            raise ValueError("minimum candidate gate does not match frozen TinyDev audit")
+        require_int("minimum_independent_candidates_per_source", self.minimum_independent_candidates_per_source)
+        if self.minimum_independent_candidates_per_source != TINY_DEV_TRANSFORMABILITY_MIN_INDEPENDENT_CANDIDATES:
+            raise ValueError("minimum independent-candidate gate does not match TinyDev audit policy")
         if not isinstance(self.rows, tuple) or any(not isinstance(value, TinyDevTransformabilityRow) for value in self.rows):
             raise TypeError("rows must contain TinyDevTransformabilityRow values")
         if tuple(sorted(self.rows, key=lambda value: value.sample_id)) != self.rows:
@@ -108,13 +128,14 @@ class TinyDevTransformabilityAudit:
         if self.expected_source_count != 4 or len(self.rows) != 4:
             raise ValueError("TinyDev transformability audit requires four watermarked attack sources")
         expected_transformable = sum(
-            value.candidate_count >= self.minimum_candidates_per_source for value in self.rows
+            value.independent_candidate_count >= self.minimum_independent_candidates_per_source
+            for value in self.rows
         )
         if self.transformable_source_count != expected_transformable:
             raise ValueError("transformable_source_count does not match rows")
         expected_blocked = tuple(
             value.sample_id for value in self.rows
-            if value.candidate_count < self.minimum_candidates_per_source
+            if value.independent_candidate_count < self.minimum_independent_candidates_per_source
         )
         if self.blocked_source_ids != expected_blocked:
             raise ValueError("blocked_source_ids does not match rows")
@@ -134,7 +155,7 @@ class TinyDevTransformabilityAudit:
             "tiny_dev_artifact_hash": self.tiny_dev_artifact_hash,
             "corpus_manifest_hash": self.corpus_manifest_hash,
             "ruleset_hash": self.ruleset_hash,
-            "minimum_candidates_per_source": self.minimum_candidates_per_source,
+            "minimum_independent_candidates_per_source": self.minimum_independent_candidates_per_source,
             "rows": self.rows,
             "expected_source_count": self.expected_source_count,
             "transformable_source_count": self.transformable_source_count,
@@ -164,10 +185,12 @@ def build_tiny_dev_transformability_audit(
     rows = []
     for sample in sources:
         enumeration = registry.enumerate(sample.text)
+        independent_count = _maximum_nonoverlapping_candidate_count(enumeration.candidates)
         payload = {
             "sample_id": sample.sample_id,
             "domain": sample.domain.value,
             "candidate_count": len(enumeration.candidates),
+            "independent_candidate_count": independent_count,
             "rejection_count": len(enumeration.rejections),
             "candidate_ids": tuple(value.candidate_id for value in enumeration.candidates),
             "rule_ids": tuple(value.rule_id for value in enumeration.candidates),
@@ -179,6 +202,7 @@ def build_tiny_dev_transformability_audit(
             sample_id=sample.sample_id,
             domain=sample.domain,
             candidate_count=len(enumeration.candidates),
+            independent_candidate_count=independent_count,
             rejection_count=len(enumeration.rejections),
             candidate_ids=tuple(value.candidate_id for value in enumeration.candidates),
             rule_ids=tuple(value.rule_id for value in enumeration.candidates),
@@ -190,7 +214,7 @@ def build_tiny_dev_transformability_audit(
     row_tuple = tuple(rows)
     blocked = tuple(
         value.sample_id for value in row_tuple
-        if value.candidate_count < TINY_DEV_TRANSFORMABILITY_MIN_CANDIDATES
+        if value.independent_candidate_count < TINY_DEV_TRANSFORMABILITY_MIN_INDEPENDENT_CANDIDATES
     )
     status = (
         TinyDevTransformabilityStatus.READY
@@ -202,7 +226,7 @@ def build_tiny_dev_transformability_audit(
         "tiny_dev_artifact_hash": artifact.artifact_hash,
         "corpus_manifest_hash": artifact.manifest.manifest_hash,
         "ruleset_hash": registry.ruleset_hash,
-        "minimum_candidates_per_source": TINY_DEV_TRANSFORMABILITY_MIN_CANDIDATES,
+        "minimum_independent_candidates_per_source": TINY_DEV_TRANSFORMABILITY_MIN_INDEPENDENT_CANDIDATES,
         "rows": row_tuple,
         "expected_source_count": 4,
         "transformable_source_count": 4 - len(blocked),
@@ -214,7 +238,7 @@ def build_tiny_dev_transformability_audit(
         tiny_dev_artifact_hash=artifact.artifact_hash,
         corpus_manifest_hash=artifact.manifest.manifest_hash,
         ruleset_hash=registry.ruleset_hash,
-        minimum_candidates_per_source=TINY_DEV_TRANSFORMABILITY_MIN_CANDIDATES,
+        minimum_independent_candidates_per_source=TINY_DEV_TRANSFORMABILITY_MIN_INDEPENDENT_CANDIDATES,
         rows=row_tuple,
         expected_source_count=4,
         transformable_source_count=4 - len(blocked),
