@@ -13,6 +13,7 @@ from .protected import ProtectedSpanExtractor
 from .protected_artifacts import ProtectedSpan, UserProtectedRange
 from .rules import TransformRule, default_contraction_rules, validate_rules
 from .schema import CandidateRejectionReason, InvariantStatus
+from .surface_rules import development_surface_rules
 from .syntax_rules import SyntaxTemplateRule, development_syntax_rules
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
@@ -189,7 +190,7 @@ def default_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegi
 
 
 def development_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegistry:
-    return TransformRegistry((*default_contraction_rules(), *development_lexical_rules(), *development_syntax_rules()), identifiers)
+    return TransformRegistry((*default_contraction_rules(), *development_surface_rules(), *development_lexical_rules(), *development_syntax_rules()), identifiers)
 
 
 def release_transform_registry(

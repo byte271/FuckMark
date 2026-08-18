@@ -1,0 +1,109 @@
+{
+  "algorithm_version": "real-tiny-dev-transformability-expanded-evidence-v1",
+  "evidence_kind": "development-transformability-readiness-diagnostic",
+  "scientific_scope": "DEV_KEYS-only 64-token Hugging Face GPT-2 TinyDev transformability audit under the case-safe Tier 1 spacing development registry; engineering readiness diagnostic, not a scientific weakness result, not M6 readiness, and the four-independent-candidate gate is not a frozen spec threshold",
+  "source": {
+    "repository": "byte271/FuckMark",
+    "head_commit": "81812500abbaf7a4423267fc82cbf554962d1a32",
+    "workflow_run_id": 32091281960,
+    "workflow_run_number": 9,
+    "workflow_name": "Real TinyDev Transformability",
+    "workflow_conclusion": "success",
+    "artifact_id": 9308598577,
+    "artifact_name": "real-tiny-dev-transformability",
+    "artifact_zip_sha256": "f8fedef712dde2229fd731a322178a57bb88f6ea4f485e2302745cba48cc10a6",
+    "corpus_json_sha256": "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+    "transformability_json_sha256": "1671625e33b3de9fb083711fddadc39f282b3de1673d93af37cc409bbedf5e36"
+  },
+  "audit": {
+    "audit_hash": "3302c98344e315f3e02d8e46f2352c56efd5681fe11de4422336659694e2668c",
+    "ruleset_hash": "d106bba92b97d3423396fb1d75197bb32f58864051e93360a7fc07fc7cc2499b",
+    "tiny_dev_artifact_hash": "42240f72e17df1a048f44197f216a0b5f30128c26e2da93afbe92820946e4561",
+    "corpus_manifest_hash": "693788e76bceea43e72425b98f326bc09e4840d069eb47dacb18784ec7c2e388",
+    "minimum_independent_candidates_per_source": 4,
+    "expected_source_count": 4,
+    "transformable_source_count": 4,
+    "status": "READY",
+    "rows": [
+      {
+        "sample_id": "tiny-dev-attack_development-conversational_prose-25-watermarked",
+        "domain": "conversational_prose",
+        "candidate_count": 6,
+        "independent_candidate_count": 6,
+        "rule_ids": [
+          "surface-space-after-of",
+          "surface-space-after-of",
+          "surface-space-after-is",
+          "surface-space-after-of",
+          "surface-space-after-of",
+          "surface-space-after-is"
+        ]
+      },
+      {
+        "sample_id": "tiny-dev-attack_development-general_explanatory-25-watermarked",
+        "domain": "general_explanatory",
+        "candidate_count": 6,
+        "independent_candidate_count": 6,
+        "rule_ids": [
+          "surface-space-after-to",
+          "surface-space-after-is",
+          "surface-space-after-is",
+          "surface-space-after-is",
+          "surface-space-after-is",
+          "surface-space-after-is"
+        ]
+      },
+      {
+        "sample_id": "tiny-dev-attack_development-structured_instructional-25-watermarked",
+        "domain": "structured_instructional",
+        "candidate_count": 11,
+        "independent_candidate_count": 11,
+        "rule_ids": [
+          "contract-do-not",
+          "surface-space-after-to",
+          "surface-space-after-period",
+          "surface-space-after-of",
+          "surface-space-after-period",
+          "surface-space-after-period",
+          "surface-space-after-period",
+          "surface-space-after-period",
+          "surface-space-after-period",
+          "surface-space-after-period",
+          "surface-space-after-period"
+        ]
+      },
+      {
+        "sample_id": "tiny-dev-attack_development-technical_explanation-25-watermarked",
+        "domain": "technical_explanation",
+        "candidate_count": 9,
+        "independent_candidate_count": 9,
+        "rule_ids": [
+          "surface-space-after-of",
+          "surface-space-after-period",
+          "surface-space-after-is",
+          "surface-space-after-period",
+          "surface-space-after-of",
+          "surface-space-after-is",
+          "surface-space-after-to",
+          "surface-space-after-period",
+          "surface-space-after-to"
+        ]
+      }
+    ]
+  },
+  "comparison_to_pre_expansion_audit": {
+    "pre_expansion_audit_hash": "69204934ce20c3a6a2de7c41b672a05ed96459cd6498064d2b0de2962afe0753",
+    "pre_expansion_ruleset_hash": "c06869f18535b50b08f625a7ab209fc6a8e9e669aaf1d0c3e25c6a7bbc274a65",
+    "pre_expansion_transformable_source_count": 0,
+    "expanded_transformable_source_count": 4,
+    "candidate_counts_before": [0, 0, 1, 0],
+    "independent_candidate_counts_after": [6, 6, 11, 9]
+  },
+  "interpretation": [
+    "The case-safe Tier 1 spacing development registry clears the engineering four-independent-candidate readiness gate on all four real TinyDev attack sources.",
+    "All newly observed spacing candidates are development-only and remain subject to hard-invariant and fidelity gates; this audit does not establish detector degradation.",
+    "The pre-expansion blocker evidence remains preserved separately and is not overwritten.",
+    "This result authorizes construction of real DEV_KEYS DevelopmentTransformRow evidence for E07-E11; it does not authorize sealed TEST access or confirmatory claims."
+  ],
+  "evidence_hash": "264668a274ea98014adaa086c8d11a7fd53aee33ea496c487f10a4966586f590"
+}

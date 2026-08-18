@@ -12,6 +12,7 @@ from .syntax_rules import SyntaxTemplateRule
 
 
 RULE_ALGORITHM_VERSION = "literal-transform-rule-v2"
+SURFACE_SPACING_RULE_ALGORITHM_VERSION = "surface-spacing-rule-v1"
 _MAX_RULES = 100_000
 
 
@@ -109,6 +110,85 @@ class LiteralTransformRule:
             if self.source[-1].isalnum() or self.source[-1] == "_":
                 pattern = rf"{pattern}(?!\w)"
         return re.compile(pattern)
+
+
+class SurfaceSpacingRule(LiteralTransformRule):
+    def __post_init__(self) -> None:
+        require_clean_string("rule_id", self.rule_id)
+        require_clean_string("version", self.version)
+        if self.family is not TransformFamily.ORTHOGRAPHY:
+            raise ValueError("surface spacing rules must use the orthography family")
+        if self.tier is not TransformTier.SURFACE:
+            raise ValueError("surface spacing rules must use tier 1 surface")
+        if not isinstance(self.source, str) or not self.source or "\n" in self.source or "\r" in self.source:
+            raise ValueError("surface source must be non-empty and single-line")
+        if not isinstance(self.replacement, str) or not self.replacement or "\n" in self.replacement or "\r" in self.replacement:
+            raise ValueError("surface replacement must be non-empty and single-line")
+        if self.replacement != self.source + " ":
+            raise ValueError("surface spacing replacement must add exactly one trailing space")
+        if self.source.isalpha() and (self.source != self.source.lower() or len(self.source) < 2):
+            raise ValueError("word surface sources must be lowercase alphabetic words")
+        require_bool("whole_word", self.whole_word)
+        require_bool("preserve_simple_case", self.preserve_simple_case)
+        require_bool("block_all_caps", self.block_all_caps)
+        if self.whole_word or self.preserve_simple_case or self.block_all_caps:
+            raise ValueError("surface spacing rules use an exact case-sensitive boundary contract")
+        require_sha256("rule_hash", self.rule_hash)
+        if self.rule_hash != sha256_json(self._payload()):
+            raise ValueError("rule_hash does not match surface spacing rule")
+
+    def _payload(self) -> dict[str, object]:
+        return {
+            "algorithm_version": SURFACE_SPACING_RULE_ALGORITHM_VERSION,
+            "rule_id": self.rule_id,
+            "version": self.version,
+            "family": self.family.value,
+            "tier": self.tier.value,
+            "source": self.source,
+            "replacement": self.replacement,
+            "whole_word": self.whole_word,
+            "preserve_simple_case": self.preserve_simple_case,
+            "block_all_caps": self.block_all_caps,
+        }
+
+    @classmethod
+    def create(
+        cls,
+        rule_id: str,
+        version: str,
+        source: str,
+        replacement: str,
+    ) -> SurfaceSpacingRule:
+        payload = {
+            "algorithm_version": SURFACE_SPACING_RULE_ALGORITHM_VERSION,
+            "rule_id": rule_id,
+            "version": version,
+            "family": TransformFamily.ORTHOGRAPHY.value,
+            "tier": TransformTier.SURFACE.value,
+            "source": source,
+            "replacement": replacement,
+            "whole_word": False,
+            "preserve_simple_case": False,
+            "block_all_caps": False,
+        }
+        return cls(
+            rule_id=rule_id,
+            version=version,
+            family=TransformFamily.ORTHOGRAPHY,
+            tier=TransformTier.SURFACE,
+            source=source,
+            replacement=replacement,
+            whole_word=False,
+            preserve_simple_case=False,
+            block_all_caps=False,
+            rule_hash=sha256_json(payload),
+        )
+
+    def pattern(self) -> re.Pattern[str]:
+        literal = re.escape(self.source)
+        if self.source.isalpha():
+            return re.compile(rf"(?<!\w){literal}(?=\s)")
+        return re.compile(literal)
 
 
 def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
