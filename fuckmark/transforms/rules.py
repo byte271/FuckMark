@@ -6,12 +6,13 @@ from dataclasses import dataclass
 
 from .._validation import require_bool, require_clean_string, require_sha256
 from ..hashing import sha256_json
+from .format_rules import FormatTransformRule
 from .lexical_rules import LexicalTemplateRule
 from .schema import TransformFamily, TransformTier
 from .syntax_rules import SyntaxTemplateRule
 
 
-RULE_ALGORITHM_VERSION = "literal-transform-rule-v3"
+RULE_ALGORITHM_VERSION = "literal-transform-rule-v2"
 _MAX_RULES = 100_000
 
 
@@ -35,17 +36,10 @@ class LiteralTransformRule:
             raise TypeError("family must be a TransformFamily")
         if not isinstance(self.tier, TransformTier):
             raise TypeError("tier must be a TransformTier")
-        if not isinstance(self.source, str) or not self.source or "\r" in self.source:
-            raise ValueError("source must be non-empty and must not contain carriage returns")
-        if not isinstance(self.replacement, str) or not self.replacement or "\r" in self.replacement:
-            raise ValueError("replacement must be non-empty and must not contain carriage returns")
-        is_format = self.family is TransformFamily.FORMAT and self.tier is TransformTier.FORMAT
-        if (self.family is TransformFamily.FORMAT) != (self.tier is TransformTier.FORMAT):
-            raise ValueError("format family and tier_0_format must be used together")
-        if ("\n" in self.source or "\n" in self.replacement) and not is_format:
-            raise ValueError("multiline literal rules are allowed only for explicit tier 0 format rules")
-        if is_format and (self.preserve_simple_case or self.block_all_caps):
-            raise ValueError("tier 0 format rules must disable case preservation and all-caps blocking")
+        if not isinstance(self.source, str) or not self.source or "\n" in self.source or "\r" in self.source:
+            raise ValueError("source must be non-empty and single-line")
+        if not isinstance(self.replacement, str) or not self.replacement or "\n" in self.replacement or "\r" in self.replacement:
+            raise ValueError("replacement must be non-empty and single-line")
         if self.source.casefold() == self.replacement.casefold():
             raise ValueError("source and replacement must differ")
         require_bool("whole_word", self.whole_word)
@@ -130,7 +124,7 @@ def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
     return tuple(
         LiteralTransformRule.create(
             rule_id=rule_id,
-            version="v3",
+            version="v2",
             family=TransformFamily.CONTRACTION,
             tier=TransformTier.SURFACE,
             source=source,
@@ -140,7 +134,7 @@ def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
     )
 
 
-TransformRule = LiteralTransformRule | LexicalTemplateRule | SyntaxTemplateRule
+TransformRule = FormatTransformRule | LiteralTransformRule | LexicalTemplateRule | SyntaxTemplateRule
 
 
 def validate_rules(rules: Sequence[TransformRule]) -> tuple[TransformRule, ...]:
@@ -151,7 +145,10 @@ def validate_rules(rules: Sequence[TransformRule]) -> tuple[TransformRule, ...]:
     normalized = tuple(rules)
     if not normalized:
         raise ValueError("rules must not be empty")
-    if any(not isinstance(rule, (LiteralTransformRule, LexicalTemplateRule, SyntaxTemplateRule)) for rule in normalized):
+    if any(
+        not isinstance(rule, (FormatTransformRule, LiteralTransformRule, LexicalTemplateRule, SyntaxTemplateRule))
+        for rule in normalized
+    ):
         raise TypeError("rules must contain supported transform rule values")
     identities = tuple((rule.rule_id, rule.version) for rule in normalized)
     if len(set(identities)) != len(identities):
