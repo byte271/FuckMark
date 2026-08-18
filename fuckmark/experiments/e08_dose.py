@@ -15,9 +15,9 @@ from .transform_analysis import (
 )
 
 
-E08_ALGORITHM_VERSION = "e08-dose-response-v1"
+E08_ALGORITHM_VERSION = "e08-dose-response-v2"
 E08_BIN_EDGES = (0.0, 0.10, 0.25, 0.50, 0.75, 1.0)
-E08_BOOTSTRAP_REPLICATES = 1000
+E08_BOOTSTRAP_REPLICATES = 2000
 
 
 @dataclass(frozen=True, slots=True)
