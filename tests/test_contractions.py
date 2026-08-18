@@ -3,6 +3,7 @@ from __future__ import annotations
 from fuckmark.transforms.contractions import (
     context_survival_contraction_rules,
     contraction_semantic_site,
+    development_forward_contraction_rules,
     reverse_contraction_rules,
     reversible_contraction_metadata,
 )
@@ -12,12 +13,12 @@ from fuckmark.transforms.rules import default_contraction_rules
 from fuckmark.transforms.schema import CandidateRejectionReason, TransformFamily, TransformTier
 
 
-def test_reversible_metadata_matches_existing_forward_rules() -> None:
+def test_reversible_metadata_matches_development_forward_rules() -> None:
     metadata = reversible_contraction_metadata()
-    forward = {rule.rule_id: rule for rule in default_contraction_rules()}
-    assert len(metadata) == 6
-    assert len({value.inverse_semantic_group_id for value in metadata}) == 6
-    assert len({value.metadata_hash for value in metadata}) == 6
+    forward = {rule.rule_id: rule for rule in development_forward_contraction_rules()}
+    assert len(metadata) == 15
+    assert len({value.inverse_semantic_group_id for value in metadata}) == 15
+    assert len({value.metadata_hash for value in metadata}) == 15
     for value in metadata:
         rule = forward[value.forward_rule_id]
         assert rule.source == value.expanded_form
@@ -25,10 +26,16 @@ def test_reversible_metadata_matches_existing_forward_rules() -> None:
         assert value.reverse_rule_id.startswith("expand-")
 
 
+def test_existing_default_forward_rules_remain_unchanged_subset() -> None:
+    development = {rule.rule_id: rule for rule in development_forward_contraction_rules()}
+    for rule in default_contraction_rules():
+        assert development[rule.rule_id] == rule
+
+
 def test_reverse_rules_are_exact_tier_one_contraction_inverses() -> None:
     metadata = {value.reverse_rule_id: value for value in reversible_contraction_metadata()}
     rules = reverse_contraction_rules()
-    assert len(rules) == 6
+    assert len(rules) == 15
     for rule in rules:
         value = metadata[rule.rule_id]
         assert rule.family is TransformFamily.CONTRACTION
@@ -38,6 +45,20 @@ def test_reverse_rules_are_exact_tier_one_contraction_inverses() -> None:
         assert rule.whole_word is True
         assert rule.preserve_simple_case is True
         assert rule.block_all_caps is True
+
+
+def test_additional_development_forward_rule_is_bidirectional() -> None:
+    registry = TransformRegistry(context_survival_contraction_rules())
+    first = registry.enumerate("We could not stay.")
+    forward = tuple(value for value in first.candidates if value.rule_id == "contract-could-not")
+    assert len(forward) == 1
+    contracted = registry.apply(first, (forward[0].candidate_id,))
+    assert contracted.output_text == "We couldn't stay."
+    second = registry.enumerate(contracted.output_text)
+    reverse = tuple(value for value in second.candidates if value.rule_id == "expand-could-not")
+    assert len(reverse) == 1
+    expanded = registry.apply(second, (reverse[0].candidate_id,))
+    assert expanded.output_text == "We could not stay."
 
 
 def test_reverse_contraction_preserves_supported_simple_case() -> None:
@@ -72,9 +93,9 @@ def test_reverse_contraction_respects_user_protected_range() -> None:
 
 def test_combined_catalog_keeps_forward_and_reverse_rule_ids_unique() -> None:
     rules = context_survival_contraction_rules()
-    assert len(rules) == 12
-    assert len({(rule.rule_id, rule.version) for rule in rules}) == 12
-    assert len({rule.rule_hash for rule in rules}) == 12
+    assert len(rules) == 30
+    assert len({(rule.rule_id, rule.version) for rule in rules}) == 30
+    assert len({rule.rule_hash for rule in rules}) == 30
 
 
 def test_semantic_site_is_stable_across_forward_then_reverse() -> None:
