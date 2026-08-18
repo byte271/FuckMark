@@ -1,0 +1,77 @@
+name: Real TinyDev Context-Survival Mechanism Pilot
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/tiny-dev-context-survival.yml"
+      - "fuckmark/tiny_dev_context_survival_hf.py"
+      - "fuckmark/experiments/context_survival_plan.py"
+      - "fuckmark/geometry/**"
+      - "fuckmark/scheduling/**"
+      - "fuckmark/transforms/**"
+      - "fuckmark/tiny_dev_corpus_hf.py"
+      - "fuckmark/tiny_dev_detector_hf.py"
+      - "fuckmark/tiny_dev_transform_hf.py"
+      - "fuckmark/tiny_dev_transform_runtime_hf.py"
+      - "tests/test_tiny_dev_context_survival_hf.py"
+
+permissions:
+  contents: read
+
+jobs:
+  context-survival-mechanism:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install maintained Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Reproduce canonical real TinyDev corpus
+        run: >-
+          python -m fuckmark.tiny_dev_corpus_hf
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --seed-base 401000
+          --max-attempts 16
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --json artifacts/tiny-dev-corpus.json
+      - name: Verify canonical corpus SHA-256
+        shell: bash
+        run: |
+          actual="$(sha256sum artifacts/tiny-dev-corpus.json | cut -d' ' -f1)"
+          test "$actual" = "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664"
+      - name: Freeze context-survival plan then score independently
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          python -m fuckmark.tiny_dev_context_survival_hf
+          --corpus-json artifacts/tiny-dev-corpus.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --budgets 1,2,4,6
+          --random-seeds 8
+          --beam-width 32
+          --max-risk-tier 1
+          --source-code-commit "${PR_HEAD_SHA:-$GITHUB_SHA}"
+          --plan-json artifacts/tiny-dev-context-survival-plan.json
+          --json artifacts/tiny-dev-context-survival-evidence.json
+          --provenance-json artifacts/tiny-dev-context-survival-provenance.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-tiny-dev-context-survival
+          path: artifacts/
+          if-no-files-found: error
