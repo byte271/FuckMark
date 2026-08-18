@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from .._validation import require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
+from .format_rules import development_format_rules
 from .hard_invariants import validate_hard_invariants
 from .lexical_audit import LexicalRuleAudit, LexicalRulePromotionError
 from .lexical_rules import LexicalTemplateRule, development_lexical_rules
@@ -13,6 +14,7 @@ from .protected import ProtectedSpanExtractor
 from .protected_artifacts import ProtectedSpan, UserProtectedRange
 from .rules import TransformRule, default_contraction_rules, validate_rules
 from .schema import CandidateRejectionReason, InvariantStatus
+from .surface_rules import development_surface_rules
 from .syntax_rules import SyntaxTemplateRule, development_syntax_rules
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
@@ -189,7 +191,16 @@ def default_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegi
 
 
 def development_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegistry:
-    return TransformRegistry((*default_contraction_rules(), *development_lexical_rules(), *development_syntax_rules()), identifiers)
+    return TransformRegistry(
+        (
+            *development_format_rules(),
+            *default_contraction_rules(),
+            *development_surface_rules(),
+            *development_lexical_rules(),
+            *development_syntax_rules(),
+        ),
+        identifiers,
+    )
 
 
 def release_transform_registry(
