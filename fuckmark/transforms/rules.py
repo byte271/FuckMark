@@ -12,7 +12,7 @@ from .syntax_rules import SyntaxTemplateRule
 
 
 RULE_ALGORITHM_VERSION = "literal-transform-rule-v2"
-SURFACE_SPACING_RULE_ALGORITHM_VERSION = "surface-spacing-rule-v1"
+SURFACE_SPACING_RULE_ALGORITHM_VERSION = "surface-spacing-rule-v2"
 _MAX_RULES = 128
 
 
