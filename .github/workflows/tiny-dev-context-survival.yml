@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/tiny-dev-context-survival.yml"
+      - "fuckmark/tiny_dev_context_survival_plan_hf.py"
       - "fuckmark/tiny_dev_context_survival_hf.py"
       - "fuckmark/experiments/context_survival_plan.py"
       - "fuckmark/geometry/**"
@@ -13,7 +14,6 @@ on:
       - "fuckmark/tiny_dev_corpus_hf.py"
       - "fuckmark/tiny_dev_detector_hf.py"
       - "fuckmark/tiny_dev_transform_hf.py"
-      - "fuckmark/tiny_dev_transform_runtime_hf.py"
       - "tests/test_tiny_dev_context_survival_hf.py"
 
 permissions:
@@ -52,21 +52,32 @@ jobs:
         run: |
           actual="$(sha256sum artifacts/tiny-dev-corpus.json | cut -d' ' -f1)"
           test "$actual" = "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664"
-      - name: Freeze context-survival plan then score independently
+      - name: Freeze detector-blind context-survival plan
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: >-
-          python -m fuckmark.tiny_dev_context_survival_hf
+          python -m fuckmark.tiny_dev_context_survival_plan_hf
           --corpus-json artifacts/tiny-dev-corpus.json
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
-          --device cpu
+          --ngram-len 5
+          --context-history-size 1024
           --budgets 1,2,4,6
           --random-seeds 8
           --beam-width 32
           --max-risk-tier 1
           --source-code-commit "${PR_HEAD_SHA:-$GITHUB_SHA}"
           --plan-json artifacts/tiny-dev-context-survival-plan.json
+          --provenance-json artifacts/tiny-dev-context-survival-plan-provenance.json
+      - name: Score frozen plan in independent process
+        run: >-
+          python -m fuckmark.tiny_dev_context_survival_hf
+          --corpus-json artifacts/tiny-dev-corpus.json
+          --plan-json artifacts/tiny-dev-context-survival-plan.json
+          --plan-provenance-json artifacts/tiny-dev-context-survival-plan-provenance.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
           --json artifacts/tiny-dev-context-survival-evidence.json
           --provenance-json artifacts/tiny-dev-context-survival-provenance.json
       - uses: actions/upload-artifact@v4

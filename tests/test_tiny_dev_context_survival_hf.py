@@ -252,17 +252,32 @@ def test_plan_builder_is_deterministic_and_detector_blind() -> None:
     assert EXACT_B1_POLICY in policies
 
 
-def test_plan_module_has_no_detector_or_secret_imports() -> None:
-    path = Path(__file__).parents[1] / "fuckmark" / "experiments" / "context_survival_plan.py"
-    tree = ast.parse(path.read_text(encoding="utf-8"))
+def test_plan_process_has_no_detector_or_secret_imports() -> None:
+    root = Path(__file__).parents[1]
+    paths = (
+        root / "fuckmark" / "experiments" / "context_survival_plan.py",
+        root / "fuckmark" / "tiny_dev_context_survival_plan_hf.py",
+    )
     forbidden = ("detector", "bayesian", "g_value", "gvalue", "watermark_key", "secret")
-    names = []
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        names = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names.extend(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom):
+                names.append(node.module or "")
+        assert all(not any(value in name.lower() for value in forbidden) for name in names)
+
+
+def test_scoring_process_does_not_build_or_select_a_plan() -> None:
+    path = Path(__file__).parents[1] / "fuckmark" / "tiny_dev_context_survival_hf.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    imported = []
     for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            names.extend(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom):
-            names.append(node.module or "")
-    assert all(not any(value in name.lower() for value in forbidden) for name in names)
+        if isinstance(node, ast.ImportFrom):
+            imported.extend(alias.name for alias in node.names)
+    assert "build_context_survival_plan" not in imported
 
 
 def test_random_comparison_aggregates_replicates_within_source() -> None:

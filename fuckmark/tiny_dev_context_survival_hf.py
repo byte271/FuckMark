@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 from datetime import datetime, timezone
@@ -15,22 +16,21 @@ from .experiments.context_survival_plan import (
     BEAM_B4_POLICY,
     BEAM_B6_POLICY,
     COVERAGE_POLICY,
-    DEFAULT_BEAM_WIDTH,
-    DEFAULT_BUDGETS,
-    DEFAULT_MAX_RISK_TIER,
-    DEFAULT_RANDOM_SEED_COUNT,
     EVEN_SPACING_POLICY,
     EXACT_B1_POLICY,
     EXACT_B2_POLICY,
     GREEDY_POLICY,
     STATEFUL_RANDOM_POLICY,
     SUCCESS,
-    build_context_survival_plan,
 )
 from .hashing import sha256_json
 from .native_observations import build_native_observations
 from .observations import structural_observation_diff, summarize_structural_observations
-from .tiny_dev_corpus_hf import DEFAULT_MODEL_ID, DEFAULT_MODEL_REVISION
+from .tiny_dev_context_survival_plan_hf import (
+    DEFAULT_MODEL_ID,
+    DEFAULT_MODEL_REVISION,
+    runtime_tokenizer_identity_public,
+)
 from .tiny_dev_detector_hf import default_watermark_config_hash, default_watermark_payload
 from .tiny_dev_transform_hf import (
     PRIMARY_TARGET_FPR,
@@ -43,28 +43,24 @@ from .tiny_dev_transform_hf import (
     _word_units,
     _write_fsynced,
 )
-from .tiny_dev_transform_runtime_hf import runtime_tokenizer_identity
 
 
 TINY_DEV_CONTEXT_SURVIVAL_EVIDENCE_VERSION = "tiny-dev-context-survival-evidence-v1"
-TINY_DEV_CONTEXT_SURVIVAL_PROVENANCE_VERSION = "tiny-dev-context-survival-provenance-v1"
+TINY_DEV_CONTEXT_SURVIVAL_PROVENANCE_VERSION = "tiny-dev-context-survival-provenance-v2"
 PAIR_STATUS_MATCHED = "MATCHED"
 PAIR_STATUS_UNMATCHED_COST = "UNMATCHED_COST"
 ECS1_STATUS = "WITHHELD_TINYDEV_ENGINEERING_ONLY"
 
 
-def _parse_budgets(value: str) -> tuple[int, ...]:
-    try:
-        budgets = tuple(sorted({int(part.strip()) for part in value.split(",") if part.strip()}))
-    except ValueError as error:
-        raise argparse.ArgumentTypeError("budgets must be comma-separated positive integers") from error
-    if not budgets or any(item <= 0 for item in budgets):
-        raise argparse.ArgumentTypeError("budgets must be comma-separated positive integers")
-    return budgets
-
-
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _load_json(path: Path) -> dict[str, object]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ValueError("expected a JSON object")
+    return value
 
 
 def _mean(values: tuple[float, ...]) -> float | None:
@@ -424,27 +420,45 @@ def score_context_survival_plan(
     return {**payload, "artifact_hash": sha256_json(payload)}
 
 
-def _provenance(
+def _validate_plan_provenance(
+    plan_provenance: dict[str, object],
+    plan: dict[str, object],
+) -> None:
+    expected = sha256_json(
+        {key: value for key, value in plan_provenance.items() if key != "provenance_hash"}
+    )
+    if plan_provenance.get("provenance_hash") != expected:
+        raise ValueError("plan provenance hash does not replay")
+    if plan_provenance.get("plan_hash") != plan.get("plan_hash"):
+        raise ValueError("plan provenance does not bind the frozen plan")
+    if plan_provenance.get("source_code_commit") != plan.get("source_code_commit"):
+        raise ValueError("plan provenance source commit does not match the frozen plan")
+    if plan_provenance.get("plan_fsync_success") is not True:
+        raise ValueError("plan provenance does not record successful fsync")
+
+
+def _final_provenance(
     *,
-    source_code_commit: str,
-    plan_hash: str,
+    plan: dict[str, object],
+    plan_provenance: dict[str, object],
     evidence_hash: str,
-    plan_started_at: str,
-    plan_fsynced_at: str,
-    scoring_started_at: str,
+    scoring_process_started_at: str,
     scoring_finished_at: str,
 ) -> dict[str, object]:
+    source_code_commit = str(plan["source_code_commit"])
     github_sha = os.environ.get("GITHUB_SHA")
     payload = {
         "algorithm_version": TINY_DEV_CONTEXT_SURVIVAL_PROVENANCE_VERSION,
         "source_code_commit": source_code_commit,
-        "plan_hash": plan_hash,
+        "plan_hash": plan["plan_hash"],
+        "plan_provenance_hash": plan_provenance["provenance_hash"],
         "evidence_hash": evidence_hash,
-        "plan_started_at_utc": plan_started_at,
-        "plan_fsynced_at_utc": plan_fsynced_at,
-        "scoring_started_at_utc": scoring_started_at,
+        "plan_started_at_utc": plan_provenance["plan_started_at_utc"],
+        "plan_fsynced_at_utc": plan_provenance["plan_fsynced_at_utc"],
+        "plan_fsync_success": plan_provenance["plan_fsync_success"],
+        "scoring_process_started_at_utc": scoring_process_started_at,
         "scoring_finished_at_utc": scoring_finished_at,
-        "plan_fsync_success": True,
+        "separate_scoring_process": True,
         "github_run_id": os.environ.get("GITHUB_RUN_ID"),
         "github_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
         "github_event_name": os.environ.get("GITHUB_EVENT_NAME"),
@@ -464,19 +478,11 @@ def _provenance(
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fuckmark-tiny-dev-context-survival-hf")
     parser.add_argument("--corpus-json", type=Path, required=True)
+    parser.add_argument("--plan-json", type=Path, required=True)
+    parser.add_argument("--plan-provenance-json", type=Path, required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL_ID)
     parser.add_argument("--model-revision", default=DEFAULT_MODEL_REVISION)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
-    parser.add_argument("--budgets", type=_parse_budgets, default=DEFAULT_BUDGETS)
-    parser.add_argument("--random-seeds", type=int, default=DEFAULT_RANDOM_SEED_COUNT)
-    parser.add_argument("--beam-width", type=int, default=DEFAULT_BEAM_WIDTH)
-    parser.add_argument("--max-risk-tier", type=int, default=DEFAULT_MAX_RISK_TIER)
-    parser.add_argument("--source-code-commit", default="UNKNOWN")
-    parser.add_argument(
-        "--plan-json",
-        type=Path,
-        default=Path("artifacts/tiny-dev-context-survival-plan.json"),
-    )
     parser.add_argument(
         "--json",
         type=Path,
@@ -492,12 +498,18 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    scoring_process_started_at = _now()
+    corpus = load_tiny_dev_corpus_json(args.corpus_json)
+    plan = _load_json(args.plan_json)
+    plan_provenance = _load_json(args.plan_provenance_json)
+    _validate_plan(plan, corpus)
+    _validate_plan_provenance(plan_provenance, plan)
+
     try:
         from transformers import AutoTokenizer
     except ImportError as error:
         raise RuntimeError("Install the pinned TinyDev Transformers dependencies first") from error
 
-    corpus = load_tiny_dev_corpus_json(args.corpus_json)
     tokenizer = AutoTokenizer.from_pretrained(
         args.model,
         revision=args.model_revision,
@@ -505,28 +517,17 @@ def main(argv: list[str] | None = None) -> int:
         padding_side="left",
     )
     if not getattr(tokenizer, "is_fast", False):
-        raise RuntimeError("TinyDev context-survival geometry requires a fast tokenizer")
-    identity = runtime_tokenizer_identity(tokenizer, args.model, args.model_revision)
+        raise RuntimeError("TinyDev context-survival scoring requires a fast tokenizer")
+    identity = runtime_tokenizer_identity_public(tokenizer, args.model, args.model_revision)
     if identity.identity_hash != corpus.model_identity_hash:
         raise RuntimeError("runtime tokenizer identity does not match frozen TinyDev corpus")
 
     watermark_payload = default_watermark_payload()
-    plan_started_at = _now()
-    plan = build_context_survival_plan(
-        corpus,
-        tokenizer,
-        ngram_len=int(watermark_payload["ngram_len"]),
-        context_history_size=int(watermark_payload["context_history_size"]),
-        budgets=args.budgets,
-        random_seed_count=args.random_seeds,
-        beam_width=args.beam_width,
-        max_risk_tier=args.max_risk_tier,
-        source_code_commit=args.source_code_commit,
-    )
-    _write_fsynced(args.plan_json, plan)
-    plan_fsynced_at = _now()
+    if int(plan["ngram_len"]) != int(watermark_payload["ngram_len"]):
+        raise RuntimeError("frozen plan ngram_len does not match scoring watermark configuration")
+    if int(plan["context_history_size"]) != int(watermark_payload["context_history_size"]):
+        raise RuntimeError("frozen plan context history does not match scoring watermark configuration")
 
-    scoring_started_at = _now()
     adapter = HuggingFaceSynthIDAdapter.from_torch(
         HuggingFaceSynthIDConfig(
             ngram_len=watermark_payload["ngram_len"],
@@ -542,13 +543,11 @@ def main(argv: list[str] | None = None) -> int:
     evidence = score_context_survival_plan(corpus, tokenizer, plan, adapter)
     _write_fsynced(args.json, evidence)
     scoring_finished_at = _now()
-    provenance = _provenance(
-        source_code_commit=args.source_code_commit,
-        plan_hash=plan["plan_hash"],
+    provenance = _final_provenance(
+        plan=plan,
+        plan_provenance=plan_provenance,
         evidence_hash=evidence["artifact_hash"],
-        plan_started_at=plan_started_at,
-        plan_fsynced_at=plan_fsynced_at,
-        scoring_started_at=scoring_started_at,
+        scoring_process_started_at=scoring_process_started_at,
         scoring_finished_at=scoring_finished_at,
     )
     _write_fsynced(args.provenance_json, provenance)
@@ -567,7 +566,6 @@ def main(argv: list[str] | None = None) -> int:
             f"mean_exact_destruction={summary['mean_exact_destruction_ratio']} "
             f"mean_margin_drop={summary['mean_margin_drop']}\n"
         )
-    sys.stdout.write(f"plan_json={args.plan_json.as_posix()}\n")
     sys.stdout.write(f"json={args.json.as_posix()}\n")
     sys.stdout.write(f"provenance_json={args.provenance_json.as_posix()}\n")
     return 0

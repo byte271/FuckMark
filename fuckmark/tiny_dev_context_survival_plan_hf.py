@@ -1,0 +1,183 @@
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+from .config import canonical_json_text
+from .corpus import ModelTokenizerIdentity, PaddingSide, load_tiny_dev_corpus_json
+from .experiments.context_survival_plan import (
+    DEFAULT_BEAM_WIDTH,
+    DEFAULT_BUDGETS,
+    DEFAULT_MAX_RISK_TIER,
+    DEFAULT_RANDOM_SEED_COUNT,
+    build_context_survival_plan,
+)
+from .hashing import sha256_json, sha256_text
+
+
+DEFAULT_MODEL_ID = "openai-community/gpt2"
+DEFAULT_MODEL_REVISION = "607a30d783dfa663caf39e06633721c8d4cfcd7e"
+DEFAULT_NGRAM_LEN = 5
+DEFAULT_CONTEXT_HISTORY_SIZE = 1024
+TINY_DEV_CONTEXT_SURVIVAL_PLAN_PROVENANCE_VERSION = "tiny-dev-context-survival-plan-provenance-v1"
+
+
+def _parse_budgets(value: str) -> tuple[int, ...]:
+    try:
+        budgets = tuple(sorted({int(part.strip()) for part in value.split(",") if part.strip()}))
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("budgets must be comma-separated positive integers") from error
+    if not budgets or any(item <= 0 for item in budgets):
+        raise argparse.ArgumentTypeError("budgets must be comma-separated positive integers")
+    return budgets
+
+
+def _now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _write_fsynced(path: Path, value: object) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(canonical_json_text(value))
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
+def runtime_tokenizer_identity_public(
+    tokenizer,
+    model_id: str,
+    model_revision: str,
+) -> ModelTokenizerIdentity:
+    if tokenizer.eos_token_id is None:
+        raise RuntimeError("runtime tokenizer must define eos_token_id")
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token = tokenizer.eos_token
+    chat_template = getattr(tokenizer, "chat_template", None)
+    if chat_template is not None and not isinstance(chat_template, str):
+        raise RuntimeError("runtime tokenizer chat_template must be a string when present")
+    padding_side = getattr(tokenizer, "padding_side", None)
+    if padding_side != "left":
+        raise RuntimeError("runtime tokenizer must use left padding to match frozen TinyDev identity")
+    return ModelTokenizerIdentity.create(
+        model_id=model_id,
+        model_revision=model_revision,
+        tokenizer_id=model_id,
+        tokenizer_revision=model_revision,
+        chat_template_present=bool(chat_template),
+        chat_template_hash=sha256_text(chat_template or ""),
+        special_token_map_hash=sha256_json(tokenizer.special_tokens_map),
+        padding_side=PaddingSide.LEFT,
+        bos_token_id=tokenizer.bos_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+        pad_token_id=tokenizer.pad_token_id,
+        add_bos_token=bool(getattr(tokenizer, "add_bos_token", False)),
+        add_eos_token=bool(getattr(tokenizer, "add_eos_token", False)),
+    )
+
+
+def _plan_provenance(
+    *,
+    source_code_commit: str,
+    plan_hash: str,
+    plan_started_at: str,
+    plan_fsynced_at: str,
+) -> dict[str, object]:
+    payload = {
+        "algorithm_version": TINY_DEV_CONTEXT_SURVIVAL_PLAN_PROVENANCE_VERSION,
+        "source_code_commit": source_code_commit,
+        "plan_hash": plan_hash,
+        "plan_started_at_utc": plan_started_at,
+        "plan_fsynced_at_utc": plan_fsynced_at,
+        "plan_fsync_success": True,
+        "github_run_id": os.environ.get("GITHUB_RUN_ID"),
+        "github_run_attempt": os.environ.get("GITHUB_RUN_ATTEMPT"),
+        "github_event_name": os.environ.get("GITHUB_EVENT_NAME"),
+        "github_checkout_sha": os.environ.get("GITHUB_SHA"),
+        "github_head_ref": os.environ.get("GITHUB_HEAD_REF"),
+        "github_base_ref": os.environ.get("GITHUB_BASE_REF"),
+    }
+    return {**payload, "provenance_hash": sha256_json(payload)}
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog="fuckmark-tiny-dev-context-survival-plan-hf")
+    parser.add_argument("--corpus-json", type=Path, required=True)
+    parser.add_argument("--model", default=DEFAULT_MODEL_ID)
+    parser.add_argument("--model-revision", default=DEFAULT_MODEL_REVISION)
+    parser.add_argument("--budgets", type=_parse_budgets, default=DEFAULT_BUDGETS)
+    parser.add_argument("--random-seeds", type=int, default=DEFAULT_RANDOM_SEED_COUNT)
+    parser.add_argument("--beam-width", type=int, default=DEFAULT_BEAM_WIDTH)
+    parser.add_argument("--max-risk-tier", type=int, default=DEFAULT_MAX_RISK_TIER)
+    parser.add_argument("--ngram-len", type=int, default=DEFAULT_NGRAM_LEN)
+    parser.add_argument("--context-history-size", type=int, default=DEFAULT_CONTEXT_HISTORY_SIZE)
+    parser.add_argument("--source-code-commit", required=True)
+    parser.add_argument(
+        "--plan-json",
+        type=Path,
+        default=Path("artifacts/tiny-dev-context-survival-plan.json"),
+    )
+    parser.add_argument(
+        "--provenance-json",
+        type=Path,
+        default=Path("artifacts/tiny-dev-context-survival-plan-provenance.json"),
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = _parser().parse_args(argv)
+    try:
+        from transformers import AutoTokenizer
+    except ImportError as error:
+        raise RuntimeError("Install the pinned TinyDev Transformers dependencies first") from error
+
+    corpus = load_tiny_dev_corpus_json(args.corpus_json)
+    tokenizer = AutoTokenizer.from_pretrained(
+        args.model,
+        revision=args.model_revision,
+        use_fast=True,
+        padding_side="left",
+    )
+    if not getattr(tokenizer, "is_fast", False):
+        raise RuntimeError("TinyDev context-survival geometry requires a fast tokenizer")
+    identity = runtime_tokenizer_identity_public(tokenizer, args.model, args.model_revision)
+    if identity.identity_hash != corpus.model_identity_hash:
+        raise RuntimeError("runtime tokenizer identity does not match frozen TinyDev corpus")
+
+    plan_started_at = _now()
+    plan = build_context_survival_plan(
+        corpus,
+        tokenizer,
+        ngram_len=args.ngram_len,
+        context_history_size=args.context_history_size,
+        budgets=args.budgets,
+        random_seed_count=args.random_seeds,
+        beam_width=args.beam_width,
+        max_risk_tier=args.max_risk_tier,
+        source_code_commit=args.source_code_commit,
+    )
+    _write_fsynced(args.plan_json, plan)
+    plan_fsynced_at = _now()
+    provenance = _plan_provenance(
+        source_code_commit=args.source_code_commit,
+        plan_hash=plan["plan_hash"],
+        plan_started_at=plan_started_at,
+        plan_fsynced_at=plan_fsynced_at,
+    )
+    _write_fsynced(args.provenance_json, provenance)
+
+    sys.stdout.write(f"plan_hash={plan['plan_hash']}\n")
+    sys.stdout.write(f"plan_provenance_hash={provenance['provenance_hash']}\n")
+    sys.stdout.write(f"variant_count={len(plan['variants'])}\n")
+    sys.stdout.write(f"plan_json={args.plan_json.as_posix()}\n")
+    sys.stdout.write(f"provenance_json={args.provenance_json.as_posix()}\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
