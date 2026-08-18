@@ -8,6 +8,7 @@ from .._validation import require_bool, require_clean_string, require_sha256
 from ..hashing import sha256_json
 from .lexical_rules import LexicalTemplateRule
 from .schema import TransformFamily, TransformTier
+from .surface_rules import SurfaceSpacingRule
 from .syntax_rules import SyntaxTemplateRule
 
 
@@ -133,7 +134,7 @@ def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
     )
 
 
-TransformRule = LiteralTransformRule | LexicalTemplateRule | SyntaxTemplateRule
+TransformRule = SurfaceSpacingRule | LiteralTransformRule | LexicalTemplateRule | SyntaxTemplateRule
 
 
 def validate_rules(rules: Sequence[TransformRule]) -> tuple[TransformRule, ...]:
@@ -144,7 +145,10 @@ def validate_rules(rules: Sequence[TransformRule]) -> tuple[TransformRule, ...]:
     normalized = tuple(rules)
     if not normalized:
         raise ValueError("rules must not be empty")
-    if any(not isinstance(rule, (LiteralTransformRule, LexicalTemplateRule, SyntaxTemplateRule)) for rule in normalized):
+    if any(
+        not isinstance(rule, (SurfaceSpacingRule, LiteralTransformRule, LexicalTemplateRule, SyntaxTemplateRule))
+        for rule in normalized
+    ):
         raise TypeError("rules must contain supported transform rule values")
     identities = tuple((rule.rule_id, rule.version) for rule in normalized)
     if len(set(identities)) != len(identities):
