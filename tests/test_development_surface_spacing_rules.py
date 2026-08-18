@@ -39,12 +39,24 @@ def test_surface_spacing_rules_are_case_safe_tier_one_orthography() -> None:
     assert len({rule.rule_hash for rule in rules}) == len(rules)
 
 
-def test_word_spacing_rule_requires_lowercase_word_followed_by_whitespace() -> None:
+def test_word_spacing_rule_requires_lowercase_word_followed_by_horizontal_space() -> None:
     rule = development_surface_rules()[0]
     assert tuple(match.group(0) for match in rule.pattern().finditer("this is stable")) == ("is",)
+    assert tuple(match.group(0) for match in rule.pattern().finditer("this is\tstable")) == ("is",)
     assert tuple(match.group(0) for match in rule.pattern().finditer("Is this stable?")) == ()
     assert tuple(match.group(0) for match in rule.pattern().finditer("is, this stable?")) == ()
-    assert tuple(match.group(0) for match in rule.pattern().finditer("is\nnext")) == ("is",)
+    assert tuple(match.group(0) for match in rule.pattern().finditer("is\nnext")) == ()
+    assert tuple(match.group(0) for match in rule.pattern().finditer("is \nnext")) == ("is",)
+
+
+def test_line_end_surface_spacing_does_not_create_markdown_hard_break() -> None:
+    registry = development_transform_registry()
+    text = "This is\nnext. This is \nnext."
+    enumeration = registry.enumerate(text)
+    is_candidates = tuple(value for value in enumeration.candidates if value.rule_id == "surface-space-after-is")
+    assert len(is_candidates) == 1
+    assert text[is_candidates[0].start:is_candidates[0].end] == "is"
+    assert text[is_candidates[0].end:is_candidates[0].end + 2] == " \n"
 
 
 def test_expanded_surface_battery_enumerates_common_function_words() -> None:
