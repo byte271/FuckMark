@@ -39,7 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     for row in audit.rows:
         sys.stdout.write(
             f"source={row.sample_id} domain={row.domain.value} "
-            f"candidates={row.candidate_count} rejections={row.rejection_count} "
+            f"candidates={row.candidate_count} "
+            f"independent_candidates={row.independent_candidate_count} "
+            f"rejections={row.rejection_count} "
             f"rules={','.join(row.rule_ids) or '-'}\n"
         )
     sys.stdout.write(f"json={args.json.as_posix()}\n")
