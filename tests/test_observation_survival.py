@@ -106,6 +106,5 @@ def test_prompt_boundary_and_track_are_bound_into_occurrence_hash() -> None:
         root_tokens=tokens,
         config=other_config,
     )
-    # Occurrence identity is about the occurrence itself; the root hash binds the geometry policy.
     assert other.observations[0].occurrence_hash == row.occurrence_hash
     assert other.root_hash != root.root_hash
