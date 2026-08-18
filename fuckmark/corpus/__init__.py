@@ -32,6 +32,12 @@ from .tiny_dev import (
     TinyDevCorpusError,
     build_tiny_dev_corpus,
 )
+from .tiny_dev_io import (
+    TINY_DEV_JSON_MAX_BYTES,
+    TinyDevCorpusJsonError,
+    load_tiny_dev_corpus_json,
+    parse_tiny_dev_corpus_json,
+)
 from .tokenization import GenerationTokenRecord, TextOnlyTokenRecord, TokenTrack
 
 
@@ -42,6 +48,7 @@ __all__ = [
     "TINY_DEV_CALIBRATION_PAIRS_PER_DOMAIN",
     "TINY_DEV_CORPUS_ALGORITHM_VERSION",
     "TINY_DEV_DOMAINS",
+    "TINY_DEV_JSON_MAX_BYTES",
     "TINY_DEV_SPLITS",
     "TINY_DEV_TARGET_LENGTH",
     "CorpusDomain",
@@ -63,9 +70,12 @@ __all__ = [
     "TinyDevCorpusArtifact",
     "TinyDevCorpusCell",
     "TinyDevCorpusError",
+    "TinyDevCorpusJsonError",
     "TokenTrack",
     "WatermarkCondition",
     "WatermarkLabel",
     "build_corpus_manifest",
     "build_tiny_dev_corpus",
+    "load_tiny_dev_corpus_json",
+    "parse_tiny_dev_corpus_json",
 ]
