@@ -33,7 +33,9 @@ def test_development_policy_combines_surface_lexical_and_syntax_rules() -> None:
     enumeration = development_transform_registry().enumerate(text)
     assert tuple(candidate.rule_id for candidate in enumeration.candidates) == (
         "contract-do-not",
+        "surface-space-after-period",
         "lexical-for-example-for-instance",
+        "surface-space-after-period",
         "syntax-semicolon-however-split",
     )
 
