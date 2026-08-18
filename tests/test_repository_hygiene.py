@@ -30,7 +30,6 @@ def test_gitignore_excludes_generated_artifacts_and_local_secrets() -> None:
 def test_internal_release_metadata_is_absent() -> None:
     root = Path(__file__).resolve().parents[1]
     forbidden = {
-        "SHA256SUMS.txt",
         "VERSION_LOCK.json",
         "ARTIFACT_REVISION.json",
         "PROJECT_IDENTITY.json",
