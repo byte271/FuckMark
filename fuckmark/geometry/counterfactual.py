@@ -556,6 +556,6 @@ def _ambiguous_root_indices(
                 backward[(i + 1) * columns + (j + 1)]
             ) == optimal_distance:
                 nonmatch_possible = True
-        if len(possible_matches) != 1 or nonmatch_possible:
+        if possible_matches and (len(possible_matches) != 1 or nonmatch_possible):
             ambiguous.add(i)
     return frozenset(ambiguous)

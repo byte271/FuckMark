@@ -434,6 +434,13 @@ def compute_observation_survival(
         if not observation.eligible:
             dispositions.append(ObservationDisposition.ROOT_INELIGIBLE)
             continue
+        if any(
+            index in ambiguous_original_indices
+            for index in range(observation.token_start, observation.token_end_exclusive)
+        ):
+            ambiguous += 1
+            dispositions.append(ObservationDisposition.AMBIGUOUS)
+            continue
         mapped = tuple(
             alignment.original_to_transformed[index]
             for index in range(observation.token_start, observation.token_end_exclusive)
@@ -446,13 +453,6 @@ def compute_observation_survival(
         expected = tuple(range(positions[0], positions[0] + len(positions)))
         if positions != expected:
             dispositions.append(ObservationDisposition.NONCONTIGUOUS_OR_CHANGED)
-            continue
-        if any(
-            index in ambiguous_original_indices
-            for index in range(observation.token_start, observation.token_end_exclusive)
-        ):
-            ambiguous += 1
-            dispositions.append(ObservationDisposition.AMBIGUOUS)
             continue
         if positions[-1] >= len(transformed) or tuple(transformed[position] for position in positions) != observation.token_ids:
             dispositions.append(ObservationDisposition.NONCONTIGUOUS_OR_CHANGED)

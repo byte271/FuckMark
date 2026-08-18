@@ -114,6 +114,16 @@ def test_ambiguous_duplicate_alignment_fails_closed() -> None:
     assert result.ambiguous_count > 0
 
 
+def test_canonical_delete_with_equally_optimal_exact_match_is_ambiguous() -> None:
+    _, engine = _engine(ngram_len=1)
+    root = engine.build_root(source_sample_id="ambiguous-delete", source_text="A A")
+    result = _evaluate(engine, root, "A")
+    assert result.surviving_count == 0
+    assert result.destroyed_count == 2
+    assert result.ambiguous_count == 2
+    assert result.unmapped_count == 0
+
+
 def test_public_mask_callback_can_create_newly_masked_root_observation() -> None:
     def unique_windows_only(tokens, config):
         windows = [tuple(tokens[i : i + config.ngram_len]) for i in range(len(tokens) - config.ngram_len + 1)]
