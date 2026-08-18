@@ -83,9 +83,14 @@ def test_default_policy_excludes_syntax_while_development_policy_includes_it() -
     text = "The build passed; however, the deploy failed."
     assert default_transform_registry().enumerate(text).candidates == ()
     enumeration = development_transform_registry().enumerate(text)
-    assert tuple(candidate.rule_id for candidate in enumeration.candidates) == (
+    syntax_candidates = tuple(
+        candidate for candidate in enumeration.candidates
+        if candidate.family is TransformFamily.SYNTAX_TEMPLATE
+    )
+    assert tuple(candidate.rule_id for candidate in syntax_candidates) == (
         "syntax-semicolon-however-split",
     )
+    assert all(candidate.tier is TransformTier.SYNTAX for candidate in syntax_candidates)
 
 
 def test_syntax_rule_rejects_rehashed_construction_tampering() -> None:
