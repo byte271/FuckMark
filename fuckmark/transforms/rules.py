@@ -12,7 +12,7 @@ from .syntax_rules import SyntaxTemplateRule
 
 
 RULE_ALGORITHM_VERSION = "literal-transform-rule-v2"
-SURFACE_SPACING_RULE_ALGORITHM_VERSION = "surface-spacing-rule-v1"
+SURFACE_SPACING_RULE_ALGORITHM_VERSION = "surface-spacing-rule-v2"
 _MAX_RULES = 100_000
 
 
@@ -187,7 +187,7 @@ class SurfaceSpacingRule(LiteralTransformRule):
     def pattern(self) -> re.Pattern[str]:
         literal = re.escape(self.source)
         if self.source.isalpha():
-            return re.compile(rf"(?<!\w){literal}(?=\s)")
+            return re.compile(rf"(?<!\w){literal}(?=[ \t]+[^\r\n])")
         return re.compile(literal)
 
 

@@ -12,16 +12,25 @@ from fuckmark.transforms import (
     development_transform_registry,
     release_transform_registry,
 )
-from fuckmark.transforms.rules import SurfaceSpacingRule
+from fuckmark.transforms.rules import SURFACE_SPACING_RULE_ALGORITHM_VERSION, SurfaceSpacingRule
 from fuckmark.transforms.surface_rules import development_surface_rules
 
 
 def test_surface_spacing_rules_are_case_safe_tier_one_orthography() -> None:
     rules = development_surface_rules()
+    assert SURFACE_SPACING_RULE_ALGORITHM_VERSION == "surface-spacing-rule-v2"
     assert tuple(rule.rule_id for rule in rules) == (
         "surface-space-after-is",
         "surface-space-after-of",
         "surface-space-after-to",
+        "surface-space-after-the",
+        "surface-space-after-and",
+        "surface-space-after-in",
+        "surface-space-after-for",
+        "surface-space-after-on",
+        "surface-space-after-with",
+        "surface-space-after-as",
+        "surface-space-after-from",
         "surface-space-after-period",
     )
     assert all(isinstance(rule, SurfaceSpacingRule) for rule in rules)
@@ -31,12 +40,41 @@ def test_surface_spacing_rules_are_case_safe_tier_one_orthography() -> None:
     assert len({rule.rule_hash for rule in rules}) == len(rules)
 
 
-def test_word_spacing_rule_requires_lowercase_word_followed_by_whitespace() -> None:
+def test_word_spacing_rule_requires_lowercase_word_with_same_line_content() -> None:
     rule = development_surface_rules()[0]
     assert tuple(match.group(0) for match in rule.pattern().finditer("this is stable")) == ("is",)
+    assert tuple(match.group(0) for match in rule.pattern().finditer("this is\tstable")) == ("is",)
     assert tuple(match.group(0) for match in rule.pattern().finditer("Is this stable?")) == ()
     assert tuple(match.group(0) for match in rule.pattern().finditer("is, this stable?")) == ()
-    assert tuple(match.group(0) for match in rule.pattern().finditer("is\nnext")) == ("is",)
+    assert tuple(match.group(0) for match in rule.pattern().finditer("is\nnext")) == ()
+    assert tuple(match.group(0) for match in rule.pattern().finditer("is \nnext")) == ()
+    assert tuple(match.group(0) for match in rule.pattern().finditer("is   stable")) == ("is",)
+
+
+def test_line_end_surface_spacing_does_not_create_markdown_hard_break() -> None:
+    registry = development_transform_registry()
+    text = "This is\nnext. This is \nnext. This is\t\nnext."
+    enumeration = registry.enumerate(text)
+    assert not tuple(value for value in enumeration.candidates if value.rule_id == "surface-space-after-is")
+
+
+def test_expanded_surface_battery_enumerates_common_function_words() -> None:
+    registry = development_transform_registry()
+    text = "the and in for on with as from is of to. Safe."
+    enumeration = registry.enumerate(text)
+    ids = {candidate.rule_id for candidate in enumeration.candidates}
+    assert {
+        "surface-space-after-the",
+        "surface-space-after-and",
+        "surface-space-after-in",
+        "surface-space-after-for",
+        "surface-space-after-on",
+        "surface-space-after-with",
+        "surface-space-after-as",
+        "surface-space-after-from",
+        "surface-space-after-is",
+        "surface-space-after-of",
+    } <= ids
 
 
 def test_surface_spacing_rule_adds_only_one_space_and_preserves_hard_invariants() -> None:

@@ -1,25 +1,21 @@
-name: Real TinyDev Transform Evidence
+name: Real TinyDev Extended Transform Evidence
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - ".github/workflows/tiny-dev-transform-evidence.yml"
+      - ".github/workflows/tiny-dev-transform-extended.yml"
       - "fuckmark/tiny_dev_transform_runtime_hf.py"
       - "fuckmark/tiny_dev_transform_hf.py"
       - "fuckmark/tiny_dev_corpus_hf.py"
       - "fuckmark/transforms/**"
-      - "fuckmark/experiments/transform_analysis.py"
-      - "fuckmark/experiments/e08_dose.py"
-      - "fuckmark/experiments/schedule_analysis.py"
       - "tests/test_tiny_dev_transform_runtime_hf.py"
-      - "tests/test_tiny_dev_transform_pilot_helpers.py"
 
 permissions:
   contents: read
 
 jobs:
-  real-transform-evidence:
+  extended-transform-evidence:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
@@ -51,20 +47,20 @@ jobs:
         run: |
           actual="$(sha256sum artifacts/tiny-dev-corpus.json | cut -d' ' -f1)"
           test "$actual" = "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664"
-      - name: Freeze selections then score real transform evidence
+      - name: Freeze extended selections then score real transform evidence
         run: >-
           python -m fuckmark.tiny_dev_transform_runtime_hf
           --corpus-json artifacts/tiny-dev-corpus.json
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --device cpu
-          --budget-profile baseline
+          --budget-profile extended
           --random-seeds 8
-          --plan-json artifacts/tiny-dev-transform-plan.json
-          --json artifacts/tiny-dev-transform-evidence.json
+          --plan-json artifacts/tiny-dev-transform-extended-plan.json
+          --json artifacts/tiny-dev-transform-extended-evidence.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: real-tiny-dev-transform-evidence
+          name: real-tiny-dev-transform-extended-evidence
           path: artifacts/
           if-no-files-found: error
