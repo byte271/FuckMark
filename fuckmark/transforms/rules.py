@@ -13,7 +13,7 @@ from .syntax_rules import SyntaxTemplateRule
 
 RULE_ALGORITHM_VERSION = "literal-transform-rule-v2"
 SURFACE_SPACING_RULE_ALGORITHM_VERSION = "surface-spacing-rule-v1"
-_MAX_RULES = 100_000
+_MAX_RULES = 128
 
 
 @dataclass(frozen=True, slots=True)
@@ -36,18 +36,18 @@ class LiteralTransformRule:
             raise TypeError("family must be a TransformFamily")
         if not isinstance(self.tier, TransformTier):
             raise TypeError("tier must be a TransformTier")
-        if not isinstance(self.source, str) or not self.source or "\n" in self.source or "\r" in self.source:
-            raise ValueError("source must be non-empty and single-line")
-        if not isinstance(self.replacement, str) or not self.replacement or "\n" in self.replacement or "\r" in self.replacement:
-            raise ValueError("replacement must be non-empty and single-line")
-        if self.source.casefold() == self.replacement.casefold():
+        if not isinstance(self.source, str) or not self.source:
+            raise ValueError("source must be a non-empty string")
+        if not isinstance(self.replacement, str) or not self.replacement:
+            raise ValueError("replacement must be a non-empty string")
+        if self.source == self.replacement:
             raise ValueError("source and replacement must differ")
         require_bool("whole_word", self.whole_word)
         require_bool("preserve_simple_case", self.preserve_simple_case)
         require_bool("block_all_caps", self.block_all_caps)
         require_sha256("rule_hash", self.rule_hash)
         if self.rule_hash != sha256_json(self._payload()):
-            raise ValueError("rule_hash does not match transform rule")
+            raise ValueError("rule_hash does not match literal transform rule")
 
     def _payload(self) -> dict[str, object]:
         return {
@@ -80,8 +80,8 @@ class LiteralTransformRule:
             "algorithm_version": RULE_ALGORITHM_VERSION,
             "rule_id": rule_id,
             "version": version,
-            "family": family.value if isinstance(family, TransformFamily) else family,
-            "tier": tier.value if isinstance(tier, TransformTier) else tier,
+            "family": family.value,
+            "tier": tier.value,
             "source": source,
             "replacement": replacement,
             "whole_word": whole_word,
@@ -89,30 +89,38 @@ class LiteralTransformRule:
             "block_all_caps": block_all_caps,
         }
         return cls(
-            rule_id,
-            version,
-            family,
-            tier,
-            source,
-            replacement,
-            whole_word,
-            preserve_simple_case,
-            block_all_caps,
-            sha256_json(payload),
+            rule_id=rule_id,
+            version=version,
+            family=family,
+            tier=tier,
+            source=source,
+            replacement=replacement,
+            whole_word=whole_word,
+            preserve_simple_case=preserve_simple_case,
+            block_all_caps=block_all_caps,
+            rule_hash=sha256_json(payload),
         )
 
     def pattern(self) -> re.Pattern[str]:
-        literal = rf"(?ai:{re.escape(self.source)})"
-        pattern = literal
+        escaped = re.escape(self.source)
         if self.whole_word:
-            if self.source[0].isalnum() or self.source[0] == "_":
-                pattern = rf"(?<!\w){pattern}"
-            if self.source[-1].isalnum() or self.source[-1] == "_":
-                pattern = rf"{pattern}(?!\w)"
-        return re.compile(pattern)
+            escaped = rf"(?<!\w){escaped}(?!\w)"
+        return re.compile(escaped, re.IGNORECASE if self.preserve_simple_case else 0)
 
 
-class SurfaceSpacingRule(LiteralTransformRule):
+@dataclass(frozen=True, slots=True)
+class SurfaceSpacingRule:
+    rule_id: str
+    version: str
+    family: TransformFamily
+    tier: TransformTier
+    source: str
+    replacement: str
+    whole_word: bool
+    preserve_simple_case: bool
+    block_all_caps: bool
+    rule_hash: str
+
     def __post_init__(self) -> None:
         require_clean_string("rule_id", self.rule_id)
         require_clean_string("version", self.version)
@@ -187,7 +195,7 @@ class SurfaceSpacingRule(LiteralTransformRule):
     def pattern(self) -> re.Pattern[str]:
         literal = re.escape(self.source)
         if self.source.isalpha():
-            return re.compile(rf"(?<!\w){literal}(?=\s)")
+            return re.compile(rf"(?<!\w){literal}(?=[ \t])")
         return re.compile(literal)
 
 
