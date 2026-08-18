@@ -33,6 +33,7 @@ class TransformTier(str, Enum):
 
 
 class TransformFamily(str, Enum):
+    FORMAT = "format"
     CONTRACTION = "contraction"
     ORTHOGRAPHY = "orthography"
     LEXICAL_TEMPLATE = "lexical_template"
