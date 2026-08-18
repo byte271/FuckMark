@@ -8,7 +8,7 @@ from fuckmark.experiments.e24_protected_span_stress import (
     run_e24_protected_span_stress,
 )
 from fuckmark.hashing import sha256_text
-from fuckmark.transforms import ProtectedSpanKind, TransformFamily, development_transform_registry
+from fuckmark.transforms import ProtectedSpanKind, development_transform_registry
 
 
 def test_e24_default_development_registry_passes_full_protected_span_stress() -> None:
@@ -27,7 +27,7 @@ def test_e24_default_development_registry_passes_full_protected_span_stress() ->
     assert all(value.protected_overlap_rejection_count == value.rule_count for value in report.family_results)
     assert all(value.safe_application_attempt_count == value.rule_count for value in report.family_results)
     assert all(value.protected_violation_count == 0 for value in report.family_results)
-    assert TransformFamily.ORTHOGRAPHY in report.inactive_families
+    assert report.inactive_families == ()
 
 
 def test_e24_report_is_byte_deterministic_for_the_same_registry() -> None:
