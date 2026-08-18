@@ -1,0 +1,64 @@
+{
+  "algorithm_version": "real-tiny-dev-transformability-evidence-v1",
+  "evidence_kind": "development-transformability-readiness-diagnostic",
+  "scientific_scope": "DEV_KEYS-only 64-token Hugging Face GPT-2 TinyDev transformability audit under the pre-expansion development registry; engineering readiness diagnostic, not a scientific weakness result, not M6 readiness, and the four-independent-candidate gate is not a frozen spec threshold",
+  "source": {
+    "repository": "byte271/FuckMark",
+    "head_commit": "03f086a729015bbfd622aff95eae5e2d0d525f6c",
+    "workflow_run_id": 32089743819,
+    "workflow_run_number": 5,
+    "workflow_name": "Real TinyDev Transformability",
+    "workflow_conclusion": "success",
+    "artifact_id": 9308058057,
+    "artifact_name": "real-tiny-dev-transformability",
+    "artifact_zip_sha256": "6d92f9d7585c9bd889ac4b0c89783901c9aff15b20ca752c55ecec5f62c96f7d",
+    "corpus_json_sha256": "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+    "transformability_json_sha256": "4fbe0b62a03e431e62c5c910b68c5e9a890326b0dff08b6edcce9570d4dc6f78"
+  },
+  "audit": {
+    "audit_hash": "69204934ce20c3a6a2de7c41b672a05ed96459cd6498064d2b0de2962afe0753",
+    "ruleset_hash": "c06869f18535b50b08f625a7ab209fc6a8e9e669aaf1d0c3e25c6a7bbc274a65",
+    "tiny_dev_artifact_hash": "42240f72e17df1a048f44197f216a0b5f30128c26e2da93afbe92820946e4561",
+    "corpus_manifest_hash": "693788e76bceea43e72425b98f326bc09e4840d069eb47dacb18784ec7c2e388",
+    "minimum_independent_candidates_per_source": 4,
+    "expected_source_count": 4,
+    "transformable_source_count": 0,
+    "status": "INSUFFICIENT_CANDIDATES",
+    "rows": [
+      {
+        "sample_id": "tiny-dev-attack_development-conversational_prose-25-watermarked",
+        "domain": "conversational_prose",
+        "candidate_count": 0,
+        "independent_candidate_count": 0,
+        "rule_ids": []
+      },
+      {
+        "sample_id": "tiny-dev-attack_development-general_explanatory-25-watermarked",
+        "domain": "general_explanatory",
+        "candidate_count": 0,
+        "independent_candidate_count": 0,
+        "rule_ids": []
+      },
+      {
+        "sample_id": "tiny-dev-attack_development-structured_instructional-25-watermarked",
+        "domain": "structured_instructional",
+        "candidate_count": 1,
+        "independent_candidate_count": 1,
+        "rule_ids": ["contract-do-not"]
+      },
+      {
+        "sample_id": "tiny-dev-attack_development-technical_explanation-25-watermarked",
+        "domain": "technical_explanation",
+        "candidate_count": 0,
+        "independent_candidate_count": 0,
+        "rule_ids": []
+      }
+    ]
+  },
+  "interpretation": [
+    "The existing pre-expansion development transform registry cannot support a meaningful four-edit schedule across all four real TinyDev attack sources.",
+    "No source is silently dropped: all four are retained and the readiness gate fails closed.",
+    "This result authorizes development work on spec-permitted deterministic transforms or DEV corpus design only; it does not authorize changing sealed TEST data or making robustness claims."
+  ],
+  "evidence_hash": "7ff5df01dd11e66aa350228b23a17f54635413555fde69d7669d46d3e51522f7"
+}
