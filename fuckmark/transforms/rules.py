@@ -195,7 +195,7 @@ class SurfaceSpacingRule:
     def pattern(self) -> re.Pattern[str]:
         literal = re.escape(self.source)
         if self.source.isalpha():
-            return re.compile(rf"(?<!\w){literal}(?=[ \t])")
+            return re.compile(rf"(?<!\w){literal}(?=[ \t]+[^\r\n])")
         return re.compile(literal)
 
 
