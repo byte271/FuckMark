@@ -1,0 +1,198 @@
+{
+  "algorithm_version": "real-tiny-dev-transform-evidence-manifest-v1",
+  "corpus": {
+    "artifact_hash": "42240f72e17df1a048f44197f216a0b5f30128c26e2da93afbe92820946e4561",
+    "attack_negative_source_count": 4,
+    "attack_positive_source_count": 4,
+    "key_split": "DEV_KEYS",
+    "manifest_hash": "693788e76bceea43e72425b98f326bc09e4840d069eb47dacb18784ec7c2e388",
+    "prompt_boundary_mode": "continuation_only",
+    "sample_count": 208,
+    "target_length": 64,
+    "token_track": "text_only"
+  },
+  "detector": {
+    "achieved_calibration_fpr": 0.01,
+    "calibration_bundle_hash": "7fef01cdb30fd8a57936bbe13f49ce00d9aafd013e86dbacedb934184d091696",
+    "calibration_fpr_interval": {
+      "confidence_level": 0.95,
+      "lower": 0.0002531460329774256,
+      "method": "clopper-pearson-equal-tailed",
+      "upper": 0.05445938539208044
+    },
+    "calibration_negative_count": 100,
+    "detector_identity_hash": "0c034ec0b570ee7282dbf75616ad20b3aaf3b09a92204db202734087b027fb80",
+    "family": "weighted_mean",
+    "primary_target_fpr": 0.01,
+    "primary_threshold_hash": "b0d5e38d168f2aade30d645207583cd3c817e222226995a12dc38f3552426604",
+    "primary_threshold_value": 0.5616883116883117,
+    "sampling_table_hash": "a3e9e18ea34546849c5136cf9b06c7bfd03e50e601da14af47cd926f9e623a85"
+  },
+  "evidence_kind": "development-transform-detector-pilot",
+  "interpretation": {
+    "confirmatory_claim_permitted": false,
+    "control_shift_is_small_on_average_and_no_control_crossed_primary_threshold": true,
+    "dose_response_monotonic_across_observed_bins": true,
+    "even_spacing_has_larger_mean_score_drop_than_clustered": true,
+    "greedy_improves_overall_detector_score_drop_over_random": false,
+    "greedy_improves_replacement_per_edit_over_random": true,
+    "held_out_key_claim_permitted": false,
+    "m6_readiness_claim_permitted": false,
+    "observation_damage_predicts_score_drop_better_than_word_edit_in_this_pilot": true,
+    "status": "PROMISING_DEV_SIGNAL_NOT_M6"
+  },
+  "result": {
+    "control_eligible_count": 216,
+    "control_false_to_true_count": 0,
+    "control_mean_score_shift_transformed_minus_pristine": 0.0007307931206759259,
+    "control_transform_row_count": 216,
+    "e07": {
+      "lower_error_metric": "OBSERVATION_REPLACEMENT",
+      "observation_replacement_rmse": 0.016492652588201744,
+      "result_hash": "90e6b59d34f4bcc616c0bbb79106ab8639ff9877a52bc72c45c7883f68586f2f",
+      "source_count": 4,
+      "variant_count": 216,
+      "word_edit_rmse": 0.021040959012814078
+    },
+    "e08": {
+      "bins": [
+        {
+          "bootstrap_lower": 0.009352346322974714,
+          "bootstrap_upper": 0.02260276504790016,
+          "lower": 0.0,
+          "mean_margin_drop": 0.015086865451048984,
+          "row_count": 71,
+          "source_count": 4,
+          "upper": 0.1
+        },
+        {
+          "bootstrap_lower": 0.023675931874735733,
+          "bootstrap_upper": 0.041548182210149075,
+          "lower": 0.1,
+          "mean_margin_drop": 0.03252554577411968,
+          "row_count": 83,
+          "source_count": 4,
+          "upper": 0.25
+        },
+        {
+          "bootstrap_lower": 0.04195704077223059,
+          "bootstrap_upper": 0.05499722303763037,
+          "lower": 0.25,
+          "mean_margin_drop": 0.04842440706209063,
+          "row_count": 62,
+          "source_count": 4,
+          "upper": 0.5
+        },
+        {
+          "bootstrap_lower": null,
+          "bootstrap_upper": null,
+          "lower": 0.5,
+          "mean_margin_drop": null,
+          "row_count": 0,
+          "source_count": 0,
+          "upper": 0.75
+        },
+        {
+          "bootstrap_lower": null,
+          "bootstrap_upper": null,
+          "lower": 0.75,
+          "mean_margin_drop": null,
+          "row_count": 0,
+          "source_count": 0,
+          "upper": 1.0
+        }
+      ],
+      "monotonic_non_decreasing": true,
+      "monotonic_violation_count": 0,
+      "nonempty_bin_count": 3,
+      "result_hash": "66530957615996b97794d00564d4ee7f7ecfe7125e5092ce1f26075373fdc226"
+    },
+    "e09": {
+      "mean_margin_drop": 0.03195898952196061,
+      "mean_replacement_per_edit": 3.9557291666666665,
+      "result_hash": "9371fb50782a02bf4018c6c29215c43c7d7f387b3edd02d04d3f113dcd904b0d",
+      "status": "COMPLETE"
+    },
+    "e10": {
+      "matched_pair_count": 12,
+      "mean_coverage_difference_even_minus_clustered": 2.25,
+      "mean_margin_drop_difference_even_minus_clustered": 0.016789850912386346,
+      "mean_observation_ratio_difference_even_minus_clustered": 0.02083333333333333,
+      "result_hash": "95175b59b15ef1394ece1f82c42b6dcfe8883af7e65aee700d7f1aa70c654379",
+      "status": "COMPLETE_MATCHED"
+    },
+    "e11": {
+      "held_out_claim_status": "WITHHELD_NO_HELD_OUT_KEYS",
+      "mean_improvement_greedy_minus_random_replacement_per_edit": 0.16927083333333334,
+      "overall_mean_score_drop_greedy_minus_random": -0.001212231216438271,
+      "paired_source_count": 4,
+      "result_hash": "039e2d889123eb37fe61e0801be6f63164ef060ef40b670b1026c2c0aa4671e3",
+      "status": "DESCRIPTIVE_DEV_ONLY"
+    },
+    "policy_summary": {
+      "CLUSTERED": {
+        "mean_observation_damage_ratio": 0.14093691148775897,
+        "mean_replacement_per_edit": 3.6875,
+        "mean_score_drop": 0.022994624239126266
+      },
+      "COVERAGE_GREEDY_KEY_BLIND": {
+        "mean_observation_damage_ratio": 0.16177024482109228,
+        "mean_replacement_per_edit": 4.125,
+        "mean_score_drop": 0.030746758305522343
+      },
+      "EVEN_SPACING": {
+        "mean_observation_damage_ratio": 0.16177024482109228,
+        "mean_replacement_per_edit": 4.125,
+        "mean_score_drop": 0.039784475151512615
+      },
+      "RANDOM_VALID": {
+        "mean_observation_damage_ratio": 0.1525688559322034,
+        "mean_replacement_per_edit": 3.9557291666666665,
+        "mean_score_drop": 0.031958989521960614
+      }
+    },
+    "pristine_negative_count": 4,
+    "pristine_negative_detected_count": 0,
+    "pristine_positive_count": 4,
+    "pristine_positive_detected_count": 4,
+    "scored_artifact_hash": "9a7cfb657441da8c673843c8c8289146e200ed37934f3003181988ca8ec337ba",
+    "watermarked_transform_row_count": 216,
+    "watermarked_unique_transformed_text_count": 92
+  },
+  "scientific_scope": "DEV_KEYS-only real TinyDev text-only transform evidence; exploratory development result, not M6 readiness and not confirmatory evidence",
+  "selection_plan": {
+    "budget_unit": "operation",
+    "budgets": [
+      1,
+      2,
+      4
+    ],
+    "geometry_mode": "TOKENIZER_AWARE_PUBLIC",
+    "plan_hash": "a0855f2c8bf3653df53d120872fe8a2692b5306c81ae5b95cf4a5c730d19d79b",
+    "random_seed_count": 8,
+    "ruleset_hash": "cc2213d4c79f8f32cc565a5ae5b2204a8e87421f3713706560656311448a021f",
+    "schedule_seed_base": 61000,
+    "selection_frozen_before_detector_scoring": true,
+    "watermarked_candidate_counts": [
+      6,
+      6,
+      11,
+      9
+    ]
+  },
+  "source": {
+    "artifact_id": 9310202139,
+    "artifact_name": "real-tiny-dev-transform-evidence",
+    "artifact_zip_sha256": "e572ea9cb7148368c17bec73f4b1dd749ad3dbee7e96fd32f85b2390a7fbc4a4",
+    "corpus_json_sha256": "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+    "plan_json_sha256": "9c74356f46e286bdb50c49236580d1168a9dacd690f0215e8254a91ec4c8936e",
+    "repository": "byte271/FuckMark",
+    "source_head_commit": "c77e8bb2e720be106e4b525377f07849f4ad933e",
+    "transform_evidence_json_sha256": "509a5c69ffd79e821d10bd54df29588164bc0d208cfcb68acf8862ce09fdbbbc",
+    "workflow_conclusion": "success",
+    "workflow_name": "Real TinyDev Transform Evidence",
+    "workflow_run_id": 32096402704,
+    "workflow_run_number": 2
+  },
+  "evidence_hash": "a42e1257be8b43a1fc4e2e388bfc47ea17a2798fb2925f165e2c0310a584239d"
+}
