@@ -301,6 +301,12 @@ class ObservationSurvivalReport:
         if self.report_hash != sha256_json(self.payload()):
             raise ValueError("report_hash does not match ObservationSurvivalReport payload")
 
+    @property
+    def newly_masked_ratio(self) -> float:
+        if self.root_eligible_count == 0:
+            return 0.0
+        return self.newly_masked_count / self.root_eligible_count
+
     def payload(self) -> dict[str, object]:
         return {
             "algorithm_version": self.algorithm_version,

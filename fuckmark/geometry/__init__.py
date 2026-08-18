@@ -21,10 +21,16 @@ from .observations import (
     normalize_window_eligibility,
     window_count,
 )
+from .repetition import (
+    PUBLIC_REPETITION_GEOMETRY_ALGORITHM_VERSION,
+    PublicRepetitionGeometry,
+    RepetitionMaskReport,
+)
 
 __all__ = [
     "COUNTERFACTUAL_GEOMETRY_ALGORITHM_VERSION",
     "OBSERVATION_ALGORITHM_VERSION",
+    "PUBLIC_REPETITION_GEOMETRY_ALGORITHM_VERSION",
     "SURVIVAL_ALGORITHM_VERSION",
     "CandidateCounterfactual",
     "CounterfactualGeometryEngine",
@@ -35,6 +41,8 @@ __all__ = [
     "ObservationRecord",
     "ObservationSurvivalReport",
     "PromptBoundaryMode",
+    "PublicRepetitionGeometry",
+    "RepetitionMaskReport",
     "RootObservationSet",
     "SurvivalReportStatus",
     "TokenTrack",
