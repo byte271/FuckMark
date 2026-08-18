@@ -17,11 +17,15 @@ on:
     paths:
       - ".github/workflows/tiny-dev-detector.yml"
       - "fuckmark/experiments/tiny_dev_detector_evidence.py"
+      - "fuckmark/experiments/tiny_dev_e02_evidence.py"
+      - "fuckmark/experiments/development_calibration.py"
+      - "fuckmark/experiments/e02_pristine.py"
       - "fuckmark/tiny_dev_detector_hf.py"
       - "fuckmark/corpus/tiny_dev_io.py"
       - "fuckmark/corpus/tiny_dev_generation.py"
       - "fuckmark/tiny_dev_corpus_hf.py"
       - "tests/test_tiny_dev_detector_evidence.py"
+      - "tests/test_tiny_dev_e02_evidence.py"
       - "requirements-smoke.txt"
 
 permissions:
@@ -55,12 +59,13 @@ jobs:
           --top-k 50
           --top-p 0.95
           --json artifacts/tiny-dev-corpus.json
-      - name: Calibrate and evaluate Mean and Weighted Mean
+      - name: Calibrate detectors and execute E02
         run: >-
           python -m fuckmark.tiny_dev_detector_hf
           --corpus-json artifacts/tiny-dev-corpus.json
           --device cpu
           --json artifacts/tiny-dev-detector-evidence.json
+          --e02-json artifacts/tiny-dev-e02-evidence.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
