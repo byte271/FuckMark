@@ -92,7 +92,7 @@ def test_geometry_engine_uses_public_repetition_policy_for_root_eligibility() ->
         family="identity",
         tier=0,
     )
-    assert root.observations[-1].eligible is False
+    assert root.observations.observations[-1].eligible is False
     assert identity.survival_report.root_observation_count == 4
     assert identity.survival_report.root_eligible_count == 3
     assert identity.survival_report.surviving_count == 3
@@ -113,7 +113,7 @@ def test_counterfactual_can_create_a_new_publicly_masked_context() -> None:
         family="test",
         tier=1,
     )
-    assert root.observations[-1].eligible is True
+    assert root.observations.observations[-1].eligible is True
     assert result.newly_masked_count == 1
     assert result.survival_report.root_eligible_count == 3
     assert result.surviving_count == 1
