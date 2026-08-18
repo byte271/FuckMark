@@ -96,6 +96,7 @@ def test_geometry_engine_uses_public_repetition_policy_for_root_eligibility() ->
     assert identity.survival_report.root_observation_count == 4
     assert identity.survival_report.root_eligible_count == 3
     assert identity.survival_report.surviving_count == 3
+    assert identity.survival_report.newly_masked_ratio == 0.0
     assert identity.survival_ratio == 1.0
 
 
@@ -115,6 +116,7 @@ def test_counterfactual_can_create_a_new_publicly_masked_context() -> None:
     )
     assert root.observations.observations[-1].eligible is True
     assert result.newly_masked_count == 1
+    assert result.survival_report.newly_masked_ratio == pytest.approx(1.0 / 3.0)
     assert result.survival_report.root_eligible_count == 3
     assert result.surviving_count == 1
     assert result.destroyed_count == 2
