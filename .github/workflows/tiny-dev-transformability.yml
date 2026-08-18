@@ -1,0 +1,54 @@
+name: Real TinyDev Transformability
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/tiny-dev-transformability.yml"
+      - "fuckmark/experiments/tiny_dev_transformability.py"
+      - "fuckmark/tiny_dev_transformability.py"
+      - "fuckmark/transforms/**"
+      - "tests/test_tiny_dev_transformability.py"
+
+permissions:
+  contents: read
+
+jobs:
+  transformability:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install maintained Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Reproduce real TinyDev corpus
+        run: >-
+          python -m fuckmark.tiny_dev_corpus_hf
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --seed-base 401000
+          --max-attempts 16
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --json artifacts/tiny-dev-corpus.json
+      - name: Audit current development transformability
+        run: >-
+          python -m fuckmark.tiny_dev_transformability
+          --corpus-json artifacts/tiny-dev-corpus.json
+          --json artifacts/tiny-dev-transformability.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-tiny-dev-transformability
+          path: artifacts/
+          if-no-files-found: error
