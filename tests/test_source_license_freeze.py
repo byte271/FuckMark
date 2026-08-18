@@ -7,7 +7,7 @@ from fuckmark.adapters import DEEPMIND_REFERENCE_SOURCE_PIN, HUGGINGFACE_SYNTHID
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LICENSE_FREEZE = ROOT / "source_pins" / "licenses.json"
+LICENSE_FREEZE = ROOT / "source_licenses" / "upstream.json"
 
 
 def test_source_license_freeze_matches_runtime_source_pins() -> None:
