@@ -99,7 +99,6 @@ def test_duplicate_occurrence_is_not_recovered_from_another_copy() -> None:
     _, engine = _engine(ngram_len=3)
     root = engine.build_root(source_sample_id="duplicate", source_text="A B C X A B C")
     result = _evaluate(engine, root, "X A B C")
-    # The first A-B-C occurrence was deleted. Its identical surviving sibling cannot stand in for it.
     assert result.root_observation_count == 5
     assert result.surviving_count == 2
     assert result.destroyed_count == 3
