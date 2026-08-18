@@ -1,5 +1,5 @@
 {
-  "algorithm_version": "real-tiny-dev-evidence-v1",
+  "algorithm_version": "real-tiny-dev-evidence-v2",
   "evidence_kind": "development-corpus-generation",
   "scientific_scope": "DEV_KEYS-only TinyDev generation prerequisite; not M6 readiness or a confirmatory result",
   "source": {
@@ -91,5 +91,22 @@
     "all_samples_share_one_generation_matching_signature": true,
     "all_samples_share_one_watermark_condition": true
   },
-  "evidence_hash": "c093a248be705437e812a3554c4e38468a010822415565dd0235e9ffac6d78cd"
+  "reproduction": {
+    "workflow_run_id": 32085695308,
+    "workflow_run_number": 2,
+    "workflow_name": "Real TinyDev Corpus",
+    "workflow_conclusion": "success",
+    "head_commit": "c0e8dba5c630e62b786478e0cb243fb8e19ada66",
+    "merged_main_commit": "75393b4024d381211ae194c989d77f6f29e18f3a",
+    "artifact_id": 9306822005,
+    "artifact_name": "real-tiny-dev-corpus",
+    "artifact_zip_sha256": "da6003b45da06ee3dfbe162c0c22b8f77d62a4d18cd5e87f4aedd8772a7c2382",
+    "artifact_json_sha256": "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+    "json_byte_identical_to_primary": true,
+    "corpus_artifact_hash_identical_to_primary": true,
+    "manifest_hash_identical_to_primary": true,
+    "archive_digest_expected_to_differ": true,
+    "archive_digest_difference_reason": "GitHub Actions ZIP packaging metadata is not the scientific artifact identity; canonical tiny-dev-corpus.json is byte-identical."
+  },
+  "evidence_hash": "2a99c50f24450a2b8ec221f8cd274d114386cb37f8f90de76b0091d24f50acd4"
 }
