@@ -5,11 +5,11 @@ on:
   pull_request:
     paths:
       - ".github/workflows/tiny-dev-transform-extended.yml"
-      - "fuckmark/tiny_dev_transform_extended_hf.py"
+      - "fuckmark/tiny_dev_transform_runtime_hf.py"
       - "fuckmark/tiny_dev_transform_hf.py"
       - "fuckmark/tiny_dev_corpus_hf.py"
       - "fuckmark/transforms/**"
-      - "tests/test_tiny_dev_transform_extended_hf.py"
+      - "tests/test_tiny_dev_transform_runtime_hf.py"
 
 permissions:
   contents: read
@@ -49,11 +49,12 @@ jobs:
           test "$actual" = "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664"
       - name: Freeze extended selections then score real transform evidence
         run: >-
-          python -m fuckmark.tiny_dev_transform_extended_hf
+          python -m fuckmark.tiny_dev_transform_runtime_hf
           --corpus-json artifacts/tiny-dev-corpus.json
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --device cpu
+          --budget-profile extended
           --random-seeds 8
           --plan-json artifacts/tiny-dev-transform-extended-plan.json
           --json artifacts/tiny-dev-transform-extended-evidence.json
