@@ -22,6 +22,14 @@ def test_surface_spacing_rules_are_case_safe_tier_one_orthography() -> None:
         "surface-space-after-is",
         "surface-space-after-of",
         "surface-space-after-to",
+        "surface-space-after-the",
+        "surface-space-after-and",
+        "surface-space-after-in",
+        "surface-space-after-for",
+        "surface-space-after-on",
+        "surface-space-after-with",
+        "surface-space-after-as",
+        "surface-space-after-from",
         "surface-space-after-period",
     )
     assert all(isinstance(rule, SurfaceSpacingRule) for rule in rules)
@@ -37,6 +45,25 @@ def test_word_spacing_rule_requires_lowercase_word_followed_by_whitespace() -> N
     assert tuple(match.group(0) for match in rule.pattern().finditer("Is this stable?")) == ()
     assert tuple(match.group(0) for match in rule.pattern().finditer("is, this stable?")) == ()
     assert tuple(match.group(0) for match in rule.pattern().finditer("is\nnext")) == ("is",)
+
+
+def test_expanded_surface_battery_enumerates_common_function_words() -> None:
+    registry = development_transform_registry()
+    text = "the and in for on with as from is of to. Safe."
+    enumeration = registry.enumerate(text)
+    ids = {candidate.rule_id for candidate in enumeration.candidates}
+    assert {
+        "surface-space-after-the",
+        "surface-space-after-and",
+        "surface-space-after-in",
+        "surface-space-after-for",
+        "surface-space-after-on",
+        "surface-space-after-with",
+        "surface-space-after-as",
+        "surface-space-after-from",
+        "surface-space-after-is",
+        "surface-space-after-of",
+    } <= ids
 
 
 def test_surface_spacing_rule_adds_only_one_space_and_preserves_hard_invariants() -> None:
