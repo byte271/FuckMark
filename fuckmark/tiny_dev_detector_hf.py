@@ -11,6 +11,7 @@ from .experiments.tiny_dev_detector_evidence import (
     TINY_DEV_PRIMARY_FPR,
     build_tiny_dev_detector_evidence,
 )
+from .experiments.tiny_dev_e02_evidence import build_tiny_dev_e02_evidence
 from .hashing import sha256_json
 from .tiny_dev_corpus_hf import DEFAULT_KEYS, DEFAULT_NGRAM_LEN
 
@@ -46,6 +47,11 @@ def _parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path("artifacts/tiny-dev-detector-evidence.json"),
     )
+    parser.add_argument(
+        "--e02-json",
+        type=Path,
+        default=Path("artifacts/tiny-dev-e02-evidence.json"),
+    )
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
     return parser
 
@@ -71,10 +77,14 @@ def main(argv: list[str] | None = None) -> int:
         adapter,
         expected_watermark_config_hash=default_watermark_config_hash(),
     )
+    e02 = build_tiny_dev_e02_evidence(corpus, evidence)
     args.json.parent.mkdir(parents=True, exist_ok=True)
+    args.e02_json.parent.mkdir(parents=True, exist_ok=True)
     args.json.write_text(canonical_json_text(evidence) + "\n", encoding="utf-8")
+    args.e02_json.write_text(canonical_json_text(e02) + "\n", encoding="utf-8")
 
     sys.stdout.write(f"artifact_hash={evidence.artifact_hash}\n")
+    sys.stdout.write(f"e02_artifact_hash={e02.artifact_hash}\n")
     sys.stdout.write(f"corpus_artifact_hash={evidence.tiny_dev_artifact_hash}\n")
     sys.stdout.write(f"adapter_config_hash={evidence.adapter_config_hash}\n")
     sys.stdout.write(f"sampling_table_hash={adapter.sampling_table_hash}\n")
@@ -102,7 +112,16 @@ def main(argv: list[str] | None = None) -> int:
             f"{primary.pristine_baseline.sample_count} "
             f"status={primary.pristine_baseline.status.value}\n"
         )
+    for family in e02.families:
+        primary = next(value for value in family.result.operating_points if value.target_fpr == 0.01)
+        sys.stdout.write(
+            f"e02 detector={family.detector_family.value} "
+            f"auc={family.result.auc:.17g} "
+            f"primary_tpr={primary.tpr:.17g} "
+            f"status={family.result.status.value}\n"
+        )
     sys.stdout.write(f"json={args.json.as_posix()}\n")
+    sys.stdout.write(f"e02_json={args.e02_json.as_posix()}\n")
     return 0
 
 

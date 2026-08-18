@@ -1,0 +1,96 @@
+{
+  "algorithm_version": "real-tiny-dev-e02-evidence-record-v1",
+  "evidence_kind": "development-pristine-detectability",
+  "scientific_scope": "DEVELOPMENT_ONLY; Mean and Weighted Mean on the 64-token Hugging Face GPT-2 TinyDev corpus; not M3 complete because Bayesian evidence is not included; not M6 readiness or a confirmatory result",
+  "source": {
+    "repository": "byte271/FuckMark",
+    "head_commit": "4f4189ab9f09f1533713b2df7f67b35a5605cdfb",
+    "workflow_run_id": 32088935838,
+    "workflow_run_number": 4,
+    "workflow_name": "Real TinyDev Detector Evidence",
+    "workflow_conclusion": "success",
+    "artifact_id": 9307861756,
+    "artifact_name": "real-tiny-dev-detector-evidence",
+    "artifact_zip_sha256": "cd2f9b647de2f1cfea754b2ef2e4baae79abf394b7c3dae6d17beb439b288b87",
+    "corpus_json_sha256": "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+    "detector_json_sha256": "086770a9d8e9e7d639bad6c04365f1a239042ae2799b729831199d704188ed99",
+    "e02_json_sha256": "93ec9830d5300cb3482264bbcc239a82c275af5c741643e18856e74af7e35d7b"
+  },
+  "bindings": {
+    "tiny_dev_artifact_hash": "42240f72e17df1a048f44197f216a0b5f30128c26e2da93afbe92820946e4561",
+    "corpus_manifest_hash": "693788e76bceea43e72425b98f326bc09e4840d069eb47dacb18784ec7c2e388",
+    "detector_artifact_hash": "d676033f294a60a6a63fd354b1604838ff6abae2c6f8f93f847156e7ca67c219",
+    "e02_artifact_hash": "11bcbc69b953cc703983bfbb2a38933f63c4334263a30c457de479ce3c967ef9"
+  },
+  "evaluation": {
+    "positive_count": 4,
+    "negative_count": 4,
+    "interpretability_floor": 0.8,
+    "families": [
+      {
+        "detector_family": "mean",
+        "calibration_binding_hash": "e8ff7240a8b0fa4ea3b555eb755804f50edca4d8f53a00636ff286d775368b86",
+        "result_hash": "71c6903f29a30dc13f48597a8e826355bdc76e4c22d798f7b859ef0e1a5213b9",
+        "status": "PASS",
+        "auc": 1.0,
+        "operating_points": [
+          {
+            "target_fpr": 0.05,
+            "threshold_value": 0.538888888888889,
+            "positive_detected_count": 4,
+            "negative_detected_count": 0,
+            "tpr": 1.0,
+            "evaluation_fpr": 0.0,
+            "tpr_ci95": [0.3976353643835254, 1.0],
+            "evaluation_fpr_ci95": [0.0, 0.6023646356164745]
+          },
+          {
+            "target_fpr": 0.01,
+            "threshold_value": 0.5555555555555555,
+            "positive_detected_count": 4,
+            "negative_detected_count": 0,
+            "tpr": 1.0,
+            "evaluation_fpr": 0.0,
+            "tpr_ci95": [0.3976353643835254, 1.0],
+            "evaluation_fpr_ci95": [0.0, 0.6023646356164745]
+          }
+        ]
+      },
+      {
+        "detector_family": "weighted_mean",
+        "calibration_binding_hash": "b8e364bf4f15575959124bfdd9d03dcd6ce9e69cf94f6ae70d3642c4929724f9",
+        "result_hash": "150b4a2bf541bc076e86739e3f2f5824673dc8aab3a161bfaf2c084f558ab6b4",
+        "status": "PASS",
+        "auc": 1.0,
+        "operating_points": [
+          {
+            "target_fpr": 0.05,
+            "threshold_value": 0.5455401472350625,
+            "positive_detected_count": 4,
+            "negative_detected_count": 0,
+            "tpr": 1.0,
+            "evaluation_fpr": 0.0,
+            "tpr_ci95": [0.3976353643835254, 1.0],
+            "evaluation_fpr_ci95": [0.0, 0.6023646356164745]
+          },
+          {
+            "target_fpr": 0.01,
+            "threshold_value": 0.5616883116883117,
+            "positive_detected_count": 4,
+            "negative_detected_count": 0,
+            "tpr": 1.0,
+            "evaluation_fpr": 0.0,
+            "tpr_ci95": [0.3976353643835254, 1.0],
+            "evaluation_fpr_ci95": [0.0, 0.6023646356164745]
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "The attack-development evaluation contains only four watermarked and four unwatermarked texts, so exact confidence intervals are wide.",
+    "The artifact covers Mean and Weighted Mean only; a source-compatible trained Bayesian detector remains required for M3.",
+    "The corpus is the 64-token Hugging Face GPT-2 TinyDev development corpus and does not establish model, tokenizer, length, key, or adapter generalization."
+  ],
+  "evidence_hash": "212f196ff8dfdf33aee93bbcc5bc76a3ddcd717914fbdd0f0063e4deda7ec741"
+}
