@@ -29,7 +29,10 @@ jobs:
           cache: pip
 
       - name: Install
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
+
+      - name: Verify dependency lock
+        run: uv lock --check --python "${{ matrix.python-version }}"
 
       - name: Test
         run: python -m pytest -q

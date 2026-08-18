@@ -1,0 +1,21 @@
+{
+  "schema_version": "source-license-freeze-v1",
+  "project_license_status": "UNSPECIFIED",
+  "project_license_note": "No license is asserted for FuckMark project-owned code by this source-license record. Choosing a project license is an owner decision.",
+  "sources": [
+    {
+      "source_id": "deepmind-synthid-text-reference",
+      "repository": "google-deepmind/synthid-text",
+      "commit": "addb4a158143c7c6851a1308f78b89fceed59683",
+      "license_id": "Apache-2.0",
+      "license_path": "LICENSE"
+    },
+    {
+      "source_id": "huggingface-transformers-synthid",
+      "repository": "huggingface/transformers",
+      "commit": "a61d5f9e4fc184cff66938ff6c521cc358b5e024",
+      "license_id": "Apache-2.0",
+      "license_path": "LICENSE"
+    }
+  ]
+}

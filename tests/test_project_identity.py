@@ -13,8 +13,9 @@ def test_project_identity_is_fuckmark_v010() -> None:
     assert fuckmark.__version__ == "0.1.0"
 
 
-def test_legacy_project_identity_is_absent() -> None:
+def test_legacy_project_identity_is_absent_outside_immutable_spec() -> None:
     root = Path(__file__).resolve().parents[1]
+    frozen_spec = root / "spec.md"
     forbidden = (
         "Watermark " + "Fracture " + "Lab",
         "watermark-" + "fracture-" + "lab",
@@ -22,6 +23,8 @@ def test_legacy_project_identity_is_absent() -> None:
         "GFOC" + "Mark",
     )
     for path in root.rglob("*"):
+        if path == frozen_spec:
+            continue
         if not path.is_file() or any(part.startswith(".") for part in path.parts):
             continue
         if path.suffix not in {".py", ".md", ".toml", ".json"}:
