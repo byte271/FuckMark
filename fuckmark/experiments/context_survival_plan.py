@@ -44,6 +44,32 @@ class TinyDevContextSurvivalPlanError(ValueError):
     pass
 
 
+class _MemoizedExpander:
+    def __init__(self, expander: ContextSurvivalExpander) -> None:
+        self._expander = expander
+        self._cache: dict[str, tuple[Any, ...]] = {}
+        self.cache_hit_count = 0
+        self.cache_miss_count = 0
+
+    @property
+    def detector_access_observed(self) -> bool:
+        return self._expander.detector_access_observed
+
+    @property
+    def secret_access_observed(self) -> bool:
+        return self._expander.secret_access_observed
+
+    def expand(self, state: SearchState):
+        cached = self._cache.get(state.search_state_hash)
+        if cached is not None:
+            self.cache_hit_count += 1
+            return cached
+        transitions = tuple(self._expander.expand(state))
+        self._cache[state.search_state_hash] = transitions
+        self.cache_miss_count += 1
+        return transitions
+
+
 def _attack_samples(corpus: Any) -> tuple[Any, ...]:
     values = tuple(
         sorted(
@@ -362,7 +388,7 @@ def build_context_survival_plan(
             config=config,
             eligibility_policy=repetition.eligibility_policy,
         )
-        expander = ContextSurvivalExpander(
+        base_expander = ContextSurvivalExpander(
             registry=registry,
             geometry_engine=geometry_engine,
             source_sample_id=source.sample_id,
@@ -370,7 +396,8 @@ def build_context_survival_plan(
             max_risk_tier=max_risk_tier,
             inverse_semantic_resolver=contraction_inverse_semantic_resolver,
         )
-        root_state = expander.root_state
+        expander = _MemoizedExpander(base_expander)
+        root_state = base_expander.root_state
         root = geometry_engine.build_root(source_sample_id=source.sample_id, source_text=source.text)
         if tuple(root.root_tokens) != token_ids:
             raise TinyDevContextSurvivalPlanError(
@@ -402,23 +429,21 @@ def build_context_survival_plan(
             }
         )
         root_transitions = expander.expand(root_state)
-        source_diagnostics.append(
-            {
-                "sample_id": source.sample_id,
-                "label": source.label.value,
-                "domain": source.domain.value,
-                "candidate_count": len(enumeration.candidates),
-                "stateful_root_transition_count": len(root_transitions),
-                "enumeration_hash": enumeration.enumeration_hash,
-                "tokenizer_geometry_hash": tokenizer_geometry.geometry_hash,
-                "scheduler_input_hash": scheduler_input.input_artifact_hash,
-                "candidate_pool_hash": candidate_pool_hash,
-                "root_state_hash": root_state.search_state_hash,
-                "root_eligible_observation_count": root_state.surviving_root_observations,
-                "root_repeated_context_count": repetition_report.repeated_count,
-                "root_repetition_report_hash": repetition_report.report_hash,
-            }
-        )
+        source_diagnostic = {
+            "sample_id": source.sample_id,
+            "label": source.label.value,
+            "domain": source.domain.value,
+            "candidate_count": len(enumeration.candidates),
+            "stateful_root_transition_count": len(root_transitions),
+            "enumeration_hash": enumeration.enumeration_hash,
+            "tokenizer_geometry_hash": tokenizer_geometry.geometry_hash,
+            "scheduler_input_hash": scheduler_input.input_artifact_hash,
+            "candidate_pool_hash": candidate_pool_hash,
+            "root_state_hash": root_state.search_state_hash,
+            "root_eligible_observation_count": root_state.surviving_root_observations,
+            "root_repeated_context_count": repetition_report.repeated_count,
+            "root_repetition_report_hash": repetition_report.report_hash,
+        }
 
         for budget_index, budget in enumerate(budget_tuple):
             deterministic_seed = DEFAULT_SCHEDULE_SEED_BASE + source_index * 1000 + budget_index * 100
@@ -521,6 +546,11 @@ def build_context_survival_plan(
                         candidate_pool_hash=candidate_pool_hash,
                     )
                 )
+
+        source_diagnostic["expansion_cache_hit_count"] = expander.cache_hit_count
+        source_diagnostic["expansion_cache_miss_count"] = expander.cache_miss_count
+        source_diagnostic["geometry_cache_hit_count"] = geometry_engine.cache_hit_count
+        source_diagnostics.append(source_diagnostic)
 
     payload = {
         "algorithm_version": TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION,
