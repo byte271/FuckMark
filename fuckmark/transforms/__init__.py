@@ -110,6 +110,13 @@ from .syntax_tokenization import (
     capture_syntax_retokenization_fixture,
     verify_syntax_retokenization_fixture,
 )
+from .tokenizer_geometry import (
+    TOKENIZER_GEOMETRY_ALGORITHM_VERSION,
+    CandidateTokenizerGeometry,
+    TokenOffset,
+    TokenizerGeometryError,
+    build_candidate_tokenizer_geometry,
+)
 from .trace import TransformOperation, TransformResult, TransformationTrace
 
 
@@ -124,6 +131,7 @@ __all__ = [
     "FIDELITY_EVIDENCE_ALGORITHM_VERSION",
     "BlindHumanFidelityAudit",
     "BlindReviewJudgment",
+    "CandidateTokenizerGeometry",
     "FidelityAdjudication",
     "FidelityEvidenceVerificationError",
     "FidelityLabel",
@@ -134,6 +142,10 @@ __all__ = [
     "LexicalPromotionEvidence",
     "SYNTAX_DEVELOPMENT_EVIDENCE_ALGORITHM_VERSION",
     "SyntaxDevelopmentEvidence",
+    "TOKENIZER_GEOMETRY_ALGORITHM_VERSION",
+    "TokenOffset",
+    "TokenizerGeometryError",
+    "build_candidate_tokenizer_geometry",
     "create_blind_human_fidelity_audit",
     "source_verified_release_transform_registry",
     "verify_fidelity_review_sample",
