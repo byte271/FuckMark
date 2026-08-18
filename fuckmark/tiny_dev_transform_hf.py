@@ -577,7 +577,6 @@ def main(argv: list[str] | None = None) -> int:
     if tokenizer.eos_token_id != next(iter(corpus.manifest.samples)).model.eos_token_id:
         raise RuntimeError("runtime tokenizer EOS identity does not match TinyDev corpus")
 
-    # Freeze every transform choice before adapter construction or detector scoring.
     plan = build_transform_plan(
         corpus,
         tokenizer,
