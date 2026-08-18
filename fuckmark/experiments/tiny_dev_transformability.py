@@ -19,7 +19,6 @@ class TinyDevTransformabilityStatus(str, Enum):
 
 
 def _maximum_nonoverlapping_candidate_count(candidates) -> int:
-    """Return the exact maximum cardinality for one-dimensional candidate spans."""
     ordered = tuple(sorted(candidates, key=lambda value: (value.end, value.start, value.candidate_id)))
     count = 0
     cursor = -1
