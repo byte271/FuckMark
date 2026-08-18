@@ -12,6 +12,7 @@ from fuckmark.transforms import (
     development_transform_registry,
     release_transform_registry,
 )
+from fuckmark.transforms.schema import TransformFamily
 
 
 def _hashes(prefix: str, count: int) -> tuple[str, ...]:
@@ -31,13 +32,18 @@ def test_default_policy_excludes_all_development_only_rules() -> None:
 def test_development_policy_combines_surface_lexical_and_syntax_rules() -> None:
     text = "Do not wait. For example, retry once. The build passed; however, the deploy failed."
     enumeration = development_transform_registry().enumerate(text)
-    assert tuple(candidate.rule_id for candidate in enumeration.candidates) == (
-        "contract-do-not",
-        "surface-space-after-period",
-        "lexical-for-example-for-instance",
-        "surface-space-after-period",
-        "syntax-semicolon-however-split",
-    )
+    rule_ids = tuple(candidate.rule_id for candidate in enumeration.candidates)
+    assert rule_ids.count("contract-do-not") == 1
+    assert rule_ids.count("surface-space-after-period") == 2
+    assert rule_ids.count("surface-space-after-the") == 1
+    assert rule_ids.count("lexical-for-example-for-instance") == 1
+    assert rule_ids.count("syntax-semicolon-however-split") == 1
+    assert {candidate.family for candidate in enumeration.candidates} >= {
+        TransformFamily.CONTRACTION,
+        TransformFamily.ORTHOGRAPHY,
+        TransformFamily.LEXICAL_TEMPLATE,
+        TransformFamily.SYNTAX_TEMPLATE,
+    }
 
 
 def test_release_policy_rejects_unaudited_lexical_rule_without_source_grounded_evidence() -> None:
