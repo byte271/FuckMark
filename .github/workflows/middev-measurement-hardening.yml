@@ -22,6 +22,26 @@ on:
       - "tests/test_mid_dev_calibration_audit_vnext.py"
       - "tests/test_tiny_dev_calibration_opportunity_audit.py"
       - "tests/test_tiny_dev_residual_replay.py"
+  pull_request:
+    branches:
+      - exp/middev-context-survival-v2
+    paths:
+      - ".github/workflows/middev-measurement-hardening.yml"
+      - "fuckmark/experiments/detector_opportunity_audit.py"
+      - "fuckmark/experiments/residual_signal_geometry.py"
+      - "fuckmark/experiments/structural_leverage.py"
+      - "fuckmark/experiments/mid_dev_calibration_audit.py"
+      - "fuckmark/experiments/tiny_dev_calibration_opportunity_audit.py"
+      - "fuckmark/experiments/tiny_dev_residual_replay.py"
+      - "fuckmark/corpus/mid_dev_calibration_shards.py"
+      - "fuckmark/tiny_dev_measurement_replay_hf.py"
+      - "tests/test_detector_opportunity_audit.py"
+      - "tests/test_residual_signal_geometry.py"
+      - "tests/test_structural_leverage.py"
+      - "tests/test_mid_dev_calibration_shards_vnext.py"
+      - "tests/test_mid_dev_calibration_audit_vnext.py"
+      - "tests/test_tiny_dev_calibration_opportunity_audit.py"
+      - "tests/test_tiny_dev_residual_replay.py"
 
 permissions:
   contents: read
