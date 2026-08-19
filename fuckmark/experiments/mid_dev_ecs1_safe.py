@@ -15,8 +15,8 @@ from .mid_dev_scored_schema import MidDevScoringArtifact
 from .mid_dev_scoring_contracts import MidDevCondition, MidDevFrozenPlanView
 
 
-MID_DEV_ECS1_RAW_ROW_VERSION = "E-CS1-raw-predictor-row-v2"
-MID_DEV_ECS1_RAW_ARTIFACT_VERSION = "E-CS1-raw-predictor-artifact-v2"
+MID_DEV_ECS1_RAW_ROW_VERSION = "E-CS1-raw-predictor-row-v3"
+MID_DEV_ECS1_RAW_ARTIFACT_VERSION = "E-CS1-raw-predictor-artifact-v3"
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +26,7 @@ class MidDevECS1RawRow:
     source_group_id: str
     sample_id: str
     source_label: WatermarkLabel
+    target_length: int
     condition: MidDevCondition
     budget: int
     replicate: int
@@ -48,6 +49,9 @@ class MidDevECS1RawRow:
             raise ValueError("sample_id must be non-empty")
         if not isinstance(self.source_label, WatermarkLabel):
             raise TypeError("source_label must be WatermarkLabel")
+        require_int("target_length", self.target_length)
+        if self.target_length not in (128, 256):
+            raise ValueError("E-CS1 raw row target length must be 128 or 256")
         if not isinstance(self.condition, MidDevCondition):
             raise TypeError("condition must be MidDevCondition")
         if not isinstance(self.analysis_split, MidDevAnalysisSplit):
@@ -71,7 +75,6 @@ class MidDevECS1RawRow:
                 raise TypeError(f"{name} must be numeric")
             if not math.isfinite(float(value)):
                 raise ValueError(f"{name} must be finite")
-        require_sha256("row_hash", self.row_hash)
         if self.row_hash != sha256_json(self.payload()):
             raise ValueError("row_hash does not match E-CS1 raw row")
 
@@ -83,6 +86,7 @@ class MidDevECS1RawRow:
             "source_group_id": self.source_group_id,
             "sample_id": self.sample_id,
             "source_label": self.source_label.value,
+            "target_length": self.target_length,
             "condition": self.condition.value,
             "budget": self.budget,
             "replicate": self.replicate,
@@ -105,7 +109,7 @@ class MidDevECS1RawArtifact:
     plan_hash: str
     scoring_artifact_hash: str
     detector_identity_hash: str
-    threshold_hash: str
+    length_calibration_registry_hash: str
     fit_source_group_count: int
     evaluation_source_group_count: int
     rows: tuple[MidDevECS1RawRow, ...]
@@ -119,7 +123,7 @@ class MidDevECS1RawArtifact:
             "plan_hash",
             "scoring_artifact_hash",
             "detector_identity_hash",
-            "threshold_hash",
+            "length_calibration_registry_hash",
             "artifact_hash",
         ):
             require_sha256(name, getattr(self, name))
@@ -131,7 +135,8 @@ class MidDevECS1RawArtifact:
             raise ValueError("E-CS1 raw artifact must preserve all 5688 scored plan rows")
         if len({row.plan_row_hash for row in self.rows}) != len(self.rows):
             raise ValueError("E-CS1 raw rows must bind unique plan rows")
-        require_sha256("artifact_hash", self.artifact_hash)
+        if {row.target_length for row in self.rows} != {128, 256}:
+            raise ValueError("E-CS1 raw artifact must preserve both target-length strata")
         if self.artifact_hash != sha256_json(self.payload()):
             raise ValueError("artifact_hash does not match E-CS1 raw artifact")
 
@@ -144,7 +149,7 @@ class MidDevECS1RawArtifact:
             "plan_hash": self.plan_hash,
             "scoring_artifact_hash": self.scoring_artifact_hash,
             "detector_identity_hash": self.detector_identity_hash,
-            "threshold_hash": self.threshold_hash,
+            "length_calibration_registry_hash": self.length_calibration_registry_hash,
             "fit_source_group_count": self.fit_source_group_count,
             "evaluation_source_group_count": self.evaluation_source_group_count,
             "row_hashes": tuple(row.row_hash for row in self.rows),
@@ -179,6 +184,8 @@ def build_ecs1_raw_artifact(
         existing = source_split.setdefault(plan_row.source_group_id, split)
         if existing is not split:
             raise ValueError("E-CS1 matched source group crossed the frozen holdout boundary")
+        if scored.target_length != plan_row.target_length:
+            raise ValueError("E-CS1 scored row target length does not match plan row")
         payload = {
             "algorithm_version": MID_DEV_ECS1_RAW_ROW_VERSION,
             "plan_row_hash": plan_row.plan_row_hash,
@@ -186,6 +193,7 @@ def build_ecs1_raw_artifact(
             "source_group_id": plan_row.source_group_id,
             "sample_id": plan_row.sample_id,
             "source_label": plan_row.source_label.value,
+            "target_length": plan_row.target_length,
             "condition": plan_row.condition.value,
             "budget": plan_row.budget,
             "replicate": plan_row.replicate,
@@ -205,6 +213,7 @@ def build_ecs1_raw_artifact(
                 plan_row.source_group_id,
                 plan_row.sample_id,
                 plan_row.source_label,
+                plan_row.target_length,
                 plan_row.condition,
                 plan_row.budget,
                 plan_row.replicate,
@@ -232,7 +241,7 @@ def build_ecs1_raw_artifact(
         "plan_hash": plan.plan_hash,
         "scoring_artifact_hash": scoring.artifact_hash,
         "detector_identity_hash": scoring.detector_identity_hash,
-        "threshold_hash": scoring.threshold_hash,
+        "length_calibration_registry_hash": scoring.length_calibration_registry_hash,
         "fit_source_group_count": len(fit_groups),
         "evaluation_source_group_count": len(eval_groups),
         "row_hashes": tuple(row.row_hash for row in materialized),
@@ -244,7 +253,7 @@ def build_ecs1_raw_artifact(
         plan.plan_hash,
         scoring.artifact_hash,
         scoring.detector_identity_hash,
-        scoring.threshold_hash,
+        scoring.length_calibration_registry_hash,
         len(fit_groups),
         len(eval_groups),
         materialized,
