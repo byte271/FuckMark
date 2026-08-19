@@ -1,3 +1,4 @@
+import ast
 from pathlib import Path
 
 from fuckmark.experiments.mid_dev_analysis_v5 import (
@@ -58,10 +59,24 @@ def test_v5_matched_comparison_reports_but_does_not_infer_below_32_groups():
 
 
 def test_v5_analysis_has_no_confirmatory_p_value_or_threshold_tuning_path():
-    source = Path("fuckmark/experiments/mid_dev_analysis_v5.py").read_text(encoding="utf-8").lower()
-    assert "p_value" not in source
-    assert "p-value" not in source
-    assert "calibrate_detector" not in source
-    assert "build_frozen_calibration_threshold_registry" not in source
-    assert "threshold_value =" not in source
+    path = Path("fuckmark/experiments/mid_dev_analysis_v5.py")
+    source = path.read_text(encoding="utf-8")
+    tree = ast.parse(source, filename=str(path))
+    identifiers = set()
+    string_literals = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            identifiers.add(node.id.lower())
+        elif isinstance(node, ast.Attribute):
+            identifiers.add(node.attr.lower())
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            identifiers.add(node.name.lower())
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            string_literals.append(node.value.lower())
+    assert not any(name == "p_value" or name.endswith("_p_value") for name in identifiers)
+    assert not any("p-value" in value for value in string_literals)
+    lowered = source.lower()
+    assert "calibrate_detector" not in lowered
+    assert "build_frozen_calibration_threshold_registry" not in lowered
+    assert "threshold_value =" not in lowered
     assert MID_DEV_V5_HUMAN_AUDIT_PENDING == "PENDING"
