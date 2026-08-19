@@ -10,9 +10,9 @@ from ..hashing import sha256_json
 from .mid_dev_scoring_contracts import MidDevCondition, MidDevPlanRowView
 
 
-MID_DEV_SCORED_PLAN_ROW_VERSION = "mid-dev-scored-plan-row-v2"
+MID_DEV_SCORED_PLAN_ROW_VERSION = "mid-dev-scored-plan-row-v3"
 MID_DEV_LENGTH_CALIBRATION_BINDING_VERSION = "mid-dev-length-calibration-binding-v1"
-MID_DEV_SCORING_ARTIFACT_VERSION = "mid-dev-scoring-artifact-v2"
+MID_DEV_SCORING_ARTIFACT_VERSION = "mid-dev-scoring-artifact-v3"
 MID_DEV_CALIBRATION_NEGATIVES_PER_LENGTH = 100
 MID_DEV_SCORED_TARGET_LENGTHS = (128, 256)
 
@@ -82,6 +82,7 @@ class MidDevScoredPlanRow:
     status: str
     realized_edit_cost: int
     detector_identity_hash: str
+    length_calibration_binding_hash: str
     threshold_hash: str
     threshold_value: float
     pristine_score: float
@@ -94,6 +95,7 @@ class MidDevScoredPlanRow:
         for name in (
             "plan_row_hash",
             "detector_identity_hash",
+            "length_calibration_binding_hash",
             "threshold_hash",
             "scored_row_hash",
         ):
@@ -135,6 +137,7 @@ class MidDevScoredPlanRow:
         *,
         plan_row: MidDevPlanRowView,
         detector_identity_hash: str,
+        length_calibration_binding_hash: str,
         threshold_hash: str,
         threshold_value: float,
         pristine_score: float,
@@ -153,6 +156,7 @@ class MidDevScoredPlanRow:
             "status": plan_row.status,
             "realized_edit_cost": plan_row.operation_count,
             "detector_identity_hash": detector_identity_hash,
+            "length_calibration_binding_hash": length_calibration_binding_hash,
             "threshold_hash": threshold_hash,
             "threshold_value": float(threshold_value),
             "pristine_score": float(pristine_score),
@@ -172,6 +176,7 @@ class MidDevScoredPlanRow:
             plan_row.status,
             plan_row.operation_count,
             detector_identity_hash,
+            length_calibration_binding_hash,
             threshold_hash,
             float(threshold_value),
             float(pristine_score),
@@ -199,6 +204,7 @@ class MidDevScoredPlanRow:
             "status": self.status,
             "realized_edit_cost": self.realized_edit_cost,
             "detector_identity_hash": self.detector_identity_hash,
+            "length_calibration_binding_hash": self.length_calibration_binding_hash,
             "threshold_hash": self.threshold_hash,
             "threshold_value": self.threshold_value,
             "pristine_score": self.pristine_score,
@@ -286,6 +292,8 @@ class MidDevScoringArtifact:
             raise ValueError("MidDev scored rows mixed detector identities")
         for row in self.rows:
             binding = by_length[row.target_length]
+            if row.length_calibration_binding_hash != binding.binding_hash:
+                raise ValueError("MidDev scored row calibration binding does not match its length stratum")
             if row.threshold_hash != binding.threshold_hash:
                 raise ValueError("MidDev scored row threshold identity does not match its length stratum")
             if row.threshold_value != binding.threshold_value:
