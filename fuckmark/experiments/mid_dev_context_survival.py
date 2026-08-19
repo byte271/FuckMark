@@ -25,7 +25,6 @@ MID_DEV_ECS1_PREDICTOR_VERSION = "E-CS1-predictor-comparison-v1"
 MID_DEV_BUDGETS = (1, 2, 4, 6)
 MID_DEV_BEAM_BUDGETS = (4, 6)
 MID_DEV_RANDOM_REPLICATES = 16
-MID_DEV_MINIMUM_RANDOM_REPLICATES = 8
 MID_DEV_BEAM_WIDTH = 32
 MID_DEV_MAX_RISK_TIER = 1
 MID_DEV_MINIMUM_SOURCE_GROUPS = 32
@@ -72,8 +71,8 @@ class MidDevSelectionConfig:
         if self.beam_budgets != MID_DEV_BEAM_BUDGETS:
             raise ValueError("MidDev beam budgets must match the frozen development profile")
         require_int("random_replicates", self.random_replicates)
-        if self.random_replicates < MID_DEV_MINIMUM_RANDOM_REPLICATES:
-            raise ValueError("MidDev requires at least eight random replicates per source/budget")
+        if self.random_replicates != MID_DEV_RANDOM_REPLICATES:
+            raise ValueError("frozen MidDev requires exactly sixteen random replicates per source/budget")
         require_int("beam_width", self.beam_width)
         require_int("max_risk_tier", self.max_risk_tier)
         if self.beam_width != MID_DEV_BEAM_WIDTH:
