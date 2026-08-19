@@ -15,7 +15,7 @@ from .mid_dev_scored_schema import MidDevScoringArtifact
 from .mid_dev_scoring_contracts import MidDevCondition, MidDevFrozenPlanView
 
 
-MID_DEV_ANALYSIS_VERSION = "mid-dev-analysis-v1"
+MID_DEV_ANALYSIS_VERSION = "mid-dev-analysis-v2"
 MID_DEV_PRIMARY_INELIGIBLE_VERSION = "mid-dev-primary-ineligible-v1"
 MID_DEV_FROZEN_PRIMARY_CELLS = (
     (MidDevCondition.CONTEXT_SURVIVAL_GREEDY, 1),
@@ -80,7 +80,7 @@ class MidDevAnalysisArtifact:
     plan_hash: str
     scoring_artifact_hash: str
     detector_identity_hash: str
-    threshold_hash: str
+    length_calibration_registry_hash: str
     frozen_primary_cells_hash: str
     primary_results: tuple[MidDevPrimaryInferenceResult, ...]
     ineligible_primary_cells: tuple[MidDevPrimaryIneligibleCell, ...]
@@ -95,7 +95,7 @@ class MidDevAnalysisArtifact:
             "plan_hash",
             "scoring_artifact_hash",
             "detector_identity_hash",
-            "threshold_hash",
+            "length_calibration_registry_hash",
             "frozen_primary_cells_hash",
             "ecs1_raw_artifact_hash",
             "artifact_hash",
@@ -116,9 +116,8 @@ class MidDevAnalysisArtifact:
             raise ValueError("MidDev analysis primary cell outputs contain duplicates")
         if any(value.detector_identity_hash != self.detector_identity_hash for value in self.primary_results):
             raise ValueError("MidDev primary results mixed detector identities")
-        if any(value.threshold_hash != self.threshold_hash for value in self.primary_results):
-            raise ValueError("MidDev primary results mixed thresholds")
-        require_sha256("artifact_hash", self.artifact_hash)
+        if any(value.threshold_registry_hash != self.length_calibration_registry_hash for value in self.primary_results):
+            raise ValueError("MidDev primary results do not bind the scoring length calibration registry")
         if self.artifact_hash != sha256_json(self.payload()):
             raise ValueError("artifact_hash does not match MidDev analysis artifact")
 
@@ -131,7 +130,7 @@ class MidDevAnalysisArtifact:
             "plan_hash": self.plan_hash,
             "scoring_artifact_hash": self.scoring_artifact_hash,
             "detector_identity_hash": self.detector_identity_hash,
-            "threshold_hash": self.threshold_hash,
+            "length_calibration_registry_hash": self.length_calibration_registry_hash,
             "frozen_primary_cells_hash": self.frozen_primary_cells_hash,
             "primary_result_hashes": tuple(value.result_hash for value in self.primary_results),
             "ineligible_primary_cell_hashes": tuple(
@@ -233,7 +232,7 @@ def build_mid_dev_analysis_artifact(
         "plan_hash": plan.plan_hash,
         "scoring_artifact_hash": scoring.artifact_hash,
         "detector_identity_hash": scoring.detector_identity_hash,
-        "threshold_hash": scoring.threshold_hash,
+        "length_calibration_registry_hash": scoring.length_calibration_registry_hash,
         "frozen_primary_cells_hash": MID_DEV_FROZEN_PRIMARY_CELLS_HASH,
         "primary_result_hashes": tuple(value.result_hash for value in result_tuple),
         "ineligible_primary_cell_hashes": tuple(value.cell_hash for value in ineligible_tuple),
@@ -247,7 +246,7 @@ def build_mid_dev_analysis_artifact(
             plan.plan_hash,
             scoring.artifact_hash,
             scoring.detector_identity_hash,
-            scoring.threshold_hash,
+            scoring.length_calibration_registry_hash,
             MID_DEV_FROZEN_PRIMARY_CELLS_HASH,
             result_tuple,
             ineligible_tuple,
