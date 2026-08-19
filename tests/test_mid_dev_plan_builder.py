@@ -15,6 +15,7 @@ from fuckmark.corpus.mid_dev_generation import (
     build_real_mid_dev_corpus,
 )
 from fuckmark.corpus.schema import KeySplit
+from fuckmark.detector_calibration import PRIMARY_TARGET_FPR
 from fuckmark.experiments.mid_dev_context_survival import (
     MID_DEV_BUDGETS,
     MID_DEV_RANDOM_REPLICATES,
@@ -25,6 +26,19 @@ from fuckmark.experiments.mid_dev_plan_io import (
     parse_mid_dev_plan_json,
     parse_mid_dev_trace_json,
     validate_mid_dev_plan_trace_binding,
+)
+from fuckmark.experiments.mid_dev_scored_schema import (
+    MidDevScoredPlanRow,
+    MidDevScoringArtifact,
+)
+from fuckmark.experiments.mid_dev_scoring_artifact_io import (
+    parse_mid_dev_scoring_artifact_json,
+    validate_mid_dev_scoring_artifact_binding,
+)
+from fuckmark.experiments.mid_dev_scoring_io import (
+    parse_mid_dev_scoring_plan_json,
+    parse_mid_dev_scoring_trace_json,
+    validate_mid_dev_scoring_plan_trace_binding,
 )
 from fuckmark.hashing import sha256_json, sha256_text
 from fuckmark.scheduling.beam_v2 import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
@@ -134,6 +148,64 @@ class _PlannerBackend:
         )
 
 
+def _fake_scoring_artifact(plan, traces) -> MidDevScoringArtifact:
+    detector_identity_hash = sha256_text("middev-fake-detector")
+    threshold_hash = sha256_text("middev-fake-threshold")
+    calibration_corpus_artifact_hash = sha256_text("middev-fake-calibration-corpus")
+    calibration_bundle_hash = sha256_text("middev-fake-calibration-bundle")
+    rows = tuple(
+        MidDevScoredPlanRow.create(
+            plan_row=row,
+            detector_identity_hash=detector_identity_hash,
+            threshold_hash=threshold_hash,
+            threshold_value=0.5,
+            pristine_score=0.8,
+            transformed_score=0.7,
+        )
+        for row in plan.rows
+    )
+    payload = {
+        "algorithm_version": "mid-dev-scoring-artifact-v1",
+        "mid_dev_corpus_artifact_hash": plan.corpus_artifact_hash,
+        "source_profile_hash": plan.source_profile_hash,
+        "analysis_split_hash": plan.analysis_split_hash,
+        "plan_hash": plan.plan_hash,
+        "trace_artifact_hash": traces.artifact_hash,
+        "calibration_corpus_artifact_hash": calibration_corpus_artifact_hash,
+        "calibration_bundle_hash": calibration_bundle_hash,
+        "detector_identity_hash": detector_identity_hash,
+        "threshold_hash": threshold_hash,
+        "threshold_value": 0.5,
+        "target_fpr": PRIMARY_TARGET_FPR,
+        "independent_source_group_count": 36,
+        "independent_watermarked_source_count": 36,
+        "independent_control_source_count": 36,
+        "pristine_watermarked_detected_count": 36,
+        "pristine_control_detected_count": 0,
+        "row_hashes": tuple(row.scored_row_hash for row in rows),
+    }
+    return MidDevScoringArtifact(
+        plan.corpus_artifact_hash,
+        plan.source_profile_hash,
+        plan.analysis_split_hash,
+        plan.plan_hash,
+        traces.artifact_hash,
+        calibration_corpus_artifact_hash,
+        calibration_bundle_hash,
+        detector_identity_hash,
+        threshold_hash,
+        0.5,
+        PRIMARY_TARGET_FPR,
+        36,
+        36,
+        36,
+        36,
+        0,
+        rows,
+        sha256_json(payload),
+    )
+
+
 def test_full_fake_middev_planner_emits_complete_detector_blind_matrix() -> None:
     tokenizer = _PlannerTokenizer()
     artifact = build_real_mid_dev_corpus(_PlannerBackend(tokenizer))
@@ -164,6 +236,17 @@ def test_full_fake_middev_planner_emits_complete_detector_blind_matrix() -> None
     validate_mid_dev_plan_trace_binding(reloaded_plan, reloaded_traces)
     assert reloaded_plan.plan_hash == plan.plan_hash
     assert reloaded_traces.artifact_hash == traces.artifact_hash
+
+    scoring_plan = parse_mid_dev_scoring_plan_json(canonical_json_text(plan) + "\n")
+    scoring_traces = parse_mid_dev_scoring_trace_json(canonical_json_text(traces) + "\n")
+    validate_mid_dev_scoring_plan_trace_binding(scoring_plan, scoring_traces)
+    evidence = _fake_scoring_artifact(scoring_plan, scoring_traces)
+    reloaded_evidence = parse_mid_dev_scoring_artifact_json(
+        canonical_json_text(evidence) + "\n"
+    )
+    validate_mid_dev_scoring_artifact_binding(reloaded_evidence, scoring_plan)
+    assert reloaded_evidence.artifact_hash == evidence.artifact_hash
+    assert len(reloaded_evidence.rows) == 5688
 
     sample_ids = {row.sample_id for row in plan.rows}
     assert len(sample_ids) == 72
