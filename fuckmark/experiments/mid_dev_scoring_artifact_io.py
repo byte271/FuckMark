@@ -6,7 +6,11 @@ from pathlib import Path
 from ..config import canonical_json_text
 from ..corpus.schema import WatermarkLabel
 from ..corpus.tiny_dev_io import _array, _mapping, _reject_constant, _unique_object
-from .mid_dev_scored_schema import MidDevScoredPlanRow, MidDevScoringArtifact
+from .mid_dev_scored_schema import (
+    MidDevLengthCalibrationBinding,
+    MidDevScoredPlanRow,
+    MidDevScoringArtifact,
+)
 from .mid_dev_scoring_contracts import MidDevCondition, MidDevFrozenPlanView
 
 
@@ -15,6 +19,35 @@ MID_DEV_SCORING_ARTIFACT_JSON_MAX_BYTES = 512 * 1024 * 1024
 
 class MidDevScoringArtifactJsonError(ValueError):
     pass
+
+
+def _length_calibration(value: object) -> MidDevLengthCalibrationBinding:
+    data = _mapping(
+        "length_calibration",
+        value,
+        (
+            "target_length",
+            "calibration_bundle_hash",
+            "detector_identity_hash",
+            "threshold_hash",
+            "threshold_value",
+            "target_fpr",
+            "calibration_count",
+            "length_policy_id",
+            "binding_hash",
+        ),
+    )
+    return MidDevLengthCalibrationBinding(
+        data["target_length"],
+        data["calibration_bundle_hash"],
+        data["detector_identity_hash"],
+        data["threshold_hash"],
+        data["threshold_value"],
+        data["target_fpr"],
+        data["calibration_count"],
+        data["length_policy_id"],
+        data["binding_hash"],
+    )
 
 
 def _scored_row(value: object) -> MidDevScoredPlanRow:
@@ -26,6 +59,7 @@ def _scored_row(value: object) -> MidDevScoredPlanRow:
             "source_group_id",
             "sample_id",
             "source_label",
+            "target_length",
             "condition",
             "budget",
             "replicate",
@@ -46,6 +80,7 @@ def _scored_row(value: object) -> MidDevScoredPlanRow:
         data["source_group_id"],
         data["sample_id"],
         WatermarkLabel(data["source_label"]),
+        data["target_length"],
         MidDevCondition(data["condition"]),
         data["budget"],
         data["replicate"],
@@ -73,11 +108,10 @@ def _artifact(value: object) -> MidDevScoringArtifact:
             "plan_hash",
             "trace_artifact_hash",
             "calibration_corpus_artifact_hash",
-            "calibration_bundle_hash",
+            "calibration_source_profile_hash",
             "detector_identity_hash",
-            "threshold_hash",
-            "threshold_value",
-            "target_fpr",
+            "length_calibrations",
+            "length_calibration_registry_hash",
             "independent_source_group_count",
             "independent_watermarked_source_count",
             "independent_control_source_count",
@@ -94,11 +128,13 @@ def _artifact(value: object) -> MidDevScoringArtifact:
         data["plan_hash"],
         data["trace_artifact_hash"],
         data["calibration_corpus_artifact_hash"],
-        data["calibration_bundle_hash"],
+        data["calibration_source_profile_hash"],
         data["detector_identity_hash"],
-        data["threshold_hash"],
-        data["threshold_value"],
-        data["target_fpr"],
+        tuple(
+            _length_calibration(row)
+            for row in _array("scoring_artifact.length_calibrations", data["length_calibrations"])
+        ),
+        data["length_calibration_registry_hash"],
         data["independent_source_group_count"],
         data["independent_watermarked_source_count"],
         data["independent_control_source_count"],
@@ -160,12 +196,14 @@ def validate_mid_dev_scoring_artifact_binding(
     plan_by_hash = {row.plan_row_hash: row for row in plan.rows}
     if set(scored_by_hash) != set(plan_by_hash):
         raise MidDevScoringArtifactJsonError("MidDev scoring artifact does not score every frozen plan row exactly once")
+    by_length = {value.target_length: value for value in artifact.length_calibrations}
     for plan_hash, plan_row in plan_by_hash.items():
         scored = scored_by_hash[plan_hash]
         if (
             scored.source_group_id != plan_row.source_group_id
             or scored.sample_id != plan_row.sample_id
             or scored.source_label is not plan_row.source_label
+            or scored.target_length != plan_row.target_length
             or scored.condition is not plan_row.condition
             or scored.budget != plan_row.budget
             or scored.replicate != plan_row.replicate
@@ -173,6 +211,9 @@ def validate_mid_dev_scoring_artifact_binding(
             or scored.realized_edit_cost != plan_row.operation_count
         ):
             raise MidDevScoringArtifactJsonError("MidDev scored row metadata does not replay its frozen plan row")
+        binding = by_length[plan_row.target_length]
+        if scored.threshold_hash != binding.threshold_hash or scored.threshold_value != binding.threshold_value:
+            raise MidDevScoringArtifactJsonError("MidDev scored row does not use its length-matched threshold")
 
 
 def load_mid_dev_scoring_artifact_json(
