@@ -18,7 +18,7 @@ from .experiments.mid_dev_scoring_io import load_mid_dev_scoring_plan_json
 from .hashing import sha256_json
 
 
-MID_DEV_ANALYSIS_PROVENANCE_VERSION = "mid-dev-analysis-provenance-v1"
+MID_DEV_ANALYSIS_PROVENANCE_VERSION = "mid-dev-analysis-provenance-v2"
 
 
 def _now() -> str:
@@ -49,6 +49,8 @@ def _validate_scoring_provenance(
     source_code_commit: str,
     scoring_artifact_hash: str,
     calibration_corpus_artifact_hash: str,
+    calibration_source_profile_hash: str,
+    length_calibration_registry_hash: str,
     trace_artifact_hash: str,
     analysis_started_at: str,
 ) -> None:
@@ -67,6 +69,10 @@ def _validate_scoring_provenance(
         raise ValueError("MidDev scoring provenance does not bind the supplied evidence")
     if provenance.get("calibration_corpus_artifact_hash") != calibration_corpus_artifact_hash:
         raise ValueError("MidDev scoring provenance does not bind the calibration corpus")
+    if provenance.get("calibration_source_profile_hash") != calibration_source_profile_hash:
+        raise ValueError("MidDev scoring provenance does not bind the calibration source profile")
+    if provenance.get("length_calibration_registry_hash") != length_calibration_registry_hash:
+        raise ValueError("MidDev scoring provenance does not bind the length calibration registry")
     if provenance.get("trace_artifact_hash") != trace_artifact_hash:
         raise ValueError("MidDev scoring provenance does not bind the frozen trace artifact")
     if provenance.get("separate_scoring_process") is not True:
@@ -87,6 +93,9 @@ def _analysis_provenance(
     plan_hash: str,
     scoring_artifact_hash: str,
     scoring_provenance_hash: str,
+    calibration_corpus_artifact_hash: str,
+    calibration_source_profile_hash: str,
+    length_calibration_registry_hash: str,
     analysis_artifact_hash: str,
     ecs1_raw_artifact_hash: str,
     analysis_started_at: str,
@@ -99,6 +108,9 @@ def _analysis_provenance(
         "plan_hash": plan_hash,
         "scoring_artifact_hash": scoring_artifact_hash,
         "scoring_provenance_hash": scoring_provenance_hash,
+        "calibration_corpus_artifact_hash": calibration_corpus_artifact_hash,
+        "calibration_source_profile_hash": calibration_source_profile_hash,
+        "length_calibration_registry_hash": length_calibration_registry_hash,
         "analysis_artifact_hash": analysis_artifact_hash,
         "ecs1_raw_artifact_hash": ecs1_raw_artifact_hash,
         "analysis_started_at_utc": analysis_started_at,
@@ -154,6 +166,8 @@ def main(argv: list[str] | None = None) -> int:
         source_code_commit=plan.source_code_commit,
         scoring_artifact_hash=scoring.artifact_hash,
         calibration_corpus_artifact_hash=scoring.calibration_corpus_artifact_hash,
+        calibration_source_profile_hash=scoring.calibration_source_profile_hash,
+        length_calibration_registry_hash=scoring.length_calibration_registry_hash,
         trace_artifact_hash=scoring.trace_artifact_hash,
         analysis_started_at=analysis_started_at,
     )
@@ -167,6 +181,9 @@ def main(argv: list[str] | None = None) -> int:
         plan_hash=plan.plan_hash,
         scoring_artifact_hash=scoring.artifact_hash,
         scoring_provenance_hash=str(scoring_provenance["provenance_hash"]),
+        calibration_corpus_artifact_hash=scoring.calibration_corpus_artifact_hash,
+        calibration_source_profile_hash=scoring.calibration_source_profile_hash,
+        length_calibration_registry_hash=scoring.length_calibration_registry_hash,
         analysis_artifact_hash=analysis.artifact_hash,
         ecs1_raw_artifact_hash=ecs1.artifact_hash,
         analysis_started_at=analysis_started_at,
@@ -177,6 +194,7 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.write(f"analysis_artifact_hash={analysis.artifact_hash}\n")
     sys.stdout.write(f"ecs1_raw_artifact_hash={ecs1.artifact_hash}\n")
     sys.stdout.write(f"analysis_provenance_hash={provenance['provenance_hash']}\n")
+    sys.stdout.write(f"length_calibration_registry_hash={analysis.length_calibration_registry_hash}\n")
     sys.stdout.write(f"primary_valid_cells={len(analysis.primary_results)}\n")
     sys.stdout.write(f"primary_ineligible_cells={len(analysis.ineligible_primary_cells)}\n")
     sys.stdout.write(f"ecs1_row_count={len(ecs1.rows)}\n")
