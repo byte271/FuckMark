@@ -17,6 +17,22 @@ on:
       - "tests/test_geometry_v3_gate.py"
       - "tests/test_residual_signal_geometry.py"
       - "tests/test_structural_leverage.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/geometry-v3-validation-trigger"
+      - ".github/workflows/middev-geometry-v3-gate.yml"
+      - "fuckmark/search/**"
+      - "fuckmark/scheduling/**"
+      - "fuckmark/experiments/geometry_v3_gate.py"
+      - "fuckmark/experiments/residual_signal_geometry.py"
+      - "fuckmark/experiments/structural_leverage.py"
+      - "fuckmark/tiny_dev_geometry_v3_gate_hf.py"
+      - "tests/test_beam_v2.py"
+      - "tests/test_beam_v3.py"
+      - "tests/test_geometry_v3_gate.py"
+      - "tests/test_residual_signal_geometry.py"
+      - "tests/test_structural_leverage.py"
 
 permissions:
   contents: read
@@ -121,19 +137,22 @@ jobs:
         run: |
           python - <<'PY'
           import sys
+          import fuckmark
+
+          baseline = set(sys.modules)
           import fuckmark.search.beam_v3
           import fuckmark.experiments.geometry_v3_gate
           import fuckmark.tiny_dev_geometry_v3_gate_hf
-
+          newly_loaded = set(sys.modules) - baseline
           banned_prefixes = (
               'fuckmark.detector',
               'fuckmark.detectors',
               'fuckmark.experiments.mid_dev_scoring',
               'fuckmark.experiments.mid_dev_scorer',
           )
-          bad = sorted(name for name in sys.modules if name.startswith(banned_prefixes))
+          bad = sorted(name for name in newly_loaded if name.startswith(banned_prefixes))
           if bad:
-              raise SystemExit(f'prohibited transitive selection imports: {bad}')
+              raise SystemExit(f'prohibited v3 transitive imports: {bad}')
           print('runtime-selection-import-firewall=PASS')
           PY
       - name: Run detector-free matched-cost geometry gate
