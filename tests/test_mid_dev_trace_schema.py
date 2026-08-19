@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from fuckmark.experiments.mid_dev_context_survival import MidDevCondition
+from fuckmark.experiments.mid_dev_context_survival import MidDevCondition as BuilderCondition
 from fuckmark.experiments.mid_dev_plan_builder import (
     MidDevSelectionTrace as BuilderTrace,
     MidDevSelectionTraceArtifact as BuilderTraceArtifact,
     _schedule_seed,
 )
+from fuckmark.experiments.mid_dev_scoring_contracts import MidDevCondition
 from fuckmark.experiments.mid_dev_trace_schema import (
     MidDevSelectionTrace,
     MidDevSelectionTraceArtifact,
@@ -18,18 +19,19 @@ def test_middev_public_schedule_seed_replays_builder_derivation() -> None:
     sample_ids = tuple(f"sample-{index:03d}" for index in range(72))
     for sample_id in sample_ids:
         for condition in (
-            MidDevCondition.CURRENT_STRONGEST_BASELINE,
-            MidDevCondition.CONTEXT_SURVIVAL_GREEDY,
-            MidDevCondition.CONTEXT_SURVIVAL_BEAM,
-            MidDevCondition.EVEN_SPACING,
-            MidDevCondition.RANDOM_SAFE,
+            BuilderCondition.CURRENT_STRONGEST_BASELINE,
+            BuilderCondition.CONTEXT_SURVIVAL_GREEDY,
+            BuilderCondition.CONTEXT_SURVIVAL_BEAM,
+            BuilderCondition.EVEN_SPACING,
+            BuilderCondition.RANDOM_SAFE,
         ):
             for budget in (1, 2, 4, 6):
-                replicates = range(16) if condition is MidDevCondition.RANDOM_SAFE else (0,)
+                replicates = range(16) if condition is BuilderCondition.RANDOM_SAFE else (0,)
+                neutral = MidDevCondition(condition.value)
                 for replicate in replicates:
                     assert _schedule_seed(sample_id, condition, budget, replicate) == mid_dev_schedule_seed(
                         sample_id,
-                        condition,
+                        neutral,
                         budget,
                         replicate,
                     )
@@ -39,12 +41,12 @@ def test_middev_neutral_trace_schema_replays_builder_trace_hash() -> None:
     builder = BuilderTrace.create(
         source_group_id="match-middev-general-explanatory-000",
         sample_id="middev-general-explanatory-000-watermarked",
-        condition=MidDevCondition.CONTEXT_SURVIVAL_BEAM,
+        condition=BuilderCondition.CONTEXT_SURVIVAL_BEAM,
         budget=4,
         replicate=0,
         schedule_seed=_schedule_seed(
             "middev-general-explanatory-000-watermarked",
-            MidDevCondition.CONTEXT_SURVIVAL_BEAM,
+            BuilderCondition.CONTEXT_SURVIVAL_BEAM,
             4,
             0,
         ),
@@ -59,7 +61,7 @@ def test_middev_neutral_trace_schema_replays_builder_trace_hash() -> None:
     neutral = MidDevSelectionTrace(
         builder.source_group_id,
         builder.sample_id,
-        builder.condition,
+        MidDevCondition(builder.condition.value),
         builder.budget,
         builder.replicate,
         builder.schedule_seed,
