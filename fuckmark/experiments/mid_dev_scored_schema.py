@@ -5,9 +5,9 @@ from dataclasses import dataclass
 
 from .._validation import require_int, require_sha256
 from ..corpus.schema import WatermarkLabel
+from ..detector_calibration import PRIMARY_TARGET_FPR
 from ..hashing import sha256_json
-from ..tiny_dev_transform_hf import PRIMARY_TARGET_FPR
-from .mid_dev_context_survival import MidDevCondition, MidDevPlanRow
+from .mid_dev_scoring_contracts import MidDevCondition, MidDevPlanRowView
 
 
 MID_DEV_SCORED_PLAN_ROW_VERSION = "mid-dev-scored-plan-row-v1"
@@ -74,7 +74,7 @@ class MidDevScoredPlanRow:
     def create(
         cls,
         *,
-        plan_row: MidDevPlanRow,
+        plan_row: MidDevPlanRowView,
         detector_identity_hash: str,
         threshold_hash: str,
         threshold_value: float,
