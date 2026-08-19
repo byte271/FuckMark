@@ -49,13 +49,15 @@ def _row(source: str, policy: str, budget: int, old: float, new: float, margin: 
 def _matrix(*, new_is_better: bool) -> tuple[TinyDevResidualReplayRow, ...]:
     rows = []
     budgets = (1, 2, 4, 6)
+    old_positive_control = (0.30, 0.05, 0.25, 0.10)
     for source_index in range(4):
-        for policy, budget in zip(PRIMARY_POLICIES, budgets):
-            old = 0.07 * budget + 0.08 * source_index
+        for policy_index, (policy, budget) in enumerate(zip(PRIMARY_POLICIES, budgets)):
             if new_is_better:
-                new = 0.05 * budget + 0.02 * source_index + (0.01 if budget == 4 else 0.0)
-                margin = 0.14 * new + 0.003 * source_index
+                old = old_positive_control[policy_index] + 0.02 * source_index
+                new = 0.05 * budget + 0.01 * source_index
+                margin = 0.20 * new
             else:
+                old = 0.07 * budget + 0.08 * source_index
                 new = old + 0.04 * ((budget + source_index) % 2)
                 margin = 0.14 * old + 0.003 * source_index
             rows.append(_row(f"source-{source_index}", policy, budget, old, new, margin))
