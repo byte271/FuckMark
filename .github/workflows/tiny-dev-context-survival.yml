@@ -15,9 +15,15 @@ on:
       - "fuckmark/tiny_dev_detector_hf.py"
       - "fuckmark/tiny_dev_transform_hf.py"
       - "tests/test_tiny_dev_context_survival_hf.py"
+      - "tests/test_beam_v2.py"
+      - "tests/test_context_survival_plan_v2.py"
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   context-survival-mechanism:
@@ -25,6 +31,8 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
