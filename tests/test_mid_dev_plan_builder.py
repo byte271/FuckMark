@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import re
+
+import pytest
 
 from fuckmark.corpus.generation import GenerationParameters, WatermarkCondition
 from fuckmark.corpus.identity import ModelTokenizerIdentity, PaddingSide
@@ -19,6 +22,12 @@ from fuckmark.experiments.mid_dev_context_survival import (
 from fuckmark.experiments.mid_dev_plan_builder import build_mid_dev_context_survival_plan
 from fuckmark.hashing import sha256_json, sha256_text
 from fuckmark.scheduling.beam_v2 import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
+
+
+pytestmark = pytest.mark.skipif(
+    os.environ.get("FUCKMARK_RUN_MIDDEV_FULL_MATRIX") != "1",
+    reason="full MidDev matrix runs in its dedicated workflow",
+)
 
 
 class _PlannerTokenizer:
