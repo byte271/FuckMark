@@ -6,10 +6,10 @@ from .._validation import require_int, require_sha256
 from ..corpus.mid_dev import MidDevAttackArtifact
 from ..hashing import sha256_json
 from .mid_dev_ecs1_safe import MidDevECS1RawArtifact, build_ecs1_raw_artifact
+from .mid_dev_primary_inference_length import primary_realized_cost_inference
 from .mid_dev_primary_inference_safe import (
     MidDevPrimaryInferenceResult,
     _source_contrast,
-    primary_realized_cost_inference,
 )
 from .mid_dev_scored_schema import MidDevScoringArtifact
 from .mid_dev_scoring_contracts import MidDevCondition, MidDevFrozenPlanView
