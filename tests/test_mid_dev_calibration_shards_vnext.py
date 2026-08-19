@@ -7,11 +7,13 @@ from fuckmark.corpus.mid_dev_calibration_shards import (
     CalibrationRole,
     MidDevCalibrationShardError,
     MidDevCalibrationShardOutputManifest,
+    build_mid_dev_calibration_prompt_records,
     build_mid_dev_calibration_shard_plan,
     merge_mid_dev_calibration_shard_outputs,
     validate_calibration_merged_independence,
     validate_calibration_role_independence,
 )
+from fuckmark.corpus.schema import CorpusSplit
 from fuckmark.hashing import sha256_json
 
 
@@ -46,6 +48,12 @@ def _outputs(plan):
             text_hashes, token_hashes, "a" * 64, "b" * 64, "c" * 64, sha256_json(payload),
         ))
     return tuple(output)
+
+
+def test_calibration_prompts_bind_threshold_calibration_split() -> None:
+    prompts = build_mid_dev_calibration_prompt_records(CalibrationRole.SELECT, negatives_per_target=1000)
+    assert len(prompts) == 2000
+    assert {prompt.split for prompt in prompts} == {CorpusSplit.THRESHOLD_CALIBRATION}
 
 
 def test_select_audit_plans_are_deterministic_and_disjoint() -> None:
