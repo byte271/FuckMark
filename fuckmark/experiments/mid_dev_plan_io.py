@@ -29,6 +29,8 @@ from .mid_dev_plan_builder import (
 
 
 MID_DEV_PLAN_JSON_MAX_BYTES = 512 * 1024 * 1024
+MID_DEV_FROZEN_NGRAM_LEN = 5
+MID_DEV_FROZEN_CONTEXT_HISTORY_SIZE = 1024
 
 
 class MidDevPlanJsonError(ValueError):
@@ -208,6 +210,8 @@ def _plan(value: object) -> MidDevDeterministicFrozenPlan:
             "source_profile_hash",
             "analysis_split_hash",
             "source_code_commit",
+            "ngram_len",
+            "context_history_size",
             "selection_config",
             "selection_attestation",
             "rows",
@@ -222,6 +226,8 @@ def _plan(value: object) -> MidDevDeterministicFrozenPlan:
         source_profile_hash=data["source_profile_hash"],
         analysis_split_hash=data["analysis_split_hash"],
         source_code_commit=data["source_code_commit"],
+        ngram_len=data["ngram_len"],
+        context_history_size=data["context_history_size"],
         selection_config=_selection_config(data["selection_config"]),
         selection_attestation=_selection_attestation(data["selection_attestation"]),
         rows=tuple(_plan_row(row) for row in _array("plan.rows", data["rows"])),
@@ -239,6 +245,10 @@ def _plan(value: object) -> MidDevDeterministicFrozenPlan:
     expected_rows = MID_DEV_SOURCE_COUNT * 2 * (
         1 + 4 * (2 + MID_DEV_RANDOM_REPLICATES + 1) + 2
     )
+    if plan.ngram_len != MID_DEV_FROZEN_NGRAM_LEN:
+        raise MidDevPlanJsonError("frozen MidDev plan must use ngram_len=5")
+    if plan.context_history_size != MID_DEV_FROZEN_CONTEXT_HISTORY_SIZE:
+        raise MidDevPlanJsonError("frozen MidDev plan must use context_history_size=1024")
     if len(source_groups) != MID_DEV_SOURCE_COUNT:
         raise MidDevPlanJsonError("frozen MidDev plan must contain exactly 36 source groups")
     if len(sample_ids) != MID_DEV_SOURCE_COUNT * 2:
