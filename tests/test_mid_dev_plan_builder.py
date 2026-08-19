@@ -29,6 +29,9 @@ from fuckmark.experiments.mid_dev_plan_io import (
     validate_mid_dev_plan_trace_binding,
 )
 from fuckmark.experiments.mid_dev_scored_schema import (
+    MID_DEV_LENGTH_CALIBRATION_BINDING_VERSION,
+    MID_DEV_SCORING_ARTIFACT_VERSION,
+    MidDevLengthCalibrationBinding,
     MidDevScoredPlanRow,
     MidDevScoringArtifact,
 )
@@ -149,35 +152,76 @@ class _PlannerBackend:
         )
 
 
+def _fake_length_binding(target_length: int, detector_identity_hash: str) -> MidDevLengthCalibrationBinding:
+    calibration_bundle_hash = sha256_text(f"middev-fake-calibration-bundle-{target_length}")
+    threshold_hash = sha256_text(f"middev-fake-threshold-{target_length}")
+    threshold_value = 0.5 if target_length == 128 else 0.55
+    length_policy_id = f"target-{target_length}-text-only-unpadded-v1"
+    payload = {
+        "algorithm_version": MID_DEV_LENGTH_CALIBRATION_BINDING_VERSION,
+        "target_length": target_length,
+        "calibration_bundle_hash": calibration_bundle_hash,
+        "detector_identity_hash": detector_identity_hash,
+        "threshold_hash": threshold_hash,
+        "threshold_value": threshold_value,
+        "target_fpr": PRIMARY_TARGET_FPR,
+        "calibration_count": 100,
+        "length_policy_id": length_policy_id,
+    }
+    return MidDevLengthCalibrationBinding(
+        target_length,
+        calibration_bundle_hash,
+        detector_identity_hash,
+        threshold_hash,
+        threshold_value,
+        PRIMARY_TARGET_FPR,
+        100,
+        length_policy_id,
+        sha256_json(payload),
+    )
+
+
 def _fake_scoring_artifact(plan, traces) -> MidDevScoringArtifact:
     detector_identity_hash = sha256_text("middev-fake-detector")
-    threshold_hash = sha256_text("middev-fake-threshold")
     calibration_corpus_artifact_hash = sha256_text("middev-fake-calibration-corpus")
-    calibration_bundle_hash = sha256_text("middev-fake-calibration-bundle")
+    calibration_source_profile_hash = sha256_text("middev-fake-calibration-profile")
+    length_calibrations = tuple(
+        _fake_length_binding(target_length, detector_identity_hash)
+        for target_length in (128, 256)
+    )
+    by_length = {value.target_length: value for value in length_calibrations}
+    length_calibration_registry_hash = sha256_json(
+        tuple(
+            (value.target_length, value.binding_hash)
+            for value in sorted(length_calibrations, key=lambda item: item.target_length)
+        )
+    )
     rows = tuple(
         MidDevScoredPlanRow.create(
             plan_row=row,
             detector_identity_hash=detector_identity_hash,
-            threshold_hash=threshold_hash,
-            threshold_value=0.5,
+            threshold_hash=by_length[row.target_length].threshold_hash,
+            threshold_value=by_length[row.target_length].threshold_value,
             pristine_score=0.8,
             transformed_score=0.7,
         )
         for row in plan.rows
     )
     payload = {
-        "algorithm_version": "mid-dev-scoring-artifact-v1",
+        "algorithm_version": MID_DEV_SCORING_ARTIFACT_VERSION,
         "mid_dev_corpus_artifact_hash": plan.corpus_artifact_hash,
         "source_profile_hash": plan.source_profile_hash,
         "analysis_split_hash": plan.analysis_split_hash,
         "plan_hash": plan.plan_hash,
         "trace_artifact_hash": traces.artifact_hash,
         "calibration_corpus_artifact_hash": calibration_corpus_artifact_hash,
-        "calibration_bundle_hash": calibration_bundle_hash,
+        "calibration_source_profile_hash": calibration_source_profile_hash,
         "detector_identity_hash": detector_identity_hash,
-        "threshold_hash": threshold_hash,
-        "threshold_value": 0.5,
-        "target_fpr": PRIMARY_TARGET_FPR,
+        "length_calibration_registry_hash": length_calibration_registry_hash,
+        "length_calibration_binding_hashes": tuple(
+            value.binding_hash
+            for value in sorted(length_calibrations, key=lambda item: item.target_length)
+        ),
         "independent_source_group_count": 36,
         "independent_watermarked_source_count": 36,
         "independent_control_source_count": 36,
@@ -192,11 +236,10 @@ def _fake_scoring_artifact(plan, traces) -> MidDevScoringArtifact:
         plan.plan_hash,
         traces.artifact_hash,
         calibration_corpus_artifact_hash,
-        calibration_bundle_hash,
+        calibration_source_profile_hash,
         detector_identity_hash,
-        threshold_hash,
-        0.5,
-        PRIMARY_TARGET_FPR,
+        length_calibrations,
+        length_calibration_registry_hash,
         36,
         36,
         36,
@@ -248,6 +291,12 @@ def test_full_fake_middev_planner_emits_complete_detector_blind_matrix() -> None
     validate_mid_dev_scoring_artifact_binding(reloaded_evidence, scoring_plan)
     assert reloaded_evidence.artifact_hash == evidence.artifact_hash
     assert len(reloaded_evidence.rows) == 5688
+    bindings = {value.target_length: value for value in reloaded_evidence.length_calibrations}
+    assert bindings[128].threshold_hash != bindings[256].threshold_hash
+    assert all(
+        row.threshold_hash == bindings[row.target_length].threshold_hash
+        for row in reloaded_evidence.rows
+    )
 
     analysis, ecs1 = build_mid_dev_analysis_artifact(
         artifact,
@@ -256,10 +305,13 @@ def test_full_fake_middev_planner_emits_complete_detector_blind_matrix() -> None
         bootstrap_replicates=100,
     )
     assert len(analysis.primary_results) + len(analysis.ineligible_primary_cells) == 6
+    assert analysis.length_calibration_registry_hash == evidence.length_calibration_registry_hash
     assert analysis.ecs1_raw_artifact_hash == ecs1.artifact_hash
     assert len(ecs1.rows) == 5688
     assert ecs1.fit_source_group_count == 24
     assert ecs1.evaluation_source_group_count == 12
+    assert ecs1.length_calibration_registry_hash == evidence.length_calibration_registry_hash
+    assert {row.target_length for row in ecs1.rows} == {128, 256}
 
     sample_ids = {row.sample_id for row in plan.rows}
     assert len(sample_ids) == 72
