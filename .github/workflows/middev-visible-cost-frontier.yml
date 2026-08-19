@@ -1,0 +1,202 @@
+name: MidDev Visible-Cost Frontier
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/middev-visible-cost-frontier.yml"
+      - "fuckmark/experiments/candidate_density_diagnosis.py"
+      - "fuckmark/search/visible_cost_budget.py"
+      - "fuckmark/experiments/visible_cost_frontier.py"
+      - "fuckmark/tiny_dev_candidate_density_diagnosis.py"
+      - "fuckmark/tiny_dev_visible_cost_frontier_hf.py"
+      - "tests/test_candidate_density_diagnosis.py"
+      - "tests/test_visible_cost_budget.py"
+      - "tests/test_visible_cost_frontier.py"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/visible-cost-frontier-validation-trigger"
+      - ".github/workflows/middev-visible-cost-frontier.yml"
+      - "fuckmark/experiments/candidate_density_diagnosis.py"
+      - "fuckmark/search/visible_cost_budget.py"
+      - "fuckmark/experiments/visible_cost_frontier.py"
+      - "fuckmark/tiny_dev_candidate_density_diagnosis.py"
+      - "fuckmark/tiny_dev_visible_cost_frontier_hf.py"
+      - "tests/test_candidate_density_diagnosis.py"
+      - "tests/test_visible_cost_budget.py"
+      - "tests/test_visible_cost_frontier.py"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FROZEN_TINYDEV_RUN_ID: "32269591897"
+  FROZEN_TINYDEV_ARTIFACT_NAME: real-tiny-dev-context-survival
+  FROZEN_TINYDEV_CORPUS_FILE_SHA256: ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664
+  CANDIDATE_DENSITY_RUN_ID: "32292842775"
+  CANDIDATE_DENSITY_ARTIFACT_NAME: middev-strict-candidate-density-0a037a481dae9c1d413fd6333d3ee75a36e7facf
+  CANDIDATE_DENSITY_ARTIFACT_HASH: 01b4bd05b434ec755bdd347ee9c76ea2327be1624d7032184aebb112c7d694f6
+
+jobs:
+  unit:
+    name: Visible-cost unit / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
+      - name: Verify dependency lock
+        run: uv lock --check --python "${{ matrix.python-version }}"
+      - name: Run scarcity-diagnosis and visible-cost tests
+        run: >-
+          python -m pytest -q
+          tests/test_candidate_density_diagnosis.py
+          tests/test_visible_cost_budget.py
+          tests/test_visible_cost_frontier.py
+          tests/test_candidate_density_audit.py
+          tests/test_beam_v3_promotion.py
+          tests/test_beam_v2.py
+      - name: Verify detector-free imports
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          paths = (
+              Path('fuckmark/experiments/candidate_density_diagnosis.py'),
+              Path('fuckmark/search/visible_cost_budget.py'),
+              Path('fuckmark/experiments/visible_cost_frontier.py'),
+              Path('fuckmark/tiny_dev_candidate_density_diagnosis.py'),
+              Path('fuckmark/tiny_dev_visible_cost_frontier_hf.py'),
+          )
+          banned = ('detector', 'scorer', 'scoring', 'secret', 'g_value', 'gvalue')
+          for path in paths:
+              tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+              imported = []
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      imported.extend(alias.name for alias in node.names)
+                  elif isinstance(node, ast.ImportFrom):
+                      imported.append(node.module or '')
+              bad = sorted(name for name in imported if any(token in name.lower() for token in banned))
+              if bad:
+                  raise SystemExit(f'{path}: prohibited import(s): {bad}')
+          print('visible-cost-import-firewall=PASS')
+          PY
+
+  frozen-tinydev:
+    name: Frozen TinyDev normalized visible-cost frontier
+    runs-on: ubuntu-24.04
+    needs: unit
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e ".[dev]"
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install frozen public tokenizer runtime
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Download sealed TinyDev baseline
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.FROZEN_TINYDEV_ARTIFACT_NAME }}
+          path: frozen-tinydev
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.FROZEN_TINYDEV_RUN_ID }}
+      - name: Download frozen STRICT candidate-density artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.CANDIDATE_DENSITY_ARTIFACT_NAME }}
+          path: frozen-candidate-density
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.CANDIDATE_DENSITY_RUN_ID }}
+      - name: Verify frozen inputs
+        shell: bash
+        run: |
+          actual="$(sha256sum frozen-tinydev/tiny-dev-corpus.json | cut -d' ' -f1)"
+          test "$actual" = "$FROZEN_TINYDEV_CORPUS_FILE_SHA256"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          raw = json.loads(Path('frozen-candidate-density/tiny-dev-strict-candidate-density.json').read_text(encoding='utf-8'))
+          expected = '01b4bd05b434ec755bdd347ee9c76ea2327be1624d7032184aebb112c7d694f6'
+          assert raw['artifact_hash'] == expected
+          assert raw['decision'] == 'STRICT_B4_CANDIDATE_SCARCITY'
+          print('frozen-inputs=PASS')
+          PY
+      - name: Diagnose scarcity versus visible-cost ceiling
+        run: >-
+          python -m fuckmark.tiny_dev_candidate_density_diagnosis
+          --corpus-json frozen-tinydev/tiny-dev-corpus.json
+          --candidate-density-json frozen-candidate-density/tiny-dev-strict-candidate-density.json
+          --artifact-json visible-cost-artifacts/tiny-dev-strict-scarcity-diagnosis.json
+      - name: Enforce no unjustified rule-family expansion
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          value = json.loads(Path('visible-cost-artifacts/tiny-dev-strict-scarcity-diagnosis.json').read_text(encoding='utf-8'))
+          assert value['decision'] == 'STRICT_VISIBLE_COST_CEILING_DOMINATES'
+          assert value['family_expansion_permitted'] is False
+          assert sum(row['b4_cost_ceiling_limited'] for row in value['rows']) == 3
+          assert sum(row['b4_candidate_limited'] for row in value['rows']) == 0
+          assert sum(row['b6_cost_ceiling_limited'] for row in value['rows']) == 8
+          assert sum(row['b6_candidate_limited'] for row in value['rows']) == 0
+          print('family-expansion-gate=BLOCKED_BY_COST_CEILING')
+          PY
+      - name: Run detector-free STRICT and RELAXED normalized frontiers
+        run: >-
+          python -m fuckmark.tiny_dev_visible_cost_frontier_hf
+          --corpus-json frozen-tinydev/tiny-dev-corpus.json
+          --scarcity-diagnosis-json visible-cost-artifacts/tiny-dev-strict-scarcity-diagnosis.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --source-code-commit "$GITHUB_SHA"
+          --beam-width 32
+          --maximum-search-operations 12
+          --artifact-json visible-cost-artifacts/tiny-dev-visible-cost-frontier.json
+      - name: Upload visible-cost artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: middev-visible-cost-frontier-${{ github.sha }}
+          path: visible-cost-artifacts/
+          if-no-files-found: error
+      - name: Report normalized frontier
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          diagnosis = json.loads(Path('visible-cost-artifacts/tiny-dev-strict-scarcity-diagnosis.json').read_text(encoding='utf-8'))
+          frontier = json.loads(Path('visible-cost-artifacts/tiny-dev-visible-cost-frontier.json').read_text(encoding='utf-8'))
+          print('diagnosis=' + diagnosis['decision'])
+          print('diagnosis_hash=' + diagnosis['artifact_hash'])
+          print('frontier_hash=' + frontier['artifact_hash'])
+          print('strict_depths=' + json.dumps([row['strict_reached_depth'] for row in frontier['rows']]))
+          print('relaxed_depths=' + json.dumps([row['relaxed_reached_depth'] for row in frontier['rows']]))
+          PY
