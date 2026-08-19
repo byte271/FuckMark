@@ -115,10 +115,7 @@ class _PlannerBackend:
         watermarked: bool,
     ) -> MidDevGeneratedContinuation:
         label = "watermarked" if watermarked else "control"
-        text = (
-            f"We do not know whether it is clear, but it is useful and it will remain stable. "
-            f"Source {seed} {label}."
-        )
+        text = f"We do not know. Source {seed} {label}."
         text_only = tuple(self._tokenizer.encode(text, add_special_tokens=False))
         base = seed * 1000 + (100_000_000 if watermarked else 200_000_000)
         continuation = tuple(base + index for index in range(target_length))
