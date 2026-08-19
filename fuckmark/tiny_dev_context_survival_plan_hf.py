@@ -48,6 +48,12 @@ def _write_fsynced(path: Path, value: object) -> None:
         handle.write("\n")
         handle.flush()
         os.fsync(handle.fileno())
+    if os.name == "posix":
+        directory_fd = os.open(path.parent, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
 
 
 def runtime_tokenizer_identity_public(
@@ -84,14 +90,33 @@ def runtime_tokenizer_identity_public(
 
 def _build_context_survival_plan_v2(corpus, tokenizer, **kwargs) -> dict[str, object]:
     original_beam_search = context_survival_plan_module.beam_search
+    original_expander = context_survival_plan_module.ContextSurvivalExpander
+    observed_expanders = []
+
+    class _ObservedExpander(original_expander):
+        def __init__(self, *args, **inner_kwargs) -> None:
+            super().__init__(*args, **inner_kwargs)
+            observed_expanders.append(self)
+
     context_survival_plan_module.beam_search = beam_search_v2
+    context_survival_plan_module.ContextSurvivalExpander = _ObservedExpander
     try:
         base_plan = context_survival_plan_module.build_context_survival_plan(corpus, tokenizer, **kwargs)
     finally:
         context_survival_plan_module.beam_search = original_beam_search
+        context_survival_plan_module.ContextSurvivalExpander = original_expander
+    if not observed_expanders:
+        raise RuntimeError("context-survival plan produced no expander attestation")
+    detector_access_observed = any(value.detector_access_observed for value in observed_expanders)
+    secret_access_observed = any(value.secret_access_observed for value in observed_expanders)
+    if detector_access_observed or secret_access_observed:
+        raise RuntimeError("context-survival plan access attestation is contaminated")
     payload = {key: value for key, value in base_plan.items() if key != "plan_hash"}
     payload["algorithm_version"] = TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION
     payload["beam_algorithm_version"] = CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
+    payload["detector_access_observed"] = detector_access_observed
+    payload["secret_access_observed"] = secret_access_observed
+    payload["attested_expander_count"] = len(observed_expanders)
     return {**payload, "plan_hash": sha256_json(payload)}
 
 
@@ -189,6 +214,7 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.write(f"plan_hash={plan['plan_hash']}\n")
     sys.stdout.write(f"plan_provenance_hash={provenance['provenance_hash']}\n")
     sys.stdout.write(f"beam_algorithm_version={plan['beam_algorithm_version']}\n")
+    sys.stdout.write(f"attested_expanders={plan['attested_expander_count']}\n")
     sys.stdout.write(f"variant_count={len(plan['variants'])}\n")
     sys.stdout.write(f"plan_json={args.plan_json.as_posix()}\n")
     sys.stdout.write(f"provenance_json={args.provenance_json.as_posix()}\n")
