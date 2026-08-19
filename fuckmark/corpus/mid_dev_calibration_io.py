@@ -4,8 +4,18 @@ import json
 from pathlib import Path
 
 from ..config import canonical_json_text
-from .mid_dev_calibration import MidDevCalibrationArtifact
-from .tiny_dev_io import _manifest, _mapping, _reject_constant, _unique_object
+from .mid_dev_calibration import (
+    MidDevCalibrationArtifact,
+    MidDevCalibrationManifest,
+)
+from .tiny_dev_io import (
+    _array,
+    _mapping,
+    _prompt,
+    _reject_constant,
+    _sample,
+    _unique_object,
+)
 
 
 MID_DEV_CALIBRATION_JSON_MAX_BYTES = 256 * 1024 * 1024
@@ -13,6 +23,39 @@ MID_DEV_CALIBRATION_JSON_MAX_BYTES = 256 * 1024 * 1024
 
 class MidDevCalibrationJsonError(ValueError):
     pass
+
+
+def _manifest(value: object) -> MidDevCalibrationManifest:
+    data = _mapping(
+        "mid_dev_calibration_manifest",
+        value,
+        (
+            "corpus_id",
+            "language",
+            "prompts",
+            "samples",
+            "prompt_manifest_hash",
+            "sample_manifest_hash",
+            "manifest_hash",
+            "algorithm_version",
+        ),
+    )
+    return MidDevCalibrationManifest(
+        corpus_id=data["corpus_id"],
+        language=data["language"],
+        prompts=tuple(
+            _prompt(item)
+            for item in _array("mid_dev_calibration_manifest.prompts", data["prompts"])
+        ),
+        samples=tuple(
+            _sample(item)
+            for item in _array("mid_dev_calibration_manifest.samples", data["samples"])
+        ),
+        prompt_manifest_hash=data["prompt_manifest_hash"],
+        sample_manifest_hash=data["sample_manifest_hash"],
+        manifest_hash=data["manifest_hash"],
+        algorithm_version=data["algorithm_version"],
+    )
 
 
 def _artifact(value: object) -> MidDevCalibrationArtifact:
