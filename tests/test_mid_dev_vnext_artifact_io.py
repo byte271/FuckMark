@@ -136,7 +136,7 @@ def _registry(audit, decision):
         "opportunity_audit_hash": audit.artifact_hash,
         "select_manifest_hash": select_manifest,
         "detector_identity_hash": detector_identity,
-        "records": (record.payload() | {"record_hash": record.record_hash},),
+        "record_hashes": (record.record_hash,),
     }
     return FrozenCalibrationThresholdRegistry(
         algorithm_version=payload["algorithm_version"],
