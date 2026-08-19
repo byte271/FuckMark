@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from .._validation import require_int, require_sha256
 from ..hashing import derive_seed, sha256_json
-from .mid_dev_context_survival import MidDevCondition
+from .mid_dev_scoring_contracts import MidDevCondition
 
 
 MID_DEV_SELECTION_TRACE_VERSION = "mid-dev-selection-trace-v1"
