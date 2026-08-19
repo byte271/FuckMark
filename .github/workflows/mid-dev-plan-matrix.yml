@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - ".github/workflows/mid-dev-plan-matrix.yml"
+      - "specs/fuckmark-near-undetectability-next-stage-2026-08-19.contract.json"
       - "fuckmark/corpus/mid_dev*.py"
       - "fuckmark/experiments/mid_dev*.py"
       - "fuckmark/experiments/detector_opportunity_audit.py"
