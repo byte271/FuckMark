@@ -8,7 +8,6 @@ from ..detector_calibration import encode_text
 from ..hashing import sha256_json, sha256_text
 from .detector_opportunity_audit import DetectorOpportunityAuditArtifact
 from .mid_dev_plan_v5 import MidDevDevelopmentPlanV5
-from .mid_dev_v5_scoring import MidDevV5ScoringArtifact
 from .residual_signal_geometry import compute_residual_signal_geometry
 
 
@@ -132,7 +131,7 @@ class MidDevV5GeometryAuditArtifact:
 def build_mid_dev_v5_geometry_audit(
     corpus: Any,
     plan: MidDevDevelopmentPlanV5,
-    scoring: MidDevV5ScoringArtifact,
+    scoring: Any,
     source_audit: DetectorOpportunityAuditArtifact,
     tokenizer: Any,
 ) -> MidDevV5GeometryAuditArtifact:
