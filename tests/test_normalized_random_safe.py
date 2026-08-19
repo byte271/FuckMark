@@ -42,18 +42,24 @@ class Expander:
         return self.mapping.get(state.search_state_hash, ())
 
 
+def _replace_word(text, index, value):
+    words = text.split(" ")
+    words[index] = value
+    return " ".join(words)
+
+
 def _fixture():
-    root_text = "a" * 400
+    root_text = " ".join(["aaaa"] * 100)
     root_hash = sha256_text(root_text)
     op1 = sha256_text("op-1")
     op2 = sha256_text("op-2")
     op3 = sha256_text("op-3")
     root = _make_state(root_hash, root_text, (), ())
-    first_text = root_text[:-1] + "b"
+    first_text = _replace_word(root_text, 0, "baaa")
     first = _make_state(root_hash, first_text, (op1,), (root_text,))
-    second_text = root_text[:-2] + "bc"
+    second_text = _replace_word(first_text, 1, "baaa")
     second = _make_state(root_hash, second_text, (op1, op2), (root_text, first_text))
-    third_text = root_text[:-3] + "bcd"
+    third_text = _replace_word(second_text, 2, "baaa")
     third = _make_state(root_hash, third_text, (op1, op2, op3), (root_text, first_text, second_text))
     t1 = SearchTransition.create(
         parent=root,
