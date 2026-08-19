@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .adapters import HuggingFaceSynthIDAdapter, HuggingFaceSynthIDConfig
-from .corpus import load_tiny_dev_corpus_json
+from .corpus.mid_dev_calibration_io import load_mid_dev_calibration_json
 from .corpus.mid_dev_io import load_mid_dev_corpus_json
 from .corpus.runtime_identity import runtime_tokenizer_identity_public
 from .durable_io import write_canonical_json_fsynced
@@ -23,7 +23,7 @@ from .mid_dev_corpus_hf import DEFAULT_MODEL_ID, DEFAULT_MODEL_REVISION
 from .tiny_dev_detector_hf import default_watermark_payload
 
 
-MID_DEV_SCORING_PROVENANCE_VERSION = "mid-dev-scoring-provenance-v2"
+MID_DEV_SCORING_PROVENANCE_VERSION = "mid-dev-scoring-provenance-v3"
 
 
 def _now() -> str:
@@ -83,6 +83,8 @@ def _scoring_provenance(
     source_code_commit: str,
     corpus_artifact_hash: str,
     calibration_corpus_artifact_hash: str,
+    calibration_source_profile_hash: str,
+    length_calibration_registry_hash: str,
     plan_hash: str,
     trace_artifact_hash: str,
     plan_provenance_hash: str,
@@ -96,6 +98,8 @@ def _scoring_provenance(
         "source_code_commit": source_code_commit,
         "corpus_artifact_hash": corpus_artifact_hash,
         "calibration_corpus_artifact_hash": calibration_corpus_artifact_hash,
+        "calibration_source_profile_hash": calibration_source_profile_hash,
+        "length_calibration_registry_hash": length_calibration_registry_hash,
         "plan_hash": plan_hash,
         "trace_artifact_hash": trace_artifact_hash,
         "plan_provenance_hash": plan_provenance_hash,
@@ -145,7 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     scoring_started_at = _now()
     mid_dev_corpus = load_mid_dev_corpus_json(args.corpus_json)
-    calibration_corpus = load_tiny_dev_corpus_json(args.calibration_corpus_json)
+    calibration_corpus = load_mid_dev_calibration_json(args.calibration_corpus_json)
     plan = load_mid_dev_scoring_plan_json(args.plan_json)
     traces = load_mid_dev_scoring_trace_json(args.trace_json)
     validate_mid_dev_scoring_plan_trace_binding(plan, traces)
@@ -173,10 +177,13 @@ def main(argv: list[str] | None = None) -> int:
         raise RuntimeError("MidDev scoring requires a fast tokenizer")
     identity = runtime_tokenizer_identity_public(tokenizer, args.model, args.model_revision)
     mid_model_hashes = {sample.model.identity_hash for sample in mid_dev_corpus.manifest.samples}
+    calibration_model_hashes = {
+        sample.model.identity_hash for sample in calibration_corpus.manifest.samples
+    }
     if mid_model_hashes != {identity.identity_hash}:
         raise RuntimeError("runtime tokenizer identity does not match frozen MidDev corpus")
-    if calibration_corpus.model_identity_hash != identity.identity_hash:
-        raise RuntimeError("runtime tokenizer identity does not match frozen calibration corpus")
+    if calibration_model_hashes != {identity.identity_hash}:
+        raise RuntimeError("runtime tokenizer identity does not match frozen length calibration corpus")
 
     watermark_payload = default_watermark_payload()
     if plan.ngram_len != int(watermark_payload["ngram_len"]):
@@ -209,6 +216,8 @@ def main(argv: list[str] | None = None) -> int:
         source_code_commit=plan.source_code_commit,
         corpus_artifact_hash=mid_dev_corpus.artifact_hash,
         calibration_corpus_artifact_hash=calibration_corpus.artifact_hash,
+        calibration_source_profile_hash=calibration_corpus.source_profile_hash,
+        length_calibration_registry_hash=evidence.length_calibration_registry_hash,
         plan_hash=plan.plan_hash,
         trace_artifact_hash=traces.artifact_hash,
         plan_provenance_hash=str(plan_provenance["provenance_hash"]),
@@ -221,10 +230,16 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.write(f"evidence_hash={evidence.artifact_hash}\n")
     sys.stdout.write(f"scoring_provenance_hash={provenance['provenance_hash']}\n")
     sys.stdout.write(f"calibration_corpus_artifact_hash={evidence.calibration_corpus_artifact_hash}\n")
-    sys.stdout.write(f"calibration_bundle_hash={evidence.calibration_bundle_hash}\n")
+    sys.stdout.write(f"calibration_source_profile_hash={evidence.calibration_source_profile_hash}\n")
     sys.stdout.write(f"detector_identity_hash={evidence.detector_identity_hash}\n")
-    sys.stdout.write(f"threshold_hash={evidence.threshold_hash}\n")
-    sys.stdout.write(f"threshold_value={evidence.threshold_value}\n")
+    sys.stdout.write(f"length_calibration_registry_hash={evidence.length_calibration_registry_hash}\n")
+    for binding in evidence.length_calibrations:
+        sys.stdout.write(
+            f"length_{binding.target_length}_threshold_hash={binding.threshold_hash}\n"
+        )
+        sys.stdout.write(
+            f"length_{binding.target_length}_threshold_value={binding.threshold_value}\n"
+        )
     sys.stdout.write(f"row_count={len(evidence.rows)}\n")
     sys.stdout.write(f"pristine_watermarked_detected={evidence.pristine_watermarked_detected_count}/36\n")
     sys.stdout.write(f"pristine_control_detected={evidence.pristine_control_detected_count}/36\n")
