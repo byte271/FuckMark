@@ -1,0 +1,166 @@
+name: MidDev Geometry v3 Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/middev-geometry-v3-gate.yml"
+      - "fuckmark/search/**"
+      - "fuckmark/scheduling/**"
+      - "fuckmark/experiments/geometry_v3_gate.py"
+      - "fuckmark/experiments/residual_signal_geometry.py"
+      - "fuckmark/experiments/structural_leverage.py"
+      - "fuckmark/tiny_dev_geometry_v3_gate_hf.py"
+      - "tests/test_beam_v2.py"
+      - "tests/test_beam_v3.py"
+      - "tests/test_geometry_v3_gate.py"
+      - "tests/test_residual_signal_geometry.py"
+      - "tests/test_structural_leverage.py"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FROZEN_TINYDEV_RUN_ID: "32269591897"
+  FROZEN_TINYDEV_ARTIFACT_NAME: real-tiny-dev-context-survival
+  FROZEN_TINYDEV_CORPUS_FILE_SHA256: ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664
+
+jobs:
+  unit-and-firewall:
+    name: Geometry v3 unit/firewall / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
+      - name: Verify dependency lock
+        run: uv lock --check --python "${{ matrix.python-version }}"
+      - name: Run geometry and v2/v3 regression tests
+        run: >-
+          python -m pytest -q
+          tests/test_beam_v2.py
+          tests/test_beam_v3.py
+          tests/test_geometry_v3_gate.py
+          tests/test_residual_signal_geometry.py
+          tests/test_structural_leverage.py
+          tests/test_context_survival.py
+      - name: Verify selection import firewall
+        run: |
+          python - <<'PY'
+          import ast
+          from pathlib import Path
+
+          paths = (
+              Path('fuckmark/search/beam_v3.py'),
+              Path('fuckmark/experiments/geometry_v3_gate.py'),
+              Path('fuckmark/tiny_dev_geometry_v3_gate_hf.py'),
+          )
+          banned = ('detector', 'scorer', 'scoring', 'secret', 'gvalue', 'g_value')
+          for path in paths:
+              tree = ast.parse(path.read_text(encoding='utf-8'), filename=str(path))
+              imported = []
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      imported.extend(alias.name for alias in node.names)
+                  elif isinstance(node, ast.ImportFrom):
+                      imported.append(node.module or '')
+              bad = sorted(name for name in imported if any(token in name.lower() for token in banned))
+              if bad:
+                  raise SystemExit(f'{path}: prohibited selection import(s): {bad}')
+          print('selection-import-firewall=PASS')
+          PY
+
+  frozen-tinydev-geometry:
+    name: Frozen TinyDev v2/v3 matched-cost geometry
+    runs-on: ubuntu-24.04
+    needs: unit-and-firewall
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e ".[dev]"
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install frozen public tokenizer runtime
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Download sealed TinyDev baseline artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.FROZEN_TINYDEV_ARTIFACT_NAME }}
+          path: frozen-tinydev
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.FROZEN_TINYDEV_RUN_ID }}
+      - name: Verify frozen TinyDev corpus file hash
+        shell: bash
+        run: |
+          actual="$(sha256sum frozen-tinydev/tiny-dev-corpus.json | cut -d' ' -f1)"
+          test "$actual" = "$FROZEN_TINYDEV_CORPUS_FILE_SHA256"
+      - name: Verify runtime import firewall
+        run: |
+          python - <<'PY'
+          import sys
+          import fuckmark.search.beam_v3
+          import fuckmark.experiments.geometry_v3_gate
+          import fuckmark.tiny_dev_geometry_v3_gate_hf
+
+          banned_prefixes = (
+              'fuckmark.detector',
+              'fuckmark.detectors',
+              'fuckmark.experiments.mid_dev_scoring',
+              'fuckmark.experiments.mid_dev_scorer',
+          )
+          bad = sorted(name for name in sys.modules if name.startswith(banned_prefixes))
+          if bad:
+              raise SystemExit(f'prohibited transitive selection imports: {bad}')
+          print('runtime-selection-import-firewall=PASS')
+          PY
+      - name: Run detector-free matched-cost geometry gate
+        run: >-
+          python -m fuckmark.tiny_dev_geometry_v3_gate_hf
+          --corpus-json frozen-tinydev/tiny-dev-corpus.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --source-code-commit "$GITHUB_SHA"
+          --artifact-json geometry-v3-artifacts/tiny-dev-geometry-v3-gate.json
+      - name: Upload geometry gate artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: middev-geometry-v3-gate-${{ github.sha }}
+          path: geometry-v3-artifacts/
+          if-no-files-found: warn
+      - name: Enforce frozen NS1/K1/K2 decision
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path('geometry-v3-artifacts/tiny-dev-geometry-v3-gate.json')
+          artifact = json.loads(path.read_text(encoding='utf-8'))
+          print('decision=' + artifact['decision'])
+          print('artifact_hash=' + artifact['artifact_hash'])
+          if artifact['decision'] != 'NS1_STRUCTURAL_LEVERAGE_PASS':
+              raise SystemExit('Beam v3 did not earn promotion; preserve Beam v2 and apply the recorded kill criterion.')
+          PY
