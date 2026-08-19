@@ -78,8 +78,6 @@ def _primary_rows(
                     and replicate == MID_DEV_RANDOM_REPLICATES - 1
                 ):
                     continue
-                # Alternating random drops prove the primary path averages replicates
-                # within a source/label instead of treating them as independent N.
                 if label is WatermarkLabel.WATERMARKED:
                     random_drop = 0.08 if replicate % 2 == 0 else 0.12
                 else:
@@ -130,10 +128,6 @@ def test_primary_comparison_uses_16_random_replicates_then_bootstraps_sources() 
     )
     assert primary.source_group_count == 32
     assert primary.random_replicates_per_source_label == 16
-
-    # WM random mean = .10, deterministic = .20 -> +.10.
-    # Control random mean = .01, deterministic = .03 -> +.02.
-    # Control-adjusted primary contrast = +.08 per independent source.
     assert core.mean_watermarked_difference == pytest.approx(0.10)
     assert core.mean_control_difference == pytest.approx(0.02)
     assert core.mean_control_adjusted_difference == pytest.approx(0.08)
