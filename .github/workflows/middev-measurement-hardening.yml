@@ -1,22 +1,40 @@
-name: MidDev Full Matrix Gate
+name: MidDev Measurement Hardening vNext
 
 on:
   workflow_dispatch:
-  pull_request:
+  push:
+    branches:
+      - exp/middev-measurement-hardening-vnext
     paths:
-      - ".github/workflows/mid-dev-plan-matrix.yml"
-      - "specs/fuckmark-near-undetectability-next-stage-2026-08-19.contract.json"
-      - "fuckmark/corpus/mid_dev*.py"
-      - "fuckmark/experiments/mid_dev*.py"
+      - ".github/workflows/middev-measurement-hardening.yml"
       - "fuckmark/experiments/detector_opportunity_audit.py"
       - "fuckmark/experiments/residual_signal_geometry.py"
       - "fuckmark/experiments/structural_leverage.py"
+      - "fuckmark/experiments/mid_dev_calibration_audit.py"
       - "fuckmark/experiments/tiny_dev_calibration_opportunity_audit.py"
       - "fuckmark/experiments/tiny_dev_residual_replay.py"
+      - "fuckmark/corpus/mid_dev_calibration_shards.py"
       - "fuckmark/tiny_dev_measurement_replay_hf.py"
-      - "fuckmark/scheduling/**"
-      - "fuckmark/transforms/**"
-      - "tests/test_mid_dev_plan_builder.py"
+      - "tests/test_detector_opportunity_audit.py"
+      - "tests/test_residual_signal_geometry.py"
+      - "tests/test_structural_leverage.py"
+      - "tests/test_mid_dev_calibration_shards_vnext.py"
+      - "tests/test_mid_dev_calibration_audit_vnext.py"
+      - "tests/test_tiny_dev_calibration_opportunity_audit.py"
+      - "tests/test_tiny_dev_residual_replay.py"
+  pull_request:
+    branches:
+      - exp/middev-context-survival-v2
+    paths:
+      - ".github/workflows/middev-measurement-hardening.yml"
+      - "fuckmark/experiments/detector_opportunity_audit.py"
+      - "fuckmark/experiments/residual_signal_geometry.py"
+      - "fuckmark/experiments/structural_leverage.py"
+      - "fuckmark/experiments/mid_dev_calibration_audit.py"
+      - "fuckmark/experiments/tiny_dev_calibration_opportunity_audit.py"
+      - "fuckmark/experiments/tiny_dev_residual_replay.py"
+      - "fuckmark/corpus/mid_dev_calibration_shards.py"
+      - "fuckmark/tiny_dev_measurement_replay_hf.py"
       - "tests/test_detector_opportunity_audit.py"
       - "tests/test_residual_signal_geometry.py"
       - "tests/test_structural_leverage.py"
@@ -39,26 +57,6 @@ env:
   FROZEN_TINYDEV_CORPUS_FILE_SHA256: ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664
 
 jobs:
-  full-matrix:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - name: Install
-        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
-      - name: Verify dependency lock
-        run: uv lock --check --python "3.12"
-      - name: Run complete fake MidDev plan matrix
-        env:
-          FUCKMARK_RUN_MIDDEV_FULL_MATRIX: "1"
-        run: python -m pytest -q tests/test_mid_dev_plan_builder.py
-
   focused-measurement-tests:
     name: Focused measurement tests / Python ${{ matrix.python-version }}
     runs-on: ubuntu-24.04
@@ -68,16 +66,12 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-      - name: Install
-        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
-      - name: Verify dependency lock
-        run: uv lock --check --python "${{ matrix.python-version }}"
+      - name: Install test dependencies
+        run: python -m pip install -e ".[dev]"
       - name: Run measurement-hardening tests
         run: >-
           python -m pytest -q
@@ -94,16 +88,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install
-        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
-      - name: Verify dependency lock
-        run: uv lock --check --python "3.12"
+      - name: Install test dependencies
+        run: python -m pip install -e ".[dev]"
       - name: Run full test suite
         run: python -m pytest -q
 
@@ -113,8 +103,6 @@ jobs:
     needs: focused-measurement-tests
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -125,7 +113,7 @@ jobs:
         run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
       - name: Install frozen public tokenizer runtime
         run: python -m pip install -r requirements-smoke.txt
-      - name: Download sealed TinyDev baseline artifact
+      - name: Download the sealed TinyDev artifact from the frozen baseline run
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.FROZEN_TINYDEV_ARTIFACT_NAME }}
@@ -148,7 +136,7 @@ jobs:
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --calibration-audit-json measurement-artifacts/tiny-dev-calibration-opportunity-audit.json
           --residual-replay-json measurement-artifacts/tiny-dev-residual-replay.json
-      - name: Enforce frozen measurement conclusions
+      - name: Enforce preregistered measurement conclusions
         run: |
           python - <<'PY'
           import json

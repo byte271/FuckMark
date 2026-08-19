@@ -1,0 +1,22 @@
+{
+  "artifact": "fuckmark-near-undetectability-next-stage-spec/spec.md",
+  "date": "2026-08-19",
+  "sha256": "2b65c9ff78f3b9f6bcc0081da54c5d4908171fa783e53ac1c253c2615df0e364",
+  "size_bytes": 65729,
+  "status": "implementation-grade NEXT-STAGE development specification",
+  "repository": "byte271/FuckMark",
+  "frozen_baseline_branch": "exp/middev-context-survival-v2",
+  "frozen_baseline_sha": "697146f0e7fb443c9d02c60393266442549b7ced",
+  "implementation_branch": "exp/middev-measurement-hardening-vnext",
+  "real_middev_allowed": false,
+  "beam_v3_allowed_before_measurement_gate": false,
+  "selection_detector_query_count_required": 0,
+  "selection_secret_query_count_required": 0,
+  "calibration_target_fpr": 0.01,
+  "calibration_minimum_negatives_per_validated_regime": 1000,
+  "calibration_preferred_negatives_per_validated_regime": 2000,
+  "opportunity_cv_limit": 0.05,
+  "eligible_iqr_overlap_limit": 0.1,
+  "strict_vdr_minimum": 0.9,
+  "next_gate": "measurement hardening and frozen TinyDev replay before any Beam v3 implementation"
+}
