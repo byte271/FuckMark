@@ -4,6 +4,7 @@ import pytest
 
 from fuckmark.corpus.schema import CorpusDomain, WatermarkLabel
 from fuckmark.experiments.mid_dev_context_survival import (
+    INSUFFICIENT_CANDIDATES,
     MidDevCondition,
     MidDevPlanRow,
     SUCCESS,
@@ -40,7 +41,7 @@ def _plan_row(
         replicate=replicate,
         transformed_text=text,
         operation_count=realized_cost,
-        status=SUCCESS,
+        status=SUCCESS if realized_cost == 4 else INSUFFICIENT_CANDIDATES,
         selection_trace_hash=sha256_text("trace:" + text),
     )
 
