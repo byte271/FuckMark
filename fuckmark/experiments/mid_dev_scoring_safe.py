@@ -128,6 +128,7 @@ def score_mid_dev_frozen_plan(
             MidDevScoredPlanRow.create(
                 plan_row=plan_row,
                 detector_identity_hash=detector_identity_hash,
+                length_calibration_binding_hash=binding.binding_hash,
                 threshold_hash=binding.threshold_hash,
                 threshold_value=binding.threshold_value,
                 pristine_score=pristine[plan_row.sample_id],
