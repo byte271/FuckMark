@@ -200,6 +200,7 @@ def _fake_scoring_artifact(plan, traces) -> MidDevScoringArtifact:
         MidDevScoredPlanRow.create(
             plan_row=row,
             detector_identity_hash=detector_identity_hash,
+            length_calibration_binding_hash=by_length[row.target_length].binding_hash,
             threshold_hash=by_length[row.target_length].threshold_hash,
             threshold_value=by_length[row.target_length].threshold_value,
             pristine_score=0.8,
@@ -294,7 +295,8 @@ def test_full_fake_middev_planner_emits_complete_detector_blind_matrix() -> None
     bindings = {value.target_length: value for value in reloaded_evidence.length_calibrations}
     assert bindings[128].threshold_hash != bindings[256].threshold_hash
     assert all(
-        row.threshold_hash == bindings[row.target_length].threshold_hash
+        row.length_calibration_binding_hash == bindings[row.target_length].binding_hash
+        and row.threshold_hash == bindings[row.target_length].threshold_hash
         for row in reloaded_evidence.rows
     )
 
