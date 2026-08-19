@@ -10,6 +10,10 @@ from pathlib import Path
 from .config import canonical_json_text
 from .corpus.mid_dev_io import load_mid_dev_corpus_json
 from .experiments.mid_dev_plan_builder import build_mid_dev_context_survival_plan
+from .experiments.mid_dev_plan_io import (
+    MID_DEV_FROZEN_CONTEXT_HISTORY_SIZE,
+    MID_DEV_FROZEN_NGRAM_LEN,
+)
 from .hashing import sha256_json
 from .mid_dev_corpus_hf import DEFAULT_MODEL_ID, DEFAULT_MODEL_REVISION
 from .tiny_dev_context_survival_plan_hf import runtime_tokenizer_identity_public
@@ -79,8 +83,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--corpus-json", type=Path, required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL_ID)
     parser.add_argument("--model-revision", default=DEFAULT_MODEL_REVISION)
-    parser.add_argument("--ngram-len", type=int, default=5)
-    parser.add_argument("--context-history-size", type=int, default=1024)
+    parser.add_argument("--ngram-len", type=int, default=MID_DEV_FROZEN_NGRAM_LEN)
+    parser.add_argument(
+        "--context-history-size",
+        type=int,
+        default=MID_DEV_FROZEN_CONTEXT_HISTORY_SIZE,
+    )
     parser.add_argument("--source-code-commit", required=True)
     parser.add_argument(
         "--plan-json",
@@ -103,6 +111,10 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     source_code_commit = _validate_commit(args.source_code_commit)
+    if args.ngram_len != MID_DEV_FROZEN_NGRAM_LEN:
+        raise ValueError("production MidDev planning requires ngram_len=5")
+    if args.context_history_size != MID_DEV_FROZEN_CONTEXT_HISTORY_SIZE:
+        raise ValueError("production MidDev planning requires context_history_size=1024")
     corpus = load_mid_dev_corpus_json(args.corpus_json)
     try:
         from transformers import AutoTokenizer
@@ -130,6 +142,8 @@ def main(argv: list[str] | None = None) -> int:
         context_history_size=args.context_history_size,
         source_code_commit=source_code_commit,
     )
+    if plan.ngram_len != args.ngram_len or plan.context_history_size != args.context_history_size:
+        raise RuntimeError("frozen MidDev plan geometry binding does not match planner inputs")
     planning_wall_time_ms = (time.perf_counter() - started) * 1000.0
     _write_fsynced(args.plan_json, plan)
     _write_fsynced(args.trace_json, traces)
@@ -150,6 +164,8 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.write(f"trace_artifact_hash={traces.artifact_hash}\n")
     sys.stdout.write(f"plan_provenance_hash={provenance['provenance_hash']}\n")
     sys.stdout.write(f"row_count={len(plan.rows)}\n")
+    sys.stdout.write(f"ngram_len={plan.ngram_len}\n")
+    sys.stdout.write(f"context_history_size={plan.context_history_size}\n")
     sys.stdout.write(f"attested_expander_count={plan.selection_attestation.attested_expander_count}\n")
     sys.stdout.write(f"detector_access_observed={plan.selection_attestation.detector_access_observed}\n")
     sys.stdout.write(f"secret_access_observed={plan.selection_attestation.secret_access_observed}\n")
