@@ -68,13 +68,19 @@ def _compute(row: MidDevPlanRow) -> MidDevDeterministicComputeRow:
     )
 
 
-def _plan() -> MidDevDeterministicFrozenPlan:
+def _plan(
+    *,
+    ngram_len: int = 5,
+    context_history_size: int = 1024,
+) -> MidDevDeterministicFrozenPlan:
     row = _plan_row()
     return MidDevDeterministicFrozenPlan.create(
         corpus_artifact_hash=sha256_text("corpus"),
         source_profile_hash=sha256_text("profile"),
         analysis_split_hash=sha256_text("split"),
         source_code_commit="a" * 40,
+        ngram_len=ngram_len,
+        context_history_size=context_history_size,
         selection_config=MidDevSelectionConfig.frozen(),
         selection_attestation=MidDevSelectionAttestation.from_observed(
             attested_expander_count=1,
@@ -103,6 +109,16 @@ def test_runtime_timing_does_not_change_deterministic_plan_hash() -> None:
     assert first.plan_hash == second.plan_hash
     assert timing_a.timing_hash != timing_b.timing_hash
     assert "planning_wall_time_ms" not in first.payload()
+
+
+def test_geometry_profile_changes_deterministic_plan_hash() -> None:
+    baseline = _plan()
+    other_ngram = _plan(ngram_len=4)
+    other_history = _plan(context_history_size=512)
+    assert baseline.plan_hash != other_ngram.plan_hash
+    assert baseline.plan_hash != other_history.plan_hash
+    assert baseline.ngram_len == 5
+    assert baseline.context_history_size == 1024
 
 
 def test_deterministic_compute_rejects_selection_detector_query() -> None:
