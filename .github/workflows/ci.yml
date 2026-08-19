@@ -59,3 +59,54 @@ jobs:
             grep -Fq 'Success. Copied to clipboard.' <<< "$output"
             test "$(cat "$capture")" = "I don't agree and I can't stay."
           done
+
+  calibration-readiness:
+    name: Frozen calibration readiness
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+
+      - name: Materialize frozen CAL-SELECT and CAL-AUDIT plans
+        run: >-
+          python -m fuckmark.mid_dev_calibration_readiness
+          --readiness-json calibration-readiness/mid-dev-calibration-readiness.json
+          --select-plan-json calibration-readiness/mid-dev-cal-select-plan.json
+          --audit-plan-json calibration-readiness/mid-dev-cal-audit-plan.json
+
+      - name: Enforce frozen readiness dimensions and independence
+        run: |
+          python - <<'PY'
+          import json
+          readiness = json.load(open('calibration-readiness/mid-dev-calibration-readiness.json'))
+          assert readiness['negatives_per_target'] == 2000
+          assert readiness['shard_size'] == 250
+          assert readiness['select_plan']['role'] == 'CAL-SELECT'
+          assert readiness['audit_plan']['role'] == 'CAL-AUDIT'
+          assert len(readiness['select_plan']['shards']) == 16
+          assert len(readiness['audit_plan']['shards']) == 16
+          assert readiness['select_plan_hash'] != readiness['audit_plan_hash']
+          assert readiness['role_independence_hash']
+          print('readiness_hash=' + readiness['readiness_hash'])
+          print('select_plan_hash=' + readiness['select_plan_hash'])
+          print('audit_plan_hash=' + readiness['audit_plan_hash'])
+          print('role_independence_hash=' + readiness['role_independence_hash'])
+          PY
+
+      - name: Seal readiness artifact hashes
+        run: sha256sum calibration-readiness/*.json | sort > calibration-readiness/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: middev-calibration-readiness
+          path: calibration-readiness/
+          if-no-files-found: error
