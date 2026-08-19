@@ -6,6 +6,7 @@ import re
 
 import pytest
 
+from fuckmark.config import canonical_json_text
 from fuckmark.corpus.generation import GenerationParameters, WatermarkCondition
 from fuckmark.corpus.identity import ModelTokenizerIdentity, PaddingSide
 from fuckmark.corpus.mid_dev_generation import (
@@ -20,6 +21,11 @@ from fuckmark.experiments.mid_dev_context_survival import (
     MidDevCondition,
 )
 from fuckmark.experiments.mid_dev_plan_builder import build_mid_dev_context_survival_plan
+from fuckmark.experiments.mid_dev_plan_io import (
+    parse_mid_dev_plan_json,
+    parse_mid_dev_trace_json,
+    validate_mid_dev_plan_trace_binding,
+)
 from fuckmark.hashing import sha256_json, sha256_text
 from fuckmark.scheduling.beam_v2 import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
 
@@ -152,6 +158,12 @@ def test_full_fake_middev_planner_emits_complete_detector_blind_matrix() -> None
     assert {row.selection_trace_hash for row in plan.rows} == {
         trace.trace_hash for trace in traces.traces
     }
+
+    reloaded_plan = parse_mid_dev_plan_json(canonical_json_text(plan) + "\n")
+    reloaded_traces = parse_mid_dev_trace_json(canonical_json_text(traces) + "\n")
+    validate_mid_dev_plan_trace_binding(reloaded_plan, reloaded_traces)
+    assert reloaded_plan.plan_hash == plan.plan_hash
+    assert reloaded_traces.artifact_hash == traces.artifact_hash
 
     sample_ids = {row.sample_id for row in plan.rows}
     assert len(sample_ids) == 72
