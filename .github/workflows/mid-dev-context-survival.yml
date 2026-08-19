@@ -1,0 +1,94 @@
+name: Real MidDev Context-Survival Study
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  middev-study:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install maintained Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Generate frozen MidDev length calibration corpus
+        run: >-
+          python -m fuckmark.mid_dev_calibration_hf
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --json artifacts/mid-dev-length-calibration.json
+      - name: Generate frozen MidDev source matrix
+        run: >-
+          python -m fuckmark.mid_dev_corpus_hf
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --json artifacts/mid-dev-corpus.json
+      - name: Freeze detector-blind MidDev plan
+        run: >-
+          python -m fuckmark.mid_dev_context_survival_plan_hf
+          --corpus-json artifacts/mid-dev-corpus.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --ngram-len 5
+          --context-history-size 1024
+          --source-code-commit "$GITHUB_SHA"
+          --plan-json artifacts/mid-dev-context-survival-plan.json
+          --trace-json artifacts/mid-dev-context-survival-traces.json
+          --provenance-json artifacts/mid-dev-context-survival-plan-provenance.json
+      - name: Score frozen MidDev plan in independent process
+        run: >-
+          python -m fuckmark.mid_dev_context_survival_score_hf
+          --corpus-json artifacts/mid-dev-corpus.json
+          --calibration-corpus-json artifacts/mid-dev-length-calibration.json
+          --plan-json artifacts/mid-dev-context-survival-plan.json
+          --trace-json artifacts/mid-dev-context-survival-traces.json
+          --plan-provenance-json artifacts/mid-dev-context-survival-plan-provenance.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --json artifacts/mid-dev-context-survival-evidence.json
+          --provenance-json artifacts/mid-dev-context-survival-scoring-provenance.json
+      - name: Run frozen source-level analysis
+        run: >-
+          python -m fuckmark.mid_dev_context_survival_analyze
+          --corpus-json artifacts/mid-dev-corpus.json
+          --plan-json artifacts/mid-dev-context-survival-plan.json
+          --evidence-json artifacts/mid-dev-context-survival-evidence.json
+          --scoring-provenance-json artifacts/mid-dev-context-survival-scoring-provenance.json
+          --analysis-json artifacts/mid-dev-context-survival-analysis.json
+          --ecs1-json artifacts/mid-dev-ecs1-raw.json
+          --provenance-json artifacts/mid-dev-context-survival-analysis-provenance.json
+      - name: Seal artifact pack hashes
+        shell: bash
+        run: sha256sum artifacts/*.json | sort > artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: real-mid-dev-context-survival
+          path: artifacts/
+          if-no-files-found: error
