@@ -28,23 +28,16 @@ jobs:
         run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
       - name: Install maintained Transformers SynthID dependencies
         run: python -m pip install -r requirements-smoke.txt
-      - name: Reproduce frozen TinyDev calibration corpus
+      - name: Generate frozen MidDev length calibration corpus
         run: >-
-          python -m fuckmark.tiny_dev_corpus_hf
+          python -m fuckmark.mid_dev_calibration_hf
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --device cpu
-          --seed-base 401000
-          --max-attempts 16
           --temperature 0.8
           --top-k 50
           --top-p 0.95
-          --json artifacts/tiny-dev-corpus.json
-      - name: Verify frozen TinyDev calibration corpus SHA-256
-        shell: bash
-        run: |
-          actual="$(sha256sum artifacts/tiny-dev-corpus.json | cut -d' ' -f1)"
-          test "$actual" = "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664"
+          --json artifacts/mid-dev-length-calibration.json
       - name: Generate frozen MidDev source matrix
         run: >-
           python -m fuckmark.mid_dev_corpus_hf
@@ -71,7 +64,7 @@ jobs:
         run: >-
           python -m fuckmark.mid_dev_context_survival_score_hf
           --corpus-json artifacts/mid-dev-corpus.json
-          --calibration-corpus-json artifacts/tiny-dev-corpus.json
+          --calibration-corpus-json artifacts/mid-dev-length-calibration.json
           --plan-json artifacts/mid-dev-context-survival-plan.json
           --trace-json artifacts/mid-dev-context-survival-traces.json
           --plan-provenance-json artifacts/mid-dev-context-survival-plan-provenance.json
