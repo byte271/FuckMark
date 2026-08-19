@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ..config import canonical_json_text
 from .mid_dev import MidDevAttackArtifact
+from .mid_dev_validation import validate_mid_dev_experiment_identity
 from .tiny_dev_io import _manifest, _mapping, _reject_constant, _unique_object
 
 
@@ -64,11 +65,10 @@ def parse_mid_dev_corpus_json(
             parse_constant=_reject_constant,
         )
     except Exception as error:
-        if isinstance(error, MidDevCorpusJsonError):
-            raise
         raise MidDevCorpusJsonError("mid-dev JSON is not valid JSON") from error
     try:
         artifact = _artifact(decoded)
+        validate_mid_dev_experiment_identity(artifact)
     except Exception as error:
         if isinstance(error, MidDevCorpusJsonError):
             raise
