@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from ..hashing import sha256_json
 from .mid_dev_scored_schema import (
     MidDevScoredPlanRow as _SafeMidDevScoredPlanRow,
     MidDevScoringArtifact,
@@ -19,6 +20,7 @@ class MidDevScoredPlanRow:
         threshold_value: float,
         pristine_score: float,
         transformed_score: float,
+        length_calibration_binding_hash: str | None = None,
     ) -> _SafeMidDevScoredPlanRow:
         view = MidDevPlanRowView(
             plan_row.source_group_id,
@@ -39,9 +41,20 @@ class MidDevScoredPlanRow:
             plan_row.selection_trace_hash,
             plan_row.plan_row_hash,
         )
+        if length_calibration_binding_hash is None:
+            length_calibration_binding_hash = sha256_json(
+                {
+                    "algorithm_version": "compat-mid-dev-length-binding-v1",
+                    "target_length": view.target_length,
+                    "detector_identity_hash": detector_identity_hash,
+                    "threshold_hash": threshold_hash,
+                    "threshold_value": float(threshold_value),
+                }
+            )
         return _SafeMidDevScoredPlanRow.create(
             plan_row=view,
             detector_identity_hash=detector_identity_hash,
+            length_calibration_binding_hash=length_calibration_binding_hash,
             threshold_hash=threshold_hash,
             threshold_value=threshold_value,
             pristine_score=pristine_score,
