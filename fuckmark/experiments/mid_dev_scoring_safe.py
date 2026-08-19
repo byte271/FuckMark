@@ -5,25 +5,25 @@ from typing import Any
 from ..corpus.mid_dev import MidDevAttackArtifact
 from ..corpus.schema import WatermarkLabel
 from ..corpus.tiny_dev import TinyDevCorpusArtifact
+from ..detector_calibration import (
+    PRIMARY_TARGET_FPR,
+    encode_text,
+    text_only_calibration,
+    text_only_weighted_evidence,
+    threshold_for_fpr,
+)
 from ..detectors import weighted_mean_evidence
 from ..hashing import sha256_json
 from ..native_observations import build_native_observations
-from ..tiny_dev_transform_hf import (
-    PRIMARY_TARGET_FPR,
-    _encode_text,
-    _text_only_calibration,
-    _text_only_weighted_evidence,
-    _threshold,
-)
-from .mid_dev_freeze import MidDevDeterministicFrozenPlan
 from .mid_dev_scored_schema import MidDevScoredPlanRow, MidDevScoringArtifact
+from .mid_dev_scoring_contracts import MidDevFrozenPlanView
 from .mid_dev_scoring_io import validate_mid_dev_scoring_plan_trace_binding
 from .mid_dev_trace_schema import MidDevSelectionTraceArtifact
 
 
 def _validate_plan_against_corpus(
     corpus: MidDevAttackArtifact,
-    plan: MidDevDeterministicFrozenPlan,
+    plan: MidDevFrozenPlanView,
 ) -> dict[str, Any]:
     if plan.corpus_artifact_hash != corpus.artifact_hash:
         raise ValueError("frozen MidDev plan does not bind the supplied MidDev corpus")
@@ -52,7 +52,7 @@ def _validate_plan_against_corpus(
 
 
 def _score_text(source: Any, text: str, tokenizer: Any, adapter: Any) -> float:
-    tokens = _encode_text(tokenizer, text)
+    tokens = encode_text(tokenizer, text)
     eos = source.model.eos_token_id
     if eos is None:
         raise ValueError("MidDev source tokenizer must define eos_token_id")
@@ -69,7 +69,7 @@ def score_mid_dev_frozen_plan(
     mid_dev_corpus: MidDevAttackArtifact,
     calibration_corpus: TinyDevCorpusArtifact,
     tokenizer: Any,
-    plan: MidDevDeterministicFrozenPlan,
+    plan: MidDevFrozenPlanView,
     traces: MidDevSelectionTraceArtifact,
     adapter: Any,
 ) -> MidDevScoringArtifact:
@@ -86,11 +86,11 @@ def score_mid_dev_frozen_plan(
     if int(plan.ngram_len) != int(adapter.ngram_len):
         raise ValueError("MidDev plan ngram_len does not match scoring adapter")
 
-    calibration = _text_only_calibration(calibration_corpus, adapter)
-    threshold = _threshold(calibration, PRIMARY_TARGET_FPR)
+    calibration = text_only_calibration(calibration_corpus, adapter)
+    threshold = threshold_for_fpr(calibration, PRIMARY_TARGET_FPR)
     detector_identity_hash = calibration.detector_identity.identity_hash
     pristine = {
-        sample_id: float(_text_only_weighted_evidence(source, adapter).raw_score)
+        sample_id: float(text_only_weighted_evidence(source, adapter).raw_score)
         for sample_id, source in sample_by_id.items()
     }
     cache: dict[tuple[str, str], float] = {}
