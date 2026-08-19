@@ -4,10 +4,8 @@ from collections.abc import Sequence
 
 from .._validation import require_int
 from ..hashing import sha256_json
+from .algorithm_ids import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
 from .state_search import SearchResult, SearchState, StateExpander
-
-
-CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION = "context-survival-beam-v2"
 
 
 def _beam_rank(state: SearchState) -> tuple[object, ...]:
