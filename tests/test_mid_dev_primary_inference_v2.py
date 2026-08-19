@@ -27,6 +27,7 @@ def _plan_row(
     group_id = f"group-{group_index:03d}"
     sample_id = f"{group_id}-{label.value}"
     text = f"{sample_id}:{condition.value}:{replicate}:{realized_cost}"
+    target_length = 128 if group_index < 18 else 256
     return MidDevPlanRow.create(
         source_group_id=group_id,
         prompt_id=f"prompt-{group_index:03d}",
@@ -34,7 +35,7 @@ def _plan_row(
         source_label=label,
         prompt_family_id="family",
         domain=CorpusDomain.GENERAL_EXPLANATORY,
-        target_length=128,
+        target_length=target_length,
         source_text_hash=sha256_text("source:" + sample_id),
         condition=condition,
         budget=4,
@@ -51,11 +52,13 @@ def _scored(
     *,
     drop: float,
 ) -> MidDevScoredPlanRow:
+    threshold_name = f"threshold-{plan_row.target_length}"
+    threshold_value = 0.5 if plan_row.target_length == 128 else 0.55
     return MidDevScoredPlanRow.create(
         plan_row=plan_row,
         detector_identity_hash=sha256_text("detector"),
-        threshold_hash=sha256_text("threshold"),
-        threshold_value=0.5,
+        threshold_hash=sha256_text(threshold_name),
+        threshold_value=threshold_value,
         pristine_score=0.8,
         transformed_score=0.8 - drop,
     )
@@ -123,6 +126,12 @@ def test_primary_v2_matches_random_by_realized_cost_before_source_inference() ->
     assert all(value.realized_edit_cost == 4 for value in result.source_contrasts)
     assert all(value.watermarked_random_match_count == 16 for value in result.source_contrasts)
     assert all(value.control_random_match_count == 16 for value in result.source_contrasts)
+    summaries = {value.target_length: value for value in result.length_summaries}
+    assert set(summaries) == {128, 256}
+    assert summaries[128].source_group_count == 18
+    assert summaries[256].source_group_count == 18
+    assert summaries[128].mean_control_adjusted_margin_advantage == pytest.approx(0.08)
+    assert summaries[256].mean_control_adjusted_margin_advantage == pytest.approx(0.08)
 
 
 def test_primary_v2_explicitly_excludes_source_with_fewer_than_eight_cost_matches() -> None:
@@ -135,6 +144,9 @@ def test_primary_v2_explicitly_excludes_source_with_fewer_than_eight_cost_matche
     )
     assert result.eligible_source_group_count == 35
     assert result.excluded_source_group_ids == ("group-000",)
+    summaries = {value.target_length: value for value in result.length_summaries}
+    assert summaries[128].source_group_count == 17
+    assert summaries[256].source_group_count == 18
 
 
 def test_primary_v2_rejects_when_cost_matching_leaves_fewer_than_32_sources() -> None:
