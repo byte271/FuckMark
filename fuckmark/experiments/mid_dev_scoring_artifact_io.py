@@ -66,6 +66,7 @@ def _scored_row(value: object) -> MidDevScoredPlanRow:
             "status",
             "realized_edit_cost",
             "detector_identity_hash",
+            "length_calibration_binding_hash",
             "threshold_hash",
             "threshold_value",
             "pristine_score",
@@ -87,6 +88,7 @@ def _scored_row(value: object) -> MidDevScoredPlanRow:
         data["status"],
         data["realized_edit_cost"],
         data["detector_identity_hash"],
+        data["length_calibration_binding_hash"],
         data["threshold_hash"],
         data["threshold_value"],
         data["pristine_score"],
@@ -212,6 +214,8 @@ def validate_mid_dev_scoring_artifact_binding(
         ):
             raise MidDevScoringArtifactJsonError("MidDev scored row metadata does not replay its frozen plan row")
         binding = by_length[plan_row.target_length]
+        if scored.length_calibration_binding_hash != binding.binding_hash:
+            raise MidDevScoringArtifactJsonError("MidDev scored row does not bind its length calibration")
         if scored.threshold_hash != binding.threshold_hash or scored.threshold_value != binding.threshold_value:
             raise MidDevScoringArtifactJsonError("MidDev scored row does not use its length-matched threshold")
 
