@@ -100,8 +100,6 @@ class MidDevNormalizedCostRow:
             require_int(name, value)
             if value < 0:
                 raise ValueError(f"{name} must be non-negative")
-        if self.maximum_search_operations <= 0:
-            raise ValueError("maximum_search_operations must be positive")
         if self.realized_operation_count > self.maximum_search_operations:
             raise ValueError("realized_operation_count exceeds resource ceiling")
         if self.planner is MidDevNormalizedPlanner.CONTEXT_SURVIVAL_BEAM_V2:
