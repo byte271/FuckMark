@@ -10,7 +10,7 @@ from .mid_dev import MID_DEV_PROMPT_FAMILIES, MID_DEV_TARGET_LENGTHS
 from .mid_dev_generation import MidDevGenerationBackend, _build_sample
 from .prompt import PromptRecord
 from .sample import CorpusSample
-from .schema import KeySplit, WatermarkLabel
+from .schema import CorpusSplit, KeySplit, WatermarkLabel
 
 
 MID_DEV_CALIBRATION_SHARD_ALGORITHM_VERSION = "mid-dev-calibration-shards-vnext-v1"
@@ -114,7 +114,7 @@ def build_mid_dev_calibration_prompt_records(
                 prompt_id=calibration_prompt_id(role, target_length, source_index),
                 prompt_family_id=f"cal-vnext-{_ROLE_SLUG[role]}-{family.family_id}",
                 domain=family.domain,
-                split=family.split,
+                split=CorpusSplit.THRESHOLD_CALIBRATION,
                 source_id=source_id,
                 source_hash=source_hash,
                 license_id=MID_DEV_CALIBRATION_LICENSE_ID,
