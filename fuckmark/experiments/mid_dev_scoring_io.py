@@ -4,19 +4,19 @@ import json
 from pathlib import Path
 
 from ..config import canonical_json_text
-from ..corpus.mid_dev import MID_DEV_SOURCE_COUNT
 from ..corpus.schema import CorpusDomain, WatermarkLabel
 from ..corpus.tiny_dev_io import _array, _mapping, _reject_constant, _unique_object
-from .mid_dev_context_survival import (
+from .mid_dev_scoring_contracts import (
     MID_DEV_RANDOM_REPLICATES,
     MidDevCondition,
-    MidDevPlanRow,
-    MidDevQualityRow,
-    MidDevSelectionAttestation,
-    MidDevSelectionConfig,
-    _validate_plan_matrix,
+    MidDevDeterministicComputeRowView,
+    MidDevFrozenPlanView,
+    MidDevPlanRowView,
+    MidDevQualityRowView,
+    MidDevSelectionAttestationView,
+    MidDevSelectionConfigView,
+    validate_complete_mid_dev_matrix,
 )
-from .mid_dev_freeze import MidDevDeterministicComputeRow, MidDevDeterministicFrozenPlan
 from .mid_dev_trace_schema import (
     MidDevSelectionTrace,
     MidDevSelectionTraceArtifact,
@@ -33,7 +33,7 @@ class MidDevScoringIoError(ValueError):
     pass
 
 
-def _selection_config(value: object) -> MidDevSelectionConfig:
+def _selection_config(value: object) -> MidDevSelectionConfigView:
     data = _mapping(
         "selection_config",
         value,
@@ -48,7 +48,7 @@ def _selection_config(value: object) -> MidDevSelectionConfig:
             "config_hash",
         ),
     )
-    return MidDevSelectionConfig(
+    return MidDevSelectionConfigView(
         data["algorithm_version"],
         tuple(_array("selection_config.budgets", data["budgets"])),
         tuple(_array("selection_config.beam_budgets", data["beam_budgets"])),
@@ -60,7 +60,7 @@ def _selection_config(value: object) -> MidDevSelectionConfig:
     )
 
 
-def _selection_attestation(value: object) -> MidDevSelectionAttestation:
+def _selection_attestation(value: object) -> MidDevSelectionAttestationView:
     data = _mapping(
         "selection_attestation",
         value,
@@ -74,7 +74,7 @@ def _selection_attestation(value: object) -> MidDevSelectionAttestation:
             "attestation_hash",
         ),
     )
-    return MidDevSelectionAttestation(
+    return MidDevSelectionAttestationView(
         data["algorithm_version"],
         data["attested_expander_count"],
         data["detector_access_observed"],
@@ -85,7 +85,7 @@ def _selection_attestation(value: object) -> MidDevSelectionAttestation:
     )
 
 
-def _plan_row(value: object) -> MidDevPlanRow:
+def _plan_row(value: object) -> MidDevPlanRowView:
     data = _mapping(
         "plan_row",
         value,
@@ -109,7 +109,7 @@ def _plan_row(value: object) -> MidDevPlanRow:
             "plan_row_hash",
         ),
     )
-    return MidDevPlanRow(
+    return MidDevPlanRowView(
         data["source_group_id"],
         data["prompt_id"],
         data["sample_id"],
@@ -130,7 +130,7 @@ def _plan_row(value: object) -> MidDevPlanRow:
     )
 
 
-def _quality_row(value: object) -> MidDevQualityRow:
+def _quality_row(value: object) -> MidDevQualityRowView:
     data = _mapping(
         "quality_row",
         value,
@@ -149,7 +149,7 @@ def _quality_row(value: object) -> MidDevQualityRow:
             "quality_hash",
         ),
     )
-    return MidDevQualityRow(
+    return MidDevQualityRowView(
         data["plan_row_hash"],
         data["word_edit_rate"],
         data["old_observation_replacement_ratio"],
@@ -165,7 +165,7 @@ def _quality_row(value: object) -> MidDevQualityRow:
     )
 
 
-def _compute_row(value: object) -> MidDevDeterministicComputeRow:
+def _compute_row(value: object) -> MidDevDeterministicComputeRowView:
     data = _mapping(
         "compute_row",
         value,
@@ -182,7 +182,7 @@ def _compute_row(value: object) -> MidDevDeterministicComputeRow:
             "compute_hash",
         ),
     )
-    return MidDevDeterministicComputeRow(
+    return MidDevDeterministicComputeRowView(
         data["plan_row_hash"],
         data["expanded_state_count"],
         data["pruned_state_count"],
@@ -196,7 +196,7 @@ def _compute_row(value: object) -> MidDevDeterministicComputeRow:
     )
 
 
-def _plan(value: object) -> MidDevDeterministicFrozenPlan:
+def _plan(value: object) -> MidDevFrozenPlanView:
     data = _mapping(
         "plan",
         value,
@@ -216,7 +216,7 @@ def _plan(value: object) -> MidDevDeterministicFrozenPlan:
             "plan_hash",
         ),
     )
-    plan = MidDevDeterministicFrozenPlan(
+    plan = MidDevFrozenPlanView(
         data["algorithm_version"],
         data["corpus_artifact_hash"],
         data["source_profile_hash"],
@@ -231,16 +231,11 @@ def _plan(value: object) -> MidDevDeterministicFrozenPlan:
         tuple(_compute_row(row) for row in _array("plan.compute_rows", data["compute_rows"])),
         data["plan_hash"],
     )
-    _validate_plan_matrix(plan.rows)
-    source_groups = {row.source_group_id for row in plan.rows}
-    samples = {row.sample_id for row in plan.rows}
-    expected_rows = MID_DEV_SOURCE_COUNT * 2 * (1 + 4 * (2 + MID_DEV_RANDOM_REPLICATES + 1) + 2)
+    validate_complete_mid_dev_matrix(plan.rows)
     if plan.ngram_len != MID_DEV_FROZEN_NGRAM_LEN:
         raise MidDevScoringIoError("frozen MidDev plan must use ngram_len=5")
     if plan.context_history_size != MID_DEV_FROZEN_CONTEXT_HISTORY_SIZE:
         raise MidDevScoringIoError("frozen MidDev plan must use context_history_size=1024")
-    if len(source_groups) != 36 or len(samples) != 72 or len(plan.rows) != expected_rows:
-        raise MidDevScoringIoError("frozen MidDev plan matrix is incomplete")
     if plan.selection_attestation.attested_expander_count != 72:
         raise MidDevScoringIoError("frozen MidDev plan attestation does not cover 72 expanders")
     return plan
@@ -305,7 +300,7 @@ def _decode(text: str) -> object:
         raise MidDevScoringIoError("MidDev scoring input is not valid JSON") from error
 
 
-def parse_mid_dev_scoring_plan_json(text: str) -> MidDevDeterministicFrozenPlan:
+def parse_mid_dev_scoring_plan_json(text: str) -> MidDevFrozenPlanView:
     try:
         plan = _plan(_decode(text))
     except Exception as error:
@@ -330,7 +325,7 @@ def parse_mid_dev_scoring_trace_json(text: str) -> MidDevSelectionTraceArtifact:
 
 
 def validate_mid_dev_scoring_plan_trace_binding(
-    plan: MidDevDeterministicFrozenPlan,
+    plan: MidDevFrozenPlanView,
     traces: MidDevSelectionTraceArtifact,
 ) -> None:
     if traces.plan_hash != plan.plan_hash:
@@ -359,7 +354,7 @@ def validate_mid_dev_scoring_plan_trace_binding(
             raise MidDevScoringIoError("MidDev trace schedule seed does not replay")
 
 
-def load_mid_dev_scoring_plan_json(path: str | Path) -> MidDevDeterministicFrozenPlan:
+def load_mid_dev_scoring_plan_json(path: str | Path) -> MidDevFrozenPlanView:
     file_path = Path(path)
     if file_path.stat().st_size > MID_DEV_SCORING_IO_MAX_BYTES:
         raise MidDevScoringIoError("MidDev frozen plan exceeds the size limit")
