@@ -16,6 +16,7 @@ from fuckmark.corpus.mid_dev_generation import (
 )
 from fuckmark.corpus.schema import KeySplit
 from fuckmark.detector_calibration import PRIMARY_TARGET_FPR
+from fuckmark.experiments.mid_dev_analysis import build_mid_dev_analysis_artifact
 from fuckmark.experiments.mid_dev_context_survival import (
     MID_DEV_BUDGETS,
     MID_DEV_RANDOM_REPLICATES,
@@ -247,6 +248,18 @@ def test_full_fake_middev_planner_emits_complete_detector_blind_matrix() -> None
     validate_mid_dev_scoring_artifact_binding(reloaded_evidence, scoring_plan)
     assert reloaded_evidence.artifact_hash == evidence.artifact_hash
     assert len(reloaded_evidence.rows) == 5688
+
+    analysis, ecs1 = build_mid_dev_analysis_artifact(
+        artifact,
+        scoring_plan,
+        reloaded_evidence,
+        bootstrap_replicates=100,
+    )
+    assert len(analysis.primary_results) + len(analysis.ineligible_primary_cells) == 6
+    assert analysis.ecs1_raw_artifact_hash == ecs1.artifact_hash
+    assert len(ecs1.rows) == 5688
+    assert ecs1.fit_source_group_count == 24
+    assert ecs1.evaluation_source_group_count == 12
 
     sample_ids = {row.sample_id for row in plan.rows}
     assert len(sample_ids) == 72
