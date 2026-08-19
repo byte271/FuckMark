@@ -8,20 +8,22 @@ from pathlib import Path
 
 from .config import canonical_json_text
 from .corpus import ModelTokenizerIdentity, PaddingSide, load_tiny_dev_corpus_json
+from .experiments import context_survival_plan as context_survival_plan_module
 from .experiments.context_survival_plan import (
     DEFAULT_BEAM_WIDTH,
     DEFAULT_BUDGETS,
     DEFAULT_MAX_RISK_TIER,
     DEFAULT_RANDOM_SEED_COUNT,
-    build_context_survival_plan,
 )
 from .hashing import sha256_json, sha256_text
+from .scheduling.beam_v2 import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION, beam_search_v2
 
 
 DEFAULT_MODEL_ID = "openai-community/gpt2"
 DEFAULT_MODEL_REVISION = "607a30d783dfa663caf39e06633721c8d4cfcd7e"
 DEFAULT_NGRAM_LEN = 5
 DEFAULT_CONTEXT_HISTORY_SIZE = 1024
+TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION = "tiny-dev-context-survival-plan-v2"
 TINY_DEV_CONTEXT_SURVIVAL_PLAN_PROVENANCE_VERSION = "tiny-dev-context-survival-plan-provenance-v1"
 
 
@@ -78,6 +80,19 @@ def runtime_tokenizer_identity_public(
         add_bos_token=bool(getattr(tokenizer, "add_bos_token", False)),
         add_eos_token=bool(getattr(tokenizer, "add_eos_token", False)),
     )
+
+
+def _build_context_survival_plan_v2(corpus, tokenizer, **kwargs) -> dict[str, object]:
+    original_beam_search = context_survival_plan_module.beam_search
+    context_survival_plan_module.beam_search = beam_search_v2
+    try:
+        base_plan = context_survival_plan_module.build_context_survival_plan(corpus, tokenizer, **kwargs)
+    finally:
+        context_survival_plan_module.beam_search = original_beam_search
+    payload = {key: value for key, value in base_plan.items() if key != "plan_hash"}
+    payload["algorithm_version"] = TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION
+    payload["beam_algorithm_version"] = CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
+    return {**payload, "plan_hash": sha256_json(payload)}
 
 
 def _plan_provenance(
@@ -150,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
         raise RuntimeError("runtime tokenizer identity does not match frozen TinyDev corpus")
 
     plan_started_at = _now()
-    plan = build_context_survival_plan(
+    plan = _build_context_survival_plan_v2(
         corpus,
         tokenizer,
         ngram_len=args.ngram_len,
@@ -173,6 +188,7 @@ def main(argv: list[str] | None = None) -> int:
 
     sys.stdout.write(f"plan_hash={plan['plan_hash']}\n")
     sys.stdout.write(f"plan_provenance_hash={provenance['provenance_hash']}\n")
+    sys.stdout.write(f"beam_algorithm_version={plan['beam_algorithm_version']}\n")
     sys.stdout.write(f"variant_count={len(plan['variants'])}\n")
     sys.stdout.write(f"plan_json={args.plan_json.as_posix()}\n")
     sys.stdout.write(f"provenance_json={args.provenance_json.as_posix()}\n")
