@@ -7,16 +7,35 @@ on:
       - ".github/workflows/mid-dev-plan-matrix.yml"
       - "fuckmark/corpus/mid_dev*.py"
       - "fuckmark/experiments/mid_dev*.py"
+      - "fuckmark/experiments/detector_opportunity_audit.py"
+      - "fuckmark/experiments/residual_signal_geometry.py"
+      - "fuckmark/experiments/structural_leverage.py"
+      - "fuckmark/experiments/tiny_dev_calibration_opportunity_audit.py"
+      - "fuckmark/experiments/tiny_dev_residual_replay.py"
+      - "fuckmark/tiny_dev_measurement_replay_hf.py"
       - "fuckmark/scheduling/**"
       - "fuckmark/transforms/**"
       - "tests/test_mid_dev_plan_builder.py"
+      - "tests/test_detector_opportunity_audit.py"
+      - "tests/test_residual_signal_geometry.py"
+      - "tests/test_structural_leverage.py"
+      - "tests/test_mid_dev_calibration_shards_vnext.py"
+      - "tests/test_mid_dev_calibration_audit_vnext.py"
+      - "tests/test_tiny_dev_calibration_opportunity_audit.py"
+      - "tests/test_tiny_dev_residual_replay.py"
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  FROZEN_TINYDEV_RUN_ID: "32269591897"
+  FROZEN_TINYDEV_ARTIFACT_NAME: real-tiny-dev-context-survival
+  FROZEN_TINYDEV_CORPUS_FILE_SHA256: ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664
 
 jobs:
   full-matrix:
@@ -38,3 +57,119 @@ jobs:
         env:
           FUCKMARK_RUN_MIDDEV_FULL_MATRIX: "1"
         run: python -m pytest -q tests/test_mid_dev_plan_builder.py
+
+  focused-measurement-tests:
+    name: Focused measurement tests / Python ${{ matrix.python-version }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
+      - name: Verify dependency lock
+        run: uv lock --check --python "${{ matrix.python-version }}"
+      - name: Run measurement-hardening tests
+        run: >-
+          python -m pytest -q
+          tests/test_detector_opportunity_audit.py
+          tests/test_residual_signal_geometry.py
+          tests/test_structural_leverage.py
+          tests/test_mid_dev_calibration_shards_vnext.py
+          tests/test_mid_dev_calibration_audit_vnext.py
+          tests/test_tiny_dev_calibration_opportunity_audit.py
+          tests/test_tiny_dev_residual_replay.py
+
+  full-regression:
+    name: Full repository regression / Python 3.12
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: python -m pip install --upgrade pip && python -m pip install "uv==0.10.0" && python -m pip install -e ".[dev]"
+      - name: Verify dependency lock
+        run: uv lock --check --python "3.12"
+      - name: Run full test suite
+        run: python -m pytest -q
+
+  frozen-tinydev-replay:
+    name: Frozen TinyDev measurement replay
+    runs-on: ubuntu-24.04
+    needs: focused-measurement-tests
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e ".[dev]"
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install frozen public tokenizer runtime
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Download sealed TinyDev baseline artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.FROZEN_TINYDEV_ARTIFACT_NAME }}
+          path: frozen-tinydev
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.FROZEN_TINYDEV_RUN_ID }}
+      - name: Verify frozen TinyDev corpus file hash
+        shell: bash
+        run: |
+          actual="$(sha256sum frozen-tinydev/tiny-dev-corpus.json | cut -d' ' -f1)"
+          test "$actual" = "$FROZEN_TINYDEV_CORPUS_FILE_SHA256"
+      - name: Replay public opportunity and residual measurements only
+        run: >-
+          python -m fuckmark.tiny_dev_measurement_replay_hf
+          --corpus-json frozen-tinydev/tiny-dev-corpus.json
+          --plan-json frozen-tinydev/tiny-dev-context-survival-plan.json
+          --evidence-json frozen-tinydev/tiny-dev-context-survival-evidence.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --calibration-audit-json measurement-artifacts/tiny-dev-calibration-opportunity-audit.json
+          --residual-replay-json measurement-artifacts/tiny-dev-residual-replay.json
+      - name: Enforce frozen measurement conclusions
+        run: |
+          python - <<'PY'
+          import json
+          calibration = json.load(open('measurement-artifacts/tiny-dev-calibration-opportunity-audit.json'))
+          replay = json.load(open('measurement-artifacts/tiny-dev-residual-replay.json'))
+          assert calibration['calibration_negative_count'] == 100
+          assert calibration['observed_calibration_false_positive_count'] == 1
+          assert calibration['calibration_resolution_pass'] is False
+          assert calibration['nominal_length_proxy_pass'] is False
+          assert calibration['valid_observations']['coefficient_of_variation'] > 0.05
+          assert replay['detector_access_during_selection_observed'] is False
+          assert replay['secret_access_during_selection_observed'] is False
+          assert len(replay['rows']) == 384
+          print('decision=' + replay['comparison']['decision'])
+          print('old_source_centered_pearson=' + str(replay['comparison']['old_source_centered_pearson']))
+          print('new_source_centered_pearson=' + str(replay['comparison']['new_source_centered_pearson']))
+          print('old_loso_rmse=' + str(replay['comparison']['old_leave_one_source_out_rmse']))
+          print('new_loso_rmse=' + str(replay['comparison']['new_leave_one_source_out_rmse']))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: middev-measurement-hardening-vnext
+          path: measurement-artifacts/
+          if-no-files-found: error
