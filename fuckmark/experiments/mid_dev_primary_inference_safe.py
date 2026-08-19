@@ -12,14 +12,17 @@ from .mid_dev_scored_schema import MidDevScoredPlanRow
 from .mid_dev_scoring_contracts import SUCCESS, MidDevCondition
 
 
-MID_DEV_PRIMARY_INFERENCE_V2 = "mid-dev-primary-realized-cost-v2"
+MID_DEV_PRIMARY_INFERENCE_V2 = "mid-dev-primary-realized-cost-v3"
+MID_DEV_PRIMARY_LENGTH_SUMMARY_VERSION = "mid-dev-primary-length-summary-v1"
 MID_DEV_MINIMUM_MATCHED_RANDOM_REPLICATES = 8
 MID_DEV_PRIMARY_BOOTSTRAP_REPLICATES = 10_000
+MID_DEV_PRIMARY_TARGET_LENGTHS = (128, 256)
 
 
 @dataclass(frozen=True, slots=True)
 class MidDevPrimarySourceContrast:
     source_group_id: str
+    target_length: int
     budget: int
     deterministic_condition: MidDevCondition
     realized_edit_cost: int
@@ -33,6 +36,9 @@ class MidDevPrimarySourceContrast:
     def __post_init__(self) -> None:
         if not isinstance(self.source_group_id, str) or not self.source_group_id:
             raise ValueError("source_group_id must be non-empty")
+        require_int("target_length", self.target_length)
+        if self.target_length not in MID_DEV_PRIMARY_TARGET_LENGTHS:
+            raise ValueError("primary source contrast target length must be 128 or 256")
         if not isinstance(self.deterministic_condition, MidDevCondition):
             raise TypeError("deterministic_condition must be MidDevCondition")
         require_int("budget", self.budget)
@@ -61,6 +67,7 @@ class MidDevPrimarySourceContrast:
         return {
             "algorithm_version": MID_DEV_PRIMARY_INFERENCE_V2,
             "source_group_id": self.source_group_id,
+            "target_length": self.target_length,
             "budget": self.budget,
             "deterministic_condition": self.deterministic_condition.value,
             "realized_edit_cost": self.realized_edit_cost,
@@ -73,15 +80,68 @@ class MidDevPrimarySourceContrast:
 
 
 @dataclass(frozen=True, slots=True)
+class MidDevPrimaryLengthSummary:
+    target_length: int
+    source_group_count: int
+    mean_watermarked_margin_advantage: float
+    mean_control_margin_advantage: float
+    mean_control_adjusted_margin_advantage: float
+    positive_adjusted_count: int
+    negative_adjusted_count: int
+    zero_adjusted_count: int
+    summary_hash: str
+
+    def __post_init__(self) -> None:
+        require_int("target_length", self.target_length)
+        if self.target_length not in MID_DEV_PRIMARY_TARGET_LENGTHS:
+            raise ValueError("length summary target must be 128 or 256")
+        require_int("source_group_count", self.source_group_count)
+        if not 1 <= self.source_group_count <= 18:
+            raise ValueError("length summary must contain between one and 18 source groups")
+        for name in (
+            "mean_watermarked_margin_advantage",
+            "mean_control_margin_advantage",
+            "mean_control_adjusted_margin_advantage",
+        ):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+                raise ValueError(f"{name} must be finite")
+        for name in ("positive_adjusted_count", "negative_adjusted_count", "zero_adjusted_count"):
+            value = getattr(self, name)
+            require_int(name, value)
+            if value < 0:
+                raise ValueError(f"{name} must be non-negative")
+        if self.positive_adjusted_count + self.negative_adjusted_count + self.zero_adjusted_count != self.source_group_count:
+            raise ValueError("length summary sign counts do not partition source groups")
+        require_sha256("summary_hash", self.summary_hash)
+        if self.summary_hash != sha256_json(self.payload()):
+            raise ValueError("summary_hash does not match MidDev length summary")
+
+    def payload(self) -> dict[str, object]:
+        return {
+            "algorithm_version": MID_DEV_PRIMARY_LENGTH_SUMMARY_VERSION,
+            "target_length": self.target_length,
+            "source_group_count": self.source_group_count,
+            "mean_watermarked_margin_advantage": self.mean_watermarked_margin_advantage,
+            "mean_control_margin_advantage": self.mean_control_margin_advantage,
+            "mean_control_adjusted_margin_advantage": self.mean_control_adjusted_margin_advantage,
+            "positive_adjusted_count": self.positive_adjusted_count,
+            "negative_adjusted_count": self.negative_adjusted_count,
+            "zero_adjusted_count": self.zero_adjusted_count,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class MidDevPrimaryInferenceResult:
     detector_identity_hash: str
-    threshold_hash: str
+    threshold_registry_hash: str
     deterministic_condition: MidDevCondition
     budget: int
     planned_source_group_count: int
     eligible_source_group_count: int
     excluded_source_group_ids: tuple[str, ...]
     source_contrasts: tuple[MidDevPrimarySourceContrast, ...]
+    length_summaries: tuple[MidDevPrimaryLengthSummary, ...]
     mean_watermarked_margin_advantage: float
     mean_control_margin_advantage: float
     mean_control_adjusted_margin_advantage: float
@@ -96,7 +156,7 @@ class MidDevPrimaryInferenceResult:
 
     def __post_init__(self) -> None:
         require_sha256("detector_identity_hash", self.detector_identity_hash)
-        require_sha256("threshold_hash", self.threshold_hash)
+        require_sha256("threshold_registry_hash", self.threshold_registry_hash)
         if not isinstance(self.deterministic_condition, MidDevCondition):
             raise TypeError("deterministic_condition must be MidDevCondition")
         for name in (
@@ -124,6 +184,12 @@ class MidDevPrimaryInferenceResult:
             raise ValueError("excluded source group IDs must be unique")
         if len({value.source_group_id for value in self.source_contrasts}) != len(self.source_contrasts):
             raise ValueError("source contrasts must contain unique source groups")
+        if not isinstance(self.length_summaries, tuple) or len(self.length_summaries) != 2:
+            raise ValueError("MidDev primary inference must report 128/256 length summaries")
+        if {value.target_length for value in self.length_summaries} != set(MID_DEV_PRIMARY_TARGET_LENGTHS):
+            raise ValueError("MidDev primary inference length summaries are incomplete")
+        if sum(value.source_group_count for value in self.length_summaries) != self.eligible_source_group_count:
+            raise ValueError("length summaries do not partition eligible source groups")
         for name in (
             "mean_watermarked_margin_advantage",
             "mean_control_margin_advantage",
@@ -149,13 +215,16 @@ class MidDevPrimaryInferenceResult:
         return {
             "algorithm_version": MID_DEV_PRIMARY_INFERENCE_V2,
             "detector_identity_hash": self.detector_identity_hash,
-            "threshold_hash": self.threshold_hash,
+            "threshold_registry_hash": self.threshold_registry_hash,
             "deterministic_condition": self.deterministic_condition.value,
             "budget": self.budget,
             "planned_source_group_count": self.planned_source_group_count,
             "eligible_source_group_count": self.eligible_source_group_count,
             "excluded_source_group_ids": self.excluded_source_group_ids,
             "source_contrast_hashes": tuple(value.contrast_hash for value in self.source_contrasts),
+            "length_summary_hashes": tuple(
+                value.summary_hash for value in sorted(self.length_summaries, key=lambda item: item.target_length)
+            ),
             "mean_watermarked_margin_advantage": self.mean_watermarked_margin_advantage,
             "mean_control_margin_advantage": self.mean_control_margin_advantage,
             "mean_control_adjusted_margin_advantage": self.mean_control_adjusted_margin_advantage,
@@ -205,11 +274,13 @@ def _matched_random_rows(
     label: WatermarkLabel,
     budget: int,
     realized_edit_cost: int,
+    target_length: int,
 ) -> tuple[MidDevScoredPlanRow, ...]:
     return tuple(
         row
         for row in rows
         if row.source_label is label
+        and row.target_length == target_length
         and row.condition is MidDevCondition.RANDOM_SAFE
         and row.budget == budget
         and row.status == SUCCESS
@@ -242,20 +313,25 @@ def _source_contrast(
         condition=deterministic_condition,
         budget=budget,
     )
-    if wm is None or control is None or wm.realized_edit_cost != control.realized_edit_cost:
+    if wm is None or control is None:
+        return None
+    if wm.realized_edit_cost != control.realized_edit_cost or wm.target_length != control.target_length:
         return None
     realized_cost = wm.realized_edit_cost
+    target_length = wm.target_length
     wm_random = _matched_random_rows(
         rows,
         label=WatermarkLabel.WATERMARKED,
         budget=budget,
         realized_edit_cost=realized_cost,
+        target_length=target_length,
     )
     control_random = _matched_random_rows(
         rows,
         label=WatermarkLabel.UNWATERMARKED,
         budget=budget,
         realized_edit_cost=realized_cost,
+        target_length=target_length,
     )
     if len(wm_random) < MID_DEV_MINIMUM_MATCHED_RANDOM_REPLICATES:
         return None
@@ -267,6 +343,7 @@ def _source_contrast(
     payload = {
         "algorithm_version": MID_DEV_PRIMARY_INFERENCE_V2,
         "source_group_id": source_group_id,
+        "target_length": target_length,
         "budget": budget,
         "deterministic_condition": deterministic_condition.value,
         "realized_edit_cost": realized_cost,
@@ -278,6 +355,7 @@ def _source_contrast(
     }
     return MidDevPrimarySourceContrast(
         source_group_id,
+        target_length,
         budget,
         deterministic_condition,
         realized_cost,
@@ -288,6 +366,57 @@ def _source_contrast(
         adjusted,
         sha256_json(payload),
     )
+
+
+def _length_summary(
+    target_length: int,
+    contrasts: Sequence[MidDevPrimarySourceContrast],
+) -> MidDevPrimaryLengthSummary:
+    values = tuple(value for value in contrasts if value.target_length == target_length)
+    if not values:
+        raise ValueError("MidDev primary inference cannot omit a target-length stratum")
+    adjusted = tuple(value.control_adjusted_margin_advantage for value in values)
+    positive = sum(value > 0 for value in adjusted)
+    negative = sum(value < 0 for value in adjusted)
+    zero = len(adjusted) - positive - negative
+    payload = {
+        "algorithm_version": MID_DEV_PRIMARY_LENGTH_SUMMARY_VERSION,
+        "target_length": target_length,
+        "source_group_count": len(values),
+        "mean_watermarked_margin_advantage": _mean(tuple(value.watermarked_margin_advantage for value in values)),
+        "mean_control_margin_advantage": _mean(tuple(value.control_margin_advantage for value in values)),
+        "mean_control_adjusted_margin_advantage": _mean(adjusted),
+        "positive_adjusted_count": positive,
+        "negative_adjusted_count": negative,
+        "zero_adjusted_count": zero,
+    }
+    return MidDevPrimaryLengthSummary(
+        target_length,
+        len(values),
+        payload["mean_watermarked_margin_advantage"],
+        payload["mean_control_margin_advantage"],
+        payload["mean_control_adjusted_margin_advantage"],
+        positive,
+        negative,
+        zero,
+        sha256_json(payload),
+    )
+
+
+def _threshold_registry_hash(rows: Sequence[MidDevScoredPlanRow]) -> str:
+    entries = tuple(
+        sorted(
+            {
+                (row.target_length, row.threshold_hash, row.threshold_value)
+                for row in rows
+            }
+        )
+    )
+    if {value[0] for value in entries} != set(MID_DEV_PRIMARY_TARGET_LENGTHS):
+        raise ValueError("primary inference requires threshold bindings for 128 and 256")
+    if len(entries) != 2:
+        raise ValueError("primary inference found multiple thresholds within a length stratum")
+    return sha256_json(entries)
 
 
 def primary_realized_cost_inference(
@@ -313,9 +442,9 @@ def primary_realized_cost_inference(
         and row.condition in {deterministic_condition, MidDevCondition.RANDOM_SAFE}
     )
     detector_hashes = {row.detector_identity_hash for row in relevant}
-    threshold_hashes = {row.threshold_hash for row in relevant}
-    if len(detector_hashes) != 1 or len(threshold_hashes) != 1:
-        raise ValueError("primary inference cannot mix detector identities or thresholds")
+    if len(detector_hashes) != 1:
+        raise ValueError("primary inference cannot mix detector identities")
+    threshold_registry_hash = _threshold_registry_hash(relevant)
     grouped: dict[str, list[MidDevScoredPlanRow]] = {}
     for row in relevant:
         grouped.setdefault(row.source_group_id, []).append(row)
@@ -336,7 +465,12 @@ def primary_realized_cost_inference(
             contrasts.append(contrast)
     if len(contrasts) < 32:
         raise ValueError("fewer than 32 MidDev source groups have realized-cost-matched primary evidence")
-    adjusted = tuple(value.control_adjusted_margin_advantage for value in contrasts)
+    materialized = tuple(contrasts)
+    length_summaries = tuple(
+        _length_summary(target_length, materialized)
+        for target_length in MID_DEV_PRIMARY_TARGET_LENGTHS
+    )
+    adjusted = tuple(value.control_adjusted_margin_advantage for value in materialized)
     rng = random.Random(bootstrap_seed)
     count = len(adjusted)
     bootstrap = sorted(
@@ -355,17 +489,17 @@ def primary_realized_cost_inference(
         tail = min(positive, negative)
         cumulative = sum(math.comb(nonzero, value) for value in range(tail + 1)) / (2**nonzero)
         sign_p = min(1.0, 2.0 * cumulative)
-    materialized = tuple(contrasts)
     payload = {
         "algorithm_version": MID_DEV_PRIMARY_INFERENCE_V2,
         "detector_identity_hash": next(iter(detector_hashes)),
-        "threshold_hash": next(iter(threshold_hashes)),
+        "threshold_registry_hash": threshold_registry_hash,
         "deterministic_condition": deterministic_condition.value,
         "budget": budget,
         "planned_source_group_count": 36,
         "eligible_source_group_count": count,
         "excluded_source_group_ids": tuple(excluded),
         "source_contrast_hashes": tuple(value.contrast_hash for value in materialized),
+        "length_summary_hashes": tuple(value.summary_hash for value in length_summaries),
         "mean_watermarked_margin_advantage": _mean(tuple(value.watermarked_margin_advantage for value in materialized)),
         "mean_control_margin_advantage": _mean(tuple(value.control_margin_advantage for value in materialized)),
         "mean_control_adjusted_margin_advantage": _mean(adjusted),
@@ -379,13 +513,14 @@ def primary_realized_cost_inference(
     }
     return MidDevPrimaryInferenceResult(
         next(iter(detector_hashes)),
-        next(iter(threshold_hashes)),
+        threshold_registry_hash,
         deterministic_condition,
         budget,
         36,
         count,
         tuple(excluded),
         materialized,
+        length_summaries,
         payload["mean_watermarked_margin_advantage"],
         payload["mean_control_margin_advantage"],
         payload["mean_control_adjusted_margin_advantage"],
