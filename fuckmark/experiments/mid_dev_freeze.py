@@ -16,7 +16,7 @@ from .mid_dev_context_survival import (
 
 
 MID_DEV_DETERMINISTIC_COMPUTE_VERSION = "mid-dev-deterministic-compute-v1"
-MID_DEV_DETERMINISTIC_PLAN_VERSION = "mid-dev-context-survival-plan-v3"
+MID_DEV_DETERMINISTIC_PLAN_VERSION = "mid-dev-context-survival-plan-v4"
 MID_DEV_RUNTIME_TIMING_VERSION = "mid-dev-runtime-timing-v1"
 
 
@@ -160,6 +160,8 @@ class MidDevDeterministicFrozenPlan:
     source_profile_hash: str
     analysis_split_hash: str
     source_code_commit: str
+    ngram_len: int
+    context_history_size: int
     selection_config: MidDevSelectionConfig
     selection_attestation: MidDevSelectionAttestation
     rows: tuple[MidDevPlanRow, ...]
@@ -179,6 +181,12 @@ class MidDevDeterministicFrozenPlan:
             require_sha256(name, getattr(self, name))
         if not isinstance(self.source_code_commit, str) or not self.source_code_commit:
             raise ValueError("source_code_commit must be non-empty")
+        require_int("ngram_len", self.ngram_len)
+        require_int("context_history_size", self.context_history_size)
+        if self.ngram_len < 2:
+            raise ValueError("ngram_len must be at least two")
+        if self.context_history_size < 0:
+            raise ValueError("context_history_size must be non-negative")
         if not isinstance(self.selection_config, MidDevSelectionConfig):
             raise TypeError("selection_config must be MidDevSelectionConfig")
         if not isinstance(self.selection_attestation, MidDevSelectionAttestation):
@@ -211,6 +219,8 @@ class MidDevDeterministicFrozenPlan:
         source_profile_hash: str,
         analysis_split_hash: str,
         source_code_commit: str,
+        ngram_len: int = 5,
+        context_history_size: int = 1024,
         selection_config: MidDevSelectionConfig,
         selection_attestation: MidDevSelectionAttestation,
         rows: Sequence[MidDevPlanRow],
@@ -238,6 +248,8 @@ class MidDevDeterministicFrozenPlan:
             "source_profile_hash": source_profile_hash,
             "analysis_split_hash": analysis_split_hash,
             "source_code_commit": source_code_commit,
+            "ngram_len": ngram_len,
+            "context_history_size": context_history_size,
             "selection_config_hash": selection_config.config_hash,
             "selection_attestation_hash": selection_attestation.attestation_hash,
             "row_hashes": tuple(value.plan_row_hash for value in materialized),
@@ -250,6 +262,8 @@ class MidDevDeterministicFrozenPlan:
             source_profile_hash,
             analysis_split_hash,
             source_code_commit,
+            ngram_len,
+            context_history_size,
             selection_config,
             selection_attestation,
             materialized,
@@ -266,6 +280,8 @@ class MidDevDeterministicFrozenPlan:
             "source_profile_hash": self.source_profile_hash,
             "analysis_split_hash": self.analysis_split_hash,
             "source_code_commit": self.source_code_commit,
+            "ngram_len": self.ngram_len,
+            "context_history_size": self.context_history_size,
             "selection_config_hash": self.selection_config.config_hash,
             "selection_attestation_hash": self.selection_attestation.attestation_hash,
             "row_hashes": tuple(value.plan_row_hash for value in self.rows),
