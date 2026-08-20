@@ -1,0 +1,79 @@
+name: MidDev Pristine Opportunity Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  MODEL_ID: openai-community/gpt2
+  MODEL_REVISION: 607a30d783dfa663caf39e06633721c8d4cfcd7e
+
+jobs:
+  pristine-opportunity-audit:
+    name: Pristine opportunity audit only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install FuckMark
+        run: python -m pip install -e ".[dev]"
+
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install frozen Transformers runtime
+        run: python -m pip install -r requirements-smoke.txt
+
+      - name: Generate pristine audit corpus and freeze opportunity regime only
+        run: >-
+          python -m fuckmark.mid_dev_opportunity_audit_hf
+          --model "$MODEL_ID"
+          --model-revision "$MODEL_REVISION"
+          --device cpu
+          --corpus-json opportunity-artifacts/pristine-opportunity-corpus.json
+          --opportunity-audit-json opportunity-artifacts/detector-opportunity-audit.json
+          --regime-decision-json opportunity-artifacts/calibration-regime-decision.json
+          --provenance-json opportunity-artifacts/opportunity-audit-provenance.json
+
+      - name: Enforce pristine-only workflow contract
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('opportunity-artifacts')
+          provenance = json.loads((root / 'opportunity-audit-provenance.json').read_text())
+          audit = json.loads((root / 'detector-opportunity-audit.json').read_text())
+          decision = json.loads((root / 'calibration-regime-decision.json').read_text())
+
+          assert provenance['sample_count'] == 200
+          assert provenance['pristine_negatives_per_length'] == 100
+          assert provenance['attack_transform_count'] == 0
+          assert provenance['attack_score_count'] == 0
+          assert provenance['detector_score_count'] == 0
+          assert provenance['calibration_threshold_constructed'] is False
+          assert provenance['cal_select_or_audit_samples_consumed'] is False
+          assert provenance['tokenizer_round_trip_all_ok'] is True
+          assert provenance['opportunity_cv_limit'] == 0.05
+          assert provenance['eligible_iqr_overlap_limit'] == 0.10
+          assert len(audit['rows']) == 200
+          assert decision['opportunity_audit_hash'] == audit['artifact_hash']
+          print('opportunity_audit_hash=' + audit['artifact_hash'])
+          print('regime_decision_hash=' + decision['decision_hash'])
+          print('regime_mode=' + decision['mode'])
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: middev-pristine-opportunity-audit
+          path: opportunity-artifacts/
+          if-no-files-found: error
