@@ -4,6 +4,12 @@ import ast
 from pathlib import Path
 
 from fuckmark.config import canonical_json_text
+from fuckmark.corpus.mid_dev_calibration import (
+    MID_DEV_CALIBRATION_NEGATIVES_PER_LENGTH,
+    MID_DEV_CALIBRATION_SEED_BASE,
+    MID_DEV_CALIBRATION_SOURCE_ID,
+)
+from fuckmark.corpus.mid_dev_calibration_shards import CalibrationRole, calibration_prompt_source_id
 from fuckmark.detectors import ComparisonOperator
 from fuckmark.detectors.calibration_statistics import exact_binomial_interval
 from fuckmark.experiments.mid_dev_calibration_audit import (
@@ -169,3 +175,34 @@ def test_merge_and_pair_validation_are_detector_free() -> None:
         assert not any("adapter" in value.lower() or "detector" in value.lower() for value in imported_modules)
         assert not any("adapter" in value.lower() or "detector" in value.lower() for value in imported_names)
         assert "calibrate_detector" not in source
+
+
+def test_pristine_opportunity_corpus_is_small_and_independent_from_vnext_calibration_roles() -> None:
+    assert MID_DEV_CALIBRATION_NEGATIVES_PER_LENGTH == 100
+    assert MID_DEV_CALIBRATION_SEED_BASE == 610_000
+    assert MID_DEV_CALIBRATION_SOURCE_ID not in {
+        calibration_prompt_source_id(CalibrationRole.SELECT),
+        calibration_prompt_source_id(CalibrationRole.AUDIT),
+    }
+
+
+def test_opportunity_cli_has_no_attack_or_threshold_scoring_path() -> None:
+    source, tree = _python_source("fuckmark/mid_dev_opportunity_audit_hf.py")
+    names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+    assert "HuggingFaceSynthIDAdapter" not in names
+    assert "calibrate_detector" not in names
+    assert "build_frozen_calibration_threshold_registry" not in names
+    assert "audit_frozen_calibration_threshold_registry" not in names
+    assert '"attack_transform_count": 0' in source
+    assert '"attack_score_count": 0' in source
+    assert '"detector_score_count": 0' in source
+    assert '"calibration_threshold_constructed": False' in source
+    assert '"cal_select_or_audit_samples_consumed": False' in source
+
+
+def test_opportunity_workflow_is_manual_only() -> None:
+    source = Path(".github/workflows/middev-opportunity-audit.yml").read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in source
+    assert "pull_request:" not in source
+    assert "push:" not in source
+    assert "python -m fuckmark.mid_dev_opportunity_audit_hf" in source
