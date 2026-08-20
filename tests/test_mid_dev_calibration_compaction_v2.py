@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -12,6 +13,7 @@ from fuckmark.experiments.mid_dev_calibration_compaction import (
     MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE,
     CalibrationCompactionStatus,
     MidDevCalibrationCompactionRecord,
+    _deduplicate_calibration_candidates,
     select_calibration_compaction_target,
 )
 from fuckmark.experiments.mid_dev_calibration_compaction_io import (
@@ -61,6 +63,16 @@ def _record(regime_id: str, candidate_count: int, selected_count: int, status: C
     )
 
 
+def _candidate(sample_id: str, text_key: str, token_key: str):
+    return SimpleNamespace(
+        sample_id=sample_id,
+        text_sha256=_hash("text-" + text_key),
+        generation_tokens=SimpleNamespace(
+            continuation_token_hash=_hash("tokens-" + token_key),
+        ),
+    )
+
+
 def test_v2_readiness_freezes_40k_candidates_per_role_in_80_shards() -> None:
     readiness = FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
     assert MID_DEV_CALIBRATION_READINESS_VERSION == "mid-dev-calibration-readiness-v2"
@@ -94,6 +106,36 @@ def test_compaction_N_policy_is_frozen(candidate_count, status, selected_count) 
 def test_compaction_rejects_invalid_candidate_count() -> None:
     with pytest.raises(ValueError):
         select_calibration_compaction_target(-1)
+
+
+def test_detector_blind_dedup_keeps_first_occurrence_by_text_or_token_hash() -> None:
+    candidates = (
+        _candidate("first", "shared-text", "shared-token"),
+        _candidate("drop-text", "shared-text", "different-token"),
+        _candidate("drop-token", "different-text", "shared-token"),
+        _candidate("second", "unique-text", "unique-token"),
+    )
+    unique = _deduplicate_calibration_candidates(candidates)
+    assert tuple(item.sample_id for item in unique) == ("first", "second")
+
+
+def test_duplicate_raw_attempt_cannot_manufacture_serious_N() -> None:
+    candidates = tuple(
+        _candidate(f"unique-{index:04d}", f"text-{index:04d}", f"token-{index:04d}")
+        for index in range(999)
+    ) + (_candidate("duplicate-1000", "text-0000", "token-extra"),)
+    assert len(candidates) == 1000
+    unique = _deduplicate_calibration_candidates(candidates)
+    assert len(unique) == 999
+    assert select_calibration_compaction_target(len(unique)) == (
+        CalibrationCompactionStatus.COMPUTE_LIMITED_DESCRIPTIVE,
+        0,
+    )
+
+
+def test_compaction_selection_rule_explicitly_binds_content_dedup() -> None:
+    assert "DEDUP_TEXT_OR_TOKEN_SHA" in MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE
+    assert "FROZEN_CANDIDATE_ORDER" in MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE
 
 
 def test_compaction_provenance_strict_round_trip() -> None:
