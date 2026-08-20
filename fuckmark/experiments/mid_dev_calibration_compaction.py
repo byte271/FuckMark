@@ -115,12 +115,6 @@ def select_calibration_compaction_target(
 def _deduplicate_calibration_candidates(
     candidates: Sequence[CorpusSample],
 ) -> tuple[tuple[CorpusSample, ...], tuple[str, ...]]:
-    """Keep first raw content occurrences and record excluded sample IDs.
-
-    Candidate order is frozen by the merged calibration plan. The rule is
-    deliberately detector-blind: a later sample is excluded whenever either
-    its text SHA or continuation-token SHA was observed earlier.
-    """
     seen_text_sha256s: set[str] = set()
     seen_token_sha256s: set[str] = set()
     unique: list[CorpusSample] = []
@@ -265,10 +259,6 @@ def build_mid_dev_calibration_compaction(
     if any(sample.label is not WatermarkLabel.UNWATERMARKED for sample in candidate.samples):
         raise ValueError("calibration candidate pool must contain unwatermarked negatives only")
 
-    # Preserve the raw fixed-compute candidate artifact for provenance, but
-    # effective support is computed only from first-occurrence unique content.
-    # This runs before regime assignment so one repeated generation can never
-    # contribute statistical support more than once anywhere in the pool.
     unique_candidates, _ = _deduplicate_calibration_candidates(candidate.samples)
 
     required_regimes = source_coverage.required_regime_ids
