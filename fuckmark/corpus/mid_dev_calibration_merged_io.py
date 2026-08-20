@@ -8,10 +8,7 @@ from .mid_dev_calibration_merged import (
     MID_DEV_CALIBRATION_MERGED_ARTIFACT_VERSION,
     MidDevCalibrationMergedArtifact,
 )
-from .mid_dev_calibration_shard_io import (
-    MID_DEV_CALIBRATION_SHARD_JSON_MAX_BYTES,
-    _merged_manifest,
-)
+from .mid_dev_calibration_shard_io import _merged_manifest
 from .mid_dev_calibration_shards import CalibrationRole
 from .tiny_dev_io import (
     TinyDevCorpusJsonError,
