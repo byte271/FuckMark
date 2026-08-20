@@ -1,0 +1,130 @@
+name: MidDev Source Opportunity Coverage
+
+on:
+  workflow_dispatch:
+    inputs:
+      opportunity_run_id:
+        description: GitHub Actions run ID containing the sealed middev-pristine-opportunity-audit artifact
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  MODEL_ID: openai-community/gpt2
+  MODEL_REVISION: 607a30d783dfa663caf39e06633721c8d4cfcd7e
+
+jobs:
+  source-opportunity:
+    name: Pristine source opportunity coverage only
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install FuckMark
+        run: python -m pip install -e ".[dev]"
+
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install frozen Transformers runtime
+        run: python -m pip install -r requirements-smoke.txt
+
+      - name: Download sealed pristine opportunity artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: middev-pristine-opportunity-audit
+          path: opportunity-input
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ inputs.opportunity_run_id }}
+
+      - name: Generate frozen source matrix and public opportunity coverage only
+        shell: bash
+        run: |
+          python -m fuckmark.mid_dev_source_opportunity_audit_hf \
+            --opportunity-audit-json opportunity-input/detector-opportunity-audit.json \
+            --regime-decision-json opportunity-input/calibration-regime-decision.json \
+            --model "$MODEL_ID" \
+            --model-revision "$MODEL_REVISION" \
+            --device cpu \
+            --source-corpus-json source-opportunity-artifacts/mid-dev-source-corpus.json \
+            --source-opportunity-audit-json source-opportunity-artifacts/source-opportunity-audit.json \
+            --coverage-json source-opportunity-artifacts/source-opportunity-coverage.json \
+            --provenance-json source-opportunity-artifacts/source-opportunity-provenance.json
+
+      - name: Enforce source-opportunity-only contract
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from fuckmark.corpus.mid_dev_io import load_mid_dev_corpus_json
+          from fuckmark.experiments.mid_dev_source_opportunity_coverage_io import (
+              load_mid_dev_source_opportunity_coverage_json,
+              load_mid_dev_source_opportunity_provenance_json,
+          )
+          from fuckmark.experiments.mid_dev_vnext_artifact_io import (
+              load_calibration_regime_decision_json,
+              load_detector_opportunity_audit_json,
+          )
+
+          opportunity_root = Path("opportunity-input")
+          output_root = Path("source-opportunity-artifacts")
+          calibration_audit = load_detector_opportunity_audit_json(
+              opportunity_root / "detector-opportunity-audit.json"
+          )
+          decision = load_calibration_regime_decision_json(
+              opportunity_root / "calibration-regime-decision.json"
+          )
+          source_corpus = load_mid_dev_corpus_json(
+              output_root / "mid-dev-source-corpus.json"
+          )
+          source_audit = load_detector_opportunity_audit_json(
+              output_root / "source-opportunity-audit.json"
+          )
+          coverage = load_mid_dev_source_opportunity_coverage_json(
+              output_root / "source-opportunity-coverage.json"
+          )
+          provenance = load_mid_dev_source_opportunity_provenance_json(
+              output_root / "source-opportunity-provenance.json"
+          )
+
+          assert decision.opportunity_audit_hash == calibration_audit.artifact_hash
+          assert coverage.calibration_opportunity_audit_hash == calibration_audit.artifact_hash
+          assert coverage.regime_decision_hash == decision.decision_hash
+          assert coverage.source_corpus_artifact_hash == source_corpus.artifact_hash
+          assert coverage.source_manifest_hash == source_corpus.manifest.manifest_hash
+          assert coverage.source_profile_hash == source_corpus.source_profile_hash
+          assert coverage.analysis_split_hash == source_corpus.analysis_split_hash
+          assert coverage.source_opportunity_audit_hash == source_audit.artifact_hash
+          assert coverage.source_count == 36
+          assert coverage.sample_count == 72
+          assert source_audit.tokenizer_round_trip_all_ok
+          assert provenance["coverage_artifact_hash"] == coverage.artifact_hash
+          assert provenance["source_opportunity_audit_hash"] == source_audit.artifact_hash
+          assert provenance["required_regime_ids"] == list(coverage.required_regime_ids)
+          assert provenance["attack_transform_count"] == 0
+          assert provenance["attack_score_count"] == 0
+          assert provenance["detector_score_count"] == 0
+          assert provenance["calibration_threshold_constructed"] is False
+          assert provenance["cal_select_or_audit_samples_consumed"] is False
+          print("coverage_artifact_hash=" + coverage.artifact_hash)
+          print("required_regime_count=" + str(len(coverage.required_regime_ids)))
+          print("required_regime_ids=" + ",".join(coverage.required_regime_ids))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: middev-source-opportunity-coverage
+          path: source-opportunity-artifacts/
+          if-no-files-found: error
