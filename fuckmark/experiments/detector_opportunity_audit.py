@@ -13,7 +13,7 @@ from ..public_eligibility import PUBLIC_ELIGIBILITY_ALGORITHM_VERSION, build_hug
 
 
 DETECTOR_OPPORTUNITY_AUDIT_VERSION = "mid-dev-detector-opportunity-audit-v1"
-CALIBRATION_REGIME_DECISION_VERSION = "mid-dev-calibration-regime-decision-v1"
+CALIBRATION_REGIME_DECISION_VERSION = "mid-dev-calibration-regime-decision-v2"
 OPPORTUNITY_CV_LIMIT = 0.05
 ELIGIBLE_IQR_OVERLAP_LIMIT = 0.10
 MID_DEV_OPPORTUNITY_TARGET_LENGTHS = (128, 256)
@@ -332,9 +332,8 @@ def _minimal_eligible_bin_bounds(rows: Sequence[DetectorOpportunityAuditRow]) ->
         current: list[DetectorOpportunityAuditRow] = []
         for end in range(start, size):
             current.extend(groups[end])
-            text_cv = _distribution(tuple(row.text_only_token_count for row in current)).coefficient_of_variation
             eligible_cv = _distribution(tuple(row.root_valid_eligible_observation_count for row in current)).coefficient_of_variation
-            feasible[start][end] = text_cv <= OPPORTUNITY_CV_LIMIT and eligible_cv <= OPPORTUNITY_CV_LIMIT
+            feasible[start][end] = eligible_cv <= OPPORTUNITY_CV_LIMIT
     best: list[tuple[int, tuple[int, ...]] | None] = [None] * (size + 1)
     best[0] = (0, ())
     for end in range(1, size + 1):
@@ -344,7 +343,7 @@ def _minimal_eligible_bin_bounds(rows: Sequence[DetectorOpportunityAuditRow]) ->
         ]
         best[end] = min(candidates) if candidates else None
     if best[size] is None:
-        raise DetectorOpportunityAuditError("no deterministic opportunity partition satisfies frozen CV limit")
+        raise DetectorOpportunityAuditError("no deterministic eligible-opportunity partition satisfies frozen CV limit")
     return tuple((values[end - 1] + values[end]) // 2 for end in best[size][1][:-1])
 
 
