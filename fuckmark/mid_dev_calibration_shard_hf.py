@@ -6,6 +6,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from ._validation import require_sha256
 from .corpus.mid_dev_calibration_shards import (
     CalibrationRole,
     build_real_mid_dev_calibration_shard,
@@ -32,10 +33,20 @@ def _role(value: str) -> CalibrationRole:
     raise argparse.ArgumentTypeError("role must be CAL-SELECT or CAL-AUDIT")
 
 
+def _sha256(value: str) -> str:
+    try:
+        require_sha256("hash", value)
+    except Exception as error:
+        raise argparse.ArgumentTypeError("value must be a lowercase SHA-256 digest") from error
+    return value
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fuckmark-mid-dev-calibration-shard-hf")
     parser.add_argument("--role", type=_role, required=True)
     parser.add_argument("--shard-id", required=True)
+    parser.add_argument("--opportunity-audit-hash", type=_sha256, required=True)
+    parser.add_argument("--regime-decision-hash", type=_sha256, required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL_ID)
     parser.add_argument("--model-revision", default=DEFAULT_MODEL_REVISION)
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
@@ -70,6 +81,8 @@ def main(argv: list[str] | None = None) -> int:
     payload = {
         "algorithm_version": MID_DEV_CALIBRATION_SHARD_PROVENANCE_VERSION,
         "readiness_hash": readiness.readiness_hash,
+        "opportunity_audit_hash": args.opportunity_audit_hash,
+        "regime_decision_hash": args.regime_decision_hash,
         "role": args.role.value,
         "plan_hash": plan.plan_hash,
         "shard_id": shard_spec.shard_id,
@@ -90,6 +103,8 @@ def main(argv: list[str] | None = None) -> int:
     provenance = {**payload, "provenance_hash": sha256_json(payload)}
     write_canonical_json_fsynced(args.provenance_json, provenance)
     sys.stdout.write(f"readiness_hash={readiness.readiness_hash}\n")
+    sys.stdout.write(f"opportunity_audit_hash={args.opportunity_audit_hash}\n")
+    sys.stdout.write(f"regime_decision_hash={args.regime_decision_hash}\n")
     sys.stdout.write(f"plan_hash={plan.plan_hash}\n")
     sys.stdout.write(f"shard_id={shard_spec.shard_id}\n")
     sys.stdout.write(f"shard_output_hash={generated.manifest.output_hash}\n")
