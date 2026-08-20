@@ -15,7 +15,7 @@ from .mid_dev_calibration_compaction import (
 )
 
 
-MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION = "mid-dev-calibration-compaction-provenance-v1"
+MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION = "mid-dev-calibration-compaction-provenance-v2"
 MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_MAX_BYTES = 8 * 1024 * 1024
 
 
@@ -93,6 +93,9 @@ def parse_mid_dev_calibration_compaction_provenance_json(
                 "preferred_n",
                 "minimum_n",
                 "candidate_count_total",
+                "unique_candidate_count_total",
+                "duplicate_excluded_count",
+                "duplicate_excluded_sample_ids_hash",
                 "selected_count_total",
                 "required_regime_ids",
                 "serious_regime_ids",
@@ -137,6 +140,7 @@ def parse_mid_dev_calibration_compaction_provenance_json(
         "regime_decision_hash",
         "source_coverage_artifact_hash",
         "source_coverage_provenance_hash",
+        "duplicate_excluded_sample_ids_hash",
         "compacted_artifact_hash",
         "compacted_manifest_hash",
         "provenance_hash",
@@ -147,10 +151,19 @@ def parse_mid_dev_calibration_compaction_provenance_json(
             raise MidDevCalibrationCompactionProvenanceError("CAL-SELECT cannot bind prior SELECT compaction")
     else:
         _sha("select_compaction_provenance_hash", data["select_compaction_provenance_hash"])
-    for name in ("candidate_count_total", "selected_count_total"):
+    for name in (
+        "candidate_count_total",
+        "unique_candidate_count_total",
+        "duplicate_excluded_count",
+        "selected_count_total",
+    ):
         value = data[name]
         if isinstance(value, bool) or not isinstance(value, int) or value < 0:
             raise MidDevCalibrationCompactionProvenanceError(f"{name} must be non-negative int")
+    if data["unique_candidate_count_total"] > data["candidate_count_total"]:
+        raise MidDevCalibrationCompactionProvenanceError("unique candidate count exceeds raw candidate count")
+    if data["duplicate_excluded_count"] != data["candidate_count_total"] - data["unique_candidate_count_total"]:
+        raise MidDevCalibrationCompactionProvenanceError("duplicate exclusion count does not replay")
     records_raw = data["records"]
     if not isinstance(records_raw, list) or not records_raw:
         raise MidDevCalibrationCompactionProvenanceError("calibration compaction records must be non-empty")
@@ -175,8 +188,9 @@ def parse_mid_dev_calibration_compaction_provenance_json(
         raise MidDevCalibrationCompactionProvenanceError("serious/descriptive regime sets do not replay")
     if set(serious) & set(descriptive) or sorted(serious + descriptive) != required:
         raise MidDevCalibrationCompactionProvenanceError("serious/descriptive regimes do not partition required regimes")
-    if data["candidate_count_total"] < sum(item.candidate_count for item in records):
-        raise MidDevCalibrationCompactionProvenanceError("required-regime candidate counts exceed candidate pool")
+    required_regime_candidate_count = sum(item.candidate_count for item in records)
+    if data["unique_candidate_count_total"] < required_regime_candidate_count:
+        raise MidDevCalibrationCompactionProvenanceError("required-regime candidate counts exceed unique candidate pool")
     if data["selected_count_total"] != sum(item.selected_count for item in records):
         raise MidDevCalibrationCompactionProvenanceError("selected calibration count does not replay")
     for name in ("attack_transform_count", "attack_score_count", "detector_score_count"):

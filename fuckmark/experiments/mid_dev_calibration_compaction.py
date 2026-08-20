@@ -27,12 +27,13 @@ from .detector_opportunity_audit import (
 from .mid_dev_source_opportunity_coverage import MidDevSourceOpportunityCoverageArtifact
 
 
-MID_DEV_CALIBRATION_COMPACTION_RECORD_VERSION = "mid-dev-calibration-compaction-record-v1"
+MID_DEV_CALIBRATION_COMPACTION_RECORD_VERSION = "mid-dev-calibration-compaction-record-v2"
 MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE = (
+    "GLOBAL_FIRST_OCCURRENCE_DEDUP_TEXT_OR_TOKEN_SHA_IN_FROZEN_CANDIDATE_ORDER;"
     "SELECT_CANONICAL_FIRST_2000_ELSE_FIRST_1000_ELSE_DESCRIPTIVE;"
     "AUDIT_MIRRORS_SELECT_SERIOUS_N"
 )
-MID_DEV_CALIBRATION_COMPACTED_PROMPT_MANIFEST_VERSION = "mid-dev-calibration-compacted-prompt-manifest-v1"
+MID_DEV_CALIBRATION_COMPACTED_PROMPT_MANIFEST_VERSION = "mid-dev-calibration-compacted-prompt-manifest-v2"
 
 
 class CalibrationCompactionStatus(str, Enum):
@@ -109,6 +110,25 @@ def select_calibration_compaction_target(
             MID_DEV_CALIBRATION_MINIMUM_NEGATIVES_PER_TARGET,
         )
     return CalibrationCompactionStatus.COMPUTE_LIMITED_DESCRIPTIVE, 0
+
+
+def _deduplicate_calibration_candidates(
+    candidates: Sequence[CorpusSample],
+) -> tuple[tuple[CorpusSample, ...], tuple[str, ...]]:
+    seen_text_sha256s: set[str] = set()
+    seen_token_sha256s: set[str] = set()
+    unique: list[CorpusSample] = []
+    excluded_sample_ids: list[str] = []
+    for sample in candidates:
+        text_sha256 = sample.text_sha256
+        token_sha256 = sample.generation_tokens.continuation_token_hash
+        if text_sha256 in seen_text_sha256s or token_sha256 in seen_token_sha256s:
+            excluded_sample_ids.append(sample.sample_id)
+            continue
+        seen_text_sha256s.add(text_sha256)
+        seen_token_sha256s.add(token_sha256)
+        unique.append(sample)
+    return tuple(unique), tuple(excluded_sample_ids)
 
 
 def _record(
@@ -239,10 +259,12 @@ def build_mid_dev_calibration_compaction(
     if any(sample.label is not WatermarkLabel.UNWATERMARKED for sample in candidate.samples):
         raise ValueError("calibration candidate pool must contain unwatermarked negatives only")
 
+    unique_candidates, _ = _deduplicate_calibration_candidates(candidate.samples)
+
     required_regimes = source_coverage.required_regime_ids
     source_counts = {item.regime_id: item.sample_count for item in source_coverage.regime_counts}
     grouped: dict[str, list[CorpusSample]] = {regime_id: [] for regime_id in required_regimes}
-    for sample in candidate.samples:
+    for sample in unique_candidates:
         opportunity = build_detector_opportunity_audit_row(
             sample,
             ngram_len=calibration_opportunity_audit.ngram_len,
@@ -315,6 +337,10 @@ def build_mid_dev_calibration_compaction(
     expected_selected = sum(item.selected_count for item in record_tuple)
     if len(selected_samples) != expected_selected:
         raise ValueError("compacted calibration sample selection does not replay")
+    if len({sample.text_sha256 for sample in selected_samples}) != len(selected_samples):
+        raise ValueError("compacted calibration selection contains duplicate text")
+    if len({sample.generation_tokens.continuation_token_hash for sample in selected_samples}) != len(selected_samples):
+        raise ValueError("compacted calibration selection contains duplicate continuation tokens")
 
     manifest = _compacted_manifest(
         candidate,

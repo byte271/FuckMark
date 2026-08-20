@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -12,10 +13,12 @@ from fuckmark.experiments.mid_dev_calibration_compaction import (
     MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE,
     CalibrationCompactionStatus,
     MidDevCalibrationCompactionRecord,
+    _deduplicate_calibration_candidates,
     select_calibration_compaction_target,
 )
 from fuckmark.experiments.mid_dev_calibration_compaction_io import (
     MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION,
+    MidDevCalibrationCompactionProvenanceError,
     parse_mid_dev_calibration_compaction_provenance_json,
 )
 from fuckmark.experiments.mid_dev_calibration_merge_provenance_io import (
@@ -61,6 +64,16 @@ def _record(regime_id: str, candidate_count: int, selected_count: int, status: C
     )
 
 
+def _candidate(sample_id: str, text_key: str, token_key: str):
+    return SimpleNamespace(
+        sample_id=sample_id,
+        text_sha256=_hash("text-" + text_key),
+        generation_tokens=SimpleNamespace(
+            continuation_token_hash=_hash("tokens-" + token_key),
+        ),
+    )
+
+
 def test_v2_readiness_freezes_40k_candidates_per_role_in_80_shards() -> None:
     readiness = FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
     assert MID_DEV_CALIBRATION_READINESS_VERSION == "mid-dev-calibration-readiness-v2"
@@ -96,7 +109,39 @@ def test_compaction_rejects_invalid_candidate_count() -> None:
         select_calibration_compaction_target(-1)
 
 
-def test_compaction_provenance_strict_round_trip() -> None:
+def test_detector_blind_dedup_keeps_first_occurrence_by_text_or_token_hash() -> None:
+    candidates = (
+        _candidate("first", "shared-text", "shared-token"),
+        _candidate("drop-text", "shared-text", "different-token"),
+        _candidate("drop-token", "different-text", "shared-token"),
+        _candidate("second", "unique-text", "unique-token"),
+    )
+    unique, excluded = _deduplicate_calibration_candidates(candidates)
+    assert tuple(item.sample_id for item in unique) == ("first", "second")
+    assert excluded == ("drop-text", "drop-token")
+
+
+def test_duplicate_raw_attempt_cannot_manufacture_serious_N() -> None:
+    candidates = tuple(
+        _candidate(f"unique-{index:04d}", f"text-{index:04d}", f"token-{index:04d}")
+        for index in range(999)
+    ) + (_candidate("duplicate-1000", "text-0000", "token-extra"),)
+    assert len(candidates) == 1000
+    unique, excluded = _deduplicate_calibration_candidates(candidates)
+    assert len(unique) == 999
+    assert excluded == ("duplicate-1000",)
+    assert select_calibration_compaction_target(len(unique)) == (
+        CalibrationCompactionStatus.COMPUTE_LIMITED_DESCRIPTIVE,
+        0,
+    )
+
+
+def test_compaction_selection_rule_explicitly_binds_content_dedup() -> None:
+    assert "DEDUP_TEXT_OR_TOKEN_SHA" in MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE
+    assert "FROZEN_CANDIDATE_ORDER" in MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE
+
+
+def _compaction_provenance_value() -> dict[str, object]:
     serious = _record("eligible-04", 1200, 1000, CalibrationCompactionStatus.SERIOUS_THRESHOLD)
     descriptive = _record(
         "eligible-03",
@@ -105,6 +150,7 @@ def test_compaction_provenance_strict_round_trip() -> None:
         CalibrationCompactionStatus.COMPUTE_LIMITED_DESCRIPTIVE,
     )
     records = tuple(sorted((descriptive, serious), key=lambda item: item.regime_id))
+    excluded = ("duplicate-a", "duplicate-b", "duplicate-c")
     payload = {
         "algorithm_version": MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION,
         "role": CalibrationRole.SELECT.value,
@@ -121,6 +167,9 @@ def test_compaction_provenance_strict_round_trip() -> None:
         "preferred_n": 2000,
         "minimum_n": 1000,
         "candidate_count_total": 40_000,
+        "unique_candidate_count_total": 39_997,
+        "duplicate_excluded_count": 3,
+        "duplicate_excluded_sample_ids_hash": sha256_json(excluded),
         "selected_count_total": 1000,
         "required_regime_ids": tuple(item.regime_id for item in records),
         "serious_regime_ids": ("eligible-04",),
@@ -139,11 +188,27 @@ def test_compaction_provenance_strict_round_trip() -> None:
         "github_event_name": None,
         "github_checkout_sha": None,
     }
-    value = {**payload, "provenance_hash": sha256_json(payload)}
+    return {**payload, "provenance_hash": sha256_json(payload)}
+
+
+def test_compaction_provenance_strict_round_trip() -> None:
+    value = _compaction_provenance_value()
     parsed = parse_mid_dev_calibration_compaction_provenance_json(canonical_json_text(value) + "\n")
     assert parsed["serious_regime_ids"] == ["eligible-04"]
     assert parsed["descriptive_regime_ids"] == ["eligible-03"]
+    assert parsed["candidate_count_total"] == 40_000
+    assert parsed["unique_candidate_count_total"] == 39_997
+    assert parsed["duplicate_excluded_count"] == 3
     assert parsed["selected_count_total"] == 1000
+
+
+def test_compaction_provenance_rejects_nonreplaying_duplicate_count() -> None:
+    value = _compaction_provenance_value()
+    value["duplicate_excluded_count"] = 4
+    payload = {key: item for key, item in value.items() if key != "provenance_hash"}
+    value["provenance_hash"] = sha256_json(payload)
+    with pytest.raises(MidDevCalibrationCompactionProvenanceError, match="duplicate exclusion count"):
+        parse_mid_dev_calibration_compaction_provenance_json(canonical_json_text(value) + "\n")
 
 
 def test_merge_provenance_parser_uses_v2_readiness_dimensions() -> None:

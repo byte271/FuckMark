@@ -15,6 +15,7 @@ from .corpus.runtime_identity import runtime_tokenizer_identity_public
 from .durable_io import write_canonical_json_fsynced
 from .experiments.mid_dev_calibration_compaction import (
     MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE,
+    _deduplicate_calibration_candidates,
     build_mid_dev_calibration_compaction,
 )
 from .experiments.mid_dev_calibration_compaction_io import (
@@ -147,6 +148,9 @@ def main(argv: list[str] | None = None) -> int:
         select_records = compaction_records_from_provenance(select_provenance)
         select_compaction_hash = select_provenance["provenance_hash"]
 
+    unique_candidates, duplicate_excluded_sample_ids = _deduplicate_calibration_candidates(
+        candidate.samples
+    )
     compacted, records, serious, descriptive = build_mid_dev_calibration_compaction(
         candidate,
         opportunity,
@@ -180,6 +184,9 @@ def main(argv: list[str] | None = None) -> int:
         "preferred_n": MID_DEV_CALIBRATION_PREFERRED_NEGATIVES_PER_TARGET,
         "minimum_n": MID_DEV_CALIBRATION_MINIMUM_NEGATIVES_PER_TARGET,
         "candidate_count_total": len(candidate.samples),
+        "unique_candidate_count_total": len(unique_candidates),
+        "duplicate_excluded_count": len(duplicate_excluded_sample_ids),
+        "duplicate_excluded_sample_ids_hash": sha256_json(duplicate_excluded_sample_ids),
         "selected_count_total": len(compacted.samples),
         "required_regime_ids": coverage.required_regime_ids,
         "serious_regime_ids": serious,
@@ -203,6 +210,8 @@ def main(argv: list[str] | None = None) -> int:
 
     sys.stdout.write(f"role={candidate.role.value}\n")
     sys.stdout.write(f"candidate_count={len(candidate.samples)}\n")
+    sys.stdout.write(f"unique_candidate_count={len(unique_candidates)}\n")
+    sys.stdout.write(f"duplicate_excluded_count={len(duplicate_excluded_sample_ids)}\n")
     sys.stdout.write(f"selected_count={len(compacted.samples)}\n")
     sys.stdout.write(f"serious_regime_ids={','.join(serious)}\n")
     sys.stdout.write(f"descriptive_regime_ids={','.join(descriptive)}\n")

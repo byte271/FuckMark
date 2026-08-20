@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Sequence
 
 from .._validation import require_clean_string, require_int, require_sha256
-from ..hashing import sha256_json, sha256_text
+from ..hashing import sha256_json
 from .mid_dev import MID_DEV_PROMPT_FAMILIES, MID_DEV_TARGET_LENGTHS
 from .mid_dev_generation import MidDevGenerationBackend, _build_sample
 from .prompt import PromptRecord
@@ -15,8 +15,8 @@ from .schema import CorpusSplit, KeySplit, WatermarkLabel
 
 MID_DEV_CALIBRATION_SHARD_ALGORITHM_VERSION = "mid-dev-calibration-shards-vnext-v1"
 MID_DEV_CALIBRATION_SHARD_PLAN_VERSION = "mid-dev-calibration-shard-plan-v1"
-MID_DEV_CALIBRATION_SHARD_OUTPUT_VERSION = "mid-dev-calibration-shard-output-v1"
-MID_DEV_CALIBRATION_MERGED_MANIFEST_VERSION = "mid-dev-calibration-merged-manifest-v1"
+MID_DEV_CALIBRATION_SHARD_OUTPUT_VERSION = "mid-dev-calibration-shard-output-v2"
+MID_DEV_CALIBRATION_MERGED_MANIFEST_VERSION = "mid-dev-calibration-merged-manifest-v2"
 MID_DEV_CALIBRATION_PREFERRED_NEGATIVES_PER_TARGET = 2000
 MID_DEV_CALIBRATION_MINIMUM_NEGATIVES_PER_TARGET = 1000
 MID_DEV_CALIBRATION_DEFAULT_SHARD_SIZE = 250
@@ -323,8 +323,8 @@ class MidDevCalibrationShardOutputManifest:
             raise ValueError("sample IDs do not bind prompt IDs")
         for child in self.sample_record_hashes + self.text_sha256s + self.continuation_token_hashes:
             require_sha256("child hash", child)
-        if any(len(set(vector)) != size for vector in (self.prompt_ids, self.sample_ids, self.sample_record_hashes, self.text_sha256s, self.continuation_token_hashes)):
-            raise ValueError("shard output contains duplicates")
+        if any(len(set(vector)) != size for vector in (self.prompt_ids, self.sample_ids, self.sample_record_hashes)):
+            raise ValueError("shard output identity vectors must be unique")
         if self.output_hash != sha256_json(self.payload()):
             raise ValueError("shard output hash mismatch")
 
@@ -361,17 +361,11 @@ def build_real_mid_dev_calibration_shard(
         raise MidDevCalibrationShardError("calibration generation must use DEV_KEYS")
     prompt_by_id = {item.prompt_id: item for item in build_mid_dev_calibration_prompt_records(plan.role, negatives_per_target=plan.negatives_per_target)}
     samples: list[CorpusSample] = []
-    text_hashes: set[str] = set()
-    token_hashes: set[str] = set()
     for source_index, prompt_id, seed in zip(range(shard.start_index, shard.end_index_exclusive), shard.prompt_ids, shard.seeds):
         prompt = prompt_by_id[prompt_id]
         generated = backend.generate(prompt.text, seed, shard.target_length, watermarked=False)
         if len(generated.continuation_token_ids) != shard.target_length:
             raise MidDevCalibrationShardError("exact-length calibration generation failed; seed changes are forbidden")
-        text_hash = sha256_text(generated.text)
-        token_hash = sha256_json(generated.continuation_token_ids)
-        if text_hash in text_hashes or token_hash in token_hashes:
-            raise MidDevCalibrationShardError("duplicate generated calibration content within shard")
         sample = _build_sample(
             prompt=prompt,
             label=WatermarkLabel.UNWATERMARKED,
@@ -383,8 +377,6 @@ def build_real_mid_dev_calibration_shard(
         if sample.generation.seed != calibration_seed(plan.role, shard.target_length, source_index):
             raise MidDevCalibrationShardError("generated sample seed drifted")
         samples.append(sample)
-        text_hashes.add(text_hash)
-        token_hashes.add(token_hash)
     sample_tuple = tuple(samples)
     payload = {
         "algorithm_version": MID_DEV_CALIBRATION_SHARD_OUTPUT_VERSION,
@@ -441,8 +433,8 @@ class MidDevCalibrationMergedManifest:
             raise ValueError("merged vectors must be non-empty and equal length")
         for child in self.shard_output_hashes + self.sample_record_hashes + self.text_sha256s + self.continuation_token_hashes:
             require_sha256("manifest child hash", child)
-        if any(len(set(vector)) != size for vector in (self.prompt_ids, self.sample_ids, self.sample_record_hashes, self.text_sha256s, self.continuation_token_hashes)):
-            raise ValueError("merged calibration content must be unique")
+        if any(len(set(vector)) != size for vector in (self.prompt_ids, self.sample_ids, self.sample_record_hashes)):
+            raise ValueError("merged calibration identity vectors must be unique")
         if self.sample_ids != tuple(f"{prompt}-unwatermarked" for prompt in self.prompt_ids):
             raise ValueError("merged sample IDs drifted")
         if self.manifest_hash != sha256_json(self.payload()):
@@ -493,8 +485,8 @@ def merge_mid_dev_calibration_shard_outputs(
     vectors = tuple(prompt_ids), tuple(sample_ids), tuple(record_hashes), tuple(text_hashes), tuple(token_hashes)
     if vectors[0] != plan.prompt_ids:
         raise MidDevCalibrationShardError("merged prompt coverage is incomplete")
-    if any(len(set(vector)) != len(vector) for vector in vectors[1:]):
-        raise MidDevCalibrationShardError("merged calibration content is not unique")
+    if any(len(set(vector)) != len(vector) for vector in vectors[1:3]):
+        raise MidDevCalibrationShardError("merged calibration identities are not unique")
     payload = {
         "algorithm_version": MID_DEV_CALIBRATION_MERGED_MANIFEST_VERSION,
         "role": plan.role.value,
