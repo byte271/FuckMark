@@ -7,15 +7,20 @@ on:
       - '.ci-results/**'
 
 permissions:
-  contents: write
+  contents: read
+  statuses: write
 
 env:
-  VALIDATION_NONCE: "2"
+  VALIDATION_NONCE: "3"
 
 jobs:
   test:
-    name: Python 3.12 debug
+    name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
 
     steps:
       - name: Checkout
@@ -24,7 +29,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
           cache: pip
 
       - name: Validate lock and full test suite
@@ -36,7 +41,7 @@ jobs:
             python -m pip install --upgrade pip &&
             python -m pip install "uv==0.10.0" &&
             python -m pip install -e ".[dev]" &&
-            uv lock --check --python "3.12" &&
+            uv lock --check --python "${{ matrix.python-version }}" &&
             python -m pytest -q
           ) > validation.log 2>&1
           rc=$?
@@ -44,57 +49,36 @@ jobs:
           echo "rc=$rc" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Persist debug log on branch
+      - name: Publish readable commit status
         if: always()
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATION_RC: ${{ steps.validate.outputs.rc }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
-          python - <<'PY'
-          import base64, json, os, urllib.error, urllib.request
-
-          repo = os.environ['GITHUB_REPOSITORY']
-          branch = os.environ['GITHUB_REF_NAME']
-          token = os.environ['GH_TOKEN']
-          path = '.ci-results/dedup-3.12.txt'
-          raw = open('validation.log', 'rb').read()
-          header = (
-              f"commit={os.environ['GITHUB_SHA']}\n"
-              f"rc={os.environ.get('VALIDATION_RC', '')}\n"
-              "--- validation.log ---\n"
-          ).encode()
-          content = base64.b64encode(header + raw).decode()
-          api = f'https://api.github.com/repos/{repo}/contents/{path}'
-          headers = {
-              'Accept': 'application/vnd.github+json',
-              'Authorization': f'Bearer {token}',
-              'X-GitHub-Api-Version': '2022-11-28',
-          }
-          sha = None
-          try:
-              req = urllib.request.Request(api + '?ref=' + branch, headers=headers)
-              with urllib.request.urlopen(req) as response:
-                  sha = json.load(response).get('sha')
-          except urllib.error.HTTPError as error:
-              if error.code != 404:
-                  raise
-          payload = {
-              'message': 'Record calibration dedup CI debug result',
-              'content': content,
-              'branch': branch,
-          }
-          if sha:
-              payload['sha'] = sha
-          req = urllib.request.Request(
-              api,
-              data=json.dumps(payload).encode(),
-              headers=headers | {'Content-Type': 'application/json'},
-              method='PUT',
-          )
-          with urllib.request.urlopen(req) as response:
-              json.load(response)
+          if [ "$VALIDATION_RC" = "0" ]; then
+            STATE=success
+          else
+            STATE=failure
+          fi
+          export STATE PYTHON_VERSION
+          payload="$(python - <<'PY'
+          import json, os
+          print(json.dumps({
+              "state": os.environ["STATE"],
+              "context": "dedup-final/python-" + os.environ["PYTHON_VERSION"],
+              "description": "full pytest + uv lock validation",
+          }))
           PY
+          )"
+          curl --fail-with-body -sS \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
 
       - name: Fail job when validation failed
         if: steps.validate.outputs.rc != '0'
