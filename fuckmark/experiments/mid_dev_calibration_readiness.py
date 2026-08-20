@@ -4,8 +4,6 @@ from dataclasses import dataclass
 
 from .._validation import require_int, require_sha256
 from ..corpus.mid_dev_calibration_shards import (
-    MID_DEV_CALIBRATION_DEFAULT_SHARD_SIZE,
-    MID_DEV_CALIBRATION_PREFERRED_NEGATIVES_PER_TARGET,
     CalibrationRole,
     MidDevCalibrationShardPlan,
     build_mid_dev_calibration_shard_plan,
@@ -14,10 +12,11 @@ from ..corpus.mid_dev_calibration_shards import (
 from ..hashing import sha256_json
 
 
-MID_DEV_CALIBRATION_READINESS_VERSION = "mid-dev-calibration-readiness-v1"
-MID_DEV_CALIBRATION_READINESS_NEGATIVES_PER_TARGET = MID_DEV_CALIBRATION_PREFERRED_NEGATIVES_PER_TARGET
-MID_DEV_CALIBRATION_READINESS_SHARD_SIZE = MID_DEV_CALIBRATION_DEFAULT_SHARD_SIZE
-MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE = 16
+MID_DEV_CALIBRATION_READINESS_VERSION = "mid-dev-calibration-readiness-v2"
+MID_DEV_CALIBRATION_READINESS_NEGATIVES_PER_TARGET = 20_000
+MID_DEV_CALIBRATION_READINESS_SHARD_SIZE = 500
+MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE = 80
+MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE = 40_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -42,19 +41,23 @@ class MidDevCalibrationReadinessPlan:
             value = getattr(self, name)
             require_int(name, value)
             if value != expected:
-                raise ValueError(f"{name} drifted from preferred calibration readiness design")
+                raise ValueError(f"{name} drifted from frozen candidate-pool design")
         if not isinstance(self.select_plan, MidDevCalibrationShardPlan) or not isinstance(self.audit_plan, MidDevCalibrationShardPlan):
             raise TypeError("readiness plans must be MidDevCalibrationShardPlan values")
         if self.select_plan.role is not CalibrationRole.SELECT or self.audit_plan.role is not CalibrationRole.AUDIT:
             raise ValueError("readiness plan roles must be CAL-SELECT then CAL-AUDIT")
         if self.select_plan.negatives_per_target != self.negatives_per_target or self.audit_plan.negatives_per_target != self.negatives_per_target:
-            raise ValueError("readiness plan counts drifted")
+            raise ValueError("readiness candidate counts drifted")
         if self.select_plan.shard_size != self.shard_size or self.audit_plan.shard_size != self.shard_size:
             raise ValueError("readiness shard sizes drifted")
         if len(self.select_plan.shards) != MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE:
-            raise ValueError("CAL-SELECT must contain exactly 16 canonical shards")
+            raise ValueError("CAL-SELECT must contain exactly 80 canonical candidate shards")
         if len(self.audit_plan.shards) != MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE:
-            raise ValueError("CAL-AUDIT must contain exactly 16 canonical shards")
+            raise ValueError("CAL-AUDIT must contain exactly 80 canonical candidate shards")
+        if len(self.select_plan.prompt_ids) != MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE:
+            raise ValueError("CAL-SELECT candidate-pool size drifted")
+        if len(self.audit_plan.prompt_ids) != MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE:
+            raise ValueError("CAL-AUDIT candidate-pool size drifted")
         for name in ("select_plan_hash", "audit_plan_hash", "role_independence_hash", "readiness_hash"):
             require_sha256(name, getattr(self, name))
         if self.select_plan_hash != self.select_plan.plan_hash or self.audit_plan_hash != self.audit_plan.plan_hash:

@@ -7,10 +7,11 @@ from ..config import canonical_json_text
 from ..corpus.mid_dev_calibration_shards import CalibrationRole
 from ..corpus.tiny_dev_io import _mapping, _reject_constant, _unique_object
 from ..hashing import sha256_json
+from .mid_dev_calibration_readiness import FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
 
 
 MID_DEV_CALIBRATION_MERGE_PROVENANCE_VERSION = "mid-dev-calibration-merge-provenance-v1"
-MID_DEV_CALIBRATION_MERGE_PROVENANCE_MAX_BYTES = 4 * 1024 * 1024
+MID_DEV_CALIBRATION_MERGE_PROVENANCE_MAX_BYTES = 8 * 1024 * 1024
 
 
 class MidDevCalibrationMergeProvenanceError(ValueError):
@@ -55,12 +56,19 @@ def parse_mid_dev_calibration_merge_provenance_json(
     if data["algorithm_version"] != MID_DEV_CALIBRATION_MERGE_PROVENANCE_VERSION:
         raise MidDevCalibrationMergeProvenanceError("unsupported calibration merge provenance version")
     try:
-        CalibrationRole(data["role"])
+        role = CalibrationRole(data["role"])
     except Exception as error:
         raise MidDevCalibrationMergeProvenanceError("invalid calibration merge provenance role") from error
+    readiness = FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
+    plan = readiness.select_plan if role is CalibrationRole.SELECT else readiness.audit_plan
+    if data["readiness_hash"] != readiness.readiness_hash or data["plan_hash"] != plan.plan_hash:
+        raise MidDevCalibrationMergeProvenanceError("merge provenance does not bind frozen candidate-pool readiness")
     hashes = data["shard_provenance_hashes"]
-    if not isinstance(hashes, list) or len(hashes) != 16 or len(set(hashes)) != 16:
-        raise MidDevCalibrationMergeProvenanceError("merge provenance requires exactly 16 unique shard provenance hashes")
+    expected_shards = len(plan.shards)
+    if not isinstance(hashes, list) or len(hashes) != expected_shards or len(set(hashes)) != expected_shards:
+        raise MidDevCalibrationMergeProvenanceError(
+            f"merge provenance requires exactly {expected_shards} unique shard provenance hashes"
+        )
     if any(not isinstance(value, str) or len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value) for value in hashes):
         raise MidDevCalibrationMergeProvenanceError("invalid shard provenance hash")
     for name in (
@@ -75,8 +83,10 @@ def parse_mid_dev_calibration_merge_provenance_json(
         value = data[name]
         if not isinstance(value, str) or len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
             raise MidDevCalibrationMergeProvenanceError(f"{name} must be a lowercase SHA-256 digest")
-    if data["sample_count"] != 4000:
-        raise MidDevCalibrationMergeProvenanceError("merged calibration provenance must bind exactly 4000 samples")
+    if data["sample_count"] != len(plan.prompt_ids):
+        raise MidDevCalibrationMergeProvenanceError(
+            f"merged calibration provenance must bind exactly {len(plan.prompt_ids)} candidate samples"
+        )
     if data["json_fsync_success"] is not True:
         raise MidDevCalibrationMergeProvenanceError("merged calibration provenance does not attest fsync")
     payload = {key: value for key, value in data.items() if key != "provenance_hash"}

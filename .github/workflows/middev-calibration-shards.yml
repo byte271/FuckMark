@@ -1,10 +1,14 @@
-name: MidDev Calibration Shards vNext
+name: MidDev Calibration Candidate Pool + Compaction v2
 
 on:
   workflow_dispatch:
     inputs:
       opportunity_run_id:
         description: GitHub Actions run ID containing the sealed middev-pristine-opportunity-audit artifact
+        required: true
+        type: string
+      source_coverage_run_id:
+        description: GitHub Actions run ID containing the sealed middev-source-opportunity-coverage artifact
         required: true
         type: string
 
@@ -18,12 +22,13 @@ env:
 
 jobs:
   preflight:
-    name: Validate frozen pristine opportunity input
+    name: Validate frozen public opportunity inputs
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.freeze.outputs.matrix }}
       opportunity_audit_hash: ${{ steps.freeze.outputs.opportunity_audit_hash }}
       regime_decision_hash: ${{ steps.freeze.outputs.regime_decision_hash }}
+      source_coverage_artifact_hash: ${{ steps.freeze.outputs.source_coverage_artifact_hash }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,7 +49,16 @@ jobs:
           repository: byte271/FuckMark
           run-id: ${{ inputs.opportunity_run_id }}
 
-      - name: Validate opportunity artifact and freeze shard matrix
+      - name: Download sealed source opportunity coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: middev-source-opportunity-coverage
+          path: source-coverage-input
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ inputs.source_coverage_run_id }}
+
+      - name: Validate public artifacts and freeze candidate shard matrix
         id: freeze
         shell: bash
         run: |
@@ -54,47 +68,87 @@ jobs:
           from pathlib import Path
 
           from fuckmark.corpus.mid_dev_calibration_io import load_mid_dev_calibration_json
-          from fuckmark.experiments.mid_dev_calibration_readiness import FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
-          from fuckmark.experiments.mid_dev_opportunity_audit_provenance_io import load_mid_dev_opportunity_audit_provenance_json
+          from fuckmark.experiments.mid_dev_calibration_readiness import (
+              FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN,
+              MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE,
+              MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE,
+          )
+          from fuckmark.experiments.mid_dev_opportunity_audit_provenance_io import (
+              load_mid_dev_opportunity_audit_provenance_json,
+          )
+          from fuckmark.experiments.mid_dev_source_opportunity_coverage_io import (
+              load_mid_dev_source_opportunity_coverage_json,
+              load_mid_dev_source_opportunity_provenance_json,
+          )
           from fuckmark.experiments.mid_dev_vnext_artifact_io import (
               load_calibration_regime_decision_json,
               load_detector_opportunity_audit_json,
           )
 
-          root = Path('opportunity-input')
-          corpus = load_mid_dev_calibration_json(root / 'pristine-opportunity-corpus.json')
-          audit = load_detector_opportunity_audit_json(root / 'detector-opportunity-audit.json')
-          decision = load_calibration_regime_decision_json(root / 'calibration-regime-decision.json')
-          provenance = load_mid_dev_opportunity_audit_provenance_json(root / 'opportunity-audit-provenance.json')
+          opportunity_root = Path('opportunity-input')
+          source_root = Path('source-coverage-input')
 
-          assert provenance['pristine_corpus_artifact_hash'] == corpus.artifact_hash
-          assert provenance['pristine_manifest_hash'] == corpus.manifest.manifest_hash
-          assert provenance['pristine_source_profile_hash'] == corpus.source_profile_hash
-          assert provenance['opportunity_audit_hash'] == audit.artifact_hash
-          assert provenance['regime_decision_hash'] == decision.decision_hash
+          corpus = load_mid_dev_calibration_json(opportunity_root / 'pristine-opportunity-corpus.json')
+          audit = load_detector_opportunity_audit_json(opportunity_root / 'detector-opportunity-audit.json')
+          decision = load_calibration_regime_decision_json(opportunity_root / 'calibration-regime-decision.json')
+          opportunity_provenance = load_mid_dev_opportunity_audit_provenance_json(
+              opportunity_root / 'opportunity-audit-provenance.json'
+          )
+          coverage = load_mid_dev_source_opportunity_coverage_json(
+              source_root / 'source-opportunity-coverage.json'
+          )
+          coverage_provenance = load_mid_dev_source_opportunity_provenance_json(
+              source_root / 'source-opportunity-provenance.json'
+          )
+
+          assert opportunity_provenance['pristine_corpus_artifact_hash'] == corpus.artifact_hash
+          assert opportunity_provenance['opportunity_audit_hash'] == audit.artifact_hash
+          assert opportunity_provenance['regime_decision_hash'] == decision.decision_hash
           assert decision.opportunity_audit_hash == audit.artifact_hash
           assert audit.tokenizer_round_trip_all_ok
 
+          assert coverage.calibration_opportunity_audit_hash == audit.artifact_hash
+          assert coverage.regime_decision_hash == decision.decision_hash
+          assert coverage_provenance['coverage_artifact_hash'] == coverage.artifact_hash
+          assert coverage_provenance['calibration_opportunity_audit_hash'] == audit.artifact_hash
+          assert coverage_provenance['regime_decision_hash'] == decision.decision_hash
+          assert tuple(coverage_provenance['required_regime_ids']) == coverage.required_regime_ids
+          assert coverage.required_regime_ids
+          assert coverage.required_regime_ids == tuple(sorted(set(coverage.required_regime_ids)))
+
           readiness = FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
+          assert readiness.negatives_per_target == 20_000
+          assert readiness.shard_size == 500
+          assert len(readiness.select_plan.shards) == MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE == 80
+          assert len(readiness.audit_plan.shards) == MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE == 80
+          assert len(readiness.select_plan.prompt_ids) == MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE == 40_000
+          assert len(readiness.audit_plan.prompt_ids) == MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE == 40_000
+
           include = []
           for plan in (readiness.select_plan, readiness.audit_plan):
               for shard in plan.shards:
                   include.append({'role': plan.role.value, 'shard_id': shard.shard_id})
-          assert len(include) == 32
+          assert len(include) == 160
           matrix = json.dumps({'include': include}, separators=(',', ':'))
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
               handle.write('matrix=' + matrix + '\n')
               handle.write('opportunity_audit_hash=' + audit.artifact_hash + '\n')
               handle.write('regime_decision_hash=' + decision.decision_hash + '\n')
+              handle.write('source_coverage_artifact_hash=' + coverage.artifact_hash + '\n')
           print('opportunity_audit_hash=' + audit.artifact_hash)
           print('regime_decision_hash=' + decision.decision_hash)
-          print('calibration_shard_jobs=' + str(len(include)))
+          print('source_coverage_artifact_hash=' + coverage.artifact_hash)
+          print('candidate_shard_jobs=' + str(len(include)))
+          print('candidate_count_per_role=' + str(MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE))
+          print('required_regimes=' + ','.join(coverage.required_regime_ids))
           PY
 
       - uses: actions/upload-artifact@v4
         with:
-          name: validated-pristine-opportunity-input
-          path: opportunity-input/
+          name: middev-cal-v2-public-inputs
+          path: |
+            opportunity-input/
+            source-coverage-input/
           if-no-files-found: error
 
   generate-shard:
@@ -108,22 +162,15 @@ jobs:
       matrix: ${{ fromJSON(needs.preflight.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -r requirements-smoke.txt
 
-      - name: Install FuckMark
-        run: python -m pip install -e ".[dev]"
-
-      - name: Install exact CPU Torch runtime
-        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
-
-      - name: Install frozen Transformers runtime
-        run: python -m pip install -r requirements-smoke.txt
-
-      - name: Generate one frozen calibration shard
+      - name: Generate one frozen detector-blind candidate shard
         shell: bash
         run: |
           mkdir -p shard-output
@@ -140,12 +187,12 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: middev-cal-${{ matrix.role }}-${{ matrix.shard_id }}
+          name: middev-cal-v2-${{ matrix.role }}-${{ matrix.shard_id }}
           path: shard-output/
           if-no-files-found: error
 
   merge-select:
-    name: Merge CAL-SELECT shards
+    name: Merge complete CAL-SELECT candidate pool
     runs-on: ubuntu-24.04
     needs: [preflight, generate-shard]
     steps:
@@ -158,31 +205,31 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          pattern: middev-cal-CAL-SELECT-*
+          pattern: middev-cal-v2-CAL-SELECT-*
           path: select-shards
           merge-multiple: true
 
-      - name: Merge complete frozen CAL-SELECT set
+      - name: Merge all 80 CAL-SELECT candidate shards
         shell: bash
         run: |
           set -euo pipefail
           mapfile -t shards < <(find select-shards -maxdepth 1 -type f -name '*.json' ! -name '*.provenance.json' | sort)
           mapfile -t provs < <(find select-shards -maxdepth 1 -type f -name '*.provenance.json' | sort)
-          test "${#shards[@]}" -eq 16
-          test "${#provs[@]}" -eq 16
-          args=(--role CAL-SELECT --json merged-select/cal-select.json --provenance-json merged-select/cal-select.merge-provenance.json)
+          test "${#shards[@]}" -eq 80
+          test "${#provs[@]}" -eq 80
+          args=(--role CAL-SELECT --json merged-select/cal-select-candidates.json --provenance-json merged-select/cal-select-candidates.merge-provenance.json)
           for path in "${shards[@]}"; do args+=(--shard-json "$path"); done
           for path in "${provs[@]}"; do args+=(--shard-provenance-json "$path"); done
           python -m fuckmark.mid_dev_calibration_merge "${args[@]}"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: middev-cal-select-merged
+          name: middev-cal-v2-select-candidates
           path: merged-select/
           if-no-files-found: error
 
   merge-audit:
-    name: Merge CAL-AUDIT shards
+    name: Merge complete CAL-AUDIT candidate pool
     runs-on: ubuntu-24.04
     needs: [preflight, generate-shard]
     steps:
@@ -195,31 +242,31 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          pattern: middev-cal-CAL-AUDIT-*
+          pattern: middev-cal-v2-CAL-AUDIT-*
           path: audit-shards
           merge-multiple: true
 
-      - name: Merge complete frozen CAL-AUDIT set
+      - name: Merge all 80 CAL-AUDIT candidate shards
         shell: bash
         run: |
           set -euo pipefail
           mapfile -t shards < <(find audit-shards -maxdepth 1 -type f -name '*.json' ! -name '*.provenance.json' | sort)
           mapfile -t provs < <(find audit-shards -maxdepth 1 -type f -name '*.provenance.json' | sort)
-          test "${#shards[@]}" -eq 16
-          test "${#provs[@]}" -eq 16
-          args=(--role CAL-AUDIT --json merged-audit/cal-audit.json --provenance-json merged-audit/cal-audit.merge-provenance.json)
+          test "${#shards[@]}" -eq 80
+          test "${#provs[@]}" -eq 80
+          args=(--role CAL-AUDIT --json merged-audit/cal-audit-candidates.json --provenance-json merged-audit/cal-audit-candidates.merge-provenance.json)
           for path in "${shards[@]}"; do args+=(--shard-json "$path"); done
           for path in "${provs[@]}"; do args+=(--shard-provenance-json "$path"); done
           python -m fuckmark.mid_dev_calibration_merge "${args[@]}"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: middev-cal-audit-merged
+          name: middev-cal-v2-audit-candidates
           path: merged-audit/
           if-no-files-found: error
 
   pair:
-    name: Seal CAL-SELECT / CAL-AUDIT independence
+    name: Seal full candidate-pool SELECT/AUDIT independence
     runs-on: ubuntu-24.04
     needs: [merge-select, merge-audit]
     steps:
@@ -232,31 +279,31 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: middev-cal-select-merged
+          name: middev-cal-v2-select-candidates
           path: pair-input/select
       - uses: actions/download-artifact@v4
         with:
-          name: middev-cal-audit-merged
+          name: middev-cal-v2-audit-candidates
           path: pair-input/audit
 
-      - name: Validate cross-role independence and shared opportunity freeze
+      - name: Validate full candidate-pool independence
         run: >-
           python -m fuckmark.mid_dev_calibration_pair_validate
-          --select-json pair-input/select/cal-select.json
-          --audit-json pair-input/audit/cal-audit.json
-          --select-merge-provenance-json pair-input/select/cal-select.merge-provenance.json
-          --audit-merge-provenance-json pair-input/audit/cal-audit.merge-provenance.json
-          --json pair-output/calibration-pair.json
-          --provenance-json pair-output/calibration-pair.provenance.json
+          --select-json pair-input/select/cal-select-candidates.json
+          --audit-json pair-input/audit/cal-audit-candidates.json
+          --select-merge-provenance-json pair-input/select/cal-select-candidates.merge-provenance.json
+          --audit-merge-provenance-json pair-input/audit/cal-audit-candidates.merge-provenance.json
+          --json pair-output/calibration-candidate-pair.json
+          --provenance-json pair-output/calibration-candidate-pair.provenance.json
 
       - uses: actions/upload-artifact@v4
         with:
-          name: middev-calibration-pair
+          name: middev-cal-v2-candidate-pair
           path: pair-output/
           if-no-files-found: error
 
-  threshold:
-    name: Freeze threshold from CAL-SELECT only
+  compact-select:
+    name: Compact CAL-SELECT by frozen public opportunity only
     runs-on: ubuntu-24.04
     needs: [preflight, merge-select]
     timeout-minutes: 180
@@ -267,41 +314,89 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: python -m pip install -e ".[dev]"
-      - run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
       - run: python -m pip install -r requirements-smoke.txt
 
       - uses: actions/download-artifact@v4
         with:
-          name: validated-pristine-opportunity-input
-          path: threshold-input/opportunity
+          name: middev-cal-v2-public-inputs
+          path: compact-select-input/public
       - uses: actions/download-artifact@v4
         with:
-          name: middev-cal-select-merged
-          path: threshold-input/select
+          name: middev-cal-v2-select-candidates
+          path: compact-select-input/select
 
-      - name: Freeze CAL-SELECT threshold registry
+      - name: Freeze detector-blind SELECT compaction
         run: >-
-          python -m fuckmark.mid_dev_calibration_threshold_hf
-          --select-json threshold-input/select/cal-select.json
-          --select-merge-provenance-json threshold-input/select/cal-select.merge-provenance.json
-          --opportunity-audit-json threshold-input/opportunity/detector-opportunity-audit.json
-          --regime-decision-json threshold-input/opportunity/calibration-regime-decision.json
+          python -m fuckmark.mid_dev_calibration_compact_hf
+          --candidate-json compact-select-input/select/cal-select-candidates.json
+          --candidate-merge-provenance-json compact-select-input/select/cal-select-candidates.merge-provenance.json
+          --opportunity-audit-json compact-select-input/public/opportunity-input/detector-opportunity-audit.json
+          --regime-decision-json compact-select-input/public/opportunity-input/calibration-regime-decision.json
+          --source-coverage-json compact-select-input/public/source-coverage-input/source-opportunity-coverage.json
+          --source-coverage-provenance-json compact-select-input/public/source-coverage-input/source-opportunity-provenance.json
           --model "$MODEL_ID"
           --model-revision "$MODEL_REVISION"
-          --device cpu
-          --json threshold-output/threshold-registry.json
-          --provenance-json threshold-output/threshold-registry.provenance.json
+          --json compact-select-output/cal-select-compacted.json
+          --provenance-json compact-select-output/cal-select-compaction.provenance.json
 
       - uses: actions/upload-artifact@v4
         with:
-          name: middev-calibration-threshold
-          path: threshold-output/
+          name: middev-cal-v2-select-compacted
+          path: compact-select-output/
           if-no-files-found: error
 
-  audit:
-    name: Audit frozen threshold on independent CAL-AUDIT
+  compact-audit:
+    name: Compact CAL-AUDIT by frozen SELECT N and public opportunity only
     runs-on: ubuntu-24.04
-    needs: [preflight, merge-select, merge-audit, pair, threshold]
+    needs: [preflight, merge-audit, compact-select]
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install -r requirements-smoke.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: middev-cal-v2-public-inputs
+          path: compact-audit-input/public
+      - uses: actions/download-artifact@v4
+        with:
+          name: middev-cal-v2-audit-candidates
+          path: compact-audit-input/audit
+      - uses: actions/download-artifact@v4
+        with:
+          name: middev-cal-v2-select-compacted
+          path: compact-audit-input/select-compaction
+
+      - name: Freeze independent AUDIT compaction that mirrors SELECT serious N
+        run: >-
+          python -m fuckmark.mid_dev_calibration_compact_hf
+          --candidate-json compact-audit-input/audit/cal-audit-candidates.json
+          --candidate-merge-provenance-json compact-audit-input/audit/cal-audit-candidates.merge-provenance.json
+          --opportunity-audit-json compact-audit-input/public/opportunity-input/detector-opportunity-audit.json
+          --regime-decision-json compact-audit-input/public/opportunity-input/calibration-regime-decision.json
+          --source-coverage-json compact-audit-input/public/source-coverage-input/source-opportunity-coverage.json
+          --source-coverage-provenance-json compact-audit-input/public/source-coverage-input/source-opportunity-provenance.json
+          --select-compaction-provenance-json compact-audit-input/select-compaction/cal-select-compaction.provenance.json
+          --model "$MODEL_ID"
+          --model-revision "$MODEL_REVISION"
+          --json compact-audit-output/cal-audit-compacted.json
+          --provenance-json compact-audit-output/cal-audit-compaction.provenance.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: middev-cal-v2-audit-compacted
+          path: compact-audit-output/
+          if-no-files-found: error
+
+  threshold:
+    name: Freeze threshold from compacted CAL-SELECT only
+    runs-on: ubuntu-24.04
+    needs: [preflight, compact-select]
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
@@ -315,33 +410,80 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: validated-pristine-opportunity-input
-          path: audit-input/opportunity
+          name: middev-cal-v2-public-inputs
+          path: threshold-input/public
       - uses: actions/download-artifact@v4
         with:
-          name: middev-cal-select-merged
+          name: middev-cal-v2-select-compacted
+          path: threshold-input/select
+
+      - name: Freeze serious-regime threshold registry from CAL-SELECT only
+        run: >-
+          python -m fuckmark.mid_dev_calibration_threshold_compacted_hf
+          --select-json threshold-input/select/cal-select-compacted.json
+          --select-compaction-provenance-json threshold-input/select/cal-select-compaction.provenance.json
+          --opportunity-audit-json threshold-input/public/opportunity-input/detector-opportunity-audit.json
+          --regime-decision-json threshold-input/public/opportunity-input/calibration-regime-decision.json
+          --source-coverage-json threshold-input/public/source-coverage-input/source-opportunity-coverage.json
+          --model "$MODEL_ID"
+          --model-revision "$MODEL_REVISION"
+          --device cpu
+          --json threshold-output/threshold-registry.json
+          --provenance-json threshold-output/threshold-registry.provenance.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: middev-cal-v2-threshold
+          path: threshold-output/
+          if-no-files-found: error
+
+  audit:
+    name: Audit frozen serious-regime threshold on independent CAL-AUDIT
+    runs-on: ubuntu-24.04
+    needs: [preflight, pair, compact-select, compact-audit, threshold]
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -r requirements-smoke.txt
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: middev-cal-v2-public-inputs
+          path: audit-input/public
+      - uses: actions/download-artifact@v4
+        with:
+          name: middev-cal-v2-select-compacted
           path: audit-input/select
       - uses: actions/download-artifact@v4
         with:
-          name: middev-cal-audit-merged
+          name: middev-cal-v2-audit-compacted
           path: audit-input/audit
       - uses: actions/download-artifact@v4
         with:
-          name: middev-calibration-pair
+          name: middev-cal-v2-candidate-pair
           path: audit-input/pair
       - uses: actions/download-artifact@v4
         with:
-          name: middev-calibration-threshold
+          name: middev-cal-v2-threshold
           path: audit-input/threshold
 
-      - name: Apply frozen threshold to independent CAL-AUDIT only
+      - name: Apply frozen threshold to independent compacted CAL-AUDIT only
         run: >-
-          python -m fuckmark.mid_dev_calibration_audit_hf
-          --select-json audit-input/select/cal-select.json
-          --audit-json audit-input/audit/cal-audit.json
-          --pair-json audit-input/pair/calibration-pair.json
-          --opportunity-audit-json audit-input/opportunity/detector-opportunity-audit.json
-          --regime-decision-json audit-input/opportunity/calibration-regime-decision.json
+          python -m fuckmark.mid_dev_calibration_audit_compacted_hf
+          --select-json audit-input/select/cal-select-compacted.json
+          --audit-json audit-input/audit/cal-audit-compacted.json
+          --select-compaction-provenance-json audit-input/select/cal-select-compaction.provenance.json
+          --audit-compaction-provenance-json audit-input/audit/cal-audit-compaction.provenance.json
+          --candidate-pair-json audit-input/pair/calibration-candidate-pair.json
+          --opportunity-audit-json audit-input/public/opportunity-input/detector-opportunity-audit.json
+          --regime-decision-json audit-input/public/opportunity-input/calibration-regime-decision.json
+          --source-coverage-json audit-input/public/source-coverage-input/source-opportunity-coverage.json
           --threshold-registry-json audit-input/threshold/threshold-registry.json
           --threshold-provenance-json audit-input/threshold/threshold-registry.provenance.json
           --model "$MODEL_ID"
@@ -353,18 +495,24 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: middev-calibration-audit
+          name: middev-cal-v2-audit
           path: audit-output/
           if-no-files-found: error
 
-      - name: Enforce frozen D2 calibration consistency gate
+      - name: Enforce frozen D2 calibration consistency gate on serious regimes
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
           registry = json.loads(Path('audit-output/calibration-audit-registry.json').read_text())
+          provenance = json.loads(Path('audit-output/calibration-audit-registry.provenance.json').read_text())
           if not registry['consistency_pass']:
-              raise SystemExit('CALIBRATION_AUDIT_FPR_UNSTABLE: 1% target FPR is outside one or more CAL-AUDIT exact 95% intervals')
+              raise SystemExit(
+                  'CALIBRATION_AUDIT_FPR_UNSTABLE: 1% target FPR is outside one or more '
+                  'serious-regime CAL-AUDIT exact 95% intervals'
+              )
           print('calibration_consistency_pass=true')
           print('calibration_audit_registry_hash=' + registry['registry_hash'])
+          print('serious_regime_ids=' + ','.join(provenance['serious_regime_ids']))
+          print('descriptive_regime_ids=' + ','.join(provenance['descriptive_regime_ids']))
           PY
