@@ -15,6 +15,7 @@ from .durable_io import write_canonical_json_fsynced
 from .experiments.mid_dev_calibration_audit import audit_frozen_calibration_threshold_registry
 from .experiments.mid_dev_calibration_audit_registry import build_mid_dev_calibration_audit_registry
 from .experiments.mid_dev_calibration_readiness import FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
+from .experiments.mid_dev_calibration_threshold_provenance_io import load_mid_dev_calibration_threshold_provenance_json
 from .experiments.mid_dev_vnext_artifact_io import (
     load_calibration_regime_decision_json,
     load_detector_opportunity_audit_json,
@@ -36,6 +37,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--opportunity-audit-json", type=Path, required=True)
     parser.add_argument("--regime-decision-json", type=Path, required=True)
     parser.add_argument("--threshold-registry-json", type=Path, required=True)
+    parser.add_argument("--threshold-provenance-json", type=Path, required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL_ID)
     parser.add_argument("--model-revision", default=DEFAULT_MODEL_REVISION)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
@@ -106,14 +108,33 @@ def main(argv: list[str] | None = None) -> int:
     source_audit = load_detector_opportunity_audit_json(args.opportunity_audit_json)
     decision = load_calibration_regime_decision_json(args.regime_decision_json)
     registry = load_frozen_calibration_threshold_registry_json(args.threshold_registry_json)
+    threshold_provenance = load_mid_dev_calibration_threshold_provenance_json(args.threshold_provenance_json)
     if decision.opportunity_audit_hash != source_audit.artifact_hash:
         raise RuntimeError("regime decision does not bind supplied opportunity audit")
+    if pair.opportunity_audit_hash != source_audit.artifact_hash or pair.regime_decision_hash != decision.decision_hash:
+        raise RuntimeError("calibration pair was not generated under the supplied opportunity/regime freeze")
     if registry.opportunity_audit_hash != source_audit.artifact_hash:
         raise RuntimeError("threshold registry does not bind supplied opportunity audit")
     if registry.regime_decision_hash != decision.decision_hash:
         raise RuntimeError("threshold registry does not bind supplied regime decision")
     if registry.select_manifest_hash != select.manifest.manifest_hash:
         raise RuntimeError("threshold registry does not bind supplied CAL-SELECT manifest")
+    if threshold_provenance["readiness_hash"] != readiness.readiness_hash:
+        raise RuntimeError("threshold provenance does not bind frozen readiness")
+    if threshold_provenance["select_plan_hash"] != readiness.select_plan_hash:
+        raise RuntimeError("threshold provenance does not bind frozen SELECT plan")
+    if threshold_provenance["select_artifact_hash"] != select.artifact_hash:
+        raise RuntimeError("threshold provenance does not bind supplied CAL-SELECT artifact")
+    if threshold_provenance["select_manifest_hash"] != select.manifest.manifest_hash:
+        raise RuntimeError("threshold provenance does not bind supplied CAL-SELECT manifest")
+    if threshold_provenance["opportunity_audit_hash"] != source_audit.artifact_hash:
+        raise RuntimeError("threshold provenance does not bind supplied opportunity audit")
+    if threshold_provenance["regime_decision_hash"] != decision.decision_hash:
+        raise RuntimeError("threshold provenance does not bind supplied regime decision")
+    if threshold_provenance["threshold_registry_hash"] != registry.registry_hash:
+        raise RuntimeError("threshold provenance does not bind supplied frozen threshold registry")
+    if threshold_provenance["detector_identity_hash"] != registry.detector_identity_hash:
+        raise RuntimeError("threshold provenance detector identity drifted")
 
     tokenizer, adapter, identity = _runtime(args, select, audit, source_audit)
     artifacts = audit_frozen_calibration_threshold_registry(
@@ -138,6 +159,7 @@ def main(argv: list[str] | None = None) -> int:
         "audit_manifest_hash": audit.manifest.manifest_hash,
         "opportunity_audit_hash": source_audit.artifact_hash,
         "regime_decision_hash": decision.decision_hash,
+        "threshold_provenance_hash": threshold_provenance["provenance_hash"],
         "threshold_registry_hash": registry.registry_hash,
         "detector_identity_hash": registry.detector_identity_hash,
         "model_tokenizer_identity_hash": identity.identity_hash,
