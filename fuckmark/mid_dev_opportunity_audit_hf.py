@@ -112,7 +112,6 @@ def main(argv: list[str] | None = None) -> int:
         retokenize=lambda text: _encode_text_only(tokenizer, text),
     )
 
-    # Persist the expensive pristine evidence before any regime gate can fail.
     write_canonical_json_fsynced(args.corpus_json, pristine)
     write_canonical_json_fsynced(args.opportunity_audit_json, audit)
 
