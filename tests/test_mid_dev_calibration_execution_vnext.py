@@ -247,18 +247,25 @@ def test_large_calibration_workflow_is_manual_and_threshold_job_cannot_see_audit
     source = Path(".github/workflows/middev-calibration-shards.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" in source
     assert "opportunity_run_id:" in source
+    assert "source_coverage_run_id:" in source
     assert "pull_request:" not in source
     assert "push:" not in source
-    assert "calibration_shard_jobs=' + str(len(include))" in source
+    assert "candidate_shard_jobs=' + str(len(include))" in source
+    assert "assert len(include) == 160" in source
     assert "--opportunity-audit-hash" in source
     assert "--regime-decision-hash" in source
+    assert "mid_dev_calibration_compact_hf" in source
     threshold_block = source.split("\n  threshold:\n", 1)[1].split("\n  audit:\n", 1)[0]
-    assert "needs: [preflight, merge-select]" in threshold_block
-    assert "middev-cal-audit-merged" not in threshold_block
-    assert "middev-calibration-pair" not in threshold_block
+    assert "needs: [preflight, compact-select]" in threshold_block
+    assert "middev-cal-v2-audit-candidates" not in threshold_block
+    assert "middev-cal-v2-audit-compacted" not in threshold_block
+    assert "middev-cal-v2-candidate-pair" not in threshold_block
     assert "--audit-json" not in threshold_block
-    assert "--audit-merge-provenance-json" not in threshold_block
-    assert "--select-merge-provenance-json" in threshold_block
+    assert "--audit-compaction-provenance-json" not in threshold_block
+    assert "--select-compaction-provenance-json" in threshold_block
+    assert "mid_dev_calibration_threshold_compacted_hf" in threshold_block
     audit_block = source.split("\n  audit:\n", 1)[1]
     assert "--threshold-provenance-json" in audit_block
+    assert "--audit-compaction-provenance-json" in audit_block
+    assert "threshold_recalibration_performed" not in threshold_block
     assert "CALIBRATION_AUDIT_FPR_UNSTABLE" in audit_block

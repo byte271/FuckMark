@@ -2,23 +2,27 @@ from pathlib import Path
 
 from fuckmark.experiments.mid_dev_calibration_readiness import (
     FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN,
+    MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE,
     MID_DEV_CALIBRATION_READINESS_NEGATIVES_PER_TARGET,
     MID_DEV_CALIBRATION_READINESS_SHARD_SIZE,
     MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE,
+    MID_DEV_CALIBRATION_READINESS_VERSION,
 )
 
 
-def test_calibration_readiness_freezes_preferred_2000_per_target_and_250_shards():
+def test_calibration_readiness_freezes_v2_candidate_pool_dimensions():
     readiness = FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
-    assert MID_DEV_CALIBRATION_READINESS_NEGATIVES_PER_TARGET == 2000
-    assert MID_DEV_CALIBRATION_READINESS_SHARD_SIZE == 250
-    assert MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE == 16
-    assert readiness.negatives_per_target == 2000
-    assert readiness.shard_size == 250
-    assert len(readiness.select_plan.prompt_ids) == 4000
-    assert len(readiness.audit_plan.prompt_ids) == 4000
-    assert len(readiness.select_plan.shards) == 16
-    assert len(readiness.audit_plan.shards) == 16
+    assert MID_DEV_CALIBRATION_READINESS_VERSION == "mid-dev-calibration-readiness-v2"
+    assert MID_DEV_CALIBRATION_READINESS_NEGATIVES_PER_TARGET == 20_000
+    assert MID_DEV_CALIBRATION_READINESS_SHARD_SIZE == 500
+    assert MID_DEV_CALIBRATION_READINESS_SHARDS_PER_ROLE == 80
+    assert MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE == 40_000
+    assert readiness.negatives_per_target == 20_000
+    assert readiness.shard_size == 500
+    assert len(readiness.select_plan.prompt_ids) == 40_000
+    assert len(readiness.audit_plan.prompt_ids) == 40_000
+    assert len(readiness.select_plan.shards) == 80
+    assert len(readiness.audit_plan.shards) == 80
 
 
 def test_cal_select_and_cal_audit_plan_domains_are_disjoint():
