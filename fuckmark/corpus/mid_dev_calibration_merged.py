@@ -15,7 +15,7 @@ from .mid_dev_calibration_shards import (
 from .sample import CorpusSample
 
 
-MID_DEV_CALIBRATION_MERGED_ARTIFACT_VERSION = "mid-dev-calibration-merged-artifact-v1"
+MID_DEV_CALIBRATION_MERGED_ARTIFACT_VERSION = "mid-dev-calibration-merged-artifact-v2"
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,10 +57,6 @@ class MidDevCalibrationMergedArtifact:
             raise ValueError("merged artifact watermark condition drifted")
         if len({sample.sample_id for sample in self.samples}) != len(self.samples):
             raise ValueError("merged calibration artifact contains duplicate sample IDs")
-        if len({sample.text_sha256 for sample in self.samples}) != len(self.samples):
-            raise ValueError("merged calibration artifact contains duplicate text")
-        if len({sample.generation_tokens.continuation_token_hash for sample in self.samples}) != len(self.samples):
-            raise ValueError("merged calibration artifact contains duplicate continuation tokens")
         if self.artifact_hash != sha256_json(self.payload()):
             raise ValueError("merged calibration artifact hash mismatch")
 
