@@ -53,12 +53,13 @@ jobs:
           PYTHON_VERSION: ${{ matrix.python-version }}
         run: |
           if [ "$VALIDATION_RC" = "0" ]; then
-            state=success
-            description="full pytest + uv lock passed"
+            STATE=success
+            DESCRIPTION="full pytest + uv lock passed"
           else
-            state=failure
-            description="full pytest or uv lock failed"
+            STATE=failure
+            DESCRIPTION="full pytest or uv lock failed"
           fi
+          export STATE DESCRIPTION PYTHON_VERSION
           payload="$(python - <<'PY'
           import json, os
           print(json.dumps({
@@ -75,12 +76,6 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
             -d "$payload"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATION_RC: ${{ steps.validate.outputs.rc }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
-          STATE: ${{ steps.validate.outputs.rc == '0' && 'success' || 'failure' }}
-          DESCRIPTION: ${{ steps.validate.outputs.rc == '0' && 'full pytest + uv lock passed' || 'full pytest or uv lock failed' }}
 
       - name: Fail job when validation failed
         if: steps.validate.outputs.rc != '0'
