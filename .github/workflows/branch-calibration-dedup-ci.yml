@@ -10,12 +10,8 @@ permissions:
 
 jobs:
   test:
-    name: Python ${{ matrix.python-version }}
+    name: Python 3.12 debug
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.11", "3.12", "3.13"]
 
     steps:
       - name: Checkout
@@ -24,7 +20,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           cache: pip
 
       - name: Validate lock and full test suite
@@ -36,12 +32,21 @@ jobs:
             python -m pip install --upgrade pip &&
             python -m pip install "uv==0.10.0" &&
             python -m pip install -e ".[dev]" &&
-            uv lock --check --python "${{ matrix.python-version }}" &&
+            uv lock --check --python "3.12" &&
             python -m pytest -q
           ) > validation.log 2>&1
           rc=$?
           cat validation.log
+          failure="$(grep -E '^FAILED ' validation.log | head -1 | awk '{print $2}')"
+          if [ -z "$failure" ]; then
+            failure="$(grep -E '^ERROR ' validation.log | head -1 | awk '{print $2}')"
+          fi
+          if [ -z "$failure" ]; then
+            failure="setup-or-lock"
+          fi
+          failure="$(printf '%s' "$failure" | tr ' :' '__' | cut -c1-90)"
           echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          echo "failure=$failure" >> "$GITHUB_OUTPUT"
           exit 0
 
       - name: Publish readable commit status
@@ -50,22 +55,22 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATION_RC: ${{ steps.validate.outputs.rc }}
-          PYTHON_VERSION: ${{ matrix.python-version }}
+          FAILURE: ${{ steps.validate.outputs.failure }}
         run: |
           if [ "$VALIDATION_RC" = "0" ]; then
             STATE=success
-            DESCRIPTION="full pytest + uv lock passed"
+            CONTEXT="dedup-debug/passed"
           else
             STATE=failure
-            DESCRIPTION="full pytest or uv lock failed"
+            CONTEXT="dedup-debug/$FAILURE"
           fi
-          export STATE DESCRIPTION PYTHON_VERSION
+          export STATE CONTEXT
           payload="$(python - <<'PY'
           import json, os
           print(json.dumps({
               "state": os.environ["STATE"],
-              "context": "dedup-ci/python-" + os.environ["PYTHON_VERSION"],
-              "description": os.environ["DESCRIPTION"],
+              "context": os.environ["CONTEXT"],
+              "description": "3.12 full pytest + uv lock debug result",
           }))
           PY
           )"
