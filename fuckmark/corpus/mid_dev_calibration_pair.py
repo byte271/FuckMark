@@ -18,6 +18,8 @@ MID_DEV_CALIBRATION_PAIR_VERSION = "mid-dev-calibration-pair-independence-v1"
 class MidDevCalibrationPairArtifact:
     algorithm_version: str
     readiness_hash: str
+    opportunity_audit_hash: str
+    regime_decision_hash: str
     select_plan_hash: str
     audit_plan_hash: str
     select_artifact_hash: str
@@ -33,6 +35,8 @@ class MidDevCalibrationPairArtifact:
             raise ValueError("unsupported calibration pair artifact version")
         for name in (
             "readiness_hash",
+            "opportunity_audit_hash",
+            "regime_decision_hash",
             "select_plan_hash",
             "audit_plan_hash",
             "select_artifact_hash",
@@ -62,9 +66,14 @@ class MidDevCalibrationPairArtifact:
 def build_mid_dev_calibration_pair_artifact(
     select: MidDevCalibrationMergedArtifact,
     audit: MidDevCalibrationMergedArtifact,
+    *,
+    opportunity_audit_hash: str,
+    regime_decision_hash: str,
 ) -> MidDevCalibrationPairArtifact:
     if not isinstance(select, MidDevCalibrationMergedArtifact) or not isinstance(audit, MidDevCalibrationMergedArtifact):
         raise TypeError("select/audit must be MidDevCalibrationMergedArtifact values")
+    require_sha256("opportunity_audit_hash", opportunity_audit_hash)
+    require_sha256("regime_decision_hash", regime_decision_hash)
     if select.role is not CalibrationRole.SELECT or audit.role is not CalibrationRole.AUDIT:
         raise ValueError("calibration pair must be CAL-SELECT then CAL-AUDIT")
     if select.readiness_hash != audit.readiness_hash:
@@ -75,6 +84,8 @@ def build_mid_dev_calibration_pair_artifact(
     payload = {
         "algorithm_version": MID_DEV_CALIBRATION_PAIR_VERSION,
         "readiness_hash": select.readiness_hash,
+        "opportunity_audit_hash": opportunity_audit_hash,
+        "regime_decision_hash": regime_decision_hash,
         "select_plan_hash": select.plan_hash,
         "audit_plan_hash": audit.plan_hash,
         "select_artifact_hash": select.artifact_hash,
