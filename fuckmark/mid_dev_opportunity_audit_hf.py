@@ -24,6 +24,7 @@ from .experiments.detector_opportunity_audit import (
     build_detector_opportunity_audit_artifact,
     freeze_calibration_regime_decision,
 )
+from .experiments.mid_dev_calibration_readiness import FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
 from .hashing import sha256_json
 from .mid_dev_corpus_hf import DEFAULT_MODEL_ID, DEFAULT_MODEL_REVISION, HuggingFaceMidDevBackend
 from .tiny_dev_detector_hf import default_watermark_payload
@@ -49,6 +50,7 @@ def _parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    readiness = FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
     if MID_DEV_CALIBRATION_SOURCE_ID in {
         calibration_prompt_source_id(CalibrationRole.SELECT),
         calibration_prompt_source_id(CalibrationRole.AUDIT),
@@ -66,15 +68,14 @@ def main(argv: list[str] | None = None) -> int:
     expected_count = 2 * MID_DEV_CALIBRATION_NEGATIVES_PER_LENGTH
     if len(pristine.manifest.samples) != expected_count:
         raise RuntimeError("pristine opportunity corpus count drifted")
-    if {sample.generation.seed for sample in pristine.manifest.samples} & set(
-        range(1_710_000, 1_710_000 + 200_000)
-    ):
+    pristine_seeds = {sample.generation.seed for sample in pristine.manifest.samples}
+    if len(pristine_seeds) != expected_count:
+        raise RuntimeError("pristine opportunity corpus seed uniqueness drifted")
+    if pristine_seeds & set(readiness.select_plan.seeds):
         raise RuntimeError("pristine opportunity seed domain overlaps CAL-SELECT")
-    if {sample.generation.seed for sample in pristine.manifest.samples} & set(
-        range(2_710_000, 2_710_000 + 200_000)
-    ):
+    if pristine_seeds & set(readiness.audit_plan.seeds):
         raise RuntimeError("pristine opportunity seed domain overlaps CAL-AUDIT")
-    if min(sample.generation.seed for sample in pristine.manifest.samples) < MID_DEV_CALIBRATION_SEED_BASE:
+    if min(pristine_seeds) < MID_DEV_CALIBRATION_SEED_BASE:
         raise RuntimeError("pristine opportunity seed domain drifted")
 
     try:
