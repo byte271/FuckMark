@@ -25,7 +25,8 @@ jobs:
     name: Validate frozen public opportunity inputs
     runs-on: ubuntu-24.04
     outputs:
-      matrix: ${{ steps.freeze.outputs.matrix }}
+      select_matrix: ${{ steps.freeze.outputs.select_matrix }}
+      audit_matrix: ${{ steps.freeze.outputs.audit_matrix }}
       opportunity_audit_hash: ${{ steps.freeze.outputs.opportunity_audit_hash }}
       regime_decision_hash: ${{ steps.freeze.outputs.regime_decision_hash }}
       source_coverage_artifact_hash: ${{ steps.freeze.outputs.source_coverage_artifact_hash }}
@@ -124,21 +125,28 @@ jobs:
           assert len(readiness.select_plan.prompt_ids) == MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE == 40_000
           assert len(readiness.audit_plan.prompt_ids) == MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE == 40_000
 
-          include = []
-          for plan in (readiness.select_plan, readiness.audit_plan):
-              for shard in plan.shards:
-                  include.append({'role': plan.role.value, 'shard_id': shard.shard_id})
-          assert len(include) == 160
-          matrix = json.dumps({'include': include}, separators=(',', ':'))
+          select_include = [
+              {'role': readiness.select_plan.role.value, 'shard_id': shard.shard_id}
+              for shard in readiness.select_plan.shards
+          ]
+          audit_include = [
+              {'role': readiness.audit_plan.role.value, 'shard_id': shard.shard_id}
+              for shard in readiness.audit_plan.shards
+          ]
+          assert len(select_include) == 80
+          assert len(audit_include) == 80
+          select_matrix = json.dumps({'include': select_include}, separators=(',', ':'))
+          audit_matrix = json.dumps({'include': audit_include}, separators=(',', ':'))
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
-              handle.write('matrix=' + matrix + '\n')
+              handle.write('select_matrix=' + select_matrix + '\n')
+              handle.write('audit_matrix=' + audit_matrix + '\n')
               handle.write('opportunity_audit_hash=' + audit.artifact_hash + '\n')
               handle.write('regime_decision_hash=' + decision.decision_hash + '\n')
               handle.write('source_coverage_artifact_hash=' + coverage.artifact_hash + '\n')
           print('opportunity_audit_hash=' + audit.artifact_hash)
           print('regime_decision_hash=' + decision.decision_hash)
           print('source_coverage_artifact_hash=' + coverage.artifact_hash)
-          print('candidate_shard_jobs=' + str(len(include)))
+          print('candidate_shard_jobs=' + str(len(select_include) + len(audit_include)))
           print('candidate_count_per_role=' + str(MID_DEV_CALIBRATION_CANDIDATES_PER_ROLE))
           print('required_regimes=' + ','.join(coverage.required_regime_ids))
           PY
@@ -151,15 +159,55 @@ jobs:
             source-coverage-input/
           if-no-files-found: error
 
-  generate-shard:
+  generate-select:
     name: ${{ matrix.role }} / ${{ matrix.shard_id }}
     runs-on: ubuntu-24.04
     needs: preflight
     timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: 8
-      matrix: ${{ fromJSON(needs.preflight.outputs.matrix) }}
+      max-parallel: 20
+      matrix: ${{ fromJSON(needs.preflight.outputs.select_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - run: python -m pip install -r requirements-smoke.txt
+
+      - name: Generate one frozen detector-blind candidate shard
+        shell: bash
+        run: |
+          mkdir -p shard-output
+          python -m fuckmark.mid_dev_calibration_shard_hf \
+            --role "${{ matrix.role }}" \
+            --shard-id "${{ matrix.shard_id }}" \
+            --opportunity-audit-hash "${{ needs.preflight.outputs.opportunity_audit_hash }}" \
+            --regime-decision-hash "${{ needs.preflight.outputs.regime_decision_hash }}" \
+            --model "$MODEL_ID" \
+            --model-revision "$MODEL_REVISION" \
+            --device cpu \
+            --json "shard-output/${{ matrix.shard_id }}.json" \
+            --provenance-json "shard-output/${{ matrix.shard_id }}.provenance.json"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: middev-cal-v2-${{ matrix.role }}-${{ matrix.shard_id }}
+          path: shard-output/
+          if-no-files-found: error
+
+  generate-audit:
+    name: ${{ matrix.role }} / ${{ matrix.shard_id }}
+    runs-on: ubuntu-24.04
+    needs: preflight
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix: ${{ fromJSON(needs.preflight.outputs.audit_matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -194,7 +242,7 @@ jobs:
   merge-select:
     name: Merge complete CAL-SELECT candidate pool
     runs-on: ubuntu-24.04
-    needs: [preflight, generate-shard]
+    needs: [preflight, generate-select]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -231,7 +279,7 @@ jobs:
   merge-audit:
     name: Merge complete CAL-AUDIT candidate pool
     runs-on: ubuntu-24.04
-    needs: [preflight, generate-shard]
+    needs: [preflight, generate-audit]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
