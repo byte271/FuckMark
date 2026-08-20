@@ -27,6 +27,15 @@ from fuckmark.experiments.mid_dev_calibration_audit_registry import (
 from fuckmark.experiments.mid_dev_calibration_audit_registry_io import (
     parse_mid_dev_calibration_audit_registry_json,
 )
+from fuckmark.experiments.mid_dev_calibration_merge_provenance_io import (
+    MID_DEV_CALIBRATION_MERGE_PROVENANCE_VERSION,
+)
+from fuckmark.experiments.mid_dev_calibration_threshold_provenance_io import (
+    MID_DEV_CALIBRATION_THRESHOLD_PROVENANCE_VERSION,
+)
+from fuckmark.experiments.mid_dev_opportunity_audit_provenance_io import (
+    MID_DEV_OPPORTUNITY_AUDIT_PROVENANCE_VERSION,
+)
 from fuckmark.hashing import sha256_json
 
 
@@ -136,22 +145,48 @@ def test_calibration_audit_registry_strict_io_round_trip() -> None:
     assert parsed.artifacts[0].artifact_hash == value.artifacts[0].artifact_hash
 
 
-def test_threshold_cli_is_cal_select_only() -> None:
+def test_execution_provenance_versions_are_explicit() -> None:
+    assert MID_DEV_OPPORTUNITY_AUDIT_PROVENANCE_VERSION == "mid-dev-pristine-opportunity-audit-provenance-v1"
+    assert MID_DEV_CALIBRATION_MERGE_PROVENANCE_VERSION == "mid-dev-calibration-merge-provenance-v1"
+    assert MID_DEV_CALIBRATION_THRESHOLD_PROVENANCE_VERSION == "mid-dev-calibration-threshold-provenance-v1"
+
+
+def test_threshold_cli_is_cal_select_only_and_requires_select_merge_provenance() -> None:
     source, tree = _python_source("fuckmark/mid_dev_calibration_threshold_hf.py")
     constants = {node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str)}
     assert "--select-json" in constants
+    assert "--select-merge-provenance-json" in constants
     assert "--audit-json" not in constants
+    assert "--audit-merge-provenance-json" not in constants
     assert "audit_frozen_calibration_threshold_registry" not in source
     assert "CalibrationRole.AUDIT" not in source
 
 
-def test_audit_cli_never_recalibrates_or_builds_threshold() -> None:
+def test_audit_cli_never_recalibrates_and_requires_threshold_provenance() -> None:
     source, tree = _python_source("fuckmark/mid_dev_calibration_audit_hf.py")
     names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+    constants = {node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str)}
     assert "calibrate_detector" not in names
     assert "build_frozen_calibration_threshold_registry" not in names
+    assert "--threshold-provenance-json" in constants
     assert "threshold_recalibration_performed" in source
     assert '"threshold_recalibration_performed": False' in source
+
+
+def test_calibration_shards_require_frozen_opportunity_and_regime_hashes() -> None:
+    source, tree = _python_source("fuckmark/mid_dev_calibration_shard_hf.py")
+    constants = {node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+    assert "--opportunity-audit-hash" in constants
+    assert "--regime-decision-hash" in constants
+    assert '"opportunity_audit_hash": args.opportunity_audit_hash' in source
+    assert '"regime_decision_hash": args.regime_decision_hash' in source
+
+
+def test_pair_validation_requires_both_merge_provenances() -> None:
+    _, tree = _python_source("fuckmark/mid_dev_calibration_pair_validate.py")
+    constants = {node.value for node in ast.walk(tree) if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+    assert "--select-merge-provenance-json" in constants
+    assert "--audit-merge-provenance-json" in constants
 
 
 def test_merge_and_pair_validation_are_detector_free() -> None:
@@ -206,3 +241,24 @@ def test_opportunity_workflow_is_manual_only() -> None:
     assert "pull_request:" not in source
     assert "push:" not in source
     assert "python -m fuckmark.mid_dev_opportunity_audit_hf" in source
+
+
+def test_large_calibration_workflow_is_manual_and_threshold_job_cannot_see_audit_data() -> None:
+    source = Path(".github/workflows/middev-calibration-shards.yml").read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in source
+    assert "opportunity_run_id:" in source
+    assert "pull_request:" not in source
+    assert "push:" not in source
+    assert "calibration_shard_jobs=' + str(len(include))" in source
+    assert "--opportunity-audit-hash" in source
+    assert "--regime-decision-hash" in source
+    threshold_block = source.split("\n  threshold:\n", 1)[1].split("\n  audit:\n", 1)[0]
+    assert "needs: [preflight, merge-select]" in threshold_block
+    assert "middev-cal-audit-merged" not in threshold_block
+    assert "middev-calibration-pair" not in threshold_block
+    assert "--audit-json" not in threshold_block
+    assert "--audit-merge-provenance-json" not in threshold_block
+    assert "--select-merge-provenance-json" in threshold_block
+    audit_block = source.split("\n  audit:\n", 1)[1]
+    assert "--threshold-provenance-json" in audit_block
+    assert "CALIBRATION_AUDIT_FPR_UNSTABLE" in audit_block
