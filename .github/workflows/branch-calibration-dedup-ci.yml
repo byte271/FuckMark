@@ -1,0 +1,87 @@
+name: Branch calibration dedup validation
+
+on:
+  push:
+    branches: [fix/middev-calibration-dedup]
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Validate lock and full test suite
+        id: validate
+        shell: bash
+        run: |
+          set +e
+          (
+            python -m pip install --upgrade pip &&
+            python -m pip install "uv==0.10.0" &&
+            python -m pip install -e ".[dev]" &&
+            uv lock --check --python "${{ matrix.python-version }}" &&
+            python -m pytest -q
+          ) > validation.log 2>&1
+          rc=$?
+          cat validation.log
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Publish readable commit status
+        if: always()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATION_RC: ${{ steps.validate.outputs.rc }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+        run: |
+          if [ "$VALIDATION_RC" = "0" ]; then
+            state=success
+            description="full pytest + uv lock passed"
+          else
+            state=failure
+            description="full pytest or uv lock failed"
+          fi
+          payload="$(python - <<'PY'
+          import json, os
+          print(json.dumps({
+              "state": os.environ["STATE"],
+              "context": "dedup-ci/python-" + os.environ["PYTHON_VERSION"],
+              "description": os.environ["DESCRIPTION"],
+          }))
+          PY
+          )"
+          curl --fail-with-body -sS \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATION_RC: ${{ steps.validate.outputs.rc }}
+          PYTHON_VERSION: ${{ matrix.python-version }}
+          STATE: ${{ steps.validate.outputs.rc == '0' && 'success' || 'failure' }}
+          DESCRIPTION: ${{ steps.validate.outputs.rc == '0' && 'full pytest + uv lock passed' || 'full pytest or uv lock failed' }}
+
+      - name: Fail job when validation failed
+        if: steps.validate.outputs.rc != '0'
+        run: exit 1
