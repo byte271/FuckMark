@@ -49,6 +49,8 @@ def _load_shard_provenance(path: Path) -> dict[str, object]:
             (
                 "algorithm_version",
                 "readiness_hash",
+                "opportunity_audit_hash",
+                "regime_decision_hash",
                 "role",
                 "plan_hash",
                 "shard_id",
@@ -117,6 +119,12 @@ def main(argv: list[str] | None = None) -> int:
     expected_ids = tuple(spec.shard_id for spec in plan.shards)
     if set(shard_by_id) != set(expected_ids) or set(provenance_by_id) != set(expected_ids):
         raise RuntimeError("supplied calibration shards do not exactly cover the frozen plan")
+    opportunity_hashes = {str(value["opportunity_audit_hash"]) for value in provenances}
+    decision_hashes = {str(value["regime_decision_hash"]) for value in provenances}
+    if len(opportunity_hashes) != 1 or len(decision_hashes) != 1:
+        raise RuntimeError("calibration shards do not share one frozen opportunity/regime binding")
+    opportunity_audit_hash = next(iter(opportunity_hashes))
+    regime_decision_hash = next(iter(decision_hashes))
 
     ordered_shards = []
     provenance_hashes = []
@@ -129,6 +137,10 @@ def main(argv: list[str] | None = None) -> int:
             raise RuntimeError("calibration shard spec hash drifted")
         if provenance["readiness_hash"] != readiness.readiness_hash:
             raise RuntimeError("calibration shard provenance readiness hash drifted")
+        if provenance["opportunity_audit_hash"] != opportunity_audit_hash:
+            raise RuntimeError("calibration shard provenance opportunity hash drifted")
+        if provenance["regime_decision_hash"] != regime_decision_hash:
+            raise RuntimeError("calibration shard provenance regime decision hash drifted")
         if provenance["role"] != args.role.value or provenance["plan_hash"] != plan.plan_hash:
             raise RuntimeError("calibration shard provenance role/plan binding drifted")
         if provenance["shard_spec_hash"] != spec.shard_hash:
@@ -155,6 +167,8 @@ def main(argv: list[str] | None = None) -> int:
     payload = {
         "algorithm_version": MID_DEV_CALIBRATION_MERGE_PROVENANCE_VERSION,
         "readiness_hash": readiness.readiness_hash,
+        "opportunity_audit_hash": opportunity_audit_hash,
+        "regime_decision_hash": regime_decision_hash,
         "role": args.role.value,
         "plan_hash": plan.plan_hash,
         "shard_provenance_hashes": tuple(provenance_hashes),
@@ -170,6 +184,8 @@ def main(argv: list[str] | None = None) -> int:
     provenance = {**payload, "provenance_hash": sha256_json(payload)}
     write_canonical_json_fsynced(args.provenance_json, provenance)
     sys.stdout.write(f"readiness_hash={readiness.readiness_hash}\n")
+    sys.stdout.write(f"opportunity_audit_hash={opportunity_audit_hash}\n")
+    sys.stdout.write(f"regime_decision_hash={regime_decision_hash}\n")
     sys.stdout.write(f"role={args.role.value}\n")
     sys.stdout.write(f"plan_hash={plan.plan_hash}\n")
     sys.stdout.write(f"merged_manifest_hash={merged.manifest.manifest_hash}\n")
