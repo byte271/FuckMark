@@ -1,0 +1,85 @@
+name: MidDev Throughput Patcher
+
+on:
+  push:
+    branches: [perf/middev-calibration-throughput]
+    paths:
+      - '.github/workflows/middev-throughput-patcher.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message == 'Add temporary MidDev throughput patcher'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: perf/middev-calibration-throughput
+
+      - name: Split generation roles and raise safe parallelism
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('.github/workflows/middev-calibration-shards.yml')
+          text = path.read_text(encoding='utf-8')
+
+          old_outputs = """    outputs:\n      matrix: ${{ steps.freeze.outputs.matrix }}\n      opportunity_audit_hash: ${{ steps.freeze.outputs.opportunity_audit_hash }}\n"""
+          new_outputs = """    outputs:\n      select_matrix: ${{ steps.freeze.outputs.select_matrix }}\n      audit_matrix: ${{ steps.freeze.outputs.audit_matrix }}\n      opportunity_audit_hash: ${{ steps.freeze.outputs.opportunity_audit_hash }}\n"""
+          if text.count(old_outputs) != 1:
+              raise SystemExit('preflight output block drifted')
+          text = text.replace(old_outputs, new_outputs, 1)
+
+          old_matrix = """          include = []\n          for plan in (readiness.select_plan, readiness.audit_plan):\n              for shard in plan.shards:\n                  include.append({'role': plan.role.value, 'shard_id': shard.shard_id})\n          assert len(include) == 160\n          matrix = json.dumps({'include': include}, separators=(',', ':'))\n          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:\n              handle.write('matrix=' + matrix + '\\n')\n"""
+          new_matrix = """          select_include = [\n              {'role': readiness.select_plan.role.value, 'shard_id': shard.shard_id}\n              for shard in readiness.select_plan.shards\n          ]\n          audit_include = [\n              {'role': readiness.audit_plan.role.value, 'shard_id': shard.shard_id}\n              for shard in readiness.audit_plan.shards\n          ]\n          assert len(select_include) == 80\n          assert len(audit_include) == 80\n          select_matrix = json.dumps({'include': select_include}, separators=(',', ':'))\n          audit_matrix = json.dumps({'include': audit_include}, separators=(',', ':'))\n          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:\n              handle.write('select_matrix=' + select_matrix + '\\n')\n              handle.write('audit_matrix=' + audit_matrix + '\\n')\n"""
+          if text.count(old_matrix) != 1:
+              raise SystemExit('matrix construction block drifted')
+          text = text.replace(old_matrix, new_matrix, 1)
+          text = text.replace("          print('candidate_shard_jobs=' + str(len(include)))", "          print('candidate_shard_jobs=' + str(len(select_include) + len(audit_include)))", 1)
+
+          start = text.index('  generate-shard:\n')
+          end = text.index('\n  merge-select:\n', start)
+          block = text[start:end]
+          if block.count('max-parallel: 8') != 1:
+              raise SystemExit('generation parallelism block drifted')
+          if block.count('needs.preflight.outputs.matrix') != 1:
+              raise SystemExit('generation matrix binding drifted')
+
+          select_block = block.replace('  generate-shard:\n', '  generate-select:\n', 1)
+          select_block = select_block.replace('max-parallel: 8', 'max-parallel: 20', 1)
+          select_block = select_block.replace('needs.preflight.outputs.matrix', 'needs.preflight.outputs.select_matrix', 1)
+
+          audit_block = block.replace('  generate-shard:\n', '  generate-audit:\n', 1)
+          audit_block = audit_block.replace('max-parallel: 8', 'max-parallel: 20', 1)
+          audit_block = audit_block.replace('needs.preflight.outputs.matrix', 'needs.preflight.outputs.audit_matrix', 1)
+
+          text = text[:start] + select_block + '\n\n' + audit_block + text[end:]
+
+          old_need = '    needs: [preflight, generate-shard]\n'
+          if text.count(old_need) != 2:
+              raise SystemExit('merge dependency block drifted')
+          text = text.replace(old_need, '    needs: [preflight, generate-select]\n', 1)
+          text = text.replace(old_need, '    needs: [preflight, generate-audit]\n', 1)
+
+          if 'generate-shard' in text:
+              raise SystemExit('stale combined generation job remains')
+          if 'max-parallel: 8' in text:
+              raise SystemExit('stale eight-way parallel limit remains')
+          if text.count('max-parallel: 20') != 2:
+              raise SystemExit('expected exactly two 20-way generation matrices')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit optimized workflow
+        shell: bash
+        run: |
+          git config user.name 'Byte271'
+          git config user.email 'yihac1@outlook.com'
+          git add -- .github/workflows/middev-calibration-shards.yml
+          git diff --cached --check
+          git commit -m 'Parallelize MidDev calibration generation'
+          git push origin HEAD:perf/middev-calibration-throughput
