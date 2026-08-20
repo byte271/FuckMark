@@ -111,13 +111,16 @@ def main(argv: list[str] | None = None) -> int:
         context_history_size=MID_DEV_OPPORTUNITY_CONTEXT_HISTORY_SIZE,
         retokenize=lambda text: _encode_text_only(tokenizer, text),
     )
-    decision = freeze_calibration_regime_decision(audit)
-    if not audit.tokenizer_round_trip_all_ok:
-        raise RuntimeError("pristine opportunity audit contains tokenizer round-trip failures")
 
+    # Persist the expensive pristine evidence before any regime gate can fail.
     write_canonical_json_fsynced(args.corpus_json, pristine)
     write_canonical_json_fsynced(args.opportunity_audit_json, audit)
+
+    if not audit.tokenizer_round_trip_all_ok:
+        raise RuntimeError("pristine opportunity audit contains tokenizer round-trip failures")
+    decision = freeze_calibration_regime_decision(audit)
     write_canonical_json_fsynced(args.regime_decision_json, decision)
+
     payload = {
         "algorithm_version": MID_DEV_OPPORTUNITY_AUDIT_PROVENANCE_VERSION,
         "model_tokenizer_identity_hash": identity.identity_hash,
