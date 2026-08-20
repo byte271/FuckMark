@@ -12,6 +12,7 @@ from .corpus.runtime_identity import runtime_tokenizer_identity_public
 from .detector_calibration import encode_text
 from .durable_io import write_canonical_json_fsynced
 from .experiments.mid_dev_calibration_audit import build_frozen_calibration_threshold_registry
+from .experiments.mid_dev_calibration_merge_provenance_io import load_mid_dev_calibration_merge_provenance_json
 from .experiments.mid_dev_calibration_readiness import FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
 from .experiments.mid_dev_vnext_artifact_io import (
     load_calibration_regime_decision_json,
@@ -28,6 +29,7 @@ MID_DEV_CALIBRATION_THRESHOLD_PROVENANCE_VERSION = "mid-dev-calibration-threshol
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fuckmark-mid-dev-calibration-threshold-hf")
     parser.add_argument("--select-json", type=Path, required=True)
+    parser.add_argument("--select-merge-provenance-json", type=Path, required=True)
     parser.add_argument("--opportunity-audit-json", type=Path, required=True)
     parser.add_argument("--regime-decision-json", type=Path, required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL_ID)
@@ -80,16 +82,31 @@ def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     readiness = FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
     select = load_mid_dev_calibration_merged_artifact_json(args.select_json)
+    select_merge = load_mid_dev_calibration_merge_provenance_json(args.select_merge_provenance_json)
     if select.role is not CalibrationRole.SELECT:
         raise RuntimeError("threshold construction requires CAL-SELECT merged artifact")
     if select.readiness_hash != readiness.readiness_hash or select.plan_hash != readiness.select_plan_hash:
         raise RuntimeError("CAL-SELECT merged artifact does not bind frozen readiness/plan")
     if len(select.samples) != len(readiness.select_plan.prompt_ids):
         raise RuntimeError("CAL-SELECT sample count differs from frozen readiness")
+    if select_merge["role"] != CalibrationRole.SELECT.value:
+        raise RuntimeError("threshold construction requires CAL-SELECT merge provenance")
+    if select_merge["readiness_hash"] != readiness.readiness_hash or select_merge["plan_hash"] != readiness.select_plan_hash:
+        raise RuntimeError("CAL-SELECT merge provenance readiness/plan binding drifted")
+    if select_merge["merged_artifact_hash"] != select.artifact_hash:
+        raise RuntimeError("CAL-SELECT merge provenance artifact binding drifted")
+    if select_merge["merged_manifest_hash"] != select.manifest.manifest_hash:
+        raise RuntimeError("CAL-SELECT merge provenance manifest binding drifted")
+
     source_audit = load_detector_opportunity_audit_json(args.opportunity_audit_json)
     decision = load_calibration_regime_decision_json(args.regime_decision_json)
     if decision.opportunity_audit_hash != source_audit.artifact_hash:
         raise RuntimeError("regime decision does not bind supplied opportunity audit")
+    if select_merge["opportunity_audit_hash"] != source_audit.artifact_hash:
+        raise RuntimeError("CAL-SELECT was not generated under the supplied opportunity audit")
+    if select_merge["regime_decision_hash"] != decision.decision_hash:
+        raise RuntimeError("CAL-SELECT was not generated under the supplied regime decision")
+
     tokenizer, adapter, identity = _runtime(args, select, source_audit)
     registry = build_frozen_calibration_threshold_registry(
         select.samples,
@@ -104,6 +121,7 @@ def main(argv: list[str] | None = None) -> int:
         "algorithm_version": MID_DEV_CALIBRATION_THRESHOLD_PROVENANCE_VERSION,
         "readiness_hash": readiness.readiness_hash,
         "select_plan_hash": readiness.select_plan_hash,
+        "select_merge_provenance_hash": select_merge["provenance_hash"],
         "select_artifact_hash": select.artifact_hash,
         "select_manifest_hash": select.manifest.manifest_hash,
         "opportunity_audit_hash": source_audit.artifact_hash,
