@@ -47,10 +47,20 @@ class MidDevCalibrationMergedArtifact:
             raise ValueError("merged artifact sample record hashes do not match manifest")
         if tuple(sample.text_sha256 for sample in self.samples) != self.manifest.text_sha256s:
             raise ValueError("merged artifact text hashes do not match manifest")
+        if tuple(sample.generation_tokens.continuation_token_hash for sample in self.samples) != self.manifest.continuation_token_hashes:
+            raise ValueError("merged artifact continuation-token hashes do not match manifest")
+        if {sample.model.identity_hash for sample in self.samples} != {self.manifest.model_tokenizer_identity_hash}:
+            raise ValueError("merged artifact model/tokenizer identity drifted")
+        if {sample.watermark.watermark_config_hash for sample in self.samples} != {self.manifest.watermark_config_hash}:
+            raise ValueError("merged artifact watermark configuration drifted")
+        if {sample.watermark.condition_hash for sample in self.samples} != {self.manifest.watermark_condition_hash}:
+            raise ValueError("merged artifact watermark condition drifted")
         if len({sample.sample_id for sample in self.samples}) != len(self.samples):
             raise ValueError("merged calibration artifact contains duplicate sample IDs")
         if len({sample.text_sha256 for sample in self.samples}) != len(self.samples):
             raise ValueError("merged calibration artifact contains duplicate text")
+        if len({sample.generation_tokens.continuation_token_hash for sample in self.samples}) != len(self.samples):
+            raise ValueError("merged calibration artifact contains duplicate continuation tokens")
         if self.artifact_hash != sha256_json(self.payload()):
             raise ValueError("merged calibration artifact hash mismatch")
 
