@@ -16,7 +16,6 @@ from .corpus.mid_dev_calibration_shards import (
     calibration_prompt_source_id,
 )
 from .corpus.runtime_identity import runtime_tokenizer_identity_public
-from .detector_calibration import encode_text
 from .durable_io import write_canonical_json_fsynced
 from .experiments.detector_opportunity_audit import (
     ELIGIBLE_IQR_OVERLAP_LIMIT,
@@ -26,11 +25,16 @@ from .experiments.detector_opportunity_audit import (
 )
 from .experiments.mid_dev_calibration_readiness import FROZEN_MID_DEV_CALIBRATION_READINESS_PLAN
 from .hashing import sha256_json
-from .mid_dev_corpus_hf import DEFAULT_MODEL_ID, DEFAULT_MODEL_REVISION, HuggingFaceMidDevBackend
-from .tiny_dev_detector_hf import default_watermark_payload
+from .mid_dev_corpus_hf import (
+    DEFAULT_MODEL_ID,
+    DEFAULT_MODEL_REVISION,
+    DEFAULT_NGRAM_LEN,
+    HuggingFaceMidDevBackend,
+)
 
 
 MID_DEV_OPPORTUNITY_AUDIT_PROVENANCE_VERSION = "mid-dev-pristine-opportunity-audit-provenance-v1"
+MID_DEV_OPPORTUNITY_CONTEXT_HISTORY_SIZE = 1024
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -46,6 +50,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--regime-decision-json", type=Path, required=True)
     parser.add_argument("--provenance-json", type=Path, required=True)
     return parser
+
+
+def _encode_text_only(tokenizer, text: str) -> tuple[int, ...]:
+    return tuple(
+        int(value)
+        for value in tokenizer.encode(text, add_special_tokens=False)
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -94,12 +105,11 @@ def main(argv: list[str] | None = None) -> int:
     if {sample.model.identity_hash for sample in pristine.manifest.samples} != {identity.identity_hash}:
         raise RuntimeError("runtime tokenizer identity does not match pristine opportunity corpus")
 
-    watermark_payload = default_watermark_payload()
     audit = build_detector_opportunity_audit_artifact(
         pristine.manifest.samples,
-        ngram_len=int(watermark_payload["ngram_len"]),
-        context_history_size=int(watermark_payload["context_history_size"]),
-        retokenize=lambda text: encode_text(tokenizer, text),
+        ngram_len=DEFAULT_NGRAM_LEN,
+        context_history_size=MID_DEV_OPPORTUNITY_CONTEXT_HISTORY_SIZE,
+        retokenize=lambda text: _encode_text_only(tokenizer, text),
     )
     decision = freeze_calibration_regime_decision(audit)
     if not audit.tokenizer_round_trip_all_ok:
