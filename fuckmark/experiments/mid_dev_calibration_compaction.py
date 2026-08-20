@@ -114,25 +114,27 @@ def select_calibration_compaction_target(
 
 def _deduplicate_calibration_candidates(
     candidates: Sequence[CorpusSample],
-) -> tuple[CorpusSample, ...]:
-    """Keep the first raw attempt for each text/token content identity.
+) -> tuple[tuple[CorpusSample, ...], tuple[str, ...]]:
+    """Keep first raw content occurrences and record excluded sample IDs.
 
-    Candidate order is already frozen by the merged calibration plan.  The
-    rule is deliberately detector-blind: a later sample is excluded whenever
-    either its text SHA or continuation-token SHA was observed earlier.
+    Candidate order is frozen by the merged calibration plan. The rule is
+    deliberately detector-blind: a later sample is excluded whenever either
+    its text SHA or continuation-token SHA was observed earlier.
     """
     seen_text_sha256s: set[str] = set()
     seen_token_sha256s: set[str] = set()
     unique: list[CorpusSample] = []
+    excluded_sample_ids: list[str] = []
     for sample in candidates:
         text_sha256 = sample.text_sha256
         token_sha256 = sample.generation_tokens.continuation_token_hash
         if text_sha256 in seen_text_sha256s or token_sha256 in seen_token_sha256s:
+            excluded_sample_ids.append(sample.sample_id)
             continue
         seen_text_sha256s.add(text_sha256)
         seen_token_sha256s.add(token_sha256)
         unique.append(sample)
-    return tuple(unique)
+    return tuple(unique), tuple(excluded_sample_ids)
 
 
 def _record(
@@ -267,7 +269,7 @@ def build_mid_dev_calibration_compaction(
     # effective support is computed only from first-occurrence unique content.
     # This runs before regime assignment so one repeated generation can never
     # contribute statistical support more than once anywhere in the pool.
-    unique_candidates = _deduplicate_calibration_candidates(candidate.samples)
+    unique_candidates, _ = _deduplicate_calibration_candidates(candidate.samples)
 
     required_regimes = source_coverage.required_regime_ids
     source_counts = {item.regime_id: item.sample_count for item in source_coverage.regime_counts}
