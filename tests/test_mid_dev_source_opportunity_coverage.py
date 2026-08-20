@@ -97,6 +97,26 @@ def test_source_opportunity_coverage_rejects_incomplete_required_regime_set() ->
         replace(artifact, required_regime_ids=("eligible-09",))
 
 
+def test_source_opportunity_coverage_rejects_mismatched_prompt_inside_pair() -> None:
+    artifact = _coverage()
+    rows = list(artifact.rows)
+    original = rows[0]
+    rows[0] = MidDevSourceOpportunityCoverageRow.create(
+        sample_id=original.sample_id,
+        source_group_id=original.source_group_id,
+        prompt_id="different-prompt",
+        label=original.label,
+        target_length=original.target_length,
+        source_record_hash=original.source_record_hash,
+        text_sha256=original.text_sha256,
+        opportunity_row_hash=original.opportunity_row_hash,
+        eligible_observation_count=original.eligible_observation_count,
+        regime_id=original.regime_id,
+    )
+    with pytest.raises(ValueError, match="share one prompt"):
+        replace(artifact, rows=tuple(sorted(rows, key=lambda row: row.sample_id)))
+
+
 def test_source_opportunity_cli_has_no_detector_scoring_import() -> None:
     source = Path("fuckmark/mid_dev_source_opportunity_audit_hf.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
