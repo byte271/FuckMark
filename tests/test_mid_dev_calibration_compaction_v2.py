@@ -18,6 +18,7 @@ from fuckmark.experiments.mid_dev_calibration_compaction import (
 )
 from fuckmark.experiments.mid_dev_calibration_compaction_io import (
     MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION,
+    MidDevCalibrationCompactionProvenanceError,
     parse_mid_dev_calibration_compaction_provenance_json,
 )
 from fuckmark.experiments.mid_dev_calibration_merge_provenance_io import (
@@ -115,8 +116,9 @@ def test_detector_blind_dedup_keeps_first_occurrence_by_text_or_token_hash() -> 
         _candidate("drop-token", "different-text", "shared-token"),
         _candidate("second", "unique-text", "unique-token"),
     )
-    unique = _deduplicate_calibration_candidates(candidates)
+    unique, excluded = _deduplicate_calibration_candidates(candidates)
     assert tuple(item.sample_id for item in unique) == ("first", "second")
+    assert excluded == ("drop-text", "drop-token")
 
 
 def test_duplicate_raw_attempt_cannot_manufacture_serious_N() -> None:
@@ -125,8 +127,9 @@ def test_duplicate_raw_attempt_cannot_manufacture_serious_N() -> None:
         for index in range(999)
     ) + (_candidate("duplicate-1000", "text-0000", "token-extra"),)
     assert len(candidates) == 1000
-    unique = _deduplicate_calibration_candidates(candidates)
+    unique, excluded = _deduplicate_calibration_candidates(candidates)
     assert len(unique) == 999
+    assert excluded == ("duplicate-1000",)
     assert select_calibration_compaction_target(len(unique)) == (
         CalibrationCompactionStatus.COMPUTE_LIMITED_DESCRIPTIVE,
         0,
@@ -138,7 +141,7 @@ def test_compaction_selection_rule_explicitly_binds_content_dedup() -> None:
     assert "FROZEN_CANDIDATE_ORDER" in MID_DEV_CALIBRATION_COMPACTION_SELECTION_RULE
 
 
-def test_compaction_provenance_strict_round_trip() -> None:
+def _compaction_provenance_value() -> dict[str, object]:
     serious = _record("eligible-04", 1200, 1000, CalibrationCompactionStatus.SERIOUS_THRESHOLD)
     descriptive = _record(
         "eligible-03",
@@ -147,6 +150,7 @@ def test_compaction_provenance_strict_round_trip() -> None:
         CalibrationCompactionStatus.COMPUTE_LIMITED_DESCRIPTIVE,
     )
     records = tuple(sorted((descriptive, serious), key=lambda item: item.regime_id))
+    excluded = ("duplicate-a", "duplicate-b", "duplicate-c")
     payload = {
         "algorithm_version": MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION,
         "role": CalibrationRole.SELECT.value,
@@ -163,6 +167,9 @@ def test_compaction_provenance_strict_round_trip() -> None:
         "preferred_n": 2000,
         "minimum_n": 1000,
         "candidate_count_total": 40_000,
+        "unique_candidate_count_total": 39_997,
+        "duplicate_excluded_count": 3,
+        "duplicate_excluded_sample_ids_hash": sha256_json(excluded),
         "selected_count_total": 1000,
         "required_regime_ids": tuple(item.regime_id for item in records),
         "serious_regime_ids": ("eligible-04",),
@@ -181,11 +188,27 @@ def test_compaction_provenance_strict_round_trip() -> None:
         "github_event_name": None,
         "github_checkout_sha": None,
     }
-    value = {**payload, "provenance_hash": sha256_json(payload)}
+    return {**payload, "provenance_hash": sha256_json(payload)}
+
+
+def test_compaction_provenance_strict_round_trip() -> None:
+    value = _compaction_provenance_value()
     parsed = parse_mid_dev_calibration_compaction_provenance_json(canonical_json_text(value) + "\n")
     assert parsed["serious_regime_ids"] == ["eligible-04"]
     assert parsed["descriptive_regime_ids"] == ["eligible-03"]
+    assert parsed["candidate_count_total"] == 40_000
+    assert parsed["unique_candidate_count_total"] == 39_997
+    assert parsed["duplicate_excluded_count"] == 3
     assert parsed["selected_count_total"] == 1000
+
+
+def test_compaction_provenance_rejects_nonreplaying_duplicate_count() -> None:
+    value = _compaction_provenance_value()
+    value["duplicate_excluded_count"] = 4
+    payload = {key: item for key, item in value.items() if key != "provenance_hash"}
+    value["provenance_hash"] = sha256_json(payload)
+    with pytest.raises(MidDevCalibrationCompactionProvenanceError, match="duplicate exclusion count"):
+        parse_mid_dev_calibration_compaction_provenance_json(canonical_json_text(value) + "\n")
 
 
 def test_merge_provenance_parser_uses_v2_readiness_dimensions() -> None:
