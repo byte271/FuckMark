@@ -182,6 +182,22 @@ class MidDevSourceOpportunityCoverageArtifact:
         })
         if labels != expected_labels:
             raise ValueError("source opportunity coverage requires matched on/off samples")
+        by_group: dict[str, list[MidDevSourceOpportunityCoverageRow]] = {}
+        for row in self.rows:
+            by_group.setdefault(row.source_group_id, []).append(row)
+        expected_pair_labels = {
+            WatermarkLabel.UNWATERMARKED.value,
+            WatermarkLabel.WATERMARKED.value,
+        }
+        for values in by_group.values():
+            if len(values) != 2:
+                raise ValueError("each source opportunity group must contain exactly two samples")
+            if {row.label for row in values} != expected_pair_labels:
+                raise ValueError("each source opportunity group must contain one matched on/off pair")
+            if len({row.prompt_id for row in values}) != 1:
+                raise ValueError("matched source opportunity samples must share one prompt")
+            if len({row.target_length for row in values}) != 1:
+                raise ValueError("matched source opportunity samples must share one target length")
         if any(not isinstance(item, MidDevSourceRegimeCount) for item in self.regime_counts):
             raise TypeError("source regime counts are invalid")
         if tuple(sorted(self.regime_counts, key=lambda item: item.regime_id)) != self.regime_counts:
