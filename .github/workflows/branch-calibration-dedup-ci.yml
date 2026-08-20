@@ -9,6 +9,9 @@ on:
 permissions:
   contents: write
 
+env:
+  VALIDATION_NONCE: "2"
+
 jobs:
   test:
     name: Python 3.12 debug
