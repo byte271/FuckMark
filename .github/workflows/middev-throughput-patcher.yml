@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   patch:
-    if: github.event.head_commit.message == 'Add temporary MidDev throughput patcher'
+    if: github.event.head_commit.message == 'Trigger MidDev throughput patcher'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
