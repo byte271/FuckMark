@@ -15,7 +15,7 @@ from .mid_dev_calibration_compaction import (
 )
 
 
-MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION = "mid-dev-calibration-compaction-provenance-v1"
+MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_VERSION = "mid-dev-calibration-compaction-provenance-v2"
 MID_DEV_CALIBRATION_COMPACTION_PROVENANCE_MAX_BYTES = 8 * 1024 * 1024
 
 
