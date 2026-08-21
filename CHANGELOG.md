@@ -4,10 +4,12 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
-- Added `normalization-survival-benchmark-v1` over the frozen 500-sample Diverse Beam corpus with preregistered N0 identity, N1 horizontal-whitespace, N2 LF line-ending, N3 NFC, and N4 copy/paste-whitespace profiles.
-- Added candidate/profile provenance rows, invariant-aware survivor counts, family/rule survival rates, and replay-verified B1/B2/B4/B6 normalization-surviving witnesses without detector or watermark-secret access.
+- Added `normalization-survival-benchmark-v2` over the frozen 500-sample Diverse Beam corpus with preregistered N0 identity, N1 horizontal-whitespace, N2 LF line-ending, N3 NFC, and N4 copy/paste-whitespace profiles.
+- Added candidate/profile provenance rows, invariant-aware survivor counts, family/rule survival rates, and exhaustively searched, replay-verified B1/B2/B4/B6 normalization-surviving witnesses without detector or watermark-secret access.
+- Corrected an exact-budget false-negative path where v1 tested only one greedy maximum-cardinality interval set and could miss a legal overlapping alternative; v2 uses deterministic complete combination search with exact interval-capacity pruning.
+- Replaced the invalid monotonic compatible-prefix assumption with independently verified per-budget reachability, separately versioned all affected provenance schemas, and retained strict v1 artifact replay support.
 - Added deterministic fail-closed handling for expected single-candidate and combined hard-invariant rejection while retaining fatal registry replay and artifact-consistency failures.
-- Added a dedicated real-corpus workflow and strict nested artifact replay; normalization survival remains opportunity evidence and cannot authorize release-rule promotion without fidelity qualification.
+- Added a dedicated real-corpus workflow and strict nested v1/v2 artifact replay; normalization survival remains opportunity evidence and cannot authorize release-rule promotion without fidelity qualification.
 - Measured 25,229 invariant-safe Surface v4 opportunities with zero N1/N4 survivors and 545 invariant-safe contraction opportunities with complete N1/N4 survival on the frozen 500-sample corpus; N4 B2 reachability was only 127/500, so survival-aware scheduling remains blocked on durable candidate density.
 - Added the frozen `diverse-beam-real-corpus-profile-v1` protocol: 640 detector-independent generated sources, global generated-text and continuation-token deduplication, and 500 pre-search eligible samples balanced across 128-token and 256-token cells.
 - Added a separate tokenizer-only matched A/B runner for historical `context-survival-beam-v2` and development-only `context-survival-diverse-beam-v1` at B1/B2/B4/B6 with identical registry, invariants, geometry, width, cost, source, and ordering conditions.
