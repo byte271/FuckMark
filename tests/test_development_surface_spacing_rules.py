@@ -84,7 +84,7 @@ def test_line_end_surface_spacing_does_not_create_markdown_hard_break() -> None:
 
 def test_expanded_surface_battery_enumerates_common_function_words() -> None:
     registry = development_transform_registry()
-    text = "the and in for on with as from is of to that this was are be can will have has not but or by at it we you they. Safe."
+    text = "the and in for on with as from is of to that this was are be can will have has not but or by at it we you they remain. Safe."
     enumeration = registry.enumerate(text)
     ids = {candidate.rule_id for candidate in enumeration.candidates}
     assert {
