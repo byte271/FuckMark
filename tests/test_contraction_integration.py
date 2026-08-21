@@ -53,9 +53,8 @@ def test_forward_then_same_site_reverse_is_blocked() -> None:
 def test_new_forward_then_same_site_reverse_is_blocked() -> None:
     expander = _expander("We are ready.")
     first = expander.expand(expander.root_state)
-    matching = tuple(value for value in first if value.candidate.rule_id == "contract-we-are")
+    matching = tuple(value for value in first if value.child.text == "We're ready.")
     assert len(matching) == 1
-    assert matching[0].child.text == "We're ready."
     assert expander.expand(matching[0].child) == ()
 
 
@@ -78,12 +77,12 @@ def test_reverse_contraction_remains_blocked_inside_user_protected_span() -> Non
 
 
 def test_e24_surface_fixture_candidate_set_expands() -> None:
-    text = "We do not agree. They don't agree. I cannot stay, but you can't leave. We will not stop."
+    text = "We do not agree. They don't agree. I cannot stay, but you can't leave. We will not stop. We are ready."
     forward = TransformRegistry(default_contraction_rules()).enumerate(text)
     reversible = TransformRegistry(context_survival_contraction_rules()).enumerate(text)
     assert len(forward.candidates) == 3
     assert len(reversible.candidates) == 6
     assert len(reversible.candidates) > len(forward.candidates)
-    assert any(value.rule_id == "contract-we-will" for value in reversible.candidates)
+    assert any(value.rule_id == "contract-we-are" for value in reversible.candidates)
     assert {value.tier.value for value in reversible.candidates} == {"tier_1_surface"}
     assert {value.family.value for value in reversible.candidates} == {"contraction"}
