@@ -91,6 +91,20 @@ On the frozen real TinyDev attack-development watermarked sources used by the tr
 
 The diverse Beam regression proves one synthetic dead-end graph where legacy Beam v2 returns no exact-depth state and the new strategy reaches the requested depth. Real-corpus improvement over Beam v2 is not yet proven. Spacing edits remain fragile under whitespace normalization, and the additional contractions do not eliminate that limitation.
 
+### Frozen Diverse Beam real-corpus decision protocol
+
+The `Diverse Beam Real-Corpus A/B` workflow is the bounded promotion experiment for `context-survival-diverse-beam-v1`. It deterministically generates 640 DEV-key watermarked attack-development continuations across 128-token and 256-token cells, removes duplicate generated text or continuation-token tracks before analysis, and freezes exactly 250 unique samples per length before either search strategy runs. The 500 eligible samples cover six prompt families and four domains. Detector scores never participate in generation selection, corpus freezing, search, or promotion.
+
+The search stage runs in a separate tokenizer-only process. Historical `context-survival-beam-v2` and `context-survival-diverse-beam-v1` receive the same frozen samples, candidate registry and ordering, protected spans, hard invariants, tokenizer identity, public repetition geometry, B1/B2/B4/B6 budgets, width 32, risk ceiling, and visible-cost model. Each strategy is replayed from fresh expanders, and every one of the 4,000 sample/budget/strategy rows binds exact-depth status, state and frontier hashes, opportunity counts, dead ends, accepted transitions, duplicate suppression, risk, cost, token distance, runtime, and access attestations.
+
+The preregistered sufficient promotion rule requires at least one matched rescue, zero losses on Beam v2 successes, zero accepted hard-invariant or protected-content violations, exact structural replay, no detector or watermark-secret access, no more than a 10% median visible-cost increase in relevant matched budget cells, and no more than 2x aggregate median runtime. Exact McNemar results are reported separately for every budget. A valid negative result keeps Beam v2 and does not fail the engineering workflow; incomplete, contaminated, malformed, underpowered, or nondeterministic evidence fails closed. Until the real workflow finishes and its content-addressed artifact is reviewed, Diverse Beam remains development-only and no real-corpus advantage is claimed.
+
+The workflow uploads all 32 generation shards, the frozen corpus, all 64 matched search shards, the strict analysis artifact, and a SHA-256 manifest. The tokenizer-only search dependency is pinned separately in `requirements-tokenizer.txt`. Local unit coverage can be reproduced with:
+
+```text
+python -m pytest tests/test_diverse_beam_corpus.py tests/test_diverse_beam_ab.py tests/test_repository_hygiene.py
+```
+
 Run the local validation layers with:
 
 ```text

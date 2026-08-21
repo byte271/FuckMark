@@ -4,6 +4,10 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added the frozen `diverse-beam-real-corpus-profile-v1` protocol: 640 detector-independent generated sources, global generated-text and continuation-token deduplication, and 500 pre-search eligible samples balanced across 128-token and 256-token cells.
+- Added a separate tokenizer-only matched A/B runner for historical `context-survival-beam-v2` and development-only `context-survival-diverse-beam-v1` at B1/B2/B4/B6 with identical registry, invariants, geometry, width, cost, source, and ordering conditions.
+- Added 4,000-row content-addressed search evidence with fresh deterministic replay, exact-depth reachability, state diversity, dead ends, transition and duplicate-suppression counts, risk, visible cost, token distance, runtime, and detector/secret-access attestations.
+- Added the preregistered zero-loss Diverse Beam promotion rule, per-budget exact McNemar reporting, strict artifact validation, and a 96-shard generation/search workflow that preserves a scientifically valid Beam v2 retention decision without weakening engineering failures.
 - Added the content-addressed `release-readiness-baseline-v1` artifact with all 26 release-program gates, exact baseline repository identities, workflow evidence, and explicit blockers.
 - Added deterministic baseline generation and replay validation plus a `Release Readiness Baseline` workflow that builds and clean-installs both wheel and sdist artifacts.
 - Recorded project licensing, package license metadata, release-engine qualification, and calibration independence as release blockers instead of inferring or weakening them.
