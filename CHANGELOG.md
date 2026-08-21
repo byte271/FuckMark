@@ -4,6 +4,7 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added the development-only `mid-dev-calibration-independence-v3` protocol with structural identity hard failures, deterministic text/token first-occurrence compaction, explicit cross-role collision exclusions, content-addressed role manifests, and strict replay parsers. The rejected v2 calibration pair remains immutable; no v3 corpus or confirmatory detector claim exists yet.
 - Added the content-addressed `release-readiness-baseline-v1` artifact with all 26 release-program gates, exact baseline repository identities, workflow evidence, and explicit blockers.
 - Added deterministic baseline generation and replay validation plus a `Release Readiness Baseline` workflow that builds and clean-installs both wheel and sdist artifacts.
 - Recorded project licensing, package license metadata, release-engine qualification, and calibration independence as release blockers instead of inferring or weakening them.
