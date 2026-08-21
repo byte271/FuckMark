@@ -105,6 +105,37 @@ The workflow uploads all 32 generation shards, the frozen corpus, all 64 matched
 python -m pytest tests/test_diverse_beam_corpus.py tests/test_diverse_beam_ab.py tests/test_repository_hygiene.py
 ```
 
+### Frozen normalization-survival benchmark
+
+The `Normalization Survival Benchmark` workflow reuses the 500-sample corpus frozen by Diverse Beam run `32504847438`; it does not regenerate, score, or select text. `normalization-survival-benchmark-v2` enumerates the context-survival contractions and Surface v4 spacing rules once per source, screens every candidate against hard invariants, and measures five preregistered normalizers:
+
+| ID | Frozen operation |
+| --- | --- |
+| `N0_IDENTITY` | Preserve text exactly |
+| `N1_WHITESPACE_COLLAPSE` | Remove trailing horizontal whitespace and collapse horizontal runs while preserving line endings |
+| `N2_LINE_ENDINGS_LF` | Convert CRLF and CR line endings to LF |
+| `N3_UNICODE_NFC` | Apply Unicode NFC |
+| `N4_COPY_PASTE_WHITESPACE` | Convert line endings to LF, remove trailing horizontal whitespace, and collapse horizontal runs |
+
+Every candidate/profile row binds the source, candidate, rule, transformed text, hard-invariant report, normalizer, normalized source, normalized output, and survival decision by hash. Per-sample evidence distinguishes raw candidates, maximum non-overlapping opportunity, invariant-safe opportunity, normalization-surviving opportunity, and replay-verified B1/B2/B4/B6 witnesses. For each budget, v2 searches every geometrically legal combination until it finds a hard-invariant-safe normalized witness or exhausts the finite search space; exact interval-capacity pruning cannot discard a feasible selection. Expected individual or combined invariant rejection is counted and excluded; malformed enumeration, registry replay disagreement, and artifact provenance errors remain fatal.
+
+The historical v1 witness builder tested only one greedily selected maximum-cardinality interval set. A regression demonstrates a source where its first overlapping alternative creates an invalid combined modality signature while a second alternative reaches the same exact budget legally. The v1 artifact loader remains available for strict historical replay, but v1 evidence must not be reinterpreted as exhaustive. The v2 identifiers bind the corrected search and schema, including per-budget reachability instead of a monotonic compatible-prefix assumption.
+
+The benchmark reports family/rule survival rates, exact-budget reachable sample counts, Surface v4 disappearance under N1/N4, contraction survival under N1/N4, and whether enough N4 B2 opportunity exists to justify a later matched survival-aware scheduler experiment. Normalization survival alone never promotes a rule into the release registry; fidelity qualification remains a separate requirement. The benchmark is detector-blind and key-blind.
+
+Strict local v2 replay of frozen corpus artifact `9455132579` from workflow run `32504847438` measured 25,795 raw candidates and 25,774 invariant-safe candidates across all 500 sources. The artifact contains 128,975 candidate/profile rows. All 25,229 invariant-safe Surface v4 candidates disappeared under both N1 and N4. All 545 invariant-safe contraction candidates survived both profiles. Exhaustive N4 reachability was 231/500 at B1, 127/500 at B2, 40/500 at B4, and 16/500 at B6, identical to the earlier v1 corpus totals; no real-corpus reachability cell changed. The B2 rate is 25.4%, below the preregistered 50% prerequisite, so the benchmark answers `INSUFFICIENT_DURABLE_CHOICE_FOR_SCHEDULER_PREFERENCE`. This proves a durable-opportunity bottleneck on this corpus; it does not measure detector response, establish semantic fidelity for every rule, or authorize release promotion. The final workflow-bound v2 benchmark artifact is pending.
+
+After obtaining the frozen corpus artifact, reproduce the benchmark with:
+
+```text
+python -m fuckmark.normalization_survival_benchmark \
+  --corpus-json artifacts/diverse-beam-frozen-corpus.json \
+  --source-code-commit "$(git rev-parse HEAD)" \
+  --source-workflow-run-id 32504847438 \
+  --json artifacts/normalization-survival-benchmark.json
+python -m pytest tests/test_normalization_survival.py tests/test_repository_hygiene.py
+```
+
 Run the local validation layers with:
 
 ```text
@@ -168,5 +199,6 @@ The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real Ti
 49. Deterministic invariant-aware baseline scheduling with content-addressed rejection evidence
 50. Separately versioned root-branch-diverse Beam search without changing frozen Beam v2 semantics
 51. Canonical cross-platform environment capture with legacy v1 snapshot compatibility
+52. Five-profile normalization-survival measurement with candidate-level provenance and replay-verified exact-budget witnesses
 
 Python source is English-only and contains no comments or docstrings.
