@@ -41,6 +41,40 @@ def _deduplicate(states: Sequence[SearchState]) -> tuple[SearchState, ...]:
     return tuple(sorted(by_text_hash.values(), key=_beam_rank))
 
 
+def _branch_key(state: SearchState) -> str:
+    if state.operation_hashes:
+        return state.operation_hashes[0]
+    return state.text_hash
+
+
+def _prune_diverse(states: Sequence[SearchState], beam_width: int) -> tuple[SearchState, ...]:
+    ranked = tuple(sorted(_deduplicate(states), key=_beam_rank))
+    if len(ranked) <= beam_width:
+        return ranked
+    elite_count = max(1, beam_width // 2)
+    selected = list(ranked[:elite_count])
+    selected_hashes = {state.search_state_hash for state in selected}
+    branch_keys = {_branch_key(state) for state in selected}
+    for state in ranked[elite_count:]:
+        if len(selected) >= beam_width:
+            break
+        branch_key = _branch_key(state)
+        if branch_key in branch_keys:
+            continue
+        selected.append(state)
+        selected_hashes.add(state.search_state_hash)
+        branch_keys.add(branch_key)
+    if len(selected) < beam_width:
+        for state in ranked:
+            if len(selected) >= beam_width:
+                break
+            if state.search_state_hash in selected_hashes:
+                continue
+            selected.append(state)
+            selected_hashes.add(state.search_state_hash)
+    return tuple(sorted(selected, key=_beam_rank))
+
+
 def _dominates(left: SearchState, right: SearchState) -> bool:
     left_values = (
         left.surviving_root_observations,
@@ -100,9 +134,8 @@ def beam_search_v2(
         if not unique:
             beam = ()
             break
-        ranked = tuple(sorted(unique, key=_beam_rank))
-        pruned += max(0, len(ranked) - beam_width)
-        beam = ranked[:beam_width]
+        pruned += max(0, len(unique) - beam_width)
+        beam = _prune_diverse(unique, beam_width)
     states = _deduplicate(beam)
     frontier = _frontier(states)
     payload = {
