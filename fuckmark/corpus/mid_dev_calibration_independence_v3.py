@@ -7,7 +7,7 @@ from enum import Enum
 from .._validation import require_clean_string, require_int, require_sha256
 from ..hashing import sha256_json
 from .sample import CorpusSample
-from .schema import MAX_GENERATION_SEED, WatermarkLabel
+from .schema import CorpusSplit, KeySplit, MAX_GENERATION_SEED, WatermarkLabel
 from .mid_dev_calibration_shards import CalibrationRole
 
 
@@ -74,6 +74,10 @@ class CalibrationIndependenceV3Candidate:
             raise TypeError("sample must be CorpusSample")
         if sample.label is not WatermarkLabel.UNWATERMARKED:
             raise CalibrationIndependenceV3Error("calibration candidates must be unwatermarked")
+        if sample.split is not CorpusSplit.THRESHOLD_CALIBRATION:
+            raise CalibrationIndependenceV3Error("calibration candidates must use the threshold-calibration split")
+        if sample.watermark.key_split is not KeySplit.DEV:
+            raise CalibrationIndependenceV3Error("calibration candidates must use DEV_KEYS")
         return cls(
             role=role,
             prompt_id=sample.prompt_id,
