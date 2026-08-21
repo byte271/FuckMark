@@ -1,0 +1,231 @@
+name: Diverse Beam Real-Corpus A/B
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/diverse-beam-real-corpus.yml"
+      - "requirements-smoke.txt"
+      - "requirements-tokenizer.txt"
+      - "fuckmark/diverse_beam_*.py"
+      - "fuckmark/experiments/diverse_beam_*.py"
+      - "fuckmark/geometry/**"
+      - "fuckmark/scheduling/**"
+      - "fuckmark/transforms/**"
+      - "tests/diverse_beam_helpers.py"
+      - "tests/test_diverse_beam_*.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  MODEL_ID: openai-community/gpt2
+  MODEL_REVISION: 607a30d783dfa663caf39e06633721c8d4cfcd7e
+  SOURCE_CODE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  preflight:
+    name: Freeze experiment matrices
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      generation_matrix: ${{ steps.matrix.outputs.generation_matrix }}
+      search_matrix: ${{ steps.matrix.outputs.search_matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - run: >-
+          python -m pytest
+          tests/test_diverse_beam_corpus.py
+          tests/test_diverse_beam_ab.py
+          tests/test_repository_hygiene.py
+      - id: matrix
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          print("generation_matrix=" + json.dumps({"shard": list(range(32))}, separators=(",", ":")))
+          print("search_matrix=" + json.dumps({"shard": list(range(64))}, separators=(",", ":")))
+          PY
+
+  generate:
+    name: Generate watermarked shard ${{ matrix.shard }}
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 16
+      matrix: ${{ fromJSON(needs.preflight.outputs.generation_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-smoke.txt
+      - run: python -m pip install --upgrade pip && python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install frozen Transformers runtime
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Generate detector-independent attack-development samples
+        run: >-
+          python -m fuckmark.diverse_beam_generate_hf
+          --model "$MODEL_ID"
+          --model-revision "$MODEL_REVISION"
+          --device cpu
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --shard-index "${{ matrix.shard }}"
+          --shard-count 32
+          --source-code-commit "$SOURCE_CODE_COMMIT"
+          --json "generation-artifacts/diverse-beam-generation-${{ matrix.shard }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diverse-beam-generation-${{ matrix.shard }}
+          path: generation-artifacts/
+          if-no-files-found: error
+          retention-days: 90
+
+  freeze-corpus:
+    name: Deduplicate and freeze 500 samples
+    needs: generate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip && python -m pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: diverse-beam-generation-*
+          path: generation-shards
+          merge-multiple: true
+      - name: Freeze corpus before either search strategy runs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p corpus-artifact/generation-shards
+          cp generation-shards/*.json corpus-artifact/generation-shards/
+          python -m fuckmark.diverse_beam_corpus_freeze \
+            --shard-dir generation-shards \
+            --json corpus-artifact/diverse-beam-frozen-corpus.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diverse-beam-frozen-corpus
+          path: corpus-artifact/
+          if-no-files-found: error
+          retention-days: 90
+
+  search:
+    name: Run matched search shard ${{ matrix.shard }}
+    needs: [preflight, freeze-corpus]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix: ${{ fromJSON(needs.preflight.outputs.search_matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-tokenizer.txt
+      - run: python -m pip install --upgrade pip && python -m pip install -e .
+      - name: Install tokenizer-only runtime
+        run: python -m pip install -r requirements-tokenizer.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: diverse-beam-frozen-corpus
+          path: corpus-artifact
+      - name: Run both detector-blind pruning strategies and replay them
+        run: >-
+          python -m fuckmark.diverse_beam_search_hf
+          --corpus-json corpus-artifact/diverse-beam-frozen-corpus.json
+          --model "$MODEL_ID"
+          --model-revision "$MODEL_REVISION"
+          --shard-index "${{ matrix.shard }}"
+          --shard-count 64
+          --source-code-commit "$SOURCE_CODE_COMMIT"
+          --json "search-artifacts/diverse-beam-search-${{ matrix.shard }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diverse-beam-search-${{ matrix.shard }}
+          path: search-artifacts/
+          if-no-files-found: error
+          retention-days: 90
+
+  analyze:
+    name: Apply frozen promotion rule
+    needs: search
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip && python -m pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          name: diverse-beam-frozen-corpus
+          path: corpus-artifact
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: diverse-beam-search-*
+          path: search-shards
+          merge-multiple: true
+      - name: Analyze every matched sample and budget cell
+        run: >-
+          python -m fuckmark.diverse_beam_analyze
+          --corpus-json corpus-artifact/diverse-beam-frozen-corpus.json
+          --shard-dir search-shards
+          --json analysis-artifacts/diverse-beam-analysis.json
+      - name: Freeze evidence checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          find corpus-artifact search-shards analysis-artifacts -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > analysis-artifacts/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: diverse-beam-real-corpus-evidence
+          path: |
+            corpus-artifact/
+            search-shards/
+            analysis-artifacts/
+          if-no-files-found: error
+          retention-days: 90
