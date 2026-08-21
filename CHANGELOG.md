@@ -4,6 +4,13 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added `development-durable-surface-rules-v1` with seven reversible development pairs: grammar-guarded perfect auxiliaries, ASCII/Unicode ellipses, and Markdown unordered and ordered list-marker variants.
+- Classified Markdown marker variants as tier-0 format edits and the remaining durable variants as tier-1 surface edits, with protected-span rejection, explicit inverse semantic-site resolution, deterministic replay, and content-addressed rule and pair identities.
+- Deliberately excluded ambiguous `let us` to `let's` conversion and left every new rule outside the default, existing development, context-survival, and release registries.
+- Added `durable-portfolio-comparison-v1` with strict baseline-row preservation, rule attribution, nested arithmetic and decision replay, a frozen 10% independent-N4 opportunity gate, zero-loss exact-budget comparison, and unconditional fidelity blocking for release promotion.
+- Added the `Durable Portfolio Real-Corpus Gate` workflow, which runs matched baseline and portfolio normalization benchmarks against the same frozen 500-sample corpus and uploads both source artifacts, the comparison, and checksums.
+- Measured a strict local real-corpus gain of 195 invariant-safe N4-surviving candidates, raising independent N4 opportunity from 545 to 740 and exact-budget reachability from 231/127/40/16 to 266/157/62/28 samples at B1/B2/B4/B6 with 99 matched gains and zero losses.
+- Kept survival-aware scheduling blocked because portfolio N4 B2 reachability is 157/500, below the frozen 50% prerequisite, and kept all 14 rules development-only because source-grounded fidelity evidence is not provided.
 - Added `normalization-survival-benchmark-v1` over the frozen 500-sample Diverse Beam corpus with preregistered N0 identity, N1 horizontal-whitespace, N2 LF line-ending, N3 NFC, and N4 copy/paste-whitespace profiles.
 - Added candidate/profile provenance rows, invariant-aware survivor counts, family/rule survival rates, and replay-verified B1/B2/B4/B6 normalization-surviving witnesses without detector or watermark-secret access.
 - Added deterministic fail-closed handling for expected single-candidate and combined hard-invariant rejection while retaining fatal registry replay and artifact-consistency failures.

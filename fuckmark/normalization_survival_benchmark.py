@@ -11,7 +11,7 @@ from .experiments.normalization_survival import (
     load_normalization_survival_benchmark,
 )
 from .transforms.contractions import context_survival_contraction_rules
-from .transforms.registry import TransformRegistry
+from .transforms.registry import TransformRegistry, durable_portfolio_transform_registry
 from .transforms.surface_rules import development_surface_rules
 
 
@@ -20,6 +20,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--corpus-json", type=Path, required=True)
     parser.add_argument("--source-code-commit", required=True)
     parser.add_argument("--source-workflow-run-id", type=int, required=True)
+    parser.add_argument(
+        "--registry",
+        choices=("context-baseline", "durable-portfolio"),
+        default="context-baseline",
+    )
     parser.add_argument("--json", type=Path, required=True)
     return parser
 
@@ -27,8 +32,12 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     corpus = load_diverse_beam_frozen_corpus(args.corpus_json)
-    registry = TransformRegistry(
-        (*context_survival_contraction_rules(), *development_surface_rules())
+    registry = (
+        durable_portfolio_transform_registry()
+        if args.registry == "durable-portfolio"
+        else TransformRegistry(
+            (*context_survival_contraction_rules(), *development_surface_rules())
+        )
     )
     benchmark = build_normalization_survival_benchmark(
         corpus,
@@ -42,6 +51,7 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.write(f"artifact_hash={benchmark['artifact_hash']}\n")
     sys.stdout.write(f"source_sample_count={benchmark['source_sample_count']}\n")
     sys.stdout.write(f"candidate_row_count={benchmark['candidate_row_count']}\n")
+    sys.stdout.write(f"registry={args.registry}\n")
     sys.stdout.write(
         f"n4_b2_reachable_sample_count={conclusions['n4_b2_reachable_sample_count']}\n"
     )

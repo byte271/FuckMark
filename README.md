@@ -78,6 +78,8 @@ The release CLI remains limited to the release transform registry. The mechanism
 | --- | --- | --- |
 | Surface catalog | `development-surface-rules-v4` | 35 reversible tier-1 spacing rules, including additional function-word and sentence-punctuation sites |
 | Context contractions | ruleset hash over 40 forward/reverse rules | Adds reversible `I am`, `you are`, `we are`, `they are`, and `must not` forms that survive whitespace normalization |
+| Durable portfolio | `development-durable-surface-rules-v1` | Adds 14 reversible development rules for guarded perfect auxiliaries, ellipses, and Markdown list markers without changing any existing registry |
+| Durable comparison | `durable-portfolio-comparison-v1` | Replays a matched baseline/portfolio comparison and blocks release promotion when fidelity evidence is absent |
 | Baseline invariant screen | `context-survival-baseline-invariant-screen-v1` | Hashes every individual hard-invariant decision and excludes expected invalid candidates before baseline scheduling |
 | Diverse Beam | `context-survival-diverse-beam-v1` | Preserves ranked elites, reserves capacity for distinct root-edit branches, and retains exact-depth output semantics |
 | TinyDev context plan | `tiny-dev-context-survival-plan-v3` | Uses the invariant-screened baseline pool and the separately versioned diverse Beam strategy |
@@ -134,6 +136,43 @@ python -m fuckmark.normalization_survival_benchmark \
 python -m pytest tests/test_normalization_survival.py tests/test_repository_hygiene.py
 ```
 
+### Development durable portfolio gate
+
+The `Durable Portfolio Real-Corpus Gate` workflow compares the frozen context baseline with the separate `durable_portfolio_transform_registry()`. Existing default, development, context-survival, and release registries are unchanged. The new catalog contains seven reversible pairs: four perfect-auxiliary pairs (`I have`, `you have`, `we have`, and `they have`) guarded by frozen participle and optional-adverb allowlists; ASCII/Unicode ellipses; Markdown unordered-list markers; and Markdown single-digit ordered-list delimiters. Markdown marker changes are tier-0 format rules; the other rules are tier-1 surface rules. Ambiguous `let us` to `let's` conversion was deliberately excluded.
+
+Every rule has a distinct ID and content hash. Enumeration applies protected-span and grammar preconditions before candidacy, application replays the complete registry, and the comparison requires every baseline candidate/profile row to remain present. Its development success gate requires at least a 10% gain in independent N4 opportunities, at least one matched exact-budget gain, zero matched losses, zero new invariant rejection, complete normalization survival for every observed new rule, and no detector or watermark-secret access. Nested counts, decisions, rule declarations, release status, and the final artifact hash are replay-validated.
+
+A strict local matched replay over the 500 frozen samples measured 25,795 baseline and 25,990 portfolio candidates. Invariant-safe counts rose from 25,774 to 25,969. Independent N4-surviving opportunity rose from 545 to 740, a 35.78% relative gain. The portfolio added 195 candidates: 48 guarded perfect-auxiliary forms and 147 punctuation/format forms. All 195 were invariant-safe and survived N4. Matched exact-budget reachability rose from 231 to 266 samples at B1, 127 to 157 at B2, 40 to 62 at B4, and 16 to 28 at B6, for 99 gains and zero losses across the four cells. The development decision was `MATERIAL_DURABLE_OPPORTUNITY_INCREASE`.
+
+This result is opportunity evidence, not detector evidence. All 14 new rules remain development-only with `source_grounded_fidelity_status=NOT_PROVIDED`; the release decision is `DEVELOPMENT_ONLY_FIDELITY_EVIDENCE_REQUIRED`. N4 B2 reachability is 31.4%, still below the frozen 50% prerequisite, so survival-aware scheduling remains blocked. The workflow-bound artifact is pending.
+
+After obtaining the frozen corpus artifact, reproduce the matched gate with:
+
+```text
+python -m fuckmark.normalization_survival_benchmark \
+  --corpus-json artifacts/diverse-beam-frozen-corpus.json \
+  --source-code-commit "$(git rev-parse HEAD)" \
+  --source-workflow-run-id 32504847438 \
+  --registry context-baseline \
+  --json artifacts/baseline-normalization-survival.json
+python -m fuckmark.normalization_survival_benchmark \
+  --corpus-json artifacts/diverse-beam-frozen-corpus.json \
+  --source-code-commit "$(git rev-parse HEAD)" \
+  --source-workflow-run-id 32504847438 \
+  --registry durable-portfolio \
+  --json artifacts/portfolio-normalization-survival.json
+python -m fuckmark.durable_portfolio_analyze \
+  --baseline-json artifacts/baseline-normalization-survival.json \
+  --portfolio-json artifacts/portfolio-normalization-survival.json \
+  --json artifacts/durable-portfolio-comparison.json \
+  --require-success
+python -m pytest \
+  tests/test_durable_surface_rules.py \
+  tests/test_durable_portfolio.py \
+  tests/test_normalization_survival.py \
+  tests/test_repository_hygiene.py
+```
+
 Run the local validation layers with:
 
 ```text
@@ -142,7 +181,7 @@ python -m pytest tests/test_repository_hygiene.py tests/test_beam_v2.py tests/te
 python -m fuckmark.tiny_dev_transformability --corpus-json artifacts/tiny-dev-corpus.json --json artifacts/tiny-dev-transformability.json
 ```
 
-The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real TinyDev Transformability`, `Real TinyDev Transform Evidence`, `Real TinyDev Extended Transform Evidence`, and `Real TinyDev Context-Survival Mechanism Pilot`.
+The corresponding GitHub workflows are `CI`, `Diverse Beam Real-Corpus A/B`, `Normalization Survival Benchmark`, `Durable Portfolio Real-Corpus Gate`, `MidDev Full Matrix Gate`, `Real TinyDev Transformability`, `Real TinyDev Transform Evidence`, `Real TinyDev Extended Transform Evidence`, and `Real TinyDev Context-Survival Mechanism Pilot`.
 
 ## Current foundation
 
@@ -198,5 +237,7 @@ The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real Ti
 50. Separately versioned root-branch-diverse Beam search without changing frozen Beam v2 semantics
 51. Canonical cross-platform environment capture with legacy v1 snapshot compatibility
 52. Five-profile normalization-survival measurement with candidate-level provenance and replay-verified exact-budget witnesses
+53. Separately versioned guarded perfect-auxiliary, ellipsis, and Markdown-marker development rules with inverse semantic-site resolution
+54. Matched durable-portfolio evidence with baseline-row preservation, nested replay validation, and mandatory fidelity blocking
 
 Python source is English-only and contains no comments or docstrings.

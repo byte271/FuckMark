@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from .._validation import require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
+from .durable_rules import DurableSurfaceRule, development_durable_surface_rules
 from .hard_invariants import validate_hard_invariants
 from .lexical_audit import LexicalRuleAudit, LexicalRulePromotionError
 from .lexical_rules import LexicalTemplateRule, development_lexical_rules
@@ -103,7 +104,10 @@ class TransformRegistry:
                 if rule.block_all_caps and letters and letters.isupper():
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.ALL_CAPS_BLOCKED))
                     continue
-                if isinstance(rule, (LexicalTemplateRule, SyntaxTemplateRule)) and not rule.precondition(text, start, end):
+                if isinstance(
+                    rule,
+                    (DurableSurfaceRule, LexicalTemplateRule, SyntaxTemplateRule),
+                ) and not rule.precondition(text, start, end):
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.PRECONDITION_FAILED))
                     continue
                 replacement = rule.replacement
@@ -191,6 +195,21 @@ def default_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegi
 
 def development_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegistry:
     return TransformRegistry((*default_contraction_rules(), *development_surface_rules(), *development_lexical_rules(), *development_syntax_rules()), identifiers)
+
+
+def durable_portfolio_transform_registry(
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    from .contractions import context_survival_contraction_rules
+
+    return TransformRegistry(
+        (
+            *context_survival_contraction_rules(),
+            *development_surface_rules(),
+            *development_durable_surface_rules(),
+        ),
+        identifiers,
+    )
 
 
 def release_transform_registry(
