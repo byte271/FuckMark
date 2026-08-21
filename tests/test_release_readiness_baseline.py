@@ -75,9 +75,14 @@ def test_release_readiness_loader_rejects_unknown_fields(tmp_path: Path) -> None
         load_release_readiness_baseline(path)
 
 
-def test_release_readiness_cli_requires_exactly_one_mode() -> None:
-    with pytest.raises(ValueError, match="exactly one"):
+def test_release_readiness_cli_requires_exactly_one_mode(capsys) -> None:
+    with pytest.raises(SystemExit) as missing:
         main(["--repository-root", str(_root())])
+    with pytest.raises(SystemExit) as conflicting:
+        main(["--json", "first.json", "--verify-json", "second.json"])
+    assert missing.value.code == 2
+    assert conflicting.value.code == 2
+    assert capsys.readouterr().err.count("usage:") == 2
 
 
 def test_baseline_source_verifier_rejects_a_different_checkout_commit(monkeypatch) -> None:
