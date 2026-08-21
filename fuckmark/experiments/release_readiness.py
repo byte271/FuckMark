@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import tomllib
 from dataclasses import dataclass
 from enum import Enum
@@ -9,7 +10,6 @@ from pathlib import Path
 
 from .._validation import require_bool, require_clean_string, require_sha256
 from ..hashing import sha256_file, sha256_json
-from ..transforms import release_transform_registry
 
 
 RELEASE_READINESS_BASELINE_ALGORITHM_VERSION = "release-readiness-baseline-v1"
@@ -258,6 +258,14 @@ def build_v010_release_readiness_baseline() -> ReleaseReadinessBaseline:
 def verify_v010_baseline_repository(root: Path) -> None:
     if not isinstance(root, Path):
         raise TypeError("root must be a Path")
+    if Path(_git_stdout(root, "rev-parse", "--show-toplevel")).resolve() != root.resolve():
+        raise ValueError("repository-root must name the Git worktree root")
+    if _git_stdout(root, "status", "--porcelain=v1", "--untracked-files=all"):
+        raise ValueError("baseline repository worktree is not clean")
+    if _git_stdout(root, "rev-parse", "HEAD") != V010_BASELINE_COMMIT:
+        raise ValueError("baseline repository commit drifted")
+    if _git_stdout(root, "rev-parse", "HEAD^{tree}") != V010_BASELINE_TREE:
+        raise ValueError("baseline repository tree drifted")
     expected_hashes = {
         "uv.lock": V010_BASELINE_UV_LOCK_HASH,
         "spec.md": V010_BASELINE_SPEC_HASH,
@@ -267,17 +275,25 @@ def verify_v010_baseline_repository(root: Path) -> None:
     for relative, expected in expected_hashes.items():
         if sha256_file(root / relative) != expected:
             raise ValueError(f"baseline file drifted: {relative}")
-    registry = release_transform_registry()
-    if registry.ruleset_hash != V010_RELEASE_RULESET_HASH:
-        raise ValueError("release registry hash drifted from the frozen baseline")
-    if tuple(rule.rule_id for rule in registry.rules) != V010_RELEASE_RULE_IDS:
-        raise ValueError("release registry rules drifted from the frozen baseline")
     if any((root / name).exists() for name in ("LICENSE", "LICENSE.md", "LICENSE.txt", "COPYING")):
         raise ValueError("baseline license-file absence no longer replays")
     with (root / "pyproject.toml").open("rb") as handle:
         project = tomllib.load(handle)["project"]
     if project.get("version") != "0.1.0" or "license" in project:
         raise ValueError("baseline package metadata no longer replays")
+
+
+def _git_stdout(root: Path, *args: str) -> str:
+    completed = subprocess.run(
+        ("git", "-C", str(root), *args),
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or completed.stdout.strip()
+        raise ValueError(f"baseline Git verification failed: {detail}")
+    return completed.stdout.strip()
 
 
 def _pairs(value: object, name: str) -> tuple[tuple[str, str], ...]:

@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from fuckmark.experiments import release_readiness as release_readiness_module
 from fuckmark.experiments.release_readiness import (
     FROZEN_V010_RELEASE_READINESS_BASELINE,
     RELEASE_READINESS_BASELINE_ALGORITHM_VERSION,
@@ -13,6 +14,7 @@ from fuckmark.experiments.release_readiness import (
     V010_RELEASE_RULESET_HASH,
     ReleaseGateStatus,
     load_release_readiness_baseline,
+    verify_v010_baseline_repository,
 )
 from fuckmark.release_readiness_baseline import main
 
@@ -76,3 +78,18 @@ def test_release_readiness_loader_rejects_unknown_fields(tmp_path: Path) -> None
 def test_release_readiness_cli_requires_exactly_one_mode() -> None:
     with pytest.raises(ValueError, match="exactly one"):
         main(["--repository-root", str(_root())])
+
+
+def test_baseline_source_verifier_rejects_a_different_checkout_commit(monkeypatch) -> None:
+    def git_stdout(root: Path, *args: str) -> str:
+        if args == ("rev-parse", "--show-toplevel"):
+            return str(root.resolve())
+        if args == ("status", "--porcelain=v1", "--untracked-files=all"):
+            return ""
+        if args == ("rev-parse", "HEAD"):
+            return "0" * 40
+        raise AssertionError(args)
+
+    monkeypatch.setattr(release_readiness_module, "_git_stdout", git_stdout)
+    with pytest.raises(ValueError, match="commit drifted"):
+        verify_v010_baseline_repository(_root())
