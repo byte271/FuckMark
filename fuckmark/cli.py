@@ -1,16 +1,19 @@
 from __future__ import annotations
 
+import argparse
 import shutil
 import subprocess
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TextIO
 
-from .transforms import release_transform_registry
+from . import __project_name__, __version__
+from .transforms import TRANSFORM_REGISTRY_ALGORITHM_VERSION, release_transform_registry
 
 
 CLI_TERMINATOR = "ok"
 CLI_SELECTION_SEED = 0
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v2"
 
 
 class ClipboardUnavailableError(RuntimeError):
@@ -45,6 +48,26 @@ def read_pasted_text(input_stream: TextIO, output_stream: TextIO) -> str:
             break
         lines.append(line)
     return "\n".join(lines)
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(prog=__project_name__.lower())
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=(
+            f"{__project_name__} {__version__} "
+            f"({RELEASE_CLI_ALGORITHM_VERSION}; {TRANSFORM_REGISTRY_ALGORITHM_VERSION})"
+        ),
+    )
+    parser.add_argument(
+        "--stdin",
+        "--non-interactive",
+        dest="stdin_mode",
+        action="store_true",
+        help="read all input from stdin and write only the transformed text to stdout",
+    )
+    return parser
 
 
 def _clipboard_commands() -> tuple[tuple[str, ...], ...]:
@@ -88,9 +111,32 @@ def main(
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
     clipboard_writer: Callable[[str], None] | None = None,
+    argv: Sequence[str] | None = None,
+    error_stream: TextIO | None = None,
 ) -> int:
+    parser_argv = argv
+    if parser_argv is None and any(
+        value is not None
+        for value in (input_stream, output_stream, clipboard_writer, error_stream)
+    ):
+        parser_argv = ()
+    arguments = _parser().parse_args(parser_argv)
     source = sys.stdin if input_stream is None else input_stream
     output = sys.stdout if output_stream is None else output_stream
+    errors = sys.stderr if error_stream is None else error_stream
+    if arguments.stdin_mode:
+        text = source.read()
+        if not text:
+            return 1
+        try:
+            transformed = process_text(text)
+        except Exception as error:
+            errors.write(f"Failed: {error}\n")
+            errors.flush()
+            return 1
+        output.write(transformed)
+        output.flush()
+        return 0
     writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
     text = read_pasted_text(source, output)
     if not text:

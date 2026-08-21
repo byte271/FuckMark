@@ -4,6 +4,8 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added the versioned `release-cli-v2` interface with `--version`, deterministic non-interactive `--stdin` and `--non-interactive` modes, and package repository and issue URLs. The release registry and development-only rule boundary are unchanged; release authorization remains blocked on the existing fidelity, license, and calibration gates.
+
 - Added the content-addressed `release-readiness-baseline-v1` artifact with all 26 release-program gates, exact baseline repository identities, workflow evidence, and explicit blockers.
 - Added deterministic baseline generation and replay validation plus a `Release Readiness Baseline` workflow that builds and clean-installs both wheel and sdist artifacts.
 - Recorded project licensing, package license metadata, release-engine qualification, and calibration independence as release blockers instead of inferring or weakening them.
