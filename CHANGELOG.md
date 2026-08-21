@@ -4,6 +4,9 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added the content-addressed `release-readiness-baseline-v1` artifact with all 26 release-program gates, exact baseline repository identities, workflow evidence, and explicit blockers.
+- Added deterministic baseline generation and replay validation plus a `Release Readiness Baseline` workflow that builds and clean-installs both wheel and sdist artifacts.
+- Recorded project licensing, package license metadata, release-engine qualification, and calibration independence as release blockers instead of inferring or weakening them.
 - Added `context-survival-diverse-beam-v1` as a separately versioned development search strategy while preserving the historical `context-survival-beam-v2` implementation.
 - Added deterministic root-branch diversity pruning and an exact-budget dead-end regression; real-corpus improvement over Beam v2 remains unproven.
 - Added `context-survival-baseline-invariant-screen-v1` so expected context-invalid candidates are excluded before baseline scheduling instead of crashing a complete plan.
