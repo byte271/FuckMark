@@ -4,6 +4,16 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added `context-survival-diverse-beam-v1` as a separately versioned development search strategy while preserving the historical `context-survival-beam-v2` implementation.
+- Added deterministic root-branch diversity pruning and an exact-budget dead-end regression; real-corpus improvement over Beam v2 remains unproven.
+- Added `context-survival-baseline-invariant-screen-v1` so expected context-invalid candidates are excluded before baseline scheduling instead of crashing a complete plan.
+- Bound baseline candidate pools and source diagnostics to invariant-screen hashes, accepted counts, and rejection counts while leaving programming and replay errors visible.
+- Added five reversible context-survival contraction pairs for `I am`, `you are`, `we are`, `they are`, and `must not`; candidate legality remains context-dependent and fail-closed.
+- Expanded the development-only surface catalog to `development-surface-rules-v4` with 35 reversible tier-1 rules.
+- Measured the frozen real TinyDev watermarked attack-development opportunity change from 51 to 65 raw candidates and from 51 to 64 independent candidates, with all four sources remaining transformable.
+- Added `tiny-dev-context-survival-plan-v3` to bind the invariant-screened baseline pool and diverse Beam identity without changing frozen MidDev Beam v2 semantics.
+- Added `environment-snapshot-v2`, canonicalized surrounding whitespace and empty platform metadata, and retained validation support for v1 snapshots.
+- Corrected the MidDev calibration workflow regression to assert the implemented split 80 SELECT plus 80 AUDIT matrices instead of the obsolete combined 160-job source shape.
 - Added immutable protected-span extraction for URLs, emails, IP literals, numeric values, dates, currency, percentages, code, Markdown destinations, quotations, file paths, CLI flags, citations, math, configured identifiers, and user-marked entities.
 - Added overlap-merged protected-span manifests plus hard-invariant comparison over exact protected content.
 - Added deterministic canonical negation and modality signatures so transform application fails closed if a rule changes polarity, possibility, ability, obligation, or commitment markers.

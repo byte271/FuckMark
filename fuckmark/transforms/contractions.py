@@ -105,6 +105,11 @@ def reversible_contraction_metadata() -> tuple[ReversibleContractionMetadata, ..
         ("contract-has-not", "expand-has-not", "contraction-has-not", "has not", "hasn't"),
         ("contract-have-not", "expand-have-not", "contraction-have-not", "have not", "haven't"),
         ("contract-had-not", "expand-had-not", "contraction-had-not", "had not", "hadn't"),
+        ("contract-i-am", "expand-i-am", "contraction-i-am", "I am", "I'm"),
+        ("contract-you-are", "expand-you-are", "contraction-you-are", "you are", "you're"),
+        ("contract-we-are", "expand-we-are", "contraction-we-are", "we are", "we're"),
+        ("contract-they-are", "expand-they-are", "contraction-they-are", "they are", "they're"),
+        ("contract-must-not", "expand-must-not", "contraction-must-not", "must not", "mustn't"),
     )
     return tuple(
         ReversibleContractionMetadata.create(

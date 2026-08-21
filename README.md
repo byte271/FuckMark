@@ -56,6 +56,37 @@ The runner generates matched control and watermarked continuations with the same
 
 The default report files are `artifacts/synthid-smoke.json` and `artifacts/synthid-smoke.csv`. The artifacts directory is ignored by Git. The threshold in this smoke report is descriptive and is derived only from pristine control scores. A smoke result is development evidence, not a confirmatory result and not evidence about a proprietary watermarking system.
 
+## Development transformation engine
+
+The release CLI remains limited to the release transform registry. The mechanisms below are development-only and are exercised by the TinyDev and MidDev research workflows.
+
+| Component | Current identity | Behavior |
+| --- | --- | --- |
+| Surface catalog | `development-surface-rules-v4` | 35 reversible tier-1 spacing rules, including additional function-word and sentence-punctuation sites |
+| Context contractions | ruleset hash over 40 forward/reverse rules | Adds reversible `I am`, `you are`, `we are`, `they are`, and `must not` forms that survive whitespace normalization |
+| Baseline invariant screen | `context-survival-baseline-invariant-screen-v1` | Hashes every individual hard-invariant decision and excludes expected invalid candidates before baseline scheduling |
+| Diverse Beam | `context-survival-diverse-beam-v1` | Preserves ranked elites, reserves capacity for distinct root-edit branches, and retains exact-depth output semantics |
+| TinyDev context plan | `tiny-dev-context-survival-plan-v3` | Uses the invariant-screened baseline pool and the separately versioned diverse Beam strategy |
+| Environment capture | `environment-snapshot-v2` | Canonicalizes platform metadata while continuing to accept v1 snapshots |
+
+The original `context-survival-beam-v2` function is unchanged. Frozen MidDev protocols that name Beam v2 continue to use that implementation. The diversity strategy has a distinct identity so historical evidence is not silently reinterpreted.
+
+The invariant screen is detector-blind and key-blind. It catches expected individual candidate rejection only. Invalid enumerations, validator failures, replay mismatches, multi-candidate invariant interactions, and other programming errors remain visible. A candidate can be safe in one sentence and rejected in another; for example, the current hard-invariant contract rejects `you are` to `you're` inside `you are not` because the canonical negation signatures differ.
+
+On the frozen real TinyDev attack-development watermarked sources used by the transformability workflow, surface v4 increased raw candidates from `51` to `65` and independent candidates from `51` to `64`; all four sources remained transformable. Across all eight real TinyDev attack-development sources, the combined context registry enumerated `148` root candidates and the invariant screen accepted `147`, deterministically rejecting the single context-invalid `you are not` candidate. These are opportunity and stability measurements, not detector-effectiveness claims.
+
+The diverse Beam regression proves one synthetic dead-end graph where legacy Beam v2 returns no exact-depth state and the new strategy reaches the requested depth. Real-corpus improvement over Beam v2 is not yet proven. Spacing edits remain fragile under whitespace normalization, and the additional contractions do not eliminate that limitation.
+
+Run the local validation layers with:
+
+```text
+python -m pytest
+python -m pytest tests/test_repository_hygiene.py tests/test_beam_v2.py tests/test_context_survival_plan_v2.py
+python -m fuckmark.tiny_dev_transformability --corpus-json artifacts/tiny-dev-corpus.json --json artifacts/tiny-dev-transformability.json
+```
+
+The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real TinyDev Transformability`, `Real TinyDev Transform Evidence`, `Real TinyDev Extended Transform Evidence`, and `Real TinyDev Context-Survival Mechanism Pilot`.
+
 ## Current foundation
 
 1. Canonical serialization
@@ -105,5 +136,9 @@ The default report files are `artifacts/synthid-smoke.json` and `artifacts/synth
 45. Explicit-candidate application with independent enumeration replay, exact operation geometry, immutable traces, and deterministic byte-identical replay
 46. Canonical negation and modality signatures that make hard-invariant validation reject semantic polarity or obligation changes
 47. Transform dependency isolation with no detector, watermark-key, network, model, or neural inference access in the transform package
+48. Development-only surface v4 and normalization-surviving contraction opportunity catalogs
+49. Deterministic invariant-aware baseline scheduling with content-addressed rejection evidence
+50. Separately versioned root-branch-diverse Beam search without changing frozen Beam v2 semantics
+51. Canonical cross-platform environment capture with legacy v1 snapshot compatibility
 
 Python source is English-only and contains no comments or docstrings.

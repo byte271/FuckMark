@@ -13,7 +13,12 @@ from .hashing import sha256_json
 from .types import RunIdentity
 
 
-ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION = "environment-snapshot-v1"
+ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION = "environment-snapshot-v1"
+ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION = "environment-snapshot-v2"
+ENVIRONMENT_SNAPSHOT_SUPPORTED_VERSIONS = (
+    ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION,
+    ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION,
+)
 RUN_MANIFEST_ALGORITHM_VERSION = "run-manifest-v1"
 _UTC_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
@@ -45,7 +50,7 @@ class EnvironmentSnapshot:
 
     def __post_init__(self) -> None:
         require_clean_string("algorithm_version", self.algorithm_version)
-        if self.algorithm_version != ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION:
+        if self.algorithm_version not in ENVIRONMENT_SNAPSHOT_SUPPORTED_VERSIONS:
             raise ValueError("unsupported environment snapshot algorithm version")
         for name, value in (
             ("python_implementation", self.python_implementation),
@@ -210,18 +215,23 @@ def _installed_libraries() -> tuple[EnvironmentLibrary, ...]:
     return tuple(sorted(by_name.values(), key=lambda value: (value.name.casefold(), value.name, value.version)))
 
 
+def _platform_value(value: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError("platform metadata must be a string")
+    return value.strip() or "UNKNOWN"
+
+
 def capture_environment() -> EnvironmentSnapshot:
-    processor = platform.processor().strip() or "UNKNOWN"
     payload = {
         "algorithm_version": ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION,
-        "python_implementation": platform.python_implementation(),
-        "python_version": platform.python_version(),
-        "python_compiler": platform.python_compiler(),
-        "platform_system": platform.system(),
-        "platform_release": platform.release(),
-        "platform_version": platform.version(),
-        "platform_machine": platform.machine(),
-        "platform_processor": processor,
+        "python_implementation": _platform_value(platform.python_implementation()),
+        "python_version": _platform_value(platform.python_version()),
+        "python_compiler": _platform_value(platform.python_compiler()),
+        "platform_system": _platform_value(platform.system()),
+        "platform_release": _platform_value(platform.release()),
+        "platform_version": _platform_value(platform.version()),
+        "platform_machine": _platform_value(platform.machine()),
+        "platform_processor": _platform_value(platform.processor()),
         "cpu_count": os.cpu_count(),
         "libraries": _installed_libraries(),
     }

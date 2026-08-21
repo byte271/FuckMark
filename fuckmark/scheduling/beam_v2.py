@@ -4,7 +4,10 @@ from collections.abc import Sequence
 
 from .._validation import require_int
 from ..hashing import sha256_json
-from .algorithm_ids import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
+from .algorithm_ids import (
+    CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION,
+    CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION,
+)
 from .state_search import SearchResult, SearchState, StateExpander
 
 
@@ -39,6 +42,44 @@ def _deduplicate(states: Sequence[SearchState]) -> tuple[SearchState, ...]:
         if existing is None or _duplicate_rank(state) < _duplicate_rank(existing):
             by_text_hash[state.text_hash] = state
     return tuple(sorted(by_text_hash.values(), key=_beam_rank))
+
+
+def _branch_key(state: SearchState) -> str:
+    if state.operation_hashes:
+        return state.operation_hashes[0]
+    return state.text_hash
+
+
+def _prune_ranked(states: Sequence[SearchState], beam_width: int) -> tuple[SearchState, ...]:
+    return tuple(sorted(_deduplicate(states), key=_beam_rank))[:beam_width]
+
+
+def _prune_diverse(states: Sequence[SearchState], beam_width: int) -> tuple[SearchState, ...]:
+    ranked = tuple(sorted(_deduplicate(states), key=_beam_rank))
+    if len(ranked) <= beam_width:
+        return ranked
+    elite_count = max(1, beam_width // 2)
+    selected = list(ranked[:elite_count])
+    selected_hashes = {state.search_state_hash for state in selected}
+    branch_keys = {_branch_key(state) for state in selected}
+    for state in ranked[elite_count:]:
+        if len(selected) >= beam_width:
+            break
+        branch_key = _branch_key(state)
+        if branch_key in branch_keys:
+            continue
+        selected.append(state)
+        selected_hashes.add(state.search_state_hash)
+        branch_keys.add(branch_key)
+    if len(selected) < beam_width:
+        for state in ranked:
+            if len(selected) >= beam_width:
+                break
+            if state.search_state_hash in selected_hashes:
+                continue
+            selected.append(state)
+            selected_hashes.add(state.search_state_hash)
+    return tuple(sorted(selected, key=_beam_rank))
 
 
 def _dominates(left: SearchState, right: SearchState) -> bool:
@@ -76,11 +117,13 @@ def _frontier(states: Sequence[SearchState]) -> tuple[SearchState, ...]:
     return tuple(sorted(output, key=_beam_rank))
 
 
-def beam_search_v2(
+def _beam_search(
     expander: StateExpander,
     root: SearchState,
     budget: int,
     beam_width: int,
+    algorithm_version: str,
+    diverse: bool,
 ) -> SearchResult:
     require_int("budget", budget)
     require_int("beam_width", beam_width)
@@ -100,13 +143,12 @@ def beam_search_v2(
         if not unique:
             beam = ()
             break
-        ranked = tuple(sorted(unique, key=_beam_rank))
-        pruned += max(0, len(ranked) - beam_width)
-        beam = ranked[:beam_width]
+        pruned += max(0, len(unique) - beam_width)
+        beam = _prune_diverse(unique, beam_width) if diverse else _prune_ranked(unique, beam_width)
     states = _deduplicate(beam)
     frontier = _frontier(states)
     payload = {
-        "algorithm_version": CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION,
+        "algorithm_version": algorithm_version,
         "root_state_hash": root.search_state_hash,
         "budget": budget,
         "state_hashes": tuple(value.search_state_hash for value in states),
@@ -117,7 +159,7 @@ def beam_search_v2(
         "secret_access_observed": expander.secret_access_observed,
     }
     return SearchResult(
-        algorithm_version=CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION,
+        algorithm_version=algorithm_version,
         root_state_hash=root.search_state_hash,
         budget=budget,
         states=states,
@@ -127,4 +169,36 @@ def beam_search_v2(
         detector_access_observed=expander.detector_access_observed,
         secret_access_observed=expander.secret_access_observed,
         result_hash=sha256_json(payload),
+    )
+
+
+def beam_search_v2(
+    expander: StateExpander,
+    root: SearchState,
+    budget: int,
+    beam_width: int,
+) -> SearchResult:
+    return _beam_search(
+        expander,
+        root,
+        budget,
+        beam_width,
+        CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION,
+        False,
+    )
+
+
+def diverse_beam_search(
+    expander: StateExpander,
+    root: SearchState,
+    budget: int,
+    beam_width: int,
+) -> SearchResult:
+    return _beam_search(
+        expander,
+        root,
+        budget,
+        beam_width,
+        CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION,
+        True,
     )

@@ -10,18 +10,22 @@ from ..hashing import derive_seed, sha256_json, sha256_text
 from ..scheduling.context_survival import ContextSurvivalExpander
 from ..scheduling.state_search import SearchResult, SearchState, beam_search, exact_b1, exact_b2, greedy_search
 from ..transforms import (
+    CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
     CandidateScheduler,
+    InvariantStatus,
     KeyBlindScheduleInput,
     ScheduleGeometryMode,
     SchedulePolicy,
     TransformRegistry,
     build_candidate_tokenizer_geometry,
+    validate_hard_invariants,
 )
 from ..transforms.contractions import context_survival_contraction_rules, contraction_inverse_semantic_resolver
 from ..transforms.surface_rules import development_surface_rules
 
 
-TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION = "tiny-dev-context-survival-plan-v1"
+TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION = "tiny-dev-context-survival-plan-v2"
+BASELINE_INVARIANT_SCREEN_ALGORITHM_VERSION = "context-survival-baseline-invariant-screen-v1"
 STATEFUL_RANDOM_POLICY = "RANDOM_VALID"
 COVERAGE_POLICY = "COVERAGE_GREEDY_KEY_BLIND"
 EVEN_SPACING_POLICY = "EVEN_SPACING"
@@ -111,6 +115,88 @@ def _encode_with_offsets(tokenizer: Any, sample: Any) -> tuple[tuple[int, ...], 
 
 def _context_registry() -> TransformRegistry:
     return TransformRegistry((*context_survival_contraction_rules(), *development_surface_rules()))
+
+
+def _baseline_invariant_screen(registry: TransformRegistry, enumeration: Any) -> dict[str, object]:
+    rows = []
+    safe_candidate_ids = []
+    rejected_candidate_ids = []
+    for candidate in enumeration.candidates:
+        output_text = (
+            enumeration.input_text[:candidate.start]
+            + candidate.replacement_text
+            + enumeration.input_text[candidate.end:]
+        )
+        report = validate_hard_invariants(
+            enumeration.input_text,
+            output_text,
+            registry.identifiers,
+            enumeration.protected_manifest.user_ranges,
+        )
+        if report.status is InvariantStatus.PASS:
+            safe_candidate_ids.append(candidate.candidate_id)
+        else:
+            rejected_candidate_ids.append(candidate.candidate_id)
+        rows.append(
+            {
+                "candidate_id": candidate.candidate_id,
+                "status": report.status.value,
+                "report_hash": report.report_hash,
+            }
+        )
+    payload = {
+        "algorithm_version": BASELINE_INVARIANT_SCREEN_ALGORITHM_VERSION,
+        "enumeration_hash": enumeration.enumeration_hash,
+        "candidate_results": tuple(rows),
+    }
+    return {
+        **payload,
+        "safe_candidate_ids": tuple(safe_candidate_ids),
+        "rejected_candidate_ids": tuple(rejected_candidate_ids),
+        "screen_hash": sha256_json(payload),
+    }
+
+
+def _filter_scheduler_input(
+    scheduler_input: KeyBlindScheduleInput,
+    candidate_ids: Sequence[str],
+) -> KeyBlindScheduleInput:
+    allowed = tuple(candidate_ids)
+    if len(set(allowed)) != len(allowed):
+        raise ValueError("filtered scheduler candidate IDs must be unique")
+    available = {candidate.candidate_id for candidate in scheduler_input.candidates}
+    if not set(allowed) <= available:
+        raise ValueError("filtered scheduler candidate IDs must belong to the scheduler input")
+    allowed_set = set(allowed)
+    candidates = tuple(
+        candidate
+        for candidate in scheduler_input.candidates
+        if candidate.candidate_id in allowed_set
+    )
+    conflicts = tuple(
+        (first, second)
+        for first, second in scheduler_input.conflicts
+        if first in allowed_set and second in allowed_set
+    )
+    payload = {
+        "algorithm_version": CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
+        "input_hash": scheduler_input.input_hash,
+        "enumeration_hash": scheduler_input.enumeration_hash,
+        "budget_unit": scheduler_input.budget_unit,
+        "geometry_mode": scheduler_input.geometry_mode.value,
+        "candidates": candidates,
+        "conflicts": conflicts,
+    }
+    return KeyBlindScheduleInput(
+        CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
+        scheduler_input.input_hash,
+        scheduler_input.enumeration_hash,
+        scheduler_input.budget_unit,
+        scheduler_input.geometry_mode,
+        candidates,
+        conflicts,
+        sha256_json(payload),
+    )
 
 
 def _state_rank(state: SearchState) -> tuple[object, ...]:
@@ -418,6 +504,11 @@ def build_context_survival_plan(
             budget_unit="operation",
             geometry_mode=ScheduleGeometryMode.TOKENIZER_AWARE_PUBLIC,
         )
+        baseline_screen = _baseline_invariant_screen(registry, enumeration)
+        baseline_scheduler_input = _filter_scheduler_input(
+            scheduler_input,
+            baseline_screen["safe_candidate_ids"],
+        )
         repetition_report = repetition.evaluate(token_ids)
         candidate_pool_hash = sha256_json(
             {
@@ -428,17 +519,27 @@ def build_context_survival_plan(
                 "repetition_policy_hash": repetition.policy_hash,
             }
         )
+        baseline_candidate_pool_hash = sha256_json(
+            {
+                "candidate_pool_hash": candidate_pool_hash,
+                "baseline_invariant_screen_hash": baseline_screen["screen_hash"],
+            }
+        )
         root_transitions = expander.expand(root_state)
         source_diagnostic = {
             "sample_id": source.sample_id,
             "label": source.label.value,
             "domain": source.domain.value,
             "candidate_count": len(enumeration.candidates),
+            "baseline_safe_candidate_count": len(baseline_screen["safe_candidate_ids"]),
+            "baseline_invariant_rejection_count": len(baseline_screen["rejected_candidate_ids"]),
+            "baseline_invariant_screen_hash": baseline_screen["screen_hash"],
             "stateful_root_transition_count": len(root_transitions),
             "enumeration_hash": enumeration.enumeration_hash,
             "tokenizer_geometry_hash": tokenizer_geometry.geometry_hash,
             "scheduler_input_hash": scheduler_input.input_artifact_hash,
             "candidate_pool_hash": candidate_pool_hash,
+            "baseline_candidate_pool_hash": baseline_candidate_pool_hash,
             "root_state_hash": root_state.search_state_hash,
             "root_eligible_observation_count": root_state.surviving_root_observations,
             "root_repeated_context_count": repetition_report.repeated_count,
@@ -473,8 +574,8 @@ def build_context_survival_plan(
                         root=root,
                         root_state=root_state,
                         enumeration=enumeration,
-                        scheduler_input=scheduler_input,
-                        candidate_pool_hash=candidate_pool_hash,
+                        scheduler_input=baseline_scheduler_input,
+                        candidate_pool_hash=baseline_candidate_pool_hash,
                         source=source,
                         policy=baseline_policy,
                         budget=budget,
@@ -560,6 +661,7 @@ def build_context_survival_plan(
         "corpus_manifest_hash": corpus.manifest.manifest_hash,
         "tokenizer_identity_hash": corpus.model_identity_hash,
         "ruleset_hash": registry.ruleset_hash,
+        "baseline_invariant_screen_algorithm_version": BASELINE_INVARIANT_SCREEN_ALGORITHM_VERSION,
         "geometry_config_hash": config.config_hash,
         "public_repetition_policy_hash": repetition.policy_hash,
         "public_repetition_policy_id": repetition.policy_id,

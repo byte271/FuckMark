@@ -16,14 +16,17 @@ from .experiments.context_survival_plan import (
     DEFAULT_RANDOM_SEED_COUNT,
 )
 from .hashing import sha256_json, sha256_text
-from .scheduling.beam_v2 import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION, beam_search_v2
+from .scheduling.beam_v2 import (
+    CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION,
+    diverse_beam_search,
+)
 
 
 DEFAULT_MODEL_ID = "openai-community/gpt2"
 DEFAULT_MODEL_REVISION = "607a30d783dfa663caf39e06633721c8d4cfcd7e"
 DEFAULT_NGRAM_LEN = 5
 DEFAULT_CONTEXT_HISTORY_SIZE = 1024
-TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION = "tiny-dev-context-survival-plan-v2"
+TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION = "tiny-dev-context-survival-plan-v3"
 TINY_DEV_CONTEXT_SURVIVAL_PLAN_PROVENANCE_VERSION = "tiny-dev-context-survival-plan-provenance-v1"
 
 
@@ -88,7 +91,7 @@ def runtime_tokenizer_identity_public(
     )
 
 
-def _build_context_survival_plan_v2(corpus, tokenizer, **kwargs) -> dict[str, object]:
+def _build_context_survival_plan_v3(corpus, tokenizer, **kwargs) -> dict[str, object]:
     original_beam_search = context_survival_plan_module.beam_search
     original_expander = context_survival_plan_module.ContextSurvivalExpander
     observed_expanders = []
@@ -98,7 +101,7 @@ def _build_context_survival_plan_v2(corpus, tokenizer, **kwargs) -> dict[str, ob
             super().__init__(*args, **inner_kwargs)
             observed_expanders.append(self)
 
-    context_survival_plan_module.beam_search = beam_search_v2
+    context_survival_plan_module.beam_search = diverse_beam_search
     context_survival_plan_module.ContextSurvivalExpander = _ObservedExpander
     try:
         base_plan = context_survival_plan_module.build_context_survival_plan(corpus, tokenizer, **kwargs)
@@ -113,7 +116,7 @@ def _build_context_survival_plan_v2(corpus, tokenizer, **kwargs) -> dict[str, ob
         raise RuntimeError("context-survival plan access attestation is contaminated")
     payload = {key: value for key, value in base_plan.items() if key != "plan_hash"}
     payload["algorithm_version"] = TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION
-    payload["beam_algorithm_version"] = CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
+    payload["beam_algorithm_version"] = CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION
     payload["detector_access_observed"] = detector_access_observed
     payload["secret_access_observed"] = secret_access_observed
     payload["attested_expander_count"] = len(observed_expanders)
@@ -190,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
         raise RuntimeError("runtime tokenizer identity does not match frozen TinyDev corpus")
 
     plan_started_at = _now()
-    plan = _build_context_survival_plan_v2(
+    plan = _build_context_survival_plan_v3(
         corpus,
         tokenizer,
         ngram_len=args.ngram_len,

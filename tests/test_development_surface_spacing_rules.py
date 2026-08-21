@@ -13,12 +13,13 @@ from fuckmark.transforms import (
     release_transform_registry,
 )
 from fuckmark.transforms.rules import SURFACE_SPACING_RULE_ALGORITHM_VERSION, SurfaceSpacingRule
-from fuckmark.transforms.surface_rules import development_surface_rules
+from fuckmark.transforms.surface_rules import SURFACE_RULESET_ALGORITHM_VERSION, development_surface_rules
 
 
 def test_surface_spacing_rules_are_case_safe_tier_one_orthography() -> None:
     rules = development_surface_rules()
     assert SURFACE_SPACING_RULE_ALGORITHM_VERSION == "surface-spacing-rule-v2"
+    assert SURFACE_RULESET_ALGORITHM_VERSION == "development-surface-rules-v4"
     assert tuple(rule.rule_id for rule in rules) == (
         "surface-space-after-is",
         "surface-space-after-of",
@@ -31,7 +32,30 @@ def test_surface_spacing_rules_are_case_safe_tier_one_orthography() -> None:
         "surface-space-after-with",
         "surface-space-after-as",
         "surface-space-after-from",
+        "surface-space-after-that",
+        "surface-space-after-this",
+        "surface-space-after-was",
+        "surface-space-after-are",
+        "surface-space-after-be",
+        "surface-space-after-can",
+        "surface-space-after-will",
+        "surface-space-after-have",
+        "surface-space-after-has",
+        "surface-space-after-not",
+        "surface-space-after-but",
+        "surface-space-after-or",
+        "surface-space-after-by",
+        "surface-space-after-at",
+        "surface-space-after-it",
+        "surface-space-after-we",
+        "surface-space-after-you",
+        "surface-space-after-they",
         "surface-space-after-period",
+        "surface-space-after-comma",
+        "surface-space-after-semicolon",
+        "surface-space-after-colon",
+        "surface-space-after-question",
+        "surface-space-after-exclamation",
     )
     assert all(isinstance(rule, SurfaceSpacingRule) for rule in rules)
     assert all(rule.family is TransformFamily.ORTHOGRAPHY for rule in rules)
@@ -60,7 +84,7 @@ def test_line_end_surface_spacing_does_not_create_markdown_hard_break() -> None:
 
 def test_expanded_surface_battery_enumerates_common_function_words() -> None:
     registry = development_transform_registry()
-    text = "the and in for on with as from is of to. Safe."
+    text = "the and in for on with as from is of to that this was are be can will have has not but or by at it we you they remain. Safe."
     enumeration = registry.enumerate(text)
     ids = {candidate.rule_id for candidate in enumeration.candidates}
     assert {
@@ -74,6 +98,39 @@ def test_expanded_surface_battery_enumerates_common_function_words() -> None:
         "surface-space-after-from",
         "surface-space-after-is",
         "surface-space-after-of",
+        "surface-space-after-to",
+        "surface-space-after-that",
+        "surface-space-after-this",
+        "surface-space-after-was",
+        "surface-space-after-are",
+        "surface-space-after-be",
+        "surface-space-after-can",
+        "surface-space-after-will",
+        "surface-space-after-have",
+        "surface-space-after-has",
+        "surface-space-after-not",
+        "surface-space-after-but",
+        "surface-space-after-or",
+        "surface-space-after-by",
+        "surface-space-after-at",
+        "surface-space-after-it",
+        "surface-space-after-we",
+        "surface-space-after-you",
+        "surface-space-after-they",
+    } <= ids
+
+
+def test_expanded_surface_battery_enumerates_sentence_punctuation() -> None:
+    registry = development_transform_registry()
+    enumeration = registry.enumerate("Alpha, beta; gamma: delta? yes! Final. Done.")
+    ids = {candidate.rule_id for candidate in enumeration.candidates}
+    assert {
+        "surface-space-after-comma",
+        "surface-space-after-semicolon",
+        "surface-space-after-colon",
+        "surface-space-after-question",
+        "surface-space-after-exclamation",
+        "surface-space-after-period",
     } <= ids
 
 
