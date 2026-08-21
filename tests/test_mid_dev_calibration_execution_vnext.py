@@ -250,8 +250,10 @@ def test_large_calibration_workflow_is_manual_and_threshold_job_cannot_see_audit
     assert "source_coverage_run_id:" in source
     assert "pull_request:" not in source
     assert "push:" not in source
-    assert "candidate_shard_jobs=' + str(len(include))" in source
-    assert "assert len(include) == 160" in source
+    assert "select_matrix: ${{ steps.freeze.outputs.select_matrix }}" in source
+    assert "audit_matrix: ${{ steps.freeze.outputs.audit_matrix }}" in source
+    assert "assert len(select_include) == 80" in source
+    assert "assert len(audit_include) == 80" in source
     assert "--opportunity-audit-hash" in source
     assert "--regime-decision-hash" in source
     assert "mid_dev_calibration_compact_hf" in source

@@ -4,6 +4,7 @@ import pytest
 
 from fuckmark.environment import (
     ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION,
+    ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION,
     RUN_MANIFEST_ALGORITHM_VERSION,
     EnvironmentLibrary,
     EnvironmentSnapshot,
@@ -80,6 +81,46 @@ def test_capture_environment_is_self_validating_and_canonical() -> None:
         sorted(snapshot.libraries, key=lambda value: (value.name.casefold(), value.name, value.version))
     )
     assert snapshot.snapshot_hash == sha256_json(snapshot._payload())
+
+
+def test_capture_environment_normalizes_platform_whitespace_and_empty_values(monkeypatch) -> None:
+    monkeypatch.setattr("fuckmark.environment.platform.python_implementation", lambda: " CPython ")
+    monkeypatch.setattr("fuckmark.environment.platform.python_version", lambda: " 3.12.13 ")
+    monkeypatch.setattr("fuckmark.environment.platform.python_compiler", lambda: "Clang 22.1.3 ")
+    monkeypatch.setattr("fuckmark.environment.platform.system", lambda: " Linux ")
+    monkeypatch.setattr("fuckmark.environment.platform.release", lambda: " 6.8.0 ")
+    monkeypatch.setattr("fuckmark.environment.platform.version", lambda: " kernel ")
+    monkeypatch.setattr("fuckmark.environment.platform.machine", lambda: " x86_64 ")
+    monkeypatch.setattr("fuckmark.environment.platform.processor", lambda: " ")
+    snapshot = capture_environment()
+    assert snapshot.python_implementation == "CPython"
+    assert snapshot.python_version == "3.12.13"
+    assert snapshot.python_compiler == "Clang 22.1.3"
+    assert snapshot.platform_system == "Linux"
+    assert snapshot.platform_release == "6.8.0"
+    assert snapshot.platform_version == "kernel"
+    assert snapshot.platform_machine == "x86_64"
+    assert snapshot.platform_processor == "UNKNOWN"
+
+
+def test_environment_snapshot_accepts_legacy_v1_artifact() -> None:
+    snapshot = _environment()
+    payload = {**snapshot._payload(), "algorithm_version": ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION}
+    legacy = EnvironmentSnapshot(
+        ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION,
+        snapshot.python_implementation,
+        snapshot.python_version,
+        snapshot.python_compiler,
+        snapshot.platform_system,
+        snapshot.platform_release,
+        snapshot.platform_version,
+        snapshot.platform_machine,
+        snapshot.platform_processor,
+        snapshot.cpu_count,
+        snapshot.libraries,
+        sha256_json(payload),
+    )
+    assert legacy.algorithm_version == ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION
 
 
 def test_environment_snapshot_rejects_tampering() -> None:

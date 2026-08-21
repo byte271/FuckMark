@@ -6,13 +6,30 @@ import re
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from fuckmark.corpus import CorpusSplit, WatermarkLabel
-from fuckmark.experiments.context_survival_plan import BEAM_B4_POLICY, EXACT_B2_POLICY
+from fuckmark.experiments.context_survival_plan import (
+    BASELINE_INVARIANT_SCREEN_ALGORITHM_VERSION,
+    BEAM_B4_POLICY,
+    EXACT_B2_POLICY,
+    _baseline_invariant_screen,
+    _filter_scheduler_input,
+)
 from fuckmark.hashing import sha256_text
-from fuckmark.scheduling.beam_v2 import CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
+from fuckmark.scheduling.beam_v2 import CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION
 from fuckmark.tiny_dev_context_survival_plan_hf import (
     TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION,
-    _build_context_survival_plan_v2,
+    _build_context_survival_plan_v3,
+)
+from fuckmark.transforms import (
+    CandidateScheduler,
+    KeyBlindScheduleInput,
+    LiteralTransformRule,
+    SchedulePolicy,
+    TransformFamily,
+    TransformRegistry,
+    TransformTier,
 )
 
 
@@ -70,9 +87,9 @@ def _fake_corpus():
     return corpus, tokenizer
 
 
-def test_plan_v2_covers_exact_b2_and_beam_b4_with_dynamic_attestation() -> None:
+def test_plan_v3_covers_exact_b2_and_beam_b4_with_dynamic_attestation() -> None:
     corpus, tokenizer = _fake_corpus()
-    plan = _build_context_survival_plan_v2(
+    plan = _build_context_survival_plan_v3(
         corpus,
         tokenizer,
         ngram_len=2,
@@ -81,11 +98,11 @@ def test_plan_v2_covers_exact_b2_and_beam_b4_with_dynamic_attestation() -> None:
         random_seed_count=1,
         beam_width=2,
         max_risk_tier=1,
-        source_code_commit="test-v2-commit",
+        source_code_commit="test-v3-commit",
     )
     policies = {row["schedule_policy"] for row in plan["variants"]}
     assert plan["algorithm_version"] == TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION
-    assert plan["beam_algorithm_version"] == CONTEXT_SURVIVAL_BEAM_V2_ALGORITHM_VERSION
+    assert plan["beam_algorithm_version"] == CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION
     assert plan["attested_expander_count"] == 8
     assert plan["detector_access_observed"] is False
     assert plan["secret_access_observed"] is False
@@ -111,3 +128,71 @@ def test_detector_blind_import_audit_checks_modules_and_imported_symbols() -> No
                 names.append(node.module or "")
                 names.extend(alias.name for alias in node.names)
         assert all(not any(value in name.lower() for value in forbidden) for name in names)
+
+
+def test_baseline_screen_rejects_context_invalid_candidate_before_scheduling() -> None:
+    rules = (
+        LiteralTransformRule.create(
+            rule_id="contract-you-are",
+            version="v1",
+            family=TransformFamily.CONTRACTION,
+            tier=TransformTier.SURFACE,
+            source="you are",
+            replacement="you're",
+        ),
+        LiteralTransformRule.create(
+            rule_id="contract-do-not",
+            version="v1",
+            family=TransformFamily.CONTRACTION,
+            tier=TransformTier.SURFACE,
+            source="do not",
+            replacement="don't",
+        ),
+    )
+    registry = TransformRegistry(rules)
+    enumeration = registry.enumerate("If you are not ready, do not continue.")
+    invalid = next(value for value in enumeration.candidates if value.rule_id == "contract-you-are")
+    safe = next(value for value in enumeration.candidates if value.rule_id == "contract-do-not")
+    with pytest.raises(ValueError, match="hard content invariants"):
+        registry.apply(enumeration, (invalid.candidate_id,))
+    screen = _baseline_invariant_screen(registry, enumeration)
+    assert screen["algorithm_version"] == BASELINE_INVARIANT_SCREEN_ALGORITHM_VERSION
+    assert screen["safe_candidate_ids"] == (safe.candidate_id,)
+    assert screen["rejected_candidate_ids"] == (invalid.candidate_id,)
+    scheduler_input = _filter_scheduler_input(
+        KeyBlindScheduleInput.from_enumeration(enumeration),
+        screen["safe_candidate_ids"],
+    )
+    schedule = CandidateScheduler().schedule(
+        scheduler_input,
+        SchedulePolicy.LEFT_TO_RIGHT,
+        budget=2,
+        seed=0,
+    )
+    assert schedule.selected_candidate_ids == (safe.candidate_id,)
+    assert registry.apply(enumeration, schedule.selected_candidate_ids).output_text.endswith("don't continue.")
+
+
+def test_baseline_screen_does_not_hide_validator_programming_errors(monkeypatch) -> None:
+    import fuckmark.experiments.context_survival_plan as module
+
+    registry = TransformRegistry(
+        (
+            LiteralTransformRule.create(
+                rule_id="contract-do-not",
+                version="v1",
+                family=TransformFamily.CONTRACTION,
+                tier=TransformTier.SURFACE,
+                source="do not",
+                replacement="don't",
+            ),
+        )
+    )
+    enumeration = registry.enumerate("Do not continue.")
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("validator programming error")
+
+    monkeypatch.setattr(module, "validate_hard_invariants", fail)
+    with pytest.raises(RuntimeError, match="programming error"):
+        _baseline_invariant_screen(registry, enumeration)
