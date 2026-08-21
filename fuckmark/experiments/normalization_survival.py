@@ -22,10 +22,14 @@ from .diverse_beam_corpus import DiverseBeamFrozenCorpus
 
 NORMALIZATION_PROFILE_ALGORITHM_VERSION = "normalization-profile-v1"
 NORMALIZATION_CANDIDATE_ROW_VERSION = "normalization-candidate-survival-row-v1"
-NORMALIZATION_BUDGET_WITNESS_VERSION = "normalization-budget-witness-v1"
-NORMALIZATION_SAMPLE_PROFILE_VERSION = "normalization-sample-profile-v1"
-NORMALIZATION_SAMPLE_SUMMARY_VERSION = "normalization-sample-summary-v1"
-NORMALIZATION_SURVIVAL_BENCHMARK_VERSION = "normalization-survival-benchmark-v1"
+NORMALIZATION_BUDGET_WITNESS_LEGACY_VERSION = "normalization-budget-witness-v1"
+NORMALIZATION_BUDGET_WITNESS_VERSION = "normalization-budget-witness-v2"
+NORMALIZATION_SAMPLE_PROFILE_LEGACY_VERSION = "normalization-sample-profile-v1"
+NORMALIZATION_SAMPLE_PROFILE_VERSION = "normalization-sample-profile-v2"
+NORMALIZATION_SAMPLE_SUMMARY_LEGACY_VERSION = "normalization-sample-summary-v1"
+NORMALIZATION_SAMPLE_SUMMARY_VERSION = "normalization-sample-summary-v2"
+NORMALIZATION_SURVIVAL_BENCHMARK_LEGACY_VERSION = "normalization-survival-benchmark-v1"
+NORMALIZATION_SURVIVAL_BENCHMARK_VERSION = "normalization-survival-benchmark-v2"
 NORMALIZATION_SURVIVAL_BUDGETS = (1, 2, 4, 6)
 NORMALIZATION_DURABLE_CHOICE_MIN_FRACTION = 0.5
 NORMALIZATION_DURABLE_CHOICE_MIN_BUDGET = 2
@@ -285,7 +289,7 @@ class NormalizationSampleProfile:
     profile_hash: str
     invariant_safe_surviving_count: int
     independent_invariant_safe_surviving_count: int
-    verified_compatible_prefix_count: int
+    exact_budget_reachable_count: int
     witness_search_rejection_count: int
     witnesses: tuple[NormalizationBudgetWitness, ...]
     summary_hash: str
@@ -296,7 +300,7 @@ class NormalizationSampleProfile:
         for name in (
             "invariant_safe_surviving_count",
             "independent_invariant_safe_surviving_count",
-            "verified_compatible_prefix_count",
+            "exact_budget_reachable_count",
             "witness_search_rejection_count",
         ):
             value = getattr(self, name)
@@ -308,24 +312,24 @@ class NormalizationSampleProfile:
             > self.invariant_safe_surviving_count
         ):
             raise ValueError("independent surviving count exceeds safe surviving count")
-        if (
-            self.verified_compatible_prefix_count
-            > self.independent_invariant_safe_surviving_count
-        ):
-            raise ValueError("verified compatible count exceeds independent opportunity")
-        if self.verified_compatible_prefix_count > max(NORMALIZATION_SURVIVAL_BUDGETS):
-            raise ValueError("verified compatible prefix exceeds the benchmark budget")
+        if self.exact_budget_reachable_count > len(NORMALIZATION_SURVIVAL_BUDGETS):
+            raise ValueError("reachable exact-budget count exceeds benchmark cells")
         if not isinstance(self.witnesses, tuple) or any(
             not isinstance(value, NormalizationBudgetWitness) for value in self.witnesses
         ):
             raise TypeError("witnesses must contain NormalizationBudgetWitness values")
         if tuple(value.budget for value in self.witnesses) != NORMALIZATION_SURVIVAL_BUDGETS:
             raise ValueError("normalization sample profile budgets drifted")
-        for witness in self.witnesses:
-            if witness.reachable != (
-                self.verified_compatible_prefix_count >= witness.budget
-            ):
-                raise ValueError("normalization witness reachability disagrees with opportunity")
+        if self.exact_budget_reachable_count != sum(
+            witness.reachable for witness in self.witnesses
+        ):
+            raise ValueError("normalization exact-budget reachability accounting drifted")
+        if any(
+            witness.reachable
+            and witness.budget > self.independent_invariant_safe_surviving_count
+            for witness in self.witnesses
+        ):
+            raise ValueError("normalization witness exceeds independent opportunity")
         require_sha256("summary_hash", self.summary_hash)
         if self.summary_hash != sha256_json(self.payload()):
             raise ValueError("normalization sample profile hash mismatch")
@@ -339,7 +343,7 @@ class NormalizationSampleProfile:
             "independent_invariant_safe_surviving_count": (
                 self.independent_invariant_safe_surviving_count
             ),
-            "verified_compatible_prefix_count": self.verified_compatible_prefix_count,
+            "exact_budget_reachable_count": self.exact_budget_reachable_count,
             "witness_search_rejection_count": self.witness_search_rejection_count,
             "witnesses": tuple(value.as_dict() for value in self.witnesses),
         }
@@ -497,39 +501,30 @@ def _normalized_witness_hash(
     return sha256_text(normalized_output)
 
 
-def _verified_compatible_prefix(
-    *,
-    source_text: str,
-    registry: TransformRegistry,
-    enumeration: CandidateEnumeration,
-    profile: NormalizationProfile,
+def _maximum_nonoverlapping_suffix_count(
     candidates: Sequence[TransformCandidate],
-    invariant_cache: dict[tuple[str, ...], bool],
-) -> tuple[tuple[TransformCandidate, ...], int]:
-    selected = []
-    rejected = 0
-    for candidate in candidates:
-        trial = (*selected, candidate)
-        if (
-            _normalized_witness_hash(
-                source_text=source_text,
-                registry=registry,
-                enumeration=enumeration,
-                profile=profile,
-                candidates=trial,
-                invariant_cache=invariant_cache,
-            )
-            is None
-        ):
-            rejected += 1
+    start_index: int,
+    cursor: int,
+) -> int:
+    ordered = sorted(
+        (
+            candidate
+            for candidate in candidates[start_index:]
+            if candidate.start >= cursor
+        ),
+        key=lambda value: (value.end, value.start, value.candidate_id),
+    )
+    count = 0
+    end = cursor
+    for candidate in ordered:
+        if candidate.start < end:
             continue
-        selected.append(candidate)
-        if len(selected) == max(NORMALIZATION_SURVIVAL_BUDGETS):
-            break
-    return tuple(selected), rejected
+        count += 1
+        end = candidate.end
+    return count
 
 
-def _validated_witness(
+def _exact_budget_witness(
     *,
     source_text: str,
     registry: TransformRegistry,
@@ -538,25 +533,70 @@ def _validated_witness(
     candidates: Sequence[TransformCandidate],
     budget: int,
     invariant_cache: dict[tuple[str, ...], bool],
-) -> NormalizationBudgetWitness:
-    selected = tuple(candidates[:budget])
-    if len(selected) < budget:
-        return NormalizationBudgetWitness.create(budget=budget)
-    normalized_output_hash = _normalized_witness_hash(
-        source_text=source_text,
-        registry=registry,
-        enumeration=enumeration,
-        profile=profile,
-        candidates=selected,
-        invariant_cache=invariant_cache,
+) -> tuple[NormalizationBudgetWitness, tuple[TransformCandidate, ...], int]:
+    ordered = tuple(
+        sorted(candidates, key=lambda value: (value.start, value.end, value.candidate_id))
     )
-    if normalized_output_hash is None:
-        raise RuntimeError("verified normalization witness no longer replays")
-    return NormalizationBudgetWitness.create(
+    capacity_cache: dict[tuple[int, int], int] = {}
+    selected: list[TransformCandidate] = []
+    rejected = 0
+
+    def capacity(start_index: int, cursor: int) -> int:
+        key = (start_index, cursor)
+        value = capacity_cache.get(key)
+        if value is None:
+            value = _maximum_nonoverlapping_suffix_count(
+                ordered,
+                start_index,
+                cursor,
+            )
+            capacity_cache[key] = value
+        return value
+
+    def search(
+        start_index: int,
+        cursor: int,
+    ) -> tuple[tuple[TransformCandidate, ...], str] | None:
+        nonlocal rejected
+        remaining = budget - len(selected)
+        if remaining == 0:
+            normalized_output_hash = _normalized_witness_hash(
+                source_text=source_text,
+                registry=registry,
+                enumeration=enumeration,
+                profile=profile,
+                candidates=selected,
+                invariant_cache=invariant_cache,
+            )
+            if normalized_output_hash is None:
+                rejected += 1
+                return None
+            return tuple(selected), normalized_output_hash
+        if capacity(start_index, cursor) < remaining:
+            return None
+        for index in range(start_index, len(ordered)):
+            candidate = ordered[index]
+            if candidate.start < cursor:
+                continue
+            if capacity(index + 1, candidate.end) < remaining - 1:
+                continue
+            selected.append(candidate)
+            result = search(index + 1, candidate.end)
+            selected.pop()
+            if result is not None:
+                return result
+        return None
+
+    result = search(0, -1)
+    if result is None:
+        return NormalizationBudgetWitness.create(budget=budget), (), rejected
+    witness_candidates, normalized_output_hash = result
+    witness = NormalizationBudgetWitness.create(
         budget=budget,
-        candidate_ids=tuple(value.candidate_id for value in selected),
+        candidate_ids=tuple(value.candidate_id for value in witness_candidates),
         normalized_output_hash=normalized_output_hash,
     )
+    return witness, witness_candidates, rejected
 
 
 def benchmark_normalization_source(
@@ -634,39 +674,35 @@ def benchmark_normalization_source(
     for profile in profiles:
         surviving = tuple(surviving_by_profile[profile.profile_id])
         independent = _maximum_nonoverlapping_candidates(surviving)
-        compatible, witness_search_rejections = _verified_compatible_prefix(
-            source_text=source_text,
-            registry=registry,
-            enumeration=enumeration,
-            profile=profile,
-            candidates=independent,
-            invariant_cache=invariant_cache,
-        )
-        compatible_ids = tuple(value.candidate_id for value in compatible)
-        if compatible_ids and compatible_ids not in replayed_selections:
-            replay = registry.apply(enumeration, compatible_ids)
-            if replay.output_text != _selection_output(source_text, compatible):
-                raise RuntimeError("registry witness replay disagrees with direct application")
-            replayed_selections.add(compatible_ids)
-        witnesses = tuple(
-            _validated_witness(
+        witness_results = tuple(
+            _exact_budget_witness(
                 source_text=source_text,
                 registry=registry,
                 enumeration=enumeration,
                 profile=profile,
-                candidates=compatible,
+                candidates=surviving,
                 budget=budget,
                 invariant_cache=invariant_cache,
             )
             for budget in NORMALIZATION_SURVIVAL_BUDGETS
         )
+        witnesses = tuple(value[0] for value in witness_results)
+        witness_search_rejections = sum(value[2] for value in witness_results)
+        for witness, selected, _ in witness_results:
+            if not witness.reachable or witness.candidate_ids in replayed_selections:
+                continue
+            replay = registry.apply(enumeration, witness.candidate_ids)
+            if replay.output_text != _selection_output(source_text, selected):
+                raise RuntimeError("registry witness replay disagrees with direct application")
+            replayed_selections.add(witness.candidate_ids)
+        exact_budget_reachable_count = sum(value.reachable for value in witnesses)
         payload = {
             "algorithm_version": NORMALIZATION_SAMPLE_PROFILE_VERSION,
             "profile_id": profile.profile_id,
             "profile_hash": profile.profile_hash,
             "invariant_safe_surviving_count": len(surviving),
             "independent_invariant_safe_surviving_count": len(independent),
-            "verified_compatible_prefix_count": len(compatible),
+            "exact_budget_reachable_count": exact_budget_reachable_count,
             "witness_search_rejection_count": witness_search_rejections,
             "witnesses": tuple(value.as_dict() for value in witnesses),
         }
@@ -676,7 +712,7 @@ def benchmark_normalization_source(
                 profile_hash=profile.profile_hash,
                 invariant_safe_surviving_count=len(surviving),
                 independent_invariant_safe_surviving_count=len(independent),
-                verified_compatible_prefix_count=len(compatible),
+                exact_budget_reachable_count=exact_budget_reachable_count,
                 witness_search_rejection_count=witness_search_rejections,
                 witnesses=witnesses,
                 summary_hash=sha256_json(payload),
@@ -938,6 +974,42 @@ def _schema_object(
     return value
 
 
+@dataclass(frozen=True, slots=True)
+class _LegacyNormalizationBudgetWitness:
+    budget: int
+    reachable: bool
+    candidate_ids: tuple[str, ...]
+    normalized_output_hash: str | None
+    witness_hash: str
+
+
+@dataclass(frozen=True, slots=True)
+class _LegacyNormalizationSampleProfile:
+    profile_id: str
+    profile_hash: str
+    invariant_safe_surviving_count: int
+    independent_invariant_safe_surviving_count: int
+    verified_compatible_prefix_count: int
+    witness_search_rejection_count: int
+    witnesses: tuple[_LegacyNormalizationBudgetWitness, ...]
+    summary_hash: str
+
+
+@dataclass(frozen=True, slots=True)
+class _LegacyNormalizationSampleSummary:
+    sample_id: str
+    source_text_hash: str
+    enumeration_hash: str
+    raw_candidate_count: int
+    independent_candidate_count: int
+    enumeration_rejection_count: int
+    invariant_safe_count: int
+    independent_invariant_safe_count: int
+    invariant_rejection_count: int
+    profiles: tuple[_LegacyNormalizationSampleProfile, ...]
+    summary_hash: str
+
+
 def _parse_candidate_row(value: object) -> NormalizationCandidateRow:
     expected = set(NormalizationCandidateRow.__dataclass_fields__) | {
         "algorithm_version"
@@ -994,9 +1066,207 @@ def _parse_sample_profile(value: object) -> NormalizationSampleProfile:
         independent_invariant_safe_surviving_count=row[
             "independent_invariant_safe_surviving_count"
         ],
-        verified_compatible_prefix_count=row["verified_compatible_prefix_count"],
+        exact_budget_reachable_count=row["exact_budget_reachable_count"],
         witness_search_rejection_count=row["witness_search_rejection_count"],
         witnesses=tuple(_parse_budget_witness(item) for item in witnesses),
+        summary_hash=row["summary_hash"],
+    )
+
+
+def _parse_legacy_budget_witness(
+    value: object,
+) -> _LegacyNormalizationBudgetWitness:
+    expected = {
+        "algorithm_version",
+        "budget",
+        "reachable",
+        "candidate_ids",
+        "normalized_output_hash",
+        "witness_hash",
+    }
+    row = _schema_object(
+        value,
+        name="legacy normalization budget witness",
+        expected_keys=expected,
+        algorithm_version=NORMALIZATION_BUDGET_WITNESS_LEGACY_VERSION,
+    )
+    require_int("budget", row["budget"])
+    if row["budget"] not in NORMALIZATION_SURVIVAL_BUDGETS:
+        raise ValueError("legacy normalization witness budget drifted")
+    require_bool("reachable", row["reachable"])
+    candidate_ids = row["candidate_ids"]
+    if not isinstance(candidate_ids, list):
+        raise TypeError("legacy normalization witness candidate_ids must be a list")
+    for candidate_id in candidate_ids:
+        require_sha256("candidate_id", candidate_id)
+    if len(set(candidate_ids)) != len(candidate_ids):
+        raise ValueError("legacy normalization witness candidate IDs must be unique")
+    if row["reachable"]:
+        if len(candidate_ids) != row["budget"]:
+            raise ValueError("legacy reachable witness must bind its exact budget")
+        require_sha256("normalized_output_hash", row["normalized_output_hash"])
+    elif candidate_ids or row["normalized_output_hash"] is not None:
+        raise ValueError("legacy unreachable witness cannot bind candidate output")
+    require_sha256("witness_hash", row["witness_hash"])
+    payload = {key: item for key, item in row.items() if key != "witness_hash"}
+    if row["witness_hash"] != sha256_json(payload):
+        raise ValueError("legacy normalization budget witness hash mismatch")
+    return _LegacyNormalizationBudgetWitness(
+        budget=row["budget"],
+        reachable=row["reachable"],
+        candidate_ids=tuple(candidate_ids),
+        normalized_output_hash=row["normalized_output_hash"],
+        witness_hash=row["witness_hash"],
+    )
+
+
+def _parse_legacy_sample_profile(
+    value: object,
+) -> _LegacyNormalizationSampleProfile:
+    expected = {
+        "algorithm_version",
+        "profile_id",
+        "profile_hash",
+        "invariant_safe_surviving_count",
+        "independent_invariant_safe_surviving_count",
+        "verified_compatible_prefix_count",
+        "witness_search_rejection_count",
+        "witnesses",
+        "summary_hash",
+    }
+    row = _schema_object(
+        value,
+        name="legacy normalization sample profile",
+        expected_keys=expected,
+        algorithm_version=NORMALIZATION_SAMPLE_PROFILE_LEGACY_VERSION,
+    )
+    require_clean_string("profile_id", row["profile_id"])
+    require_sha256("profile_hash", row["profile_hash"])
+    count_names = (
+        "invariant_safe_surviving_count",
+        "independent_invariant_safe_surviving_count",
+        "verified_compatible_prefix_count",
+        "witness_search_rejection_count",
+    )
+    for name in count_names:
+        require_int(name, row[name])
+        if row[name] < 0:
+            raise ValueError(f"legacy {name} must be non-negative")
+    if (
+        row["independent_invariant_safe_surviving_count"]
+        > row["invariant_safe_surviving_count"]
+    ):
+        raise ValueError("legacy independent surviving count exceeds safe surviving count")
+    if (
+        row["verified_compatible_prefix_count"]
+        > row["independent_invariant_safe_surviving_count"]
+    ):
+        raise ValueError("legacy verified compatible count exceeds independent opportunity")
+    if row["verified_compatible_prefix_count"] > max(NORMALIZATION_SURVIVAL_BUDGETS):
+        raise ValueError("legacy verified prefix exceeds the benchmark budget")
+    witness_values = row["witnesses"]
+    if not isinstance(witness_values, list):
+        raise TypeError("legacy normalization profile witnesses must be a list")
+    witnesses = tuple(_parse_legacy_budget_witness(item) for item in witness_values)
+    if tuple(value.budget for value in witnesses) != NORMALIZATION_SURVIVAL_BUDGETS:
+        raise ValueError("legacy normalization sample profile budgets drifted")
+    for witness in witnesses:
+        if witness.reachable != (
+            row["verified_compatible_prefix_count"] >= witness.budget
+        ):
+            raise ValueError("legacy normalization witness reachability drifted")
+    require_sha256("summary_hash", row["summary_hash"])
+    payload = {key: item for key, item in row.items() if key != "summary_hash"}
+    if row["summary_hash"] != sha256_json(payload):
+        raise ValueError("legacy normalization sample profile hash mismatch")
+    return _LegacyNormalizationSampleProfile(
+        profile_id=row["profile_id"],
+        profile_hash=row["profile_hash"],
+        invariant_safe_surviving_count=row["invariant_safe_surviving_count"],
+        independent_invariant_safe_surviving_count=row[
+            "independent_invariant_safe_surviving_count"
+        ],
+        verified_compatible_prefix_count=row["verified_compatible_prefix_count"],
+        witness_search_rejection_count=row["witness_search_rejection_count"],
+        witnesses=witnesses,
+        summary_hash=row["summary_hash"],
+    )
+
+
+def _parse_legacy_sample_summary(
+    value: object,
+) -> _LegacyNormalizationSampleSummary:
+    expected = {
+        "algorithm_version",
+        "sample_id",
+        "source_text_hash",
+        "enumeration_hash",
+        "raw_candidate_count",
+        "independent_candidate_count",
+        "enumeration_rejection_count",
+        "invariant_safe_count",
+        "independent_invariant_safe_count",
+        "invariant_rejection_count",
+        "profiles",
+        "summary_hash",
+    }
+    row = _schema_object(
+        value,
+        name="legacy normalization sample summary",
+        expected_keys=expected,
+        algorithm_version=NORMALIZATION_SAMPLE_SUMMARY_LEGACY_VERSION,
+    )
+    require_clean_string("sample_id", row["sample_id"])
+    for name in ("source_text_hash", "enumeration_hash", "summary_hash"):
+        require_sha256(name, row[name])
+    count_names = (
+        "raw_candidate_count",
+        "independent_candidate_count",
+        "enumeration_rejection_count",
+        "invariant_safe_count",
+        "independent_invariant_safe_count",
+        "invariant_rejection_count",
+    )
+    for name in count_names:
+        require_int(name, row[name])
+        if row[name] < 0:
+            raise ValueError(f"legacy {name} must be non-negative")
+    if row["independent_candidate_count"] > row["raw_candidate_count"]:
+        raise ValueError("legacy independent candidate count exceeds raw candidates")
+    if row["independent_invariant_safe_count"] > row["invariant_safe_count"]:
+        raise ValueError("legacy independent safe count exceeds safe candidates")
+    if row["invariant_safe_count"] + row["invariant_rejection_count"] != row[
+        "raw_candidate_count"
+    ]:
+        raise ValueError("legacy sample invariant accounting is inconsistent")
+    profile_values = row["profiles"]
+    if not isinstance(profile_values, list):
+        raise TypeError("legacy normalization summary profiles must be a list")
+    profiles = tuple(_parse_legacy_sample_profile(item) for item in profile_values)
+    expected_profiles = normalization_profiles()
+    if tuple(value.profile_hash for value in profiles) != tuple(
+        value.profile_hash for value in expected_profiles
+    ):
+        raise ValueError("legacy sample normalization profiles drifted")
+    if any(
+        value.invariant_safe_surviving_count > row["invariant_safe_count"]
+        for value in profiles
+    ):
+        raise ValueError("legacy profile survivor count exceeds invariant-safe count")
+    payload = {key: item for key, item in row.items() if key != "summary_hash"}
+    if row["summary_hash"] != sha256_json(payload):
+        raise ValueError("legacy normalization sample summary hash mismatch")
+    return _LegacyNormalizationSampleSummary(
+        sample_id=row["sample_id"],
+        source_text_hash=row["source_text_hash"],
+        enumeration_hash=row["enumeration_hash"],
+        raw_candidate_count=row["raw_candidate_count"],
+        independent_candidate_count=row["independent_candidate_count"],
+        enumeration_rejection_count=row["enumeration_rejection_count"],
+        invariant_safe_count=row["invariant_safe_count"],
+        independent_invariant_safe_count=row["independent_invariant_safe_count"],
+        invariant_rejection_count=row["invariant_rejection_count"],
+        profiles=profiles,
         summary_hash=row["summary_hash"],
     )
 
@@ -1163,7 +1433,11 @@ def load_normalization_survival_benchmark(path: Path) -> dict[str, object]:
     }
     if set(value) != expected:
         raise ValueError("normalization benchmark keys do not match the frozen schema")
-    if value["algorithm_version"] != NORMALIZATION_SURVIVAL_BENCHMARK_VERSION:
+    benchmark_version = value["algorithm_version"]
+    if benchmark_version not in (
+        NORMALIZATION_SURVIVAL_BENCHMARK_LEGACY_VERSION,
+        NORMALIZATION_SURVIVAL_BENCHMARK_VERSION,
+    ):
         raise ValueError("unsupported normalization benchmark version")
     for name in ("benchmark_source_code_commit", "source_corpus_commit"):
         if not isinstance(value[name], str) or _GIT_SHA_RE.fullmatch(value[name]) is None:
@@ -1205,7 +1479,12 @@ def load_normalization_survival_benchmark(path: Path) -> dict[str, object]:
     ):
         raise ValueError("normalization exact-budget cells are incomplete")
     candidate_rows = tuple(_parse_candidate_row(item) for item in value["candidate_rows"])
-    summaries = tuple(_parse_sample_summary(item) for item in value["sample_summaries"])
+    if benchmark_version == NORMALIZATION_SURVIVAL_BENCHMARK_LEGACY_VERSION:
+        summaries = tuple(
+            _parse_legacy_sample_summary(item) for item in value["sample_summaries"]
+        )
+    else:
+        summaries = tuple(_parse_sample_summary(item) for item in value["sample_summaries"])
     _validate_loaded_rows(candidate_rows, summaries)
     expected_family_summaries = list(_aggregate_rows(candidate_rows, "family"))
     expected_rule_summaries = list(_aggregate_rows(candidate_rows, "rule_id"))

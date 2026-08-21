@@ -9,6 +9,10 @@ from fuckmark.experiments.normalization_survival import (
     N2_LINE_ENDINGS_LF,
     N3_UNICODE_NFC,
     N4_COPY_PASTE_WHITESPACE,
+    NORMALIZATION_BUDGET_WITNESS_LEGACY_VERSION,
+    NORMALIZATION_SAMPLE_PROFILE_LEGACY_VERSION,
+    NORMALIZATION_SAMPLE_SUMMARY_LEGACY_VERSION,
+    NORMALIZATION_SURVIVAL_BENCHMARK_LEGACY_VERSION,
     benchmark_normalization_source,
     build_normalization_survival_benchmark,
     load_normalization_survival_benchmark,
@@ -18,6 +22,8 @@ from fuckmark.experiments.normalization_survival import (
 from fuckmark.hashing import sha256_json
 from fuckmark.transforms.contractions import context_survival_contraction_rules
 from fuckmark.transforms.registry import TransformRegistry
+from fuckmark.transforms.rules import LiteralTransformRule
+from fuckmark.transforms.schema import TransformFamily, TransformTier
 from fuckmark.transforms.surface_rules import development_surface_rules
 
 
@@ -25,6 +31,46 @@ def _registry() -> TransformRegistry:
     return TransformRegistry(
         (*context_survival_contraction_rules(), *development_surface_rules())
     )
+
+
+def _legacy_benchmark(value: dict[str, object]) -> dict[str, object]:
+    output = json.loads(json.dumps(value))
+    output["algorithm_version"] = NORMALIZATION_SURVIVAL_BENCHMARK_LEGACY_VERSION
+    for summary in output["sample_summaries"]:
+        summary["algorithm_version"] = NORMALIZATION_SAMPLE_SUMMARY_LEGACY_VERSION
+        for profile in summary["profiles"]:
+            profile["algorithm_version"] = NORMALIZATION_SAMPLE_PROFILE_LEGACY_VERSION
+            for witness in profile["witnesses"]:
+                witness["algorithm_version"] = (
+                    NORMALIZATION_BUDGET_WITNESS_LEGACY_VERSION
+                )
+                witness["witness_hash"] = sha256_json(
+                    {key: item for key, item in witness.items() if key != "witness_hash"}
+                )
+            prefix_count = max(
+                (
+                    witness["budget"]
+                    for witness in profile["witnesses"]
+                    if witness["reachable"]
+                ),
+                default=0,
+            )
+            assert all(
+                witness["reachable"] == (prefix_count >= witness["budget"])
+                for witness in profile["witnesses"]
+            )
+            profile.pop("exact_budget_reachable_count")
+            profile["verified_compatible_prefix_count"] = prefix_count
+            profile["summary_hash"] = sha256_json(
+                {key: item for key, item in profile.items() if key != "summary_hash"}
+            )
+        summary["summary_hash"] = sha256_json(
+            {key: item for key, item in summary.items() if key != "summary_hash"}
+        )
+    output["artifact_hash"] = sha256_json(
+        {key: item for key, item in output.items() if key != "artifact_hash"}
+    )
+    return output
 
 
 def test_normalization_profiles_apply_frozen_contracts() -> None:
@@ -63,7 +109,7 @@ def test_benchmark_attributes_durable_and_fragile_candidates() -> None:
     n4 = next(value for value in summary.profiles if value.profile_id == N4_COPY_PASTE_WHITESPACE)
     assert n4.invariant_safe_surviving_count == 2
     assert n4.independent_invariant_safe_surviving_count == 2
-    assert n4.verified_compatible_prefix_count == 2
+    assert n4.exact_budget_reachable_count == 2
     assert tuple(value.reachable for value in n4.witnesses) == (
         True,
         True,
@@ -71,6 +117,59 @@ def test_benchmark_attributes_durable_and_fragile_candidates() -> None:
         False,
     )
     assert len(n4.witnesses[1].candidate_ids) == 2
+
+
+def test_exact_budget_search_checks_overlapping_alternatives() -> None:
+    def rule(rule_id: str, source: str, replacement: str) -> LiteralTransformRule:
+        return LiteralTransformRule.create(
+            rule_id=rule_id,
+            version="v1",
+            family=TransformFamily.ORTHOGRAPHY,
+            tier=TransformTier.SURFACE,
+            source=source,
+            replacement=replacement,
+            whole_word=False,
+            preserve_simple_case=False,
+            block_all_caps=False,
+        )
+
+    registry = TransformRegistry(
+        (
+            rule("bad-0", "x ", " "),
+            rule("alt-0", "x ", "z "),
+            rule("tail-0", "y ", " "),
+        )
+    )
+    summary, rows = benchmark_normalization_source(
+        sample_id="overlap-alternative",
+        source_text="are x y not",
+        registry=registry,
+    )
+    n0 = next(value for value in summary.profiles if value.profile_id == N0_IDENTITY)
+    by_rule = {
+        value.rule_id: value
+        for value in rows
+        if value.profile_id == N0_IDENTITY
+    }
+    b2 = next(value for value in n0.witnesses if value.budget == 2)
+    assert all(value.invariant_safe and value.survives for value in by_rule.values())
+    assert n0.independent_invariant_safe_surviving_count == 2
+    assert n0.witness_search_rejection_count == 1
+    enumeration = registry.enumerate("are x y not")
+    with pytest.raises(ValueError, match="hard content invariants"):
+        registry.apply(
+            enumeration,
+            (by_rule["bad-0"].candidate_id, by_rule["tail-0"].candidate_id),
+        )
+    assert registry.apply(
+        enumeration,
+        (by_rule["alt-0"].candidate_id, by_rule["tail-0"].candidate_id),
+    ).output_text == "are z  not"
+    assert b2.reachable
+    assert b2.candidate_ids == (
+        by_rule["alt-0"].candidate_id,
+        by_rule["tail-0"].candidate_id,
+    )
 
 
 def test_expected_invariant_rejection_fails_closed_per_candidate() -> None:
@@ -108,6 +207,9 @@ def test_real_shape_benchmark_round_trips_and_rejects_nested_tampering(tmp_path)
     assert sha256_json(loaded) == sha256_json(benchmark)
     assert benchmark["source_sample_count"] == 500
     assert benchmark["candidate_row_count"] > 0
+    legacy = _legacy_benchmark(benchmark)
+    path.write_text(json.dumps(legacy), encoding="utf-8")
+    assert load_normalization_survival_benchmark(path) == legacy
     tampered = json.loads(json.dumps(benchmark))
     tampered["candidate_rows"][0]["normalized_output_hash"] = "0" * 64
     payload = {key: value for key, value in tampered.items() if key != "artifact_hash"}

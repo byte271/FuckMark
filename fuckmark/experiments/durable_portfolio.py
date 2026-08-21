@@ -13,12 +13,14 @@ from ..transforms.surface_rules import development_surface_rules
 from .normalization_survival import (
     N4_COPY_PASTE_WHITESPACE,
     NORMALIZATION_SURVIVAL_BUDGETS,
+    NORMALIZATION_SURVIVAL_BENCHMARK_VERSION,
     load_normalization_survival_benchmark,
     normalization_profiles,
 )
 
 
-DURABLE_PORTFOLIO_COMPARISON_VERSION = "durable-portfolio-comparison-v1"
+DURABLE_PORTFOLIO_COMPARISON_LEGACY_VERSION = "durable-portfolio-comparison-v1"
+DURABLE_PORTFOLIO_COMPARISON_VERSION = "durable-portfolio-comparison-v2"
 DURABLE_PORTFOLIO_MINIMUM_INDEPENDENT_N4_RELATIVE_GAIN = 0.1
 DURABLE_PORTFOLIO_RELEASE_STATUS = "DEVELOPMENT_ONLY_FIDELITY_EVIDENCE_REQUIRED"
 DURABLE_PORTFOLIO_SUCCESS = "MATERIAL_DURABLE_OPPORTUNITY_INCREASE"
@@ -140,6 +142,11 @@ def compare_durable_portfolio_benchmarks(
     )
     if any(baseline[name] != portfolio[name] for name in shared_names):
         raise ValueError("durable portfolio inputs do not share one frozen benchmark source")
+    if any(
+        value["algorithm_version"] != NORMALIZATION_SURVIVAL_BENCHMARK_VERSION
+        for value in (baseline, portfolio)
+    ):
+        raise ValueError("durable portfolio inputs must use the current benchmark version")
     baseline_registry = _context_baseline_registry()
     portfolio_registry = durable_portfolio_transform_registry()
     if baseline["ruleset_hash"] != baseline_registry.ruleset_hash:
@@ -376,7 +383,10 @@ def load_durable_portfolio_comparison(path: Path) -> dict[str, object]:
     }
     if set(value) != expected:
         raise ValueError("durable portfolio comparison keys do not match the frozen schema")
-    if value["algorithm_version"] != DURABLE_PORTFOLIO_COMPARISON_VERSION:
+    if value["algorithm_version"] not in (
+        DURABLE_PORTFOLIO_COMPARISON_LEGACY_VERSION,
+        DURABLE_PORTFOLIO_COMPARISON_VERSION,
+    ):
         raise ValueError("unsupported durable portfolio comparison version")
     for name in ("benchmark_source_code_commit", "source_corpus_commit"):
         if not isinstance(value[name], str) or _GIT_SHA_RE.fullmatch(value[name]) is None:
