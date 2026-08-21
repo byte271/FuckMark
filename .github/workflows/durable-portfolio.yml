@@ -1,0 +1,112 @@
+name: Durable Portfolio Real-Corpus Gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/durable-portfolio.yml"
+      - "fuckmark/durable_portfolio_analyze.py"
+      - "fuckmark/normalization_survival_benchmark.py"
+      - "fuckmark/experiments/durable_portfolio.py"
+      - "fuckmark/experiments/normalization_survival.py"
+      - "fuckmark/transforms/**"
+      - "tests/test_durable_portfolio.py"
+      - "tests/test_durable_surface_rules.py"
+      - "tests/test_normalization_survival.py"
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_CODE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+  SOURCE_WORKFLOW_RUN_ID: "32504847438"
+
+jobs:
+  preflight:
+    name: Verify durable rules and comparison replay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - run: >-
+          python -m pytest
+          tests/test_durable_surface_rules.py
+          tests/test_durable_portfolio.py
+          tests/test_normalization_survival.py
+          tests/test_repository_hygiene.py
+
+  benchmark:
+    name: Compare matched portfolios on 500 frozen samples
+    needs: preflight
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip && python -m pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          name: diverse-beam-frozen-corpus
+          path: source-corpus
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ env.SOURCE_WORKFLOW_RUN_ID }}
+      - name: Measure the frozen baseline portfolio
+        run: >-
+          python -m fuckmark.normalization_survival_benchmark
+          --corpus-json source-corpus/diverse-beam-frozen-corpus.json
+          --source-code-commit "$SOURCE_CODE_COMMIT"
+          --source-workflow-run-id "$SOURCE_WORKFLOW_RUN_ID"
+          --registry context-baseline
+          --json durable-artifact/baseline-normalization-survival.json
+      - name: Measure the matched durable portfolio
+        run: >-
+          python -m fuckmark.normalization_survival_benchmark
+          --corpus-json source-corpus/diverse-beam-frozen-corpus.json
+          --source-code-commit "$SOURCE_CODE_COMMIT"
+          --source-workflow-run-id "$SOURCE_WORKFLOW_RUN_ID"
+          --registry durable-portfolio
+          --json durable-artifact/portfolio-normalization-survival.json
+      - name: Replay comparison and apply the frozen development gate
+        id: comparison
+        continue-on-error: true
+        run: >-
+          python -m fuckmark.durable_portfolio_analyze
+          --baseline-json durable-artifact/baseline-normalization-survival.json
+          --portfolio-json durable-artifact/portfolio-normalization-survival.json
+          --json durable-artifact/durable-portfolio-comparison.json
+          --require-success
+      - name: Freeze evidence checksums
+        run: >-
+          sha256sum durable-artifact/*.json
+          > durable-artifact/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: durable-portfolio-real-corpus-evidence
+          path: durable-artifact/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Enforce the frozen development gate after evidence upload
+        if: steps.comparison.outcome != 'success'
+        run: exit 1
