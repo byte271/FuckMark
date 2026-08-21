@@ -16,9 +16,9 @@ from fuckmark.transforms.schema import CandidateRejectionReason, TransformFamily
 def test_reversible_metadata_matches_development_forward_rules() -> None:
     metadata = reversible_contraction_metadata()
     forward = {rule.rule_id: rule for rule in development_forward_contraction_rules()}
-    assert len(metadata) == 34
-    assert len({value.inverse_semantic_group_id for value in metadata}) == 34
-    assert len({value.metadata_hash for value in metadata}) == 34
+    assert len(metadata) == 20
+    assert len({value.inverse_semantic_group_id for value in metadata}) == 20
+    assert len({value.metadata_hash for value in metadata}) == 20
     for value in metadata:
         rule = forward[value.forward_rule_id]
         assert rule.source == value.expanded_form
@@ -35,7 +35,7 @@ def test_existing_default_forward_rules_remain_unchanged_subset() -> None:
 def test_reverse_rules_are_exact_tier_one_contraction_inverses() -> None:
     metadata = {value.reverse_rule_id: value for value in reversible_contraction_metadata()}
     rules = reverse_contraction_rules()
-    assert len(rules) == 34
+    assert len(rules) == 20
     for rule in rules:
         value = metadata[rule.rule_id]
         assert rule.family is TransformFamily.CONTRACTION
@@ -61,14 +61,13 @@ def test_additional_development_forward_rule_is_bidirectional() -> None:
     assert expanded.output_text == "We could not stay."
 
 
-def test_pronoun_and_auxiliary_contractions_are_bidirectional() -> None:
+def test_new_durable_contractions_are_bidirectional() -> None:
     registry = TransformRegistry(context_survival_contraction_rules())
     fixtures = (
         ("I am ready.", "contract-i-am", "I'm ready.", "expand-i-am"),
+        ("You are ready.", "contract-you-are", "You're ready.", "expand-you-are"),
         ("We are ready.", "contract-we-are", "We're ready.", "expand-we-are"),
-        ("They have arrived.", "contract-they-have", "They've arrived.", "expand-they-have"),
-        ("You will see.", "contract-you-will", "You'll see.", "expand-you-will"),
-        ("We should have stayed.", "contract-should-have", "We should've stayed.", "expand-should-have"),
+        ("They are ready.", "contract-they-are", "They're ready.", "expand-they-are"),
         ("We must not stop.", "contract-must-not", "We mustn't stop.", "expand-must-not"),
     )
     for text, forward_id, contracted_text, reverse_id in fixtures:
@@ -86,20 +85,27 @@ def test_pronoun_and_auxiliary_contractions_are_bidirectional() -> None:
 
 def test_new_contractions_survive_whitespace_normalization() -> None:
     registry = TransformRegistry(context_survival_contraction_rules())
-    text = "We are ready. They have arrived. I will stay."
+    text = "We are ready. They are here. I am staying. You are next. We must not stop."
     enumeration = registry.enumerate(text)
     selected = tuple(
         value.candidate_id
         for value in enumeration.candidates
-        if value.rule_id in {"contract-we-are", "contract-they-have", "contract-i-will"}
+        if value.rule_id
+        in {
+            "contract-we-are",
+            "contract-they-are",
+            "contract-i-am",
+            "contract-you-are",
+            "contract-must-not",
+        }
     )
-    assert len(selected) == 3
+    assert len(selected) == 5
     result = registry.apply(enumeration, selected)
     normalized = " ".join(result.output_text.split())
-    assert normalized == "We're ready. They've arrived. I'll stay."
+    assert normalized == "We're ready. They're here. I'm staying. You're next. We mustn't stop."
 
 
-def test_ambiguous_reverse_forms_are_excluded() -> None:
+def test_unsupported_or_ambiguous_reverse_forms_are_excluded() -> None:
     contracted = {value.contracted_form.casefold() for value in reversible_contraction_metadata()}
     assert contracted.isdisjoint(
         {
@@ -115,6 +121,20 @@ def test_ambiguous_reverse_forms_are_excluded() -> None:
             "what's",
             "who's",
             "where's",
+            "i've",
+            "you've",
+            "we've",
+            "they've",
+            "i'll",
+            "you'll",
+            "we'll",
+            "they'll",
+            "could've",
+            "should've",
+            "would've",
+            "might've",
+            "must've",
+            "needn't",
         }
     )
 
@@ -151,9 +171,9 @@ def test_reverse_contraction_respects_user_protected_range() -> None:
 
 def test_combined_catalog_keeps_forward_and_reverse_rule_ids_unique() -> None:
     rules = context_survival_contraction_rules()
-    assert len(rules) == 68
-    assert len({(rule.rule_id, rule.version) for rule in rules}) == 68
-    assert len({rule.rule_hash for rule in rules}) == 68
+    assert len(rules) == 40
+    assert len({(rule.rule_id, rule.version) for rule in rules}) == 40
+    assert len({rule.rule_hash for rule in rules}) == 40
 
 
 def test_semantic_site_is_stable_across_forward_then_reverse() -> None:
