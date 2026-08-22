@@ -133,12 +133,12 @@ def test_detector_blind_import_audit_checks_modules_and_imported_symbols() -> No
 def test_baseline_screen_rejects_context_invalid_candidate_before_scheduling() -> None:
     rules = (
         LiteralTransformRule.create(
-            rule_id="contract-you-are",
+            rule_id="contract-he-is",
             version="v1",
             family=TransformFamily.CONTRACTION,
             tier=TransformTier.SURFACE,
-            source="you are",
-            replacement="you're",
+            source="he is",
+            replacement="he's",
         ),
         LiteralTransformRule.create(
             rule_id="contract-do-not",
@@ -150,8 +150,8 @@ def test_baseline_screen_rejects_context_invalid_candidate_before_scheduling() -
         ),
     )
     registry = TransformRegistry(rules)
-    enumeration = registry.enumerate("If you are not ready, do not continue.")
-    invalid = next(value for value in enumeration.candidates if value.rule_id == "contract-you-are")
+    enumeration = registry.enumerate("If he is not ready, do not continue.")
+    invalid = next(value for value in enumeration.candidates if value.rule_id == "contract-he-is")
     safe = next(value for value in enumeration.candidates if value.rule_id == "contract-do-not")
     with pytest.raises(ValueError, match="hard content invariants"):
         registry.apply(enumeration, (invalid.candidate_id,))

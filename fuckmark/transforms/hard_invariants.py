@@ -10,7 +10,7 @@ from .invariants import validate_protected_invariants
 from .protected_artifacts import ProtectedInvariantReport, UserProtectedRange
 from .schema import HardInvariantReason, InvariantStatus
 
-HARD_INVARIANT_ALGORITHM_VERSION = "hard-invariant-validator-v3"
+HARD_INVARIANT_ALGORITHM_VERSION = "hard-invariant-validator-v4"
 _WORD_RE = re.compile(r"[A-Za-z]+(?:['’][A-Za-z]+)?")
 _CONTRACTED_NEGATIONS = {
     "don't": ("do:not", None), "doesn't": ("does:not", None), "didn't": ("did:not", None),
@@ -20,6 +20,7 @@ _CONTRACTED_NEGATIONS = {
     "haven't": ("have:not", None), "hasn't": ("has:not", None), "hadn't": ("had:not", None),
 }
 _EXPANDED_NEGATION_AUX = {"do": None, "does": None, "did": None, "can": "can", "will": "will", "should": "should", "would": "would", "could": "could", "must": "must", "is": None, "are": None, "was": None, "were": None, "have": None, "has": None, "had": None}
+_UNAMBIGUOUS_CONTRACTED_COPULAS = {"you're": "are", "we're": "are", "they're": "are"}
 _MODAL_WORDS = frozenset(("can", "will", "should", "would", "could", "must", "may", "might", "shall"))
 _STANDALONE_NEGATIONS = frozenset(("never", "no", "neither", "nor", "none", "nothing", "nobody", "nowhere", "without"))
 _OBLIGATION_WORDS = frozenset(("must", "required", "mandatory", "obliged", "obligated"))
@@ -116,6 +117,11 @@ def hard_invariant_signature(text: str) -> HardInvariantSignature:
             negations.append("can:not")
             modalities.append("can")
             index += 1
+            continue
+        contracted_copula = _UNAMBIGUOUS_CONTRACTED_COPULAS.get(word)
+        if contracted_copula is not None and index + 1 < len(words) and words[index + 1] == "not":
+            negations.append(f"{contracted_copula}:not")
+            index += 2
             continue
         if word in _EXPANDED_NEGATION_AUX and index + 1 < len(words) and words[index + 1] == "not":
             negations.append(f"{word}:not")
