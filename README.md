@@ -57,6 +57,8 @@ python -m fuckmark.release_readiness_baseline --verify-json specs/fuckmark-v0.1.
 
 This validates the historical baseline without requiring later release work to preserve old README, metadata, or registry contents. The `Release Readiness Baseline` workflow also builds and clean-installs the baseline wheel and sdist.
 
+The rejected v2 calibration pair is immutable evidence. The development-only `mid-dev-calibration-independence-v3` protocol is now available for a replacement corpus: it rejects reused prompt, sample, record, and seed identities as structural errors; deduplicates generated text and continuation-token identities by first occurrence; excludes and records CAL-AUDIT rows that collide with retained CAL-SELECT content; and refuses to produce a threshold-sized pair when post-collision counts are insufficient. Its manifests and exclusion records are content-addressed and strictly replayable. A new valid v3 generated corpus has not yet been produced, so calibration independence and confirmatory detector evidence remain blocked.
+
 ## Open SynthID smoke experiment
 
 A development-only runner can test the current release transform against the pinned open Hugging Face SynthID implementation without using watermark keys or detector scores during transform selection.

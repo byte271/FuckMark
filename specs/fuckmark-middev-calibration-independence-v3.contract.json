@@ -1,0 +1,30 @@
+{
+  "algorithm_version": "mid-dev-calibration-independence-v3",
+  "claim_status": "NOT_YET_TESTED",
+  "cross_role_collision_policy": "retain_first_occurrence_in_CAL-SELECT_and_exclude_colliding_CAL-AUDIT_rows_with_recorded_reasons",
+  "identity_hard_failures": [
+    "duplicate_prompt_id_within_role",
+    "duplicate_sample_id_within_role",
+    "duplicate_sample_record_hash_within_role",
+    "duplicate_generation_seed_within_role",
+    "cross_role_prompt_id_overlap",
+    "cross_role_sample_id_overlap",
+    "cross_role_sample_record_hash_overlap",
+    "cross_role_generation_seed_overlap",
+    "mixed_model_tokenizer_identity",
+    "mixed_watermark_configuration_identity"
+  ],
+  "selection_rule": "ROLE_SAFE_FIRST_OCCURRENCE;SELECT_ORDER_FROZEN;WITHIN_ROLE_TEXT_OR_TOKEN_DEDUP;AUDIT_CROSS_ROLE_CONTENT_EXCLUSION;STRUCTURAL_IDENTITY_OVERLAP_HARD_FAILURE",
+  "threshold_policy": "raise_if_either_role_has_fewer_required_candidates_after_deduplication_and_cross_role_exclusion",
+  "content_identity": [
+    "generated_text_sha256",
+    "continuation_token_hash",
+    "exact_text_token_pair"
+  ],
+  "provenance": {
+    "implementation": "fuckmark/corpus/mid_dev_calibration_independence_v3.py",
+    "json_io": "fuckmark/corpus/mid_dev_calibration_independence_v3_io.py",
+    "detector_scores_used": false,
+    "watermark_key_used": false
+  }
+}
