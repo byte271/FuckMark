@@ -98,6 +98,7 @@ The release CLI remains limited to the release transform registry. The mechanism
 | Diverse Beam | `context-survival-diverse-beam-v1` | Preserves ranked elites, reserves capacity for distinct root-edit branches, and retains exact-depth output semantics |
 | TinyDev context plan | `tiny-dev-context-survival-plan-v3` | Uses the invariant-screened baseline pool and the separately versioned diverse Beam strategy |
 | Environment capture | `environment-snapshot-v2` | Canonicalizes platform metadata while continuing to accept v1 snapshots |
+| Representation differential audit | `representation-differential-audit-v1` | Replays one transformed pair per independent source through at least two pinned tokenizer families without detector or secret access |
 
 The original `context-survival-beam-v2` function is unchanged. Frozen MidDev protocols that name Beam v2 continue to use that implementation. The diversity strategy has a distinct identity so historical evidence is not silently reinterpreted.
 
@@ -106,6 +107,8 @@ The invariant screen is detector-blind and key-blind. It catches expected indivi
 On the frozen real TinyDev attack-development watermarked sources used by the transformability workflow, surface v4 increased raw candidates from `51` to `65` and independent candidates from `51` to `64`; all four sources remained transformable. Across all eight real TinyDev attack-development sources, the combined context registry enumerated `148` root candidates and the invariant screen accepted `147`, deterministically rejecting the single context-invalid `you are not` candidate. These are opportunity and stability measurements, not detector-effectiveness claims.
 
 The diverse Beam regression proves one synthetic dead-end graph where legacy Beam v2 returns no exact-depth state and the new strategy reaches the requested depth. Real-corpus improvement over Beam v2 is not yet proven. Spacing edits remain fragile under whitespace normalization, and the additional contractions do not eliminate that limitation.
+
+The representation differential audit is a development-only measurement layer for exact multi-tokenizer replay. It binds the source text, transformed text, transform trace, full model/tokenizer identities, token sequences, and canonical alignment metrics. It rejects duplicate source text, dependent variants presented as independent sources, non-NFC text, and changes to invisible or representation-sensitive Unicode code points. Its output is representation evidence only; it does not measure detector reduction or authorize a release rule.
 
 Run the local validation layers with:
 
@@ -170,5 +173,6 @@ The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real Ti
 49. Deterministic invariant-aware baseline scheduling with content-addressed rejection evidence
 50. Separately versioned root-branch-diverse Beam search without changing frozen Beam v2 semantics
 51. Canonical cross-platform environment capture with legacy v1 snapshot compatibility
+52. Strict multi-tokenizer representation differential audits with independent-source accounting and representation-sensitive Unicode rejection
 
 Python source is English-only and contains no comments or docstrings.

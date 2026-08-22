@@ -1,0 +1,14 @@
+{
+  "algorithm_version": "representation-differential-audit-v1",
+  "claim_status": "DESCRIPTIVE_REPRESENTATION_EVIDENCE_ONLY",
+  "detector_effectiveness_claim_allowed": false,
+  "independent_unit": "source_sample_id",
+  "minimum_independent_sources_per_audit": 2,
+  "minimum_tokenizer_families": 2,
+  "normalization_requirement": "Unicode NFC before and after transformation",
+  "representation_sensitive_unicode_mutation_allowed": false,
+  "selection_detector_query_count": 0,
+  "selection_secret_query_count": 0,
+  "transform_binding": "content-addressed TransformResult and TransformationTrace",
+  "watermark_removal_claim_allowed": false
+}

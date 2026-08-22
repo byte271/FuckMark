@@ -400,6 +400,19 @@ from .power_analysis import (
     run_power_analysis,
     verify_power_analysis,
 )
+from .representation_differential import (
+    REPRESENTATION_DIFFERENTIAL_ALGORITHM_VERSION,
+    REPRESENTATION_DIFFERENTIAL_CLAIM_STATUS,
+    REPRESENTATION_DIFFERENTIAL_MINIMUM_TOKENIZERS,
+    RepresentationDifferentialAudit,
+    RepresentationDifferentialInputError,
+    RepresentationPairEvidence,
+    TokenizerRepresentationRow,
+    build_representation_differential_audit,
+    capture_representation_pair,
+    verify_representation_differential_audit,
+    verify_representation_pair,
+)
 from .registry import (
     DEVELOPMENT_EXPERIMENT_REGISTRY_VERSION,
     DEVELOPMENT_EXPERIMENTS,
