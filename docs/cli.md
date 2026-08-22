@@ -2,6 +2,8 @@
 
 FuckMark v0.1.0 exposes the same entry point under `FuckMark`, `Fuckmark`, and `fuckmark`. All aliases use `release-cli-v3` and the same content-addressed release transform registry.
 
+Install instructions for Windows, macOS, and Linux are maintained in [`install.md`](install.md). The official website is [mark.q1z.org](https://mark.q1z.org).
+
 ## Interactive use
 
 Run `FuckMark` from a terminal, paste the source text, and finish with `:done` on its own line. The legacy `ok` terminator is retained for compatibility. The CLI reports the exact version, processes the text deterministically, shows the number of accepted changes, and copies the result to the platform clipboard.

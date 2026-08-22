@@ -15,6 +15,7 @@ on:
       - "uv.lock"
       - "README.md"
       - "CHANGELOG.md"
+      - "docs/**"
       - "LICENSE"
   workflow_dispatch:
 
@@ -61,7 +62,9 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.ref == 'refs/heads/main' && github.event.head_commit.message == 'Release v0.1.0')
     needs: package-e2e
     runs-on: ubuntu-latest
     permissions:
@@ -76,9 +79,33 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "$GITHUB_REF_NAME"
-          release-dist/*
-          --verify-tag
-          --title "FuckMark $GITHUB_REF_NAME"
-          --generate-notes
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v0.1.0' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            gh release create "$RELEASE_TAG" release-dist/* --verify-tag --title "FuckMark $RELEASE_TAG" --generate-notes
+          else
+            gh release create "$RELEASE_TAG" release-dist/* --target "$GITHUB_SHA" --title "FuckMark $RELEASE_TAG" --generate-notes
+          fi
+
+  cleanup-merged-branches:
+    name: Remove merged branches
+    if: needs.release.result == 'success'
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete merged pull-request branches
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          branches="$(gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/pulls?state=closed&per_page=100" | jq -r --arg repo "$GITHUB_REPOSITORY" '.[][] | select(.merged_at != null and .head.repo.full_name == $repo) | .head.ref' | sort -u)"
+          while IFS= read -r branch; do
+            [[ -n "$branch" ]] || continue
+            encoded="$(jq -rn --arg value "$branch" '$value | @uri')"
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$encoded" || true
+          done <<< "$branches"

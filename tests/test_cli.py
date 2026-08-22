@@ -162,7 +162,15 @@ def test_pyproject_declares_public_project_urls() -> None:
     root = Path(__file__).resolve().parents[1]
     payload = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
     assert payload["project"]["urls"] == {
-        "Homepage": "https://github.com/byte271/FuckMark",
+        "Homepage": "https://mark.q1z.org",
         "Repository": "https://github.com/byte271/FuckMark",
         "Issues": "https://github.com/byte271/FuckMark/issues",
     }
+
+
+def test_pyproject_declares_owner_selected_mit_license() -> None:
+    root = Path(__file__).resolve().parents[1]
+    payload = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    assert payload["project"]["license"] == "MIT"
+    assert payload["project"]["license-files"] == ["LICENSE"]
+    assert (root / "LICENSE").read_text(encoding="utf-8").startswith("MIT License\n")

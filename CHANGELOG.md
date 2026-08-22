@@ -4,6 +4,9 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Adopted the MIT License and matching package metadata by explicit owner choice.
+- Added the official FM-star logo, [mark.q1z.org](https://mark.q1z.org), and verified one-command installation instructions for Windows, macOS, and Linux through `d.q1z.org/mark`.
+- Added release-time cleanup for branches whose pull requests have already been merged; open and unmerged research branches remain intact.
 - Rebuilt the public CLI as `release-cli-v3`: piped input now selects stream mode automatically; UTF-8 file input, atomic output files, optional clipboard copying, terminal-aware color, precise exit errors, clipboard timeouts, overwrite protection, and applied-change counts are supported.
 - Added clean wheel and source-distribution verification on Linux, macOS, and Windows plus tag-gated GitHub Release publication with SHA-256 assets.
 - Advanced environment capture to `environment-snapshot-v3`: when multiple metadata distributions share a normalized package name, the canonical snapshot selects the distribution with actual `sys.path` import precedence while retaining v1 and v2 replay support.

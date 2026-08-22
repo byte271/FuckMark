@@ -1,7 +1,7 @@
 {
   "schema_version": "source-license-freeze-v1",
-  "project_license_status": "UNSPECIFIED",
-  "project_license_note": "No license is asserted for FuckMark project-owned code by this source-license record. Choosing a project license is an owner decision.",
+  "project_license_status": "MIT",
+  "project_license_note": "FuckMark project-owned code is licensed under the MIT License by explicit owner choice.",
   "sources": [
     {
       "source_id": "deepmind-synthid-text-reference",

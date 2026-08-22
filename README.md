@@ -1,6 +1,12 @@
+<p align="center">
+  <a href="https://mark.q1z.org"><img src="docs/assets/fuckmark-logo.png" alt="FuckMark FM star logo" width="180"></a>
+</p>
+
 # FuckMark
 
 FuckMark is a deterministic research harness for studying how text transformations alter statistical watermark observations.
+
+Website: [mark.q1z.org](https://mark.q1z.org)
 
 The project is implemented bottom-up. The current project version is **FuckMark v0.1.0**.
 
@@ -10,12 +16,39 @@ The project is implemented bottom-up. The current project version is **FuckMark 
 - Distribution name: `fuckmark`
 - Python package: `fuckmark`
 - Project version: `v0.1.0`
+- License: `MIT`
 
 Historical project identities and the former Python namespace are retired and must not reappear in source, tests, configuration, or documentation.
 
 ## Version policy
 
 The project remains on `v0.1.0` for this research line. Fixes and research hardening do not change the project version.
+
+## Install
+
+The official installer selects the correct platform implementation automatically.
+
+### Linux
+
+```sh
+curl -fsSL https://d.q1z.org/mark | sh
+```
+
+### macOS
+
+```sh
+curl -fsSL https://d.q1z.org/mark | sh
+```
+
+### Windows
+
+Run PowerShell:
+
+```powershell
+irm https://d.q1z.org/mark | iex
+```
+
+Python 3.11 or newer is required. The installers find a supported Python runtime, create an isolated virtual environment, install FuckMark from the official GitHub repository, and expose the command on the user path. See [`docs/install.md`](docs/install.md) for behavior, verification, manual installation, and update details.
 
 ## Interactive CLI
 
@@ -56,7 +89,7 @@ Output files are replaced atomically, and the CLI refuses to use the same path f
 
 The content-addressed Phase 0 baseline is stored in `specs/fuckmark-v0.1.0-release-readiness-baseline.json`. It binds main commit `afc8794be68c9495348c4934f2dd7e6cf4c61ce9`, the exact release registry, algorithm identities, engineering evidence, known scientific rejection, and every release-program gate. Its artifact hash is `f9834d502c8cfb1e1a3801710dfa3e152fde2de85348d5cd68b4f8334227b350`.
 
-At the freeze, 6 of 26 gates passed, 5 were blocked, and 15 were pending. This immutable historical record is not silently rewritten as later engineering work lands. The explicit scientific blockers include the rejected CAL-SELECT/CAL-AUDIT pair with 55 exact cross-role generated-content collisions and missing blind fidelity evidence. The project license and package license metadata also remain blocked until the owner deliberately selects a license.
+At the freeze, 6 of 26 gates passed, 5 were blocked, and 15 were pending. This immutable historical record is not silently rewritten as later engineering work lands. The explicit scientific blockers include the rejected CAL-SELECT/CAL-AUDIT pair with 55 exact cross-role generated-content collisions and missing blind fidelity evidence. The historical license gates describe the state at the frozen commit; the current project is licensed under MIT and publishes matching package metadata.
 
 The current `release-cli-v3` interface closes the earlier command-line usability gaps, and `Release Engineering` clean-builds and clean-installs both distributions on Linux, macOS, and Windows. A `v*` tag publishes the already verified wheel, source distribution, and SHA-256 manifest only after that matrix succeeds. The release process and remaining boundary are documented in `docs/release.md`.
 
@@ -216,5 +249,3 @@ The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real Ti
 52. Strict multi-tokenizer representation differential audits with independent-source accounting and representation-sensitive Unicode rejection
 53. Isolated content-addressed `key-blind-high-coverage-v1` planning with complete-denominator replay validation
 54. Separate detector-free planning and fixed open-detector scoring processes for exploratory B16 measurement
-
-Python source is English-only and contains no comments or docstrings.

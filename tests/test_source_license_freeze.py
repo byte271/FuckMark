@@ -13,8 +13,8 @@ LICENSE_FREEZE = ROOT / "source_licenses" / "upstream.json"
 def test_source_license_freeze_matches_runtime_source_pins() -> None:
     payload = json.loads(LICENSE_FREEZE.read_text(encoding="utf-8"))
     assert payload["schema_version"] == "source-license-freeze-v1"
-    assert payload["project_license_status"] == "UNSPECIFIED"
-    assert "owner decision" in payload["project_license_note"]
+    assert payload["project_license_status"] == "MIT"
+    assert "explicit owner choice" in payload["project_license_note"]
 
     rows = {row["source_id"]: row for row in payload["sources"]}
     assert set(rows) == {
@@ -29,7 +29,7 @@ def test_source_license_freeze_matches_runtime_source_pins() -> None:
         assert row["license_path"] == "LICENSE"
 
 
-def test_source_license_freeze_does_not_implicitly_license_project_code() -> None:
+def test_source_license_freeze_separates_project_and_upstream_licenses() -> None:
     payload = json.loads(LICENSE_FREEZE.read_text(encoding="utf-8"))
-    assert payload["project_license_status"] == "UNSPECIFIED"
+    assert payload["project_license_status"] == "MIT"
     assert all(row["license_id"] == "Apache-2.0" for row in payload["sources"])

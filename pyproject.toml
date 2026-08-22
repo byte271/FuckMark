@@ -10,6 +10,8 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 authors = [{ name = "Byte271" }]
+license = "MIT"
+license-files = ["LICENSE"]
 keywords = ["watermark", "text", "robustness", "research", "synthid"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -24,7 +26,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/byte271/FuckMark"
+Homepage = "https://mark.q1z.org"
 Repository = "https://github.com/byte271/FuckMark"
 Issues = "https://github.com/byte271/FuckMark/issues"
 

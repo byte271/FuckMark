@@ -11,11 +11,11 @@ FuckMark v0.1.0 is a research-harness and deterministic CLI release. Publishing 
 5. Clean-install and execute both distributions on Linux, macOS, and Windows.
 6. Verify every installed console alias, `--version`, deterministic stream output, wheel metadata, and source-distribution metadata.
 7. Generate `SHA256SUMS.txt` from the exact verified artifacts.
-8. Confirm the project license and package metadata reflect the owner's explicit choice.
+8. Confirm the MIT project license and package metadata are present in both distributions.
 9. Push the final commit to `main` and require all repository workflows to succeed.
 10. Create the immutable `v0.1.0` tag at that exact green commit.
 
-The `Release Engineering` workflow implements steps 3 through 7 for all three operating systems. On a `v*` tag, its release job downloads the verified Linux-built artifacts only after every operating-system job succeeds, then creates the GitHub Release and uploads the wheel, source distribution, and checksum manifest.
+The `Release Engineering` workflow implements steps 3 through 7 for all three operating systems. A release commit can create the `v0.1.0` tag and GitHub Release at the exact verified commit; an existing `v*` tag follows the same publication path. The release job downloads the verified Linux-built artifacts only after every operating-system job succeeds, then uploads the wheel, source distribution, and checksum manifest. After publication, merged pull-request branches are removed while open and unmerged research branches are preserved.
 
 ## Current scientific boundary
 
