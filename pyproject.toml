@@ -9,6 +9,19 @@ description = "FuckMark deterministic research infrastructure for statistical te
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
+authors = [{ name = "Byte271" }]
+keywords = ["watermark", "text", "robustness", "research", "synthid"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
 
 [project.urls]
 Homepage = "https://github.com/byte271/FuckMark"

@@ -53,12 +53,12 @@ jobs:
             command -v "$command"
             capture="$RUNNER_TEMP/${command}.clipboard"
             export FUCKMARK_CLIPBOARD_CAPTURE="$capture"
-            output="$(printf 'I do not agree and I cannot stay.\nok\n' | "$command")"
+            output="$(printf 'I do not agree and I cannot stay.\n' | "$command" --stdin --copy)"
             printf '%s\n' "$output"
-            grep -Fq 'Processing...' <<< "$output"
-            grep -Fq 'Success. Copied to clipboard.' <<< "$output"
+            test "$output" = "I don't agree and I can't stay."
             test "$(cat "$capture")" = "I don't agree and I can't stay."
           done
+          test "$(printf 'I do not agree.\n' | FuckMark)" = "I don't agree."
 
   calibration-readiness:
     name: Frozen calibration readiness

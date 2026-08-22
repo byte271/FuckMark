@@ -4,6 +4,7 @@ import pytest
 
 from fuckmark.environment import (
     ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION,
+    ENVIRONMENT_SNAPSHOT_IMPORT_PRECEDENCE_LEGACY_ALGORITHM_VERSION,
     ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION,
     RUN_MANIFEST_ALGORITHM_VERSION,
     EnvironmentLibrary,
@@ -14,6 +15,17 @@ from fuckmark.environment import (
 )
 from fuckmark.hashing import sha256_json
 from fuckmark.types import RunIdentity
+
+
+class _Distribution:
+    def __init__(self, name: str, version: str, location: str) -> None:
+        self.metadata = {"Name": name}
+        self.version = version
+        self._location = location
+
+    def locate_file(self, path: str) -> str:
+        assert path == ""
+        return self._location
 
 
 def _identity() -> RunIdentity:
@@ -83,6 +95,21 @@ def test_capture_environment_is_self_validating_and_canonical() -> None:
     assert snapshot.snapshot_hash == sha256_json(snapshot._payload())
 
 
+def test_capture_environment_prefers_import_path_precedence_for_duplicate_distributions(monkeypatch) -> None:
+    distributions = (
+        _Distribution("packaging", "24.0", "/system/site-packages"),
+        _Distribution("packaging", "26.2", "/local/site-packages"),
+        _Distribution("alpha", "1.0", "/local/site-packages"),
+    )
+    monkeypatch.setattr("fuckmark.environment.importlib.metadata.distributions", lambda: distributions)
+    monkeypatch.setattr("fuckmark.environment.sys.path", ["/local/site-packages", "/system/site-packages"])
+    snapshot = capture_environment()
+    assert snapshot.libraries == (
+        EnvironmentLibrary("alpha", "1.0"),
+        EnvironmentLibrary("packaging", "26.2"),
+    )
+
+
 def test_capture_environment_normalizes_platform_whitespace_and_empty_values(monkeypatch) -> None:
     monkeypatch.setattr("fuckmark.environment.platform.python_implementation", lambda: " CPython ")
     monkeypatch.setattr("fuckmark.environment.platform.python_version", lambda: " 3.12.13 ")
@@ -121,6 +148,20 @@ def test_environment_snapshot_accepts_legacy_v1_artifact() -> None:
         sha256_json(payload),
     )
     assert legacy.algorithm_version == ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION
+
+
+def test_environment_snapshot_accepts_legacy_v2_artifact() -> None:
+    snapshot = _environment()
+    payload = {
+        **snapshot._payload(),
+        "algorithm_version": ENVIRONMENT_SNAPSHOT_IMPORT_PRECEDENCE_LEGACY_ALGORITHM_VERSION,
+    }
+    legacy = replace(
+        snapshot,
+        algorithm_version=ENVIRONMENT_SNAPSHOT_IMPORT_PRECEDENCE_LEGACY_ALGORITHM_VERSION,
+        snapshot_hash=sha256_json(payload),
+    )
+    assert legacy.algorithm_version == ENVIRONMENT_SNAPSHOT_IMPORT_PRECEDENCE_LEGACY_ALGORITHM_VERSION
 
 
 def test_environment_snapshot_rejects_tampering() -> None:

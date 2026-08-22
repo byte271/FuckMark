@@ -1,0 +1,83 @@
+from __future__ import annotations
+
+import hashlib
+import os
+import subprocess
+import sys
+import tempfile
+import venv
+from pathlib import Path
+
+
+EXPECTED_INPUT = "I do not agree and I cannot stay.\n"
+EXPECTED_OUTPUT = "I don't agree and I can't stay.\n"
+
+
+def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(command, text=True, check=True, **kwargs)
+
+
+def _venv_python(root: Path) -> Path:
+    return root / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+
+
+def _venv_commands(root: Path) -> tuple[Path, ...]:
+    scripts = root / ("Scripts" if os.name == "nt" else "bin")
+    if os.name == "nt":
+        return (scripts / "fuckmark.exe",)
+    return tuple(scripts / name for name in ("FuckMark", "Fuckmark", "fuckmark"))
+
+
+def _artifacts(directory: Path) -> tuple[Path, ...]:
+    artifacts = tuple(sorted((*directory.glob("*.whl"), *directory.glob("*.tar.gz"))))
+    if len(artifacts) != 2:
+        raise RuntimeError("release directory must contain exactly one wheel and one source distribution")
+    return artifacts
+
+
+def _write_checksums(directory: Path, artifacts: tuple[Path, ...]) -> None:
+    rows = []
+    for artifact in artifacts:
+        digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        rows.append(f"{digest}  {artifact.name}")
+    (directory / "SHA256SUMS.txt").write_text("\n".join(rows) + "\n", encoding="utf-8", newline="")
+
+
+def _verify_artifact(artifact: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix="fuckmark-release-") as value:
+        root = Path(value)
+        venv.EnvBuilder(with_pip=True).create(root)
+        python = _venv_python(root)
+        environment = {**os.environ, "PIP_CACHE_DIR": str(root / "pip-cache")}
+        _run(
+            [str(python), "-m", "pip", "install", "--disable-pip-version-check", str(artifact)],
+            env=environment,
+        )
+        for command in _venv_commands(root):
+            if not command.is_file():
+                raise RuntimeError(f"missing installed console command: {command.name}")
+            version = _run([str(command), "--version"], capture_output=True).stdout
+            if "FuckMark 0.1.0" not in version or "release-cli-v3" not in version:
+                raise RuntimeError(f"unexpected version output from {command.name}: {version!r}")
+            transformed = _run(
+                [str(command), "--stdin"],
+                input=EXPECTED_INPUT,
+                capture_output=True,
+            )
+            if transformed.stdout != EXPECTED_OUTPUT or transformed.stderr:
+                raise RuntimeError(f"installed CLI failed for {command.name}")
+
+
+def main() -> int:
+    if len(sys.argv) != 2:
+        raise SystemExit("usage: verify_release_install.py DIST_DIRECTORY")
+    directory = Path(sys.argv[1]).resolve()
+    artifacts = _artifacts(directory)
+    _write_checksums(directory, artifacts)
+    for artifact in artifacts:
+        _verify_artifact(artifact)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

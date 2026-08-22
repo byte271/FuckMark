@@ -19,35 +19,46 @@ The project remains on `v0.1.0` for this research line. Fixes and research harde
 
 ## Interactive CLI
 
-Install the package, then run exactly:
+Install the package, then start the interactive interface:
 
 ```text
 FuckMark
 ```
 
-Paste one or more lines of text. Type `ok` on its own line and press Enter when the paste is complete.
+Paste one or more lines of text. Type `:done` on its own line when the paste is complete. The legacy `ok` terminator remains accepted.
 
-The CLI prints `Processing...`, applies the current deterministic release transform registry, and copies the resulting text to the system clipboard. When clipboard transfer succeeds it prints `Success. Copied to clipboard.` If no eligible release transformation exists, the original text is copied unchanged.
+The terminal UI identifies the exact project version, applies the deterministic release registry, reports the number of accepted changes, and copies the result to the system clipboard. ANSI color is enabled only for a compatible interactive terminal and can be disabled with `--no-color` or the standard `NO_COLOR` environment variable.
 
 The CLI uses the same protected-span and hard-invariant checks as the release transform registry. Development-only lexical and syntax rules are not enabled by this command.
 
-On macOS the CLI uses `pbcopy`. On Windows it uses `clip`. On Linux it tries `wl-copy`, `xclip`, `xsel`, and `clip.exe` in that order. If no supported clipboard command is available, the processed text is printed so it is not lost.
+On macOS the CLI uses `pbcopy`. On Windows it uses `clip`. On Linux it tries `wl-copy`, `xclip`, `xsel`, and `clip.exe` in that order. Clipboard processes have a ten-second timeout. If clipboard transfer fails, the transformed text is still printed and the command returns exit status 2.
 
 This interface performs deterministic text transformation. It is not a watermark detector and does not claim to remove, defeat, or validate any proprietary watermarking system.
 
-For scripts and pipelines, use the explicit non-interactive mode:
+Piped input automatically uses clean stream mode:
 
 ```text
-printf 'I do not agree.\n' | FuckMark --stdin
+printf 'I do not agree.\n' | FuckMark
 ```
 
-`--stdin` and `--non-interactive` read all standard input and write only the transformed text to standard output. They do not access the clipboard or print status lines. Check the exit status before using the output. `FuckMark --version` reports the project, CLI, and release-registry identities.
+`--stdin` and `--non-interactive` remain available when an explicit mode is preferred. Stream mode writes only transformed text to standard output and never accesses the clipboard unless `--copy` is supplied.
+
+UTF-8 files can be processed without shell redirection:
+
+```text
+FuckMark input.txt --output output.txt
+FuckMark input.txt --copy
+```
+
+Output files are replaced atomically, and the CLI refuses to use the same path for input and output. Run `FuckMark --help` for every option or read `docs/cli.md` for the complete behavior and exit-status contract. `FuckMark --version` reports the project, CLI, and release-registry identities.
 
 ## v0.1.0 release readiness
 
 The content-addressed Phase 0 baseline is stored in `specs/fuckmark-v0.1.0-release-readiness-baseline.json`. It binds main commit `afc8794be68c9495348c4934f2dd7e6cf4c61ce9`, the exact release registry, algorithm identities, engineering evidence, known scientific rejection, and every release-program gate. Its artifact hash is `f9834d502c8cfb1e1a3801710dfa3e152fde2de85348d5cd68b4f8334227b350`.
 
-At the freeze, 6 of 26 gates passed, 5 were blocked, and 15 were pending. The explicit blockers include the missing owner-selected project license, missing package license metadata, the unqualified public release engine, and the rejected CAL-SELECT/CAL-AUDIT pair with 55 exact cross-role generated-content collisions. No public `v0.1.0` tag or GitHub Release exists yet. The CLI now has a versioned `release-cli-v2` interface, but release authorization still requires the frozen fidelity and registry gates.
+At the freeze, 6 of 26 gates passed, 5 were blocked, and 15 were pending. This immutable historical record is not silently rewritten as later engineering work lands. The explicit scientific blockers include the rejected CAL-SELECT/CAL-AUDIT pair with 55 exact cross-role generated-content collisions and missing blind fidelity evidence. The project license and package license metadata also remain blocked until the owner deliberately selects a license.
+
+The current `release-cli-v3` interface closes the earlier command-line usability gaps, and `Release Engineering` clean-builds and clean-installs both distributions on Linux, macOS, and Windows. A `v*` tag publishes the already verified wheel, source distribution, and SHA-256 manifest only after that matrix succeeds. The release process and remaining boundary are documented in `docs/release.md`.
 
 ## Blind fidelity review packets
 
@@ -122,7 +133,7 @@ The release CLI remains limited to the release transform registry. The mechanism
 | Baseline invariant screen | `context-survival-baseline-invariant-screen-v1` | Hashes every individual hard-invariant decision and excludes expected invalid candidates before baseline scheduling |
 | Diverse Beam | `context-survival-diverse-beam-v1` | Preserves ranked elites, reserves capacity for distinct root-edit branches, and retains exact-depth output semantics |
 | TinyDev context plan | `tiny-dev-context-survival-plan-v3` | Uses the invariant-screened baseline pool and the separately versioned diverse Beam strategy |
-| Environment capture | `environment-snapshot-v2` | Canonicalizes platform metadata while continuing to accept v1 snapshots |
+| Environment capture | `environment-snapshot-v3` | Resolves duplicate distributions by runtime import precedence while continuing to accept v1 and v2 snapshots |
 | Representation differential audit | `representation-differential-audit-v1` | Replays one transformed pair per independent source through at least two pinned tokenizer families without detector or secret access |
 
 The original `context-survival-beam-v2` function is unchanged. Frozen MidDev protocols that name Beam v2 continue to use that implementation. The diversity strategy has a distinct identity so historical evidence is not silently reinterpreted.

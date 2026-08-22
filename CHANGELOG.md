@@ -4,6 +4,10 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Rebuilt the public CLI as `release-cli-v3`: piped input now selects stream mode automatically; UTF-8 file input, atomic output files, optional clipboard copying, terminal-aware color, precise exit errors, clipboard timeouts, overwrite protection, and applied-change counts are supported.
+- Added clean wheel and source-distribution verification on Linux, macOS, and Windows plus tag-gated GitHub Release publication with SHA-256 assets.
+- Advanced environment capture to `environment-snapshot-v3`: when multiple metadata distributions share a normalized package name, the canonical snapshot selects the distribution with actual `sys.path` import precedence while retaining v1 and v2 replay support.
+- Added the evidence-backed U+200C visible-projection mechanism only as an explicitly constructed quarantined experiment. It remains absent from default, development, release, CLI, and automatic selection paths; format-control stripping restores the evaluated detection behavior.
 - Rewrote the exploratory B16 candidate as the isolated `key-blind-high-coverage-v1` effectiveness profile instead of mutating the ordinary development registry.
 - Bound the independently tested B16 requested operation budget, per-source candidate-count truncation, `1120000 + sorted_source_index` seed schedule, forward-only reversible contraction catalog, public-tokenizer n-gram geometry, key-blind coverage policy, algorithm identities, and ruleset hash into one self-validating profile.
 - Added separate detector-free planning and fixed open-detector scoring entry points with plan fsync provenance, complete source-denominator checks, per-variant hashes, and strict profile/corpus/tokenizer/commit replay validation.
@@ -11,7 +15,7 @@ The project remains at `v0.1.0` for this research line.
 - Recorded the two 12-source exploratory hold-outs without broadening the claim: B10 changed detection from 12/12 to 8/12 and B16 from 12/12 to 6/12, transformed controls remained 0/12, and release authorization and blind human fidelity remain absent.
 - Recorded the frozen four-source TinyDev development run: watermarked detection changed from 4/4 to 0/4, matched controls remained 0/4, and all artifact identities and narrow claim exclusions are bound into a self-validating evidence record.
 
-- Added the versioned `release-cli-v2` interface with `--version`, deterministic non-interactive `--stdin` and `--non-interactive` modes, and package repository and issue URLs. The release registry and development-only rule boundary are unchanged; release authorization remains blocked on the existing fidelity, license, and calibration gates.
+- Added the earlier `release-cli-v2` interface with `--version`, deterministic non-interactive `--stdin` and `--non-interactive` modes, and package repository and issue URLs. The release registry and development-only rule boundary remained unchanged.
 
 - Added the development-only `mid-dev-calibration-independence-v3` protocol with structural identity hard failures, deterministic text/token first-occurrence compaction, explicit cross-role collision exclusions, content-addressed role manifests, and strict replay parsers. The rejected v2 calibration pair remains immutable; no v3 corpus or confirmatory detector claim exists yet.
 

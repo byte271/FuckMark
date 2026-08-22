@@ -1,0 +1,59 @@
+{
+  "contract_version": "fuckmark-quarantined-visible-projection-u200c-v1",
+  "status": "quarantined_experimental_only",
+  "mechanism": {
+    "rule_id": "visible-projection-zero-width-non-joiner",
+    "unicode_scalar": "U+200C",
+    "placement": "insert after an ASCII space only when both neighboring space-delimited tokens contain ASCII letters only",
+    "detector_selection": "forbidden"
+  },
+  "registry_boundary": {
+    "requires_explicit_construction": "fuckmark.transforms.visible_projection_registry.visible_projection_experimental_registry",
+    "default_registry": "forbidden",
+    "development_registry": "forbidden",
+    "release_registry": "forbidden",
+    "automatic_product_selection": "forbidden"
+  },
+  "fixed_open_detector_evidence": {
+    "classification": "one_time_independent_heldout_exploratory_measurement",
+    "watermarked_source_groups": 20,
+    "pristine_watermarked_detected": 20,
+    "u200c_b16_transformed_watermarked_detected": 1,
+    "u200c_b16_transformed_watermarked_detection_rate": 0.05,
+    "u200c_b16_transformed_unwatermarked_detected": 0,
+    "detector": "Hugging Face SynthID observation adapter plus Weighted Mean",
+    "ngram_len": 5,
+    "context_history_size": 1024,
+    "target_fpr": 0.01,
+    "threshold": 0.5616883116883117,
+    "comparator": ">=",
+    "detector_identity_hash": "0c034ec0b570ee7282dbf75616ad20b3aaf3b09a92204db202734087b027fb80",
+    "heldout_corpus_hash": "7b24aa95d8fce4cada12bbbaa587d0827b4fc6b4ac4670ebf0b8657d1206d1f5",
+    "heldout_plan_hash": "9b41c58eac7ff60d5cc3d75fbde3763826d859d749195047addce656df626d4c",
+    "render_audit_hash": "cadb7664c3eae0fd608dc183fbd17f304a7ac5f1c5882430b2e9b00a3c0fad39",
+    "score_evidence_hash": "8551ac94f1d7bd89e89e2a993c214054871b4d0bf612100128c7ac388a42e796"
+  },
+  "known_failure_boundary": {
+    "unicode_cf_stripping": "restored detection for 20 of 20 evaluated transformed sources in strict follow-up",
+    "multi_length_stress_detection_rate": 0.1875,
+    "copy_dom_representation": "changed",
+    "release_safe": false
+  },
+  "prohibited_claims": [
+    "watermark removal",
+    "undetectability",
+    "unknown-key robustness",
+    "proprietary-detector robustness",
+    "normalization durability",
+    "semantic equivalence",
+    "release readiness"
+  ],
+  "required_future_evaluation": [
+    "new pre-registered source-disjoint corpus",
+    "multiple keys and detector implementations",
+    "Unicode normalization and Cf-stripping conditions",
+    "cross-browser and accessibility audit",
+    "label-blind visible fidelity review"
+  ],
+  "contract_hash": "890d4b47b683a58cb09a3e412d4b1c1eb9ec4f90df7288186c2a21fb829ca6ce"
+}

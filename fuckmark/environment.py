@@ -4,6 +4,7 @@ import importlib.metadata
 import os
 import platform
 import re
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -14,9 +15,11 @@ from .types import RunIdentity
 
 
 ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION = "environment-snapshot-v1"
-ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION = "environment-snapshot-v2"
+ENVIRONMENT_SNAPSHOT_IMPORT_PRECEDENCE_LEGACY_ALGORITHM_VERSION = "environment-snapshot-v2"
+ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION = "environment-snapshot-v3"
 ENVIRONMENT_SNAPSHOT_SUPPORTED_VERSIONS = (
     ENVIRONMENT_SNAPSHOT_LEGACY_ALGORITHM_VERSION,
+    ENVIRONMENT_SNAPSHOT_IMPORT_PRECEDENCE_LEGACY_ALGORITHM_VERSION,
     ENVIRONMENT_SNAPSHOT_ALGORITHM_VERSION,
 )
 RUN_MANIFEST_ALGORITHM_VERSION = "run-manifest-v1"
@@ -198,8 +201,16 @@ class RunManifest:
         )
 
 
+def _distribution_precedence(distribution: importlib.metadata.Distribution) -> tuple[int, str]:
+    location = os.path.realpath(str(distribution.locate_file("")))
+    for index, entry in enumerate(sys.path):
+        if os.path.realpath(entry or os.curdir) == location:
+            return index, location
+    return len(sys.path), location
+
+
 def _installed_libraries() -> tuple[EnvironmentLibrary, ...]:
-    by_name: dict[str, EnvironmentLibrary] = {}
+    by_name: dict[str, tuple[EnvironmentLibrary, tuple[int, str]]] = {}
     for distribution in importlib.metadata.distributions():
         name = distribution.metadata.get("Name")
         version = distribution.version
@@ -207,12 +218,18 @@ def _installed_libraries() -> tuple[EnvironmentLibrary, ...]:
             raise ValueError("installed distribution metadata must contain non-empty name and version")
         row = EnvironmentLibrary(name.strip(), version.strip())
         key = row.name.casefold()
+        candidate = (row, _distribution_precedence(distribution))
         previous = by_name.get(key)
-        if previous is not None and previous.version != row.version:
-            raise ValueError(f"multiple installed versions found for library {row.name}")
-        if previous is None or row.name < previous.name:
-            by_name[key] = row
-    return tuple(sorted(by_name.values(), key=lambda value: (value.name.casefold(), value.name, value.version)))
+        if previous is None or candidate[1] < previous[1] or (
+            candidate[1] == previous[1] and (row.name, row.version) < (previous[0].name, previous[0].version)
+        ):
+            by_name[key] = candidate
+    return tuple(
+        sorted(
+            (value[0] for value in by_name.values()),
+            key=lambda value: (value.name.casefold(), value.name, value.version),
+        )
+    )
 
 
 def _platform_value(value: str) -> str:
