@@ -9,6 +9,7 @@ The project remains at `v0.1.0` for this research line.
 - Added separate detector-free planning and fixed open-detector scoring entry points with plan fsync provenance, complete source-denominator checks, per-variant hashes, and strict profile/corpus/tokenizer/commit replay validation.
 - Advanced hard-invariant validation to `hard-invariant-validator-v4` so unambiguous `you're`, `we're`, and `they're` negations replay against their expanded forms without silently changing the prior algorithm identity.
 - Recorded the two 12-source exploratory hold-outs without broadening the claim: B10 changed detection from 12/12 to 8/12 and B16 from 12/12 to 6/12, transformed controls remained 0/12, and release authorization and blind human fidelity remain absent.
+- Recorded the frozen four-source TinyDev development run: watermarked detection changed from 4/4 to 0/4, matched controls remained 0/4, and all artifact identities and narrow claim exclusions are bound into a self-validating evidence record.
 
 - Added the versioned `release-cli-v2` interface with `--version`, deterministic non-interactive `--stdin` and `--non-interactive` modes, and package repository and issue URLs. The release registry and development-only rule boundary are unchanged; release authorization remains blocked on the existing fidelity, license, and calibration gates.
 
