@@ -118,9 +118,19 @@ from .tokenizer_geometry import (
     build_candidate_tokenizer_geometry,
 )
 from .trace import TransformOperation, TransformResult, TransformationTrace
+from .visible_typography import (
+    ASCII_APOSTROPHE,
+    HYPHEN,
+    HYPHEN_MINUS,
+    RIGHT_SINGLE_QUOTATION_MARK,
+    VISIBLE_TYPOGRAPHY_RULESET_VERSION,
+    VisibleTypographyRule,
+    development_visible_typography_rules,
+)
 
 
 __all__ = [
+    "ASCII_APOSTROPHE",
     "TASK29_FIDELITY_READINESS_ALGORITHM_VERSION",
     "FidelityReadinessStatus",
     "FidelityReadinessVerificationError",
@@ -161,6 +171,8 @@ __all__ = [
     "CandidateScheduler",
     "CoverageOptimalityDiagnostic",
     "HARD_INVARIANT_ALGORITHM_VERSION",
+    "HYPHEN",
+    "HYPHEN_MINUS",
     "HardInvariantReason",
     "HardInvariantReport",
     "HardInvariantSignature",
@@ -187,6 +199,7 @@ __all__ = [
     "MINIMUM_SYNTAX_GRAMMAR_FIXTURES_PER_CLASS",
     "MINIMUM_SYNTAX_HUMAN_AUDIT_SAMPLES",
     "PROTECTED_SPAN_ALGORITHM_VERSION",
+    "RIGHT_SINGLE_QUOTATION_MARK",
     "ProtectedInvariantReport",
     "ProtectedSpan",
     "ProtectedSpanExtractor",
@@ -217,6 +230,8 @@ __all__ = [
     "TransformTier",
     "TransformationTrace",
     "UserProtectedRange",
+    "VISIBLE_TYPOGRAPHY_RULESET_VERSION",
+    "VisibleTypographyRule",
     "capture_lexical_retokenization_fixture",
     "capture_syntax_retokenization_fixture",
     "create_lexical_rule_audit",
@@ -226,6 +241,7 @@ __all__ = [
     "development_lexical_rules",
     "development_syntax_rules",
     "development_transform_registry",
+    "development_visible_typography_rules",
     "release_transform_registry",
     "require_complete_lexical_audit_summaries",
     "validate_protected_invariants",

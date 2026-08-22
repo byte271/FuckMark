@@ -17,6 +17,7 @@ on:
       - "tests/test_tiny_dev_context_survival_hf.py"
       - "tests/test_beam_v2.py"
       - "tests/test_context_survival_plan_v2.py"
+      - "tests/test_visible_typography.py"
 
 permissions:
   contents: read
@@ -74,6 +75,7 @@ jobs:
           --random-seeds 8
           --beam-width 32
           --max-risk-tier 1
+          --registry-profile visible-typography-v1
           --source-code-commit "${PR_HEAD_SHA:-$GITHUB_SHA}"
           --plan-json artifacts/tiny-dev-context-survival-plan.json
           --provenance-json artifacts/tiny-dev-context-survival-plan-provenance.json

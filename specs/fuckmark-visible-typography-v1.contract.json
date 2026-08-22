@@ -1,0 +1,35 @@
+{
+  "algorithm_version": "tiny-dev-visible-typography-plan-v1",
+  "ruleset_version": "development-visible-typography-rules-v1",
+  "status": "DEVELOPMENT_ONLY_PENDING_EFFECTIVENESS_EVIDENCE",
+  "hypothesis": "NFC-stable visible typographic substitutions at internal apostrophe and hyphen sites will change local token identities and the following context-dependent watermark observations without replacing words or sentence structure.",
+  "mechanism": "SynthID-style context-dependent statistics resynchronize after an isolated edit. Multiple separated retokenization sites should destroy or replace more local observation windows than the sparse contraction-only portfolio while preserving the words read by a person.",
+  "experiment": "Freeze a detector-blind context-survival plan over the canonical TinyDev corpus, score it in an independent process, compare matched policy and edit-cost cells with the historical v3 plan, and record detection counts, score and margin distributions, observation destruction, control distance, fidelity, and exact replay hashes.",
+  "mappings": [
+    {
+      "site": "ASCII apostrophe strictly between ASCII letters",
+      "source_code_point": "U+0027",
+      "replacement_code_point": "U+2019"
+    },
+    {
+      "site": "hyphen-minus strictly between ASCII letters",
+      "source_code_point": "U+002D",
+      "replacement_code_point": "U+2010"
+    }
+  ],
+  "selection_detector_query_count": 0,
+  "selection_secret_query_count": 0,
+  "requires_watermark_key": false,
+  "requires_detector_access": false,
+  "normalization_contract": "Unicode NFC stable; visible punctuation only; no Cf, Cs, Co, Mn, or Me mutations",
+  "protected_content_contract": "URLs, email addresses, paths, CLI tokens, quoted spans, identifiers, and caller-protected ranges are never eligible",
+  "fidelity_contract": "No word insertion, deletion, reordering, semantic substitution, or sentence-structure change",
+  "kill_criteria": [
+    "Reject if the representation differential audit does not show tokenization change across every pinned tokenizer family for at least two independent sources.",
+    "Reject if protected-span replay, Unicode NFC, hard invariants, or exact deterministic replay fails.",
+    "Reject if the independently scored matched-cost experiment does not improve watermark detection or detector-margin outcomes relative to the historical context-survival plan.",
+    "Reject if unwatermarked-control distance or text-fidelity evidence is materially worse than the preregistered development tolerance."
+  ],
+  "claim_scope": "Open weighted-mean SynthID TinyDev engineering evidence only",
+  "release_authorized": false
+}

@@ -20,6 +20,9 @@ from .scheduling.beam_v2 import (
     CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION,
     diverse_beam_search,
 )
+from .transforms import TransformRegistry, development_visible_typography_rules
+from .transforms.contractions import context_survival_contraction_rules
+from .transforms.surface_rules import development_surface_rules
 
 
 DEFAULT_MODEL_ID = "openai-community/gpt2"
@@ -27,7 +30,10 @@ DEFAULT_MODEL_REVISION = "607a30d783dfa663caf39e06633721c8d4cfcd7e"
 DEFAULT_NGRAM_LEN = 5
 DEFAULT_CONTEXT_HISTORY_SIZE = 1024
 TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION = "tiny-dev-context-survival-plan-v3"
+TINY_DEV_VISIBLE_TYPOGRAPHY_PLAN_VERSION = "tiny-dev-visible-typography-plan-v1"
 TINY_DEV_CONTEXT_SURVIVAL_PLAN_PROVENANCE_VERSION = "tiny-dev-context-survival-plan-provenance-v1"
+HISTORICAL_CONTEXT_REGISTRY_PROFILE = "historical-context-v3"
+VISIBLE_TYPOGRAPHY_REGISTRY_PROFILE = "visible-typography-v1"
 
 
 def _parse_budgets(value: str) -> tuple[int, ...]:
@@ -91,7 +97,15 @@ def runtime_tokenizer_identity_public(
     )
 
 
-def _build_context_survival_plan_v3(corpus, tokenizer, **kwargs) -> dict[str, object]:
+def _build_attested_context_survival_plan(
+    corpus,
+    tokenizer,
+    *,
+    algorithm_version: str,
+    registry_profile: str | None,
+    registry: TransformRegistry | None = None,
+    **kwargs,
+) -> dict[str, object]:
     original_beam_search = context_survival_plan_module.beam_search
     original_expander = context_survival_plan_module.ContextSurvivalExpander
     observed_expanders = []
@@ -104,7 +118,12 @@ def _build_context_survival_plan_v3(corpus, tokenizer, **kwargs) -> dict[str, ob
     context_survival_plan_module.beam_search = diverse_beam_search
     context_survival_plan_module.ContextSurvivalExpander = _ObservedExpander
     try:
-        base_plan = context_survival_plan_module.build_context_survival_plan(corpus, tokenizer, **kwargs)
+        base_plan = context_survival_plan_module.build_context_survival_plan(
+            corpus,
+            tokenizer,
+            registry=registry,
+            **kwargs,
+        )
     finally:
         context_survival_plan_module.beam_search = original_beam_search
         context_survival_plan_module.ContextSurvivalExpander = original_expander
@@ -115,12 +134,45 @@ def _build_context_survival_plan_v3(corpus, tokenizer, **kwargs) -> dict[str, ob
     if detector_access_observed or secret_access_observed:
         raise RuntimeError("context-survival plan access attestation is contaminated")
     payload = {key: value for key, value in base_plan.items() if key != "plan_hash"}
-    payload["algorithm_version"] = TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION
+    payload["algorithm_version"] = algorithm_version
+    if registry_profile is not None:
+        payload["registry_profile"] = registry_profile
     payload["beam_algorithm_version"] = CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION
     payload["detector_access_observed"] = detector_access_observed
     payload["secret_access_observed"] = secret_access_observed
     payload["attested_expander_count"] = len(observed_expanders)
     return {**payload, "plan_hash": sha256_json(payload)}
+
+
+def _build_context_survival_plan_v3(corpus, tokenizer, **kwargs) -> dict[str, object]:
+    return _build_attested_context_survival_plan(
+        corpus,
+        tokenizer,
+        algorithm_version=TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION,
+        registry_profile=None,
+        **kwargs,
+    )
+
+
+def _visible_typography_registry() -> TransformRegistry:
+    return TransformRegistry(
+        (
+            *context_survival_contraction_rules(),
+            *development_surface_rules(),
+            *development_visible_typography_rules(),
+        )
+    )
+
+
+def _build_visible_typography_plan_v1(corpus, tokenizer, **kwargs) -> dict[str, object]:
+    return _build_attested_context_survival_plan(
+        corpus,
+        tokenizer,
+        algorithm_version=TINY_DEV_VISIBLE_TYPOGRAPHY_PLAN_VERSION,
+        registry_profile=VISIBLE_TYPOGRAPHY_REGISTRY_PROFILE,
+        registry=_visible_typography_registry(),
+        **kwargs,
+    )
 
 
 def _plan_provenance(
@@ -160,6 +212,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--context-history-size", type=int, default=DEFAULT_CONTEXT_HISTORY_SIZE)
     parser.add_argument("--source-code-commit", required=True)
     parser.add_argument(
+        "--registry-profile",
+        choices=(HISTORICAL_CONTEXT_REGISTRY_PROFILE, VISIBLE_TYPOGRAPHY_REGISTRY_PROFILE),
+        default=HISTORICAL_CONTEXT_REGISTRY_PROFILE,
+    )
+    parser.add_argument(
         "--plan-json",
         type=Path,
         default=Path("artifacts/tiny-dev-context-survival-plan.json"),
@@ -193,7 +250,12 @@ def main(argv: list[str] | None = None) -> int:
         raise RuntimeError("runtime tokenizer identity does not match frozen TinyDev corpus")
 
     plan_started_at = _now()
-    plan = _build_context_survival_plan_v3(
+    builder = (
+        _build_visible_typography_plan_v1
+        if args.registry_profile == VISIBLE_TYPOGRAPHY_REGISTRY_PROFILE
+        else _build_context_survival_plan_v3
+    )
+    plan = builder(
         corpus,
         tokenizer,
         ngram_len=args.ngram_len,
