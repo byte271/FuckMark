@@ -86,6 +86,31 @@ The runner generates matched control and watermarked continuations with the same
 
 The default report files are `artifacts/synthid-smoke.json` and `artifacts/synthid-smoke.csv`. The artifacts directory is ignored by Git. The threshold in this smoke report is descriptive and is derived only from pristine control scores. A smoke result is development evidence, not a confirmatory result and not evidence about a proprietary watermarking system.
 
+## Frozen high-coverage effectiveness profile
+
+The development-only `key-blind-high-coverage-v1` profile rewrites the local exploratory B16 candidate as an isolated, content-addressed experiment. It combines the existing development surface, lexical, and syntax rules with forward-only reversible contractions, then uses only public GPT-2 tokenizer offsets and `COVERAGE_GREEDY_KEY_BLIND` scheduling. It freezes the independently tested requested operation budget of 16, truncates it to each source's candidate count, and derives the sole schedule seed as `1120000 + sorted_source_index`. The release CLI and the ordinary development registry are unchanged.
+
+The archived exploratory evidence used two independently generated 12-source hold-outs under one fixed open Hugging Face SynthID Weighted Mean detector and a fixed 1% FPR threshold. B10 changed watermarked detection from 12/12 to 8/12. The independently planned B16 run changed it from 12/12 to 6/12 while transformed unwatermarked controls remained 0/12. The B16 transformed-watermarked mean score was still 0.56586, above the 0.56169 threshold and 0.07355 above the transformed-control mean. These are narrow open-detector results, not evidence of watermark removal, unknown-key transfer, proprietary-detector transfer, normalization durability, or release quality. No blind human semantic or style audit has been completed.
+
+The frozen GitHub TinyDev run on four independent attack-development watermarked sources changed detection from 4/4 to 0/4; four matched controls remained 0/4 before and after transformation. Mean watermarked score changed from 0.62644 to 0.52847, while mean control score changed from 0.47821 to 0.48723 and the highest transformed-control score remained 0.03575 below the threshold. The immutable record is `specs/fuckmark-key-blind-high-coverage-v1.tinydev-evidence.json`. This is development-set evidence from one fixed open detector and one replicate, not confirmatory evidence or authorization for a release claim.
+
+The rewritten B16 profile replays all 24 archived samples exactly through candidate enumeration, public-tokenizer geometry, effective-budget truncation, schedule result, selected candidate IDs, and transformed text. Validator v4 intentionally gives new invariant and trace identities, so archived v3 trace hashes are not reused.
+
+The frozen research contract is `specs/fuckmark-open-detector-effectiveness-v1.contract.json`. Planning and scoring use separate commands and separate processes. The planning import graph contains no detector, adapter, Bayesian, watermark-key, or secret-key dependency.
+
+```text
+python -m fuckmark.tiny_dev_effectiveness_plan_hf \
+  --corpus-json artifacts/tiny-dev-corpus.json \
+  --source-code-commit "$(git rev-parse HEAD)"
+
+python -m fuckmark.tiny_dev_effectiveness_score_hf \
+  --corpus-json artifacts/tiny-dev-corpus.json \
+  --plan-json artifacts/tiny-dev-effectiveness-plan.json \
+  --source-code-commit "$(git rev-parse HEAD)"
+```
+
+The plan hash covers the full source denominator, requested and effective budgets, profile hash, ruleset hash, public tokenizer geometry, every schedule result, every transformed text, and every hard-invariant trace. Scoring rejects a plan with an unknown field, missing source-budget-replicate coordinate, changed hash, changed profile, changed corpus, changed tokenizer identity, changed source commit, detector access, or secret access.
+
 ## Development transformation engine
 
 The release CLI remains limited to the release transform registry. The mechanisms below are development-only and are exercised by the TinyDev and MidDev research workflows.
@@ -102,9 +127,9 @@ The release CLI remains limited to the release transform registry. The mechanism
 
 The original `context-survival-beam-v2` function is unchanged. Frozen MidDev protocols that name Beam v2 continue to use that implementation. The diversity strategy has a distinct identity so historical evidence is not silently reinterpreted.
 
-The invariant screen is detector-blind and key-blind. It catches expected individual candidate rejection only. Invalid enumerations, validator failures, replay mismatches, multi-candidate invariant interactions, and other programming errors remain visible. A candidate can be safe in one sentence and rejected in another; for example, the current hard-invariant contract rejects `you are` to `you're` inside `you are not` because the canonical negation signatures differ.
+The invariant screen is detector-blind and key-blind. It catches expected individual candidate rejection only. Invalid enumerations, validator failures, replay mismatches, multi-candidate invariant interactions, and other programming errors remain visible. `hard-invariant-validator-v4` canonically equates the unambiguous `you're`, `we're`, and `they're` forms with `you are`, `we are`, and `they are` when followed by `not`; ambiguous forms such as `he's` remain fail-closed.
 
-On the frozen real TinyDev attack-development watermarked sources used by the transformability workflow, surface v4 increased raw candidates from `51` to `65` and independent candidates from `51` to `64`; all four sources remained transformable. Across all eight real TinyDev attack-development sources, the combined context registry enumerated `148` root candidates and the invariant screen accepted `147`, deterministically rejecting the single context-invalid `you are not` candidate. These are opportunity and stability measurements, not detector-effectiveness claims.
+On the frozen real TinyDev attack-development watermarked sources used by the transformability workflow, surface v4 increased raw candidates from `51` to `65` and independent candidates from `51` to `64`; all four sources remained transformable. The historical v3 invariant screen accepted 147 of 148 combined-context root candidates and rejected one `you are not` contraction. Validator v4 repairs that narrow canonicalization defect under a new algorithm identity. These are opportunity and stability measurements, not detector-effectiveness claims.
 
 The diverse Beam regression proves one synthetic dead-end graph where legacy Beam v2 returns no exact-depth state and the new strategy reaches the requested depth. Real-corpus improvement over Beam v2 is not yet proven. Spacing edits remain fragile under whitespace normalization, and the additional contractions do not eliminate that limitation.
 
@@ -122,7 +147,7 @@ python -m pytest tests/test_repository_hygiene.py tests/test_beam_v2.py tests/te
 python -m fuckmark.tiny_dev_transformability --corpus-json artifacts/tiny-dev-corpus.json --json artifacts/tiny-dev-transformability.json
 ```
 
-The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real TinyDev Transformability`, `Real TinyDev Transform Evidence`, `Real TinyDev Extended Transform Evidence`, and `Real TinyDev Context-Survival Mechanism Pilot`.
+The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real TinyDev Transformability`, `Real TinyDev Transform Evidence`, `Real TinyDev Extended Transform Evidence`, `Real TinyDev Context-Survival Mechanism Pilot`, and `Frozen TinyDev Effectiveness Profile`.
 
 ## Current foundation
 
@@ -178,5 +203,7 @@ The corresponding GitHub workflows are `CI`, `MidDev Full Matrix Gate`, `Real Ti
 50. Separately versioned root-branch-diverse Beam search without changing frozen Beam v2 semantics
 51. Canonical cross-platform environment capture with legacy v1 snapshot compatibility
 52. Strict multi-tokenizer representation differential audits with independent-source accounting and representation-sensitive Unicode rejection
+53. Isolated content-addressed `key-blind-high-coverage-v1` planning with complete-denominator replay validation
+54. Separate detector-free planning and fixed open-detector scoring processes for exploratory B16 measurement
 
 Python source is English-only and contains no comments or docstrings.

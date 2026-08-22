@@ -1,0 +1,86 @@
+{
+  "algorithm_version": "open-detector-effectiveness-contract-v1",
+  "recorded_date": "2026-08-22",
+  "initial_main_commit": "85083d5cc3de5a1e898b5a787dae9a9464af0802",
+  "archived_research_candidate_commit": "39ddb820267c8a0d6486285ab4417986262c994d",
+  "rewritten_profile_id": "key-blind-high-coverage-v1",
+  "rewritten_profile_hash": "6ad142262bfb11a714565d7bd43daa859657fe817bdafa9c8dcf0f4884c07512",
+  "rewritten_profile_schedule": {
+    "requested_budgets": [16],
+    "effective_budget": "min(requested_budget, candidate_count)",
+    "replicate_count": 1,
+    "seed_base": 1120000,
+    "seed_derivation": "seed_base + sorted_source_index"
+  },
+  "archived_b16_replay": {
+    "ruleset_hash": "081acabc774258baf21901e890c3f1d48946d91da16568c9bb2d489639dd5047",
+    "sample_count": 24,
+    "exact_selection_and_transformed_text_match_count": 24,
+    "archived_trace_hash_reused": false,
+    "trace_identity_change_reason": "hard-invariant-validator-v4"
+  },
+  "selection_access": {
+    "detector": false,
+    "watermark_key": false,
+    "secret": false,
+    "network_service": false,
+    "public_tokenizer_geometry": true
+  },
+  "fixed_open_measurement": {
+    "detector_family": "Hugging Face SynthID Weighted Mean",
+    "ngram_len": 5,
+    "target_fpr": 0.01,
+    "comparison_operator": ">=",
+    "threshold": 0.5616883116883117,
+    "detector_identity_hash": "0c034ec0b570ee7282dbf75616ad20b3aaf3b09a92204db202734087b027fb80",
+    "threshold_hash": "b0d5e38d168f2aade30d645207583cd3c817e222226995a12dc38f3552426604"
+  },
+  "locked_holdouts": [
+    {
+      "holdout_id": "B10-first-independent-holdout",
+      "independent_source_count": 12,
+      "requested_budget": 10,
+      "pristine_watermarked_detected": 12,
+      "transformed_watermarked_detected": 8,
+      "transformed_unwatermarked_detected": 0,
+      "mean_watermarked_score_drop": 0.05085
+    },
+    {
+      "holdout_id": "B16-second-independent-holdout",
+      "independent_source_count": 12,
+      "requested_budget": 16,
+      "pristine_watermarked_detected": 12,
+      "transformed_watermarked_detected": 6,
+      "transformed_unwatermarked_detected": 0,
+      "pristine_watermarked_mean_score": 0.62305,
+      "transformed_watermarked_mean_score": 0.56586,
+      "transformed_unwatermarked_mean_score": 0.49231,
+      "residual_watermarked_control_mean_gap": 0.07355,
+      "mean_watermarked_score_drop": 0.05719,
+      "realized_watermarked_edit_costs": [16, 2, 16, 16, 16, 16, 16, 16, 16, 12, 3, 16],
+      "hard_invariant_pass_count": 24,
+      "hard_invariant_total_count": 24,
+      "second_holdout_corpus_hash": "455ba3872fbc20cdd599463b35b15400ce01c53311fb14dc9b4124dea4eff28c",
+      "second_holdout_plan_hash": "0efd05d08e07457c154bdeafe27cf94507029648fba7b97180e2bd54a8f7706f",
+      "second_holdout_evidence_hash": "811a2ccd9bcdf93e4c65649c9e66a15192a35a2f270a8a3e8f0a0f1d1ab70dab"
+    }
+  ],
+  "archive_sha256": {
+    "research_archive": "24a0db4b2cc805868e07d3aed634fc1a99a2a4c3442a172ff8d36f3fd1c56599",
+    "research_report": "3466bc954a14b3d5af29883d567b9bb876f38b7ae618329c80fcb243b4c59f69",
+    "research_patch": "e860e480de672baa516cdb60eac0455603d53901bc21b2e0b342d4859e524dea",
+    "research_source_snapshot": "1a6b5b9b817c75b8c4badb378e3b5a393fcfae3983a7b270a310c7ab8ba0c83c",
+    "heldout_plot": "be727a0ebd096946d08d660e8eb3c021eb7f9cbcd690e75278f09ed824771710"
+  },
+  "claim_boundary": {
+    "status": "EXPLORATORY_INDEPENDENT_REPLICATION_ONLY",
+    "watermark_removal_claim": false,
+    "undetectability_claim": false,
+    "unknown_key_claim": false,
+    "proprietary_detector_claim": false,
+    "normalization_durability_claim": false,
+    "release_authorized": false,
+    "blind_human_semantic_audit": "NOT_PERFORMED",
+    "blind_human_style_audit": "NOT_PERFORMED"
+  }
+}

@@ -1,6 +1,7 @@
 import pytest
 
 from fuckmark.transforms import (
+    HARD_INVARIANT_ALGORITHM_VERSION,
     HardInvariantReason,
     InvariantStatus,
     LiteralTransformRule,
@@ -72,3 +73,18 @@ def test_registry_rejects_custom_rule_that_changes_modality() -> None:
     enumeration = registry.enumerate("We should wait.")
     with pytest.raises(ValueError, match="hard content invariants"):
         registry.apply(enumeration, (enumeration.candidates[0].candidate_id,))
+
+
+def test_v4_canonicalizes_unambiguous_contracted_copula_negations() -> None:
+    assert HARD_INVARIANT_ALGORITHM_VERSION == "hard-invariant-validator-v4"
+    expanded = hard_invariant_signature(
+        "You are not ready. We are not leaving. They are not required to wait."
+    )
+    contracted = hard_invariant_signature(
+        "You're not ready. We're not leaving. They're not required to wait."
+    )
+    assert expanded == contracted
+
+
+def test_v4_does_not_guess_ambiguous_contracted_auxiliaries() -> None:
+    assert hard_invariant_signature("He is not ready.") != hard_invariant_signature("He's not ready.")

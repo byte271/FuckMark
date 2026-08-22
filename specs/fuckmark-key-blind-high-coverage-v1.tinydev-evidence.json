@@ -1,0 +1,128 @@
+{
+  "algorithm_version": "tinydev-key-blind-high-coverage-evidence-record-v1",
+  "recorded_date": "2026-08-22",
+  "decision": "ACCEPTED_DEVELOPMENT_EVIDENCE_ONLY",
+  "implementation_retained": true,
+  "release_authorized": false,
+  "candidate": {
+    "pull_request_number": 79,
+    "source_code_commit": "8620cbc1aef022c53b70190f047c0d15d06f323e",
+    "github_workflow_run_id": 32590180960,
+    "workflow_artifact_id": 9480179939,
+    "workflow_artifact_digest": "sha256:a84aadd41ddf703f8703917f6420591bdc161b91d0f05f7a8602f542034eaf5f",
+    "workflow_artifact_zip_sha256": "a84aadd41ddf703f8703917f6420591bdc161b91d0f05f7a8602f542034eaf5f"
+  },
+  "corpus": {
+    "file_sha256": "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+    "artifact_hash": "42240f72e17df1a048f44197f216a0b5f30128c26e2da93afbe92820946e4561",
+    "independent_watermarked_source_count": 4,
+    "independent_control_source_count": 4
+  },
+  "profile": {
+    "profile_id": "key-blind-high-coverage-v1",
+    "profile_hash": "6ad142262bfb11a714565d7bd43daa859657fe817bdafa9c8dcf0f4884c07512",
+    "ruleset_hash": "081acabc774258baf21901e890c3f1d48946d91da16568c9bb2d489639dd5047",
+    "requested_budget": 16,
+    "replicate_count": 1,
+    "plan_hash": "e861566ac0201ffe1a113f7d06a6fb1d4eea2352710c9560728f9a8c4158a1d0"
+  },
+  "planning_access": {
+    "detector_access_observed": false,
+    "watermark_key_access_observed": false,
+    "secret_access_observed": false,
+    "public_tokenizer_geometry": true
+  },
+  "measurement": {
+    "detector_family": "Hugging Face SynthID Weighted Mean",
+    "detector_identity_hash": "0c034ec0b570ee7282dbf75616ad20b3aaf3b09a92204db202734087b027fb80",
+    "target_fpr": 0.01,
+    "threshold": 0.5616883116883117,
+    "evidence_artifact_hash": "6b0d9e94d5c01b2f2292786824454d576fb36d2e82da69efd3dcf5cad93bdb38",
+    "pristine_watermarked_detected_count": 4,
+    "transformed_watermarked_detected_count": 0,
+    "pristine_control_detected_count": 0,
+    "transformed_control_detected_count": 0,
+    "mean_pristine_watermarked_score": 0.6264354639865075,
+    "mean_transformed_watermarked_score": 0.5284674564955573,
+    "mean_watermarked_score_drop": 0.09796800749095028,
+    "mean_pristine_control_score": 0.4782094553280994,
+    "mean_transformed_control_score": 0.48723400059748745,
+    "mean_control_score_drop": -0.009024545269388035,
+    "maximum_transformed_control_score": 0.525935025935026,
+    "minimum_transformed_control_threshold_margin": 0.035753285753285735
+  },
+  "watermarked_rows": [
+    {
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-25-watermarked",
+      "candidate_count": 14,
+      "effective_budget": 14,
+      "realized_edit_cost": 10,
+      "word_edit_count": 0,
+      "pristine_score": 0.6235690235690236,
+      "transformed_score": 0.5417027417027417,
+      "score_drop": 0.08186628186628186,
+      "transformed_detected": false
+    },
+    {
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-25-watermarked",
+      "candidate_count": 11,
+      "effective_budget": 11,
+      "realized_edit_cost": 9,
+      "word_edit_count": 0,
+      "pristine_score": 0.5746943115364168,
+      "transformed_score": 0.5173831336622035,
+      "score_drop": 0.05731117787421336,
+      "transformed_detected": false
+    },
+    {
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-25-watermarked",
+      "candidate_count": 16,
+      "effective_budget": 16,
+      "realized_edit_cost": 11,
+      "word_edit_count": 0,
+      "pristine_score": 0.6473354231974922,
+      "transformed_score": 0.5505050505050504,
+      "score_drop": 0.09683037269244177,
+      "transformed_detected": false
+    },
+    {
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-25-watermarked",
+      "candidate_count": 25,
+      "effective_budget": 16,
+      "realized_edit_cost": 13,
+      "word_edit_count": 2,
+      "pristine_score": 0.6601430976430975,
+      "transformed_score": 0.5042789001122334,
+      "score_drop": 0.1558641975308641,
+      "transformed_detected": false
+    }
+  ],
+  "artifact_file_sha256": {
+    "tiny_dev_corpus": "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+    "effectiveness_plan": "0f1cf325a3c7515f68ac4344886d9a8bfbe11932a8e67ef66c1d29c14e661b60",
+    "effectiveness_evidence": "43772cd4bc538fe4330d7c1051957f6b792c520895fb78391d8561c51c6a4feb",
+    "plan_provenance": "f0d735011ce0044e99c63dece241dba5dadca5de15d03c822ce999beb8f9cf83",
+    "score_provenance": "c9a26693f36d83408ed461d18b78178a1ed5f9140875e9836e69287902fc25e2"
+  },
+  "verification": {
+    "plan_schema_and_hash_replay": "PASS",
+    "evidence_artifact_hash_replay": "PASS",
+    "row_hash_replay": "PASS",
+    "summary_hash_replay": "PASS",
+    "plan_fsync_success": true,
+    "scoring_fsync_success": true,
+    "complete_source_denominator": true
+  },
+  "claim_boundary": {
+    "status": "TINYDEV_DEVELOPMENT_EVIDENCE_ONLY",
+    "watermark_removal_claim": false,
+    "undetectability_claim": false,
+    "unknown_key_claim": false,
+    "proprietary_detector_claim": false,
+    "normalization_durability_claim": false,
+    "confirmatory_replication_claim": false,
+    "blind_human_semantic_audit": "NOT_PERFORMED",
+    "blind_human_style_audit": "NOT_PERFORMED"
+  },
+  "record_hash": "9542145b54ab8d37211ce5e52b0a68e6e001506f901e9261d8bc8262cd2ca5b1"
+}
