@@ -10,6 +10,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
+[project.urls]
+Homepage = "https://github.com/byte271/FuckMark"
+Repository = "https://github.com/byte271/FuckMark"
+Issues = "https://github.com/byte271/FuckMark/issues"
+
 [project.scripts]
 FuckMark = "fuckmark.cli:main"
 Fuckmark = "fuckmark.cli:main"
