@@ -1,0 +1,25 @@
+{
+  "algorithm_version": "blind-fidelity-review-packet-v1",
+  "status": "implementation-ready development infrastructure",
+  "claim_status": "NOT_YET_TESTED",
+  "scope": "source-grounded blind human fidelity review packet construction",
+  "detector_blind": true,
+  "watermark_key_blind": true,
+  "selection": {
+    "ordering": "SHA-256 rank from frozen seed, rule hash, and sample hash",
+    "sample_count": "positive bounded prefix of the deterministic ranking",
+    "duplicate_policy": "reject duplicate sample IDs, sample hashes, or source/transformed text pairs"
+  },
+  "reviewer_payload": {
+    "review_policy_id": "blind-two-reviewer-tiebreak-v1",
+    "fields": ["item_id", "text_a", "text_b", "item_hash"],
+    "omits": ["sample_id", "sample_hash", "source_on_left", "rule_hash"],
+    "orientation": "deterministically randomized independently per item"
+  },
+  "replay": {
+    "private_manifest": "binds selected source pairs, orientations, display order, seed, and packet hash",
+    "verification": "rebuild packet from the exact source pool and reject any mismatch",
+    "judgment_binding": "opaque item labels are bound to source-grounded review samples only after packet verification"
+  },
+  "release_status": "does not promote any transformation and does not constitute human fidelity evidence"
+}
