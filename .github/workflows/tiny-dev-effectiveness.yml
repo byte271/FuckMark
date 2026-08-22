@@ -1,6 +1,24 @@
 name: Frozen TinyDev Effectiveness Profile
 
 on:
+  pull_request:
+    paths:
+      - ".github/workflows/tiny-dev-effectiveness.yml"
+      - "requirements-smoke.txt"
+      - "fuckmark/corpus/**"
+      - "fuckmark/experiments/effectiveness_plan.py"
+      - "fuckmark/tiny_dev_corpus_hf.py"
+      - "fuckmark/tiny_dev_effectiveness_plan_hf.py"
+      - "fuckmark/tiny_dev_effectiveness_score_hf.py"
+      - "fuckmark/transforms/contractions.py"
+      - "fuckmark/transforms/effectiveness_profile.py"
+      - "fuckmark/transforms/hard_invariants.py"
+      - "fuckmark/transforms/lexical_rules.py"
+      - "fuckmark/transforms/registry.py"
+      - "fuckmark/transforms/scheduler.py"
+      - "fuckmark/transforms/surface_rules.py"
+      - "fuckmark/transforms/syntax_rules.py"
+      - "fuckmark/transforms/tokenizer_geometry.py"
   workflow_dispatch:
 
 permissions:
@@ -12,6 +30,8 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
