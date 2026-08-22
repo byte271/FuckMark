@@ -74,14 +74,17 @@ def test_bound_judgments_reveal_only_after_packet_validation() -> None:
 def test_packet_replay_rejects_changed_source_pool() -> None:
     samples = _samples(5)
     packet = build_blind_review_packet(samples, seed=37, sample_count=3)
+    selected_id = packet.entries[0].sample_id
     altered = (
-        FidelityReviewSample.create(
-            samples[0].rule_hash,
-            "altered-sample",
-            "For example, use an altered option.",
-            "For instance, use an altered option.",
-        ),
-        *samples[1:],
+        tuple(
+            FidelityReviewSample.create(
+                sample.rule_hash,
+                "altered-sample" if sample.sample_id == selected_id else sample.sample_id,
+                "For example, use an altered option." if sample.sample_id == selected_id else sample.source_text,
+                "For instance, use an altered option." if sample.sample_id == selected_id else sample.transformed_text,
+            )
+            for sample in samples
+        )
     )
     with pytest.raises(BlindReviewPacketVerificationError, match="does not replay"):
         verify_blind_review_packet(packet, altered)
