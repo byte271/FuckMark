@@ -4,6 +4,7 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added `blind-fidelity-review-packet-v1`, a deterministic source-bound review packet layer that samples unique text pairs, randomizes orientation and display order, hides source mapping from reviewer payloads, and verifies exact replay before binding judgments.
 - Added the content-addressed `release-readiness-baseline-v1` artifact with all 26 release-program gates, exact baseline repository identities, workflow evidence, and explicit blockers.
 - Added deterministic baseline generation and replay validation plus a `Release Readiness Baseline` workflow that builds and clean-installs both wheel and sdist artifacts.
 - Recorded project licensing, package license metadata, release-engine qualification, and calibration independence as release blockers instead of inferring or weakening them.

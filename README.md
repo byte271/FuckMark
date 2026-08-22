@@ -41,6 +41,12 @@ The content-addressed Phase 0 baseline is stored in `specs/fuckmark-v0.1.0-relea
 
 At the freeze, 6 of 26 gates passed, 5 were blocked, and 15 were pending. The explicit blockers include the missing owner-selected project license, missing package license metadata, the unqualified public release engine, and the rejected CAL-SELECT/CAL-AUDIT pair with 55 exact cross-role generated-content collisions. No public `v0.1.0` tag or GitHub Release exists yet.
 
+## Blind fidelity review packets
+
+The development API includes `blind-fidelity-review-packet-v1` for preparing source-grounded human fidelity reviews. `build_blind_review_packet` deterministically samples unique reviewed text pairs from a frozen seed, randomizes pair orientation and reviewer-facing order, and binds both the public packet and private source mapping to content hashes. The public payload contains only opaque item IDs and `text_a`/`text_b`; source IDs, source-versus-transformed orientation, rule identity, and sample hashes remain in the private manifest. `verify_blind_review_packet` replays the packet from the exact source pool before `bind_blind_review_judgment` or `bind_blind_review_judgments` can create review judgments.
+
+This is review tooling, not human evidence. No real reviewer judgments have been collected for the durable development rules, so their source-grounded fidelity status remains `NOT_PROVIDED` and the public release registry remains unchanged.
+
 Replay the frozen artifact with:
 
 ```text
