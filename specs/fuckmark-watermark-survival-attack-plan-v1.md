@@ -1,6 +1,6 @@
 # Watermark survival attack plan v1
 
-Status: evidence-based development plan. Visible typography candidate rejected; no implementation retained.
+Status: evidence-based development plan. Visible-typography and sentence-boundary soft-break candidates rejected; no implementation retained.
 
 ## Why 79.2% survives
 
@@ -35,9 +35,11 @@ Effectiveness failed: in independent TinyDev scoring, B6 observation destruction
 
 This rejection is informative: public-tokenizer observation destruction is directionally useful but not sufficient. A stronger primitive must provide broader separated context disruption and must improve detector outcomes, not merely representation metrics.
 
-## Next experiment gate
+## Candidate 2 result: sentence-boundary soft breaks
 
-Audit explicit visible sequence-boundary primitives, beginning with paragraph and sentence separator canonicalization, before implementing them. The prerequisite is:
+The detector-blind opportunity audit is complete. Replacing one inter-sentence ASCII space with a single LF produced 1,774 protected-span-safe and N4-surviving sites on the exact 500-source artifact. At least two sites were reachable on 339 sources, four on 205, and six on 109. Every site changed tokenization under pinned GPT-2, Qwen2, and Mistral tokenizers; the pinned T5 whitespace-normalizing negative control changed at zero sites. This passes the preregistered opportunity gate while explicitly limiting the tokenizer claim.
+
+The development-only implementation was evaluated against these frozen prerequisites:
 
 1. NFC-stable, visible, copy/paste-durable behavior.
 2. No word replacement, insertion, deletion, or reordering.
@@ -45,4 +47,10 @@ Audit explicit visible sequence-boundary primitives, beginning with paragraph an
 4. Tokenization change across at least two pinned tokenizer families.
 5. No protected-span, hard-invariant, fidelity, or replay failure.
 
-Only after those gates pass should a distinct detector-blind plan be frozen and independently scored. Kill the idea if B6 detection and detector-margin outcomes do not beat the historical context-survival plan without worsening transformed controls.
+The distinct detector-blind plan was `tiny-dev-sequence-boundary-softbreak-plan-v1`. Independent scoring increased mean exact observation destruction from 0.38931 to 0.41906 at B4 and from 0.52540 to 0.55514 at B6. Mean detector-margin drop increased slightly from 0.07364 to 0.07452 at B4 and from 0.08551 to 0.08655 at B6. However, detected counts did not improve: B4 remained 3/4 and B6 remained 1/4. Controls remained 0/4 detected and selection observed no detector or secret access.
+
+The candidate therefore triggered the mandatory detected-count kill criterion. Its representation gain was real but not effective enough, so the implementation, experiment-only planner hook, and workflow profile were removed. Exact artifact identities and comparisons are stored in `fuckmark-sequence-boundary-softbreak-v1.rejection.json`.
+
+## Next experiment gate
+
+Do not add another representation-only surface primitive. The next candidate must predict a materially larger change in the detector's aggregated evidence than the roughly three-point increase in mean exact observation destruction seen here, and it must establish that improvement on a larger independent watermarked sample before any release consideration. Detector-blind selection, key blindness, exact replay, protected-span safety, source-grounded fidelity, and matched controls remain mandatory.

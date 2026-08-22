@@ -112,6 +112,8 @@ The representation differential audit is a development-only measurement layer fo
 
 The visible-typography retokenization candidate was rejected after independent scoring. It slightly increased B6 observation destruction but regressed watermarked detection from 1/4 to 2/4 and reduced mean detector-margin drop. The implementation is not retained. The content-addressed rejection record is `specs/fuckmark-visible-typography-v1.rejection.json`; the mechanism diagnosis and next experiment gate are in `specs/fuckmark-watermark-survival-attack-plan-v1.md`.
 
+The sentence-boundary soft-break candidate was also rejected after its preregistered independent scoring gate. It increased mean exact observation destruction from 0.38931 to 0.41906 at B4 and from 0.52540 to 0.55514 at B6, but detected counts remained 3/4 and 1/4. Detector-margin drops improved only slightly, controls produced no false positives, and selection access attestation remained clean; none of those secondary outcomes could waive the mandatory detected-count improvement. The implementation is not retained. The content-addressed rejection record is `specs/fuckmark-sequence-boundary-softbreak-v1.rejection.json`.
+
 Run the local validation layers with:
 
 ```text
