@@ -70,6 +70,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout release commit
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - name: Download verified distributions
         uses: actions/download-artifact@v4
         with:
