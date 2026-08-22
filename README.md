@@ -1,5 +1,10 @@
 <p align="center">
-  <a href="https://mark.q1z.org"><img src="docs/assets/fuckmark-logo.png" alt="FuckMark FM star logo" width="180"></a>
+  <a href="https://mark.q1z.org">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/assets/fuckmark-logo-dark.png">
+      <img src="docs/assets/fuckmark-logo.png" alt="FuckMark FM star logo" width="180">
+    </picture>
+  </a>
 </p>
 
 # FuckMark

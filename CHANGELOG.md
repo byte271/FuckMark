@@ -4,6 +4,7 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Replaced the opaque magenta logo background with transparent light and dark variants selected by the interface color scheme.
 - Adopted the MIT License and matching package metadata by explicit owner choice.
 - Added the official FM-star logo, [mark.q1z.org](https://mark.q1z.org), and verified one-command installation instructions for Windows, macOS, and Linux through `d.q1z.org/mark`.
 - Added release-time cleanup for branches whose pull requests have already been merged; open and unmerged research branches remain intact.
