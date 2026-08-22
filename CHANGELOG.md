@@ -4,6 +4,12 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
+- Added the versioned `release-cli-v2` interface with `--version`, deterministic non-interactive `--stdin` and `--non-interactive` modes, and package repository and issue URLs. The release registry and development-only rule boundary are unchanged; release authorization remains blocked on the existing fidelity, license, and calibration gates.
+
+- Added the development-only `mid-dev-calibration-independence-v3` protocol with structural identity hard failures, deterministic text/token first-occurrence compaction, explicit cross-role collision exclusions, content-addressed role manifests, and strict replay parsers. The rejected v2 calibration pair remains immutable; no v3 corpus or confirmatory detector claim exists yet.
+
+- Added `blind-fidelity-review-packet-v1`, a deterministic source-bound review packet layer that samples unique text pairs, randomizes orientation and display order, hides source mapping from reviewer payloads, and verifies exact replay before binding judgments.
+
 - Added `representation-differential-audit-v1` for strict replay of the same transformed pair across at least two pinned model/tokenizer identities.
 - Bound representation rows to exact token sequences, canonical token alignment metrics, transform traces, one transformed pair per independent source, and zero detector or secret queries.
 - Rejected duplicate source text, dependent variant inflation, non-NFC text, and mutation of invisible or representation-sensitive Unicode code points in representation evidence.
