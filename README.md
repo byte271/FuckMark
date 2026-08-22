@@ -35,11 +35,19 @@ On macOS the CLI uses `pbcopy`. On Windows it uses `clip`. On Linux it tries `wl
 
 This interface performs deterministic text transformation. It is not a watermark detector and does not claim to remove, defeat, or validate any proprietary watermarking system.
 
+For scripts and pipelines, use the explicit non-interactive mode:
+
+```text
+printf 'I do not agree.\n' | FuckMark --stdin
+```
+
+`--stdin` and `--non-interactive` read all standard input and write only the transformed text to standard output. They do not access the clipboard or print status lines. Check the exit status before using the output. `FuckMark --version` reports the project, CLI, and release-registry identities.
+
 ## v0.1.0 release readiness
 
 The content-addressed Phase 0 baseline is stored in `specs/fuckmark-v0.1.0-release-readiness-baseline.json`. It binds main commit `afc8794be68c9495348c4934f2dd7e6cf4c61ce9`, the exact release registry, algorithm identities, engineering evidence, known scientific rejection, and every release-program gate. Its artifact hash is `f9834d502c8cfb1e1a3801710dfa3e152fde2de85348d5cd68b4f8334227b350`.
 
-At the freeze, 6 of 26 gates passed, 5 were blocked, and 15 were pending. The explicit blockers include the missing owner-selected project license, missing package license metadata, the unqualified public release engine, and the rejected CAL-SELECT/CAL-AUDIT pair with 55 exact cross-role generated-content collisions. No public `v0.1.0` tag or GitHub Release exists yet.
+At the freeze, 6 of 26 gates passed, 5 were blocked, and 15 were pending. The explicit blockers include the missing owner-selected project license, missing package license metadata, the unqualified public release engine, and the rejected CAL-SELECT/CAL-AUDIT pair with 55 exact cross-role generated-content collisions. No public `v0.1.0` tag or GitHub Release exists yet. The CLI now has a versioned `release-cli-v2` interface, but release authorization still requires the frozen fidelity and registry gates.
 
 ## Blind fidelity review packets
 
@@ -54,6 +62,8 @@ python -m fuckmark.release_readiness_baseline --verify-json specs/fuckmark-v0.1.
 ```
 
 This validates the historical baseline without requiring later release work to preserve old README, metadata, or registry contents. The `Release Readiness Baseline` workflow also builds and clean-installs the baseline wheel and sdist.
+
+The rejected v2 calibration pair is immutable evidence. The development-only `mid-dev-calibration-independence-v3` protocol is now available for a replacement corpus: it rejects reused prompt, sample, record, and seed identities as structural errors; deduplicates generated text and continuation-token identities by first occurrence; excludes and records CAL-AUDIT rows that collide with retained CAL-SELECT content; and refuses to produce a threshold-sized pair when post-collision counts are insufficient. Its manifests and exclusion records are content-addressed and strictly replayable. A new valid v3 generated corpus has not yet been produced, so calibration independence and confirmatory detector evidence remain blocked.
 
 ## Open SynthID smoke experiment
 
