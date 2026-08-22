@@ -135,6 +135,26 @@ def test_v3_excludes_cross_role_token_collision_with_different_text() -> None:
     assert cross[0].collision_kinds == (CalibrationCollisionKind.CONTINUATION_TOKEN_HASH,)
 
 
+def test_v3_cross_role_exclusion_ordinals_use_raw_pool_basis() -> None:
+    select, audit = _pools()
+    select = (
+        _candidate(CalibrationRole.SELECT, 0, text="dup", token="dup-token"),
+        _candidate(CalibrationRole.SELECT, 1, text="dup", token="other"),
+        _candidate(CalibrationRole.SELECT, 2, text="shared", token="s-token"),
+        _candidate(CalibrationRole.SELECT, 3, text="fourth", token="fourth"),
+    )
+    audit = (
+        _candidate(CalibrationRole.AUDIT, 0, text="shared", token="a-token"),
+        audit[1],
+        audit[2],
+        audit[3],
+    )
+    result = _build(select, audit, required=2)
+    cross = next(item for item in result.exclusions if item.reason == "CROSS_ROLE_CONTENT_COLLISION")
+    assert cross.conflicting_sample_id == "CAL-SELECT-sample-2"
+    assert cross.conflicting_ordinal == 2
+
+
 def test_v3_records_exact_text_token_pair_collisions() -> None:
     select, audit = _pools()
     select = (_candidate(CalibrationRole.SELECT, 0, text=0, token=0),) + select[1:]
