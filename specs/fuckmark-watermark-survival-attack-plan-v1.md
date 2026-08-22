@@ -35,9 +35,11 @@ Effectiveness failed: in independent TinyDev scoring, B6 observation destruction
 
 This rejection is informative: public-tokenizer observation destruction is directionally useful but not sufficient. A stronger primitive must provide broader separated context disruption and must improve detector outcomes, not merely representation metrics.
 
-## Next experiment gate
+## Candidate 2 gate: sentence-boundary soft breaks
 
-Audit explicit visible sequence-boundary primitives, beginning with paragraph and sentence separator canonicalization, before implementing them. The prerequisite is:
+The detector-blind opportunity audit is complete. Replacing one inter-sentence ASCII space with a single LF produced 1,774 protected-span-safe and N4-surviving sites on the exact 500-source artifact. At least two sites were reachable on 339 sources, four on 205, and six on 109. Every site changed tokenization under pinned GPT-2, Qwen2, and Mistral tokenizers; the pinned T5 whitespace-normalizing negative control changed at zero sites. This passes the preregistered opportunity gate while explicitly limiting the tokenizer claim.
+
+The implementation remains development-only and is now subject to independent TinyDev scoring. Its prerequisites are:
 
 1. NFC-stable, visible, copy/paste-durable behavior.
 2. No word replacement, insertion, deletion, or reordering.
@@ -45,4 +47,4 @@ Audit explicit visible sequence-boundary primitives, beginning with paragraph an
 4. Tokenization change across at least two pinned tokenizer families.
 5. No protected-span, hard-invariant, fidelity, or replay failure.
 
-Only after those gates pass should a distinct detector-blind plan be frozen and independently scored. Kill the idea if B6 detection and detector-margin outcomes do not beat the historical context-survival plan without worsening transformed controls.
+The distinct detector-blind plan is `tiny-dev-sequence-boundary-softbreak-plan-v1`. Kill the idea unless a matched B4 or B6 cell lowers the historical detected count, the other high-budget cell remains non-inferior, the improved cell has a larger mean detector-margin drop, and transformed controls do not worsen. Detector effectiveness cannot waive the separate blind fidelity gate.

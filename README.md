@@ -99,6 +99,7 @@ The release CLI remains limited to the release transform registry. The mechanism
 | TinyDev context plan | `tiny-dev-context-survival-plan-v3` | Uses the invariant-screened baseline pool and the separately versioned diverse Beam strategy |
 | Environment capture | `environment-snapshot-v2` | Canonicalizes platform metadata while continuing to accept v1 snapshots |
 | Representation differential audit | `representation-differential-audit-v1` | Replays one transformed pair per independent source through at least two pinned tokenizer families without detector or secret access |
+| Sequence-boundary pilot | `sequence-boundary-softbreak-v1` | Development-only profile that exchanges a conservative inter-sentence ASCII space for one LF; detector effectiveness is pending |
 
 The original `context-survival-beam-v2` function is unchanged. Frozen MidDev protocols that name Beam v2 continue to use that implementation. The diversity strategy has a distinct identity so historical evidence is not silently reinterpreted.
 
@@ -111,6 +112,8 @@ The diverse Beam regression proves one synthetic dead-end graph where legacy Bea
 The representation differential audit is a development-only measurement layer for exact multi-tokenizer replay. It binds the source text, transformed text, transform trace, full model/tokenizer identities, token sequences, and canonical alignment metrics. It rejects duplicate source text, dependent variants presented as independent sources, non-NFC text, and changes to invisible or representation-sensitive Unicode code points. Its output is representation evidence only; it does not measure detector reduction or authorize a release rule.
 
 The visible-typography retokenization candidate was rejected after independent scoring. It slightly increased B6 observation destruction but regressed watermarked detection from 1/4 to 2/4 and reduced mean detector-margin drop. The implementation is not retained. The content-addressed rejection record is `specs/fuckmark-visible-typography-v1.rejection.json`; the mechanism diagnosis and next experiment gate are in `specs/fuckmark-watermark-survival-attack-plan-v1.md`.
+
+The next preregistered candidate is a conservative sentence-boundary soft break. It changes no word, punctuation mark, or sentence order, survives the frozen N4 copy/paste normalizer, and is available only to the dedicated TinyDev experiment profile. On the exact 500-source corpus from workflow run `32504847438`, it exposed 1,774 protected-span-safe sites and at least two sites on 339 sources. All sites changed tokenization under pinned GPT-2, Qwen2, and Mistral tokenizers; a pinned T5 whitespace-normalizing control changed at zero sites. These are opportunity and representation results only. The independent detector workflow and blind fidelity gate decide whether any implementation is retained.
 
 Run the local validation layers with:
 

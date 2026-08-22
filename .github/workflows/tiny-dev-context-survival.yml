@@ -7,6 +7,7 @@ on:
       - ".github/workflows/tiny-dev-context-survival.yml"
       - "fuckmark/tiny_dev_context_survival_plan_hf.py"
       - "fuckmark/tiny_dev_context_survival_hf.py"
+      - "fuckmark/sequence_boundary_opportunity_audit.py"
       - "fuckmark/experiments/context_survival_plan.py"
       - "fuckmark/geometry/**"
       - "fuckmark/scheduling/**"
@@ -17,6 +18,7 @@ on:
       - "tests/test_tiny_dev_context_survival_hf.py"
       - "tests/test_beam_v2.py"
       - "tests/test_context_survival_plan_v2.py"
+      - "tests/test_sequence_boundary_softbreak.py"
 
 permissions:
   contents: read
@@ -74,6 +76,7 @@ jobs:
           --random-seeds 8
           --beam-width 32
           --max-risk-tier 1
+          --registry-profile sequence-boundary-softbreak-v1
           --source-code-commit "${PR_HEAD_SHA:-$GITHUB_SHA}"
           --plan-json artifacts/tiny-dev-context-survival-plan.json
           --provenance-json artifacts/tiny-dev-context-survival-plan-provenance.json

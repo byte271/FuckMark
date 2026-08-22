@@ -11,6 +11,7 @@ The project remains at `v0.1.0` for this research line.
 - Added `blind-fidelity-review-packet-v1`, a deterministic source-bound review packet layer that samples unique text pairs, randomizes orientation and display order, hides source mapping from reviewer payloads, and verifies exact replay before binding judgments.
 
 - Recorded and rejected the visible-typography retokenization pilot after its strongest B6 policy regressed from 1/4 to 2/4 detected despite slightly greater observation destruction; no implementation was retained.
+- Preregistered the development-only `sequence-boundary-softbreak-v1` candidate after a frozen 500-source audit found 1,774 N4-surviving safe sites and B2 reachability on 339 sources. Detector effectiveness remains pending and the candidate is not in the release registry.
 - Added `representation-differential-audit-v1` for strict replay of the same transformed pair across at least two pinned model/tokenizer identities.
 - Bound representation rows to exact token sequences, canonical token alignment metrics, transform traces, one transformed pair per independent source, and zero detector or secret queries.
 - Rejected duplicate source text, dependent variant inflation, non-NFC text, and mutation of invisible or representation-sensitive Unicode code points in representation evidence.

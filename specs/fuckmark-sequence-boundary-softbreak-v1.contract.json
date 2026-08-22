@@ -1,0 +1,88 @@
+{
+  "algorithm_version": "tiny-dev-sequence-boundary-softbreak-plan-v1",
+  "ruleset_version": "development-sentence-boundary-softbreak-v1",
+  "status": "DEVELOPMENT_ONLY_PENDING_EFFECTIVENESS_EVIDENCE",
+  "hypothesis": "Replacing a single inter-sentence ASCII space with a standard line feed at conservative sentence boundaries will create frequent, separated and copy/paste-durable token changes without changing any word, punctuation mark or sentence order.",
+  "mechanism": "SynthID-style g-values depend on the preceding n-gram token context. A line-feed boundary changes the boundary token and the following tokenization in byte-BPE and newline-preserving SentencePiece families, invalidating multiple local context-conditioned observations at each separated site. Repeated sites should reduce resynchronization survival more strongly than sparse contractions or typography substitutions.",
+  "experiment": "Freeze a detector-blind context-survival plan over the canonical four-source TinyDev corpus with the historical portfolio plus the sequence-boundary rules. Score that frozen plan in an independent process and compare matched B1, B2, B4 and B6 policies with the historical plan. Report detection counts, score and margin distributions, exact observation destruction, transformed-control distance, word and punctuation identity, normalization survival and replay hashes.",
+  "mapping": {
+    "eligible_source": "terminal period, question mark or exclamation mark followed by exactly one U+0020 before a conservative ASCII-capital sentence start",
+    "replacement": "the same terminal punctuation followed by U+000A LINE FEED",
+    "period_exclusions": "numeric endings, ellipses, one- or two-letter preceding words, and a frozen abbreviation denylist",
+    "word_insertions": 0,
+    "word_deletions": 0,
+    "word_replacements": 0,
+    "punctuation_changes": 0,
+    "sentence_reordering": false
+  },
+  "selection_detector_query_count": 0,
+  "selection_secret_query_count": 0,
+  "requires_watermark_key": false,
+  "requires_detector_access": false,
+  "normalization_contract": "U+000A survives LF canonicalization, horizontal-whitespace collapse, trailing-horizontal-whitespace removal, Unicode NFC and the frozen N4 copy/paste profile.",
+  "protected_content_contract": "Candidates overlapping URLs, email addresses, paths, code, quotations, citations, math, identifiers or caller-protected ranges are rejected before scheduling.",
+  "fidelity_contract": "Only a soft line boundary is introduced between already distinct sentences. Exact word, punctuation, negation, modality and sentence order are preserved.",
+  "opportunity_audit": {
+    "algorithm_version": "sequence-boundary-softbreak-opportunity-audit-v1",
+    "audit_artifact_hash": "d92ad79cdb4c35935d57cf31dc55ea85a9a43d5e55bec8b632e0ea2e5a5cbb01",
+    "ruleset_hash": "b4ac91ea0eee018c8cd61484cd05d1d6d55a3f25eba6bcfc5a26b7aa442c50e5",
+    "source_workflow_run_id": 32504847438,
+    "source_artifact_id": 9455132579,
+    "source_artifact_zip_sha256": "04faf76419c76eea66f1bfbfc359d6e164d2c392b97af5cd97d7645c96151361",
+    "source_corpus_artifact_hash": "354097a63d58a963b67b12a64928d0a0f11dd46b29012d667ca4702a913f395e",
+    "source_count": 500,
+    "protected_span_safe_candidate_count": 1774,
+    "source_with_candidate_count": 412,
+    "budget_2_reachable_count": 339,
+    "budget_4_reachable_count": 205,
+    "budget_6_reachable_count": 109,
+    "individual_invariant_pass_count": 1774,
+    "individual_nfc_pass_count": 1774,
+    "individual_n4_survival_count": 1774,
+    "primary_tokenizers": [
+      {
+        "model_id": "openai-community/gpt2",
+        "revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+        "family": "GPT2TokenizerFast byte-level BPE",
+        "individual_change_count": 1774
+      },
+      {
+        "model_id": "Qwen/Qwen2.5-0.5B",
+        "revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+        "family": "Qwen2TokenizerFast byte-level BPE",
+        "individual_change_count": 1774
+      },
+      {
+        "model_id": "mistralai/Mistral-7B-v0.1",
+        "revision": "27d67f1b5f57dc0953326b2601d68371d40ea8da",
+        "family": "LlamaTokenizerFast SentencePiece",
+        "individual_change_count": 1774
+      }
+    ],
+    "universal_primary_tokenizer_change_count": 1774,
+    "negative_control": {
+      "model_id": "google-t5/t5-small",
+      "revision": "df1b051c49625cf57a3d0d8d3863ed4d13564fe4",
+      "family": "T5TokenizerFast SentencePiece whitespace-normalizing control"
+    },
+    "negative_control_change_count": 0,
+    "interpretation": "The primitive is broad and durable for three pinned tokenizer implementations but is correctly not claimed to affect tokenizers that normalize line feeds to ordinary spaces. Representation evidence is a prerequisite, not effectiveness evidence."
+  },
+  "historical_effectiveness_baseline": {
+    "independent_watermarked_source_count": 4,
+    "b4_detected_count": 3,
+    "b4_mean_margin_drop": 0.073641984217192,
+    "b6_detected_count": 1,
+    "b6_mean_margin_drop": 0.08551228417992851
+  },
+  "kill_criteria": [
+    "Reject before detector evaluation if fewer than 250 of 500 frozen sources support two independent invariant-safe N4-surviving sites.",
+    "Reject before detector evaluation if the same realized transformation does not change tokenization in at least two pinned tokenizer families without detector or secret queries.",
+    "Reject if no matched B4 or B6 cell lowers the historical detected count while the other high-budget cell remains non-inferior and the improved cell has a larger mean detector-margin drop.",
+    "Reject if any pristine-negative control flips to detected or transformed-control distance materially worsens.",
+    "Reject if exact replay, protected spans, Unicode NFC, word or punctuation identity, negation, modality or sentence order fails.",
+    "Do not promote to the release registry without source-grounded blind fidelity review; detector effectiveness alone is insufficient."
+  ],
+  "claim_scope": "Open weighted-mean SynthID TinyDev engineering evidence only; tokenizer effect is not universal and no proprietary detector claim is authorized.",
+  "release_authorized": false
+}
