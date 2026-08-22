@@ -20,10 +20,7 @@ from fuckmark.hashing import sha256_text
 from fuckmark.scheduling.beam_v2 import CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION
 from fuckmark.tiny_dev_context_survival_plan_hf import (
     TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION,
-    TINY_DEV_VISIBLE_TYPOGRAPHY_PLAN_VERSION,
-    VISIBLE_TYPOGRAPHY_REGISTRY_PROFILE,
     _build_context_survival_plan_v3,
-    _build_visible_typography_plan_v1,
 )
 from fuckmark.transforms import (
     CandidateScheduler,
@@ -105,33 +102,12 @@ def test_plan_v3_covers_exact_b2_and_beam_b4_with_dynamic_attestation() -> None:
     )
     policies = {row["schedule_policy"] for row in plan["variants"]}
     assert plan["algorithm_version"] == TINY_DEV_CONTEXT_SURVIVAL_PLAN_VERSION
-    assert "registry_profile" not in plan
     assert plan["beam_algorithm_version"] == CONTEXT_SURVIVAL_DIVERSE_BEAM_ALGORITHM_VERSION
     assert plan["attested_expander_count"] == 8
     assert plan["detector_access_observed"] is False
     assert plan["secret_access_observed"] is False
     assert EXACT_B2_POLICY in policies
     assert BEAM_B4_POLICY in policies
-
-
-def test_visible_typography_plan_has_a_distinct_replay_identity() -> None:
-    corpus, tokenizer = _fake_corpus()
-    plan = _build_visible_typography_plan_v1(
-        corpus,
-        tokenizer,
-        ngram_len=2,
-        context_history_size=4,
-        budgets=(1,),
-        random_seed_count=1,
-        beam_width=2,
-        max_risk_tier=1,
-        source_code_commit="test-visible-typography-commit",
-    )
-    assert plan["algorithm_version"] == TINY_DEV_VISIBLE_TYPOGRAPHY_PLAN_VERSION
-    assert plan["registry_profile"] == VISIBLE_TYPOGRAPHY_REGISTRY_PROFILE
-    assert plan["attested_expander_count"] == 8
-    assert plan["detector_access_observed"] is False
-    assert plan["secret_access_observed"] is False
 
 
 def test_detector_blind_import_audit_checks_modules_and_imported_symbols() -> None:

@@ -4,9 +4,7 @@ The project remains at `v0.1.0` for this research line.
 
 ## v0.1.0 — Foundation hardening
 
-- Added the development-only `visible-typography-v1` registry profile for internal ASCII apostrophe to U+2019 and hyphen-minus to U+2010 substitutions.
-- Added `tiny-dev-visible-typography-plan-v1` so the new portfolio is frozen under a distinct replay identity while historical context-plan v3 behavior remains the default.
-- Added falsifiable hypothesis, mechanism, experiment, kill criteria, protected-span and Unicode contracts, multi-tokenizer representation gates, and independent-process TinyDev scoring for the pilot.
+- Recorded and rejected the visible-typography retokenization pilot after its strongest B6 policy regressed from 1/4 to 2/4 detected despite slightly greater observation destruction; no implementation was retained.
 - Added `representation-differential-audit-v1` for strict replay of the same transformed pair across at least two pinned model/tokenizer identities.
 - Bound representation rows to exact token sequences, canonical token alignment metrics, transform traces, one transformed pair per independent source, and zero detector or secret queries.
 - Rejected duplicate source text, dependent variant inflation, non-NFC text, and mutation of invisible or representation-sensitive Unicode code points in representation evidence.

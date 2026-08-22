@@ -83,7 +83,6 @@ The release CLI remains limited to the release transform registry. The mechanism
 | TinyDev context plan | `tiny-dev-context-survival-plan-v3` | Uses the invariant-screened baseline pool and the separately versioned diverse Beam strategy |
 | Environment capture | `environment-snapshot-v2` | Canonicalizes platform metadata while continuing to accept v1 snapshots |
 | Representation differential audit | `representation-differential-audit-v1` | Replays one transformed pair per independent source through at least two pinned tokenizer families without detector or secret access |
-| Visible typography pilot | `tiny-dev-visible-typography-plan-v1` | Tests NFC-stable internal apostrophe and hyphen typography as a separately versioned detector-blind retokenization primitive |
 
 The original `context-survival-beam-v2` function is unchanged. Frozen MidDev protocols that name Beam v2 continue to use that implementation. The diversity strategy has a distinct identity so historical evidence is not silently reinterpreted.
 
@@ -95,7 +94,7 @@ The diverse Beam regression proves one synthetic dead-end graph where legacy Bea
 
 The representation differential audit is a development-only measurement layer for exact multi-tokenizer replay. It binds the source text, transformed text, transform trace, full model/tokenizer identities, token sequences, and canonical alignment metrics. It rejects duplicate source text, dependent variants presented as independent sources, non-NFC text, and changes to invisible or representation-sensitive Unicode code points. Its output is representation evidence only; it does not measure detector reduction or authorize a release rule.
 
-The visible typography pilot maps only ASCII apostrophes strictly between letters to U+2019 and hyphen-minus characters strictly between letters to U+2010. Both replacements are visible NFC-stable punctuation. Protected URLs, email addresses, paths, CLI tokens, quotations, identifiers, and user ranges remain ineligible. The historical context-plan v3 registry remains the default; the pilot requires the explicit `visible-typography-v1` profile and receives a distinct plan identity. See `specs/fuckmark-watermark-survival-attack-plan-v1.md` for the mechanism analysis, opportunity audit, experiment, and kill criteria. No detector-effectiveness or release claim is made before independent scoring.
+The visible-typography retokenization candidate was rejected after independent scoring. It slightly increased B6 observation destruction but regressed watermarked detection from 1/4 to 2/4 and reduced mean detector-margin drop. The implementation is not retained. The content-addressed rejection record is `specs/fuckmark-visible-typography-v1.rejection.json`; the mechanism diagnosis and next experiment gate are in `specs/fuckmark-watermark-survival-attack-plan-v1.md`.
 
 Run the local validation layers with:
 

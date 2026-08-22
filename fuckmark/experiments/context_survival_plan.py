@@ -431,7 +431,6 @@ def build_context_survival_plan(
     beam_width: int = DEFAULT_BEAM_WIDTH,
     max_risk_tier: int = DEFAULT_MAX_RISK_TIER,
     source_code_commit: str = "UNKNOWN",
-    registry: TransformRegistry | None = None,
 ) -> dict[str, object]:
     require_int("ngram_len", ngram_len)
     require_int("context_history_size", context_history_size)
@@ -454,9 +453,7 @@ def build_context_survival_plan(
     if not isinstance(source_code_commit, str) or not source_code_commit:
         raise ValueError("source_code_commit must be non-empty")
 
-    selected_registry = _context_registry() if registry is None else registry
-    if not isinstance(selected_registry, TransformRegistry):
-        raise TypeError("registry must be a TransformRegistry")
+    registry = _context_registry()
     repetition = PublicRepetitionGeometry.create(
         ngram_len=ngram_len,
         context_history_size=context_history_size,
@@ -478,7 +475,7 @@ def build_context_survival_plan(
             eligibility_policy=repetition.eligibility_policy,
         )
         base_expander = ContextSurvivalExpander(
-            registry=selected_registry,
+            registry=registry,
             geometry_engine=geometry_engine,
             source_sample_id=source.sample_id,
             source_text=source.text,
@@ -492,7 +489,7 @@ def build_context_survival_plan(
             raise TinyDevContextSurvivalPlanError(
                 f"geometry root tokenization does not match frozen text-only track for {source.sample_id}"
             )
-        enumeration = selected_registry.enumerate(source.text)
+        enumeration = registry.enumerate(source.text)
         tokenizer_geometry = build_candidate_tokenizer_geometry(
             source.text,
             enumeration,
@@ -507,7 +504,7 @@ def build_context_survival_plan(
             budget_unit="operation",
             geometry_mode=ScheduleGeometryMode.TOKENIZER_AWARE_PUBLIC,
         )
-        baseline_screen = _baseline_invariant_screen(selected_registry, enumeration)
+        baseline_screen = _baseline_invariant_screen(registry, enumeration)
         baseline_scheduler_input = _filter_scheduler_input(
             scheduler_input,
             baseline_screen["safe_candidate_ids"],
@@ -515,7 +512,7 @@ def build_context_survival_plan(
         repetition_report = repetition.evaluate(token_ids)
         candidate_pool_hash = sha256_json(
             {
-                "ruleset_hash": selected_registry.ruleset_hash,
+                "ruleset_hash": registry.ruleset_hash,
                 "enumeration_hash": enumeration.enumeration_hash,
                 "tokenizer_geometry_hash": tokenizer_geometry.geometry_hash,
                 "geometry_config_hash": config.config_hash,
@@ -572,7 +569,7 @@ def build_context_survival_plan(
             for baseline_policy in (SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND, SchedulePolicy.EVEN_SPACING):
                 variants.append(
                     _baseline_variant(
-                        registry=selected_registry,
+                        registry=registry,
                         geometry_engine=geometry_engine,
                         root=root,
                         root_state=root_state,
@@ -663,7 +660,7 @@ def build_context_survival_plan(
         "tiny_dev_artifact_hash": corpus.artifact_hash,
         "corpus_manifest_hash": corpus.manifest.manifest_hash,
         "tokenizer_identity_hash": corpus.model_identity_hash,
-        "ruleset_hash": selected_registry.ruleset_hash,
+        "ruleset_hash": registry.ruleset_hash,
         "baseline_invariant_screen_algorithm_version": BASELINE_INVARIANT_SCREEN_ALGORITHM_VERSION,
         "geometry_config_hash": config.config_hash,
         "public_repetition_policy_hash": repetition.policy_hash,
