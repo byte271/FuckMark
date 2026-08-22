@@ -87,8 +87,8 @@ def protected_span_violation_count(source: str, transformed: str) -> int:
         for span in transformed_manifest.spans
     )
     return sum(
-        max(0, count - transformed_values.get(value, 0))
-        for value, count in source_values.items()
+        abs(source_values[value] - transformed_values[value])
+        for value in set(source_values) | set(transformed_values)
     )
 
 

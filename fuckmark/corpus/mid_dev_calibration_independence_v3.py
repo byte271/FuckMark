@@ -505,8 +505,9 @@ def build_calibration_independence_v3(
         overlap = set(select_values) & set(audit_values)
         if overlap:
             raise CalibrationIndependenceV3Error(f"CAL-SELECT and CAL-AUDIT {field} overlap")
-    select_text = {item.text_sha256: (item, ordinal) for ordinal, item in enumerate(select_unique)}
-    select_tokens = {item.continuation_token_hash: (item, ordinal) for ordinal, item in enumerate(select_unique)}
+    select_ordinals = {item.sample_id: index for index, item in enumerate(select_raw)}
+    select_text = {item.text_sha256: (item, select_ordinals[item.sample_id]) for item in select_unique}
+    select_tokens = {item.continuation_token_hash: (item, select_ordinals[item.sample_id]) for item in select_unique}
     audit_independent: list[CalibrationIndependenceV3Candidate] = []
     cross_exclusions: list[CalibrationIndependenceV3Exclusion] = []
     for ordinal, candidate in enumerate(audit_unique):
