@@ -1,0 +1,117 @@
+{
+  "algorithm_version": "sequence-boundary-softbreak-rejection-record-v1",
+  "candidate_identity": "tiny-dev-sequence-boundary-softbreak-plan-v1",
+  "decision": "REJECTED_KILL_CRITERION_EFFECTIVENESS",
+  "implementation_retained": false,
+  "scientific_scope": "Open weighted-mean SynthID TinyDev engineering evidence only",
+  "independent_watermarked_source_count": 4,
+  "independent_control_source_count": 4,
+  "selection_detector_access_observed": false,
+  "selection_secret_access_observed": false,
+  "pristine_watermarked_detected_count": 4,
+  "pristine_watermarked_count": 4,
+  "control_false_to_true_count": 0,
+  "baseline_control_mean_margin_drop": -0.0038545117305571704,
+  "candidate_control_mean_margin_drop": -0.006291314137438389,
+  "opportunity_audit": {
+    "frozen_corpus_workflow_run_id": 32504847438,
+    "frozen_corpus_workflow_artifact_id": 9455132579,
+    "frozen_corpus_artifact_hash": "354097a63d58a963b67b12a64928d0a0f11dd46b29012d667ca4702a913f395e",
+    "source_count": 500,
+    "protected_span_safe_candidate_count": 1774,
+    "source_with_candidate_count": 412,
+    "budget_2_reachable_count": 339,
+    "budget_4_reachable_count": 205,
+    "budget_6_reachable_count": 109,
+    "individual_invariant_pass_count": 1774,
+    "individual_nfc_pass_count": 1774,
+    "individual_n4_survival_count": 1774,
+    "ruleset_hash": "b4ac91ea0eee018c8cd61484cd05d1d6d55a3f25eba6bcfc5a26b7aa442c50e5",
+    "audit_hash": "d92ad79cdb4c35935d57cf31dc55ea85a9a43d5e55bec8b632e0ea2e5a5cbb01",
+    "tokenizer_results": [
+      {
+        "model_id": "openai-community/gpt2",
+        "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+        "changed_candidate_count": 1774
+      },
+      {
+        "model_id": "Qwen/Qwen2.5-0.5B",
+        "model_revision": "060db6499f32faf8b98477b0a26969ef7d8b9987",
+        "changed_candidate_count": 1774
+      },
+      {
+        "model_id": "mistralai/Mistral-7B-v0.1",
+        "model_revision": "27d67f1b5f57dc0953326b2601d68371d40ea8da",
+        "changed_candidate_count": 1774
+      },
+      {
+        "model_id": "google-t5/t5-small",
+        "model_revision": "df1b051c49625cf57a3d0d8d3863ed4d13564fe4",
+        "changed_candidate_count": 0,
+        "role": "whitespace-normalizing negative control"
+      }
+    ]
+  },
+  "baseline": {
+    "workflow_artifact_id": 9467142666,
+    "workflow_artifact_zip_sha256": "55dcc8e88bc0004f76e4dc43b65c74a4eba51107526e862df921c18bb52a23e6",
+    "evidence_artifact_hash": "a56a255c9361f29711fa59938e88ac35951b75c838ebdb2cfeffea0af0d5bb81",
+    "plan_hash": "e55e82290bb4fda41e723c48e9cba33bffcb88ae178c6f6ed9dd74772c045fee"
+  },
+  "candidate": {
+    "source_code_commit": "dc01a3bd792f59130dadccb1093ef3b5c59c1eb7",
+    "github_workflow_run_id": 32554548758,
+    "workflow_artifact_id": 9471417449,
+    "workflow_artifact_zip_sha256": "7ed6827523f5f5b3d91427e9544da0133bf14f023360afdbbb651ac39e292ba2",
+    "evidence_artifact_hash": "dda692c1d754163d6f69da1cffabe07c3062da0a30a0a16df75335ca40adfb05",
+    "plan_hash": "62ba1c38a4d2278d2d892fee8b6a8b9242f70e393e1bb8c7cb796cd2e227cdf3",
+    "ruleset_hash": "013a2b5401db1663ee28c262c11b29c98a73bb4a4ca93200938711aa2659e53f"
+  },
+  "watermarked_policy_comparison": [
+    {
+      "policy": "CONTEXT_SURVIVAL_EXACT_B1",
+      "baseline_detected_count": 3,
+      "candidate_detected_count": 3,
+      "baseline_mean_margin_drop": 0.01738016216958191,
+      "candidate_mean_margin_drop": 0.016391794890231015,
+      "baseline_mean_exact_destruction_ratio": 0.11553992740471869,
+      "candidate_mean_exact_destruction_ratio": 0.11553992740471869
+    },
+    {
+      "policy": "CONTEXT_SURVIVAL_EXACT_B2",
+      "baseline_detected_count": 3,
+      "candidate_detected_count": 3,
+      "baseline_mean_margin_drop": 0.03766313078879929,
+      "candidate_mean_margin_drop": 0.04135983705943938,
+      "baseline_mean_exact_destruction_ratio": 0.2096718088324259,
+      "candidate_mean_exact_destruction_ratio": 0.22245916515426495
+    },
+    {
+      "policy": "CONTEXT_SURVIVAL_BEAM_B4",
+      "baseline_detected_count": 3,
+      "candidate_detected_count": 3,
+      "baseline_mean_margin_drop": 0.073641984217192,
+      "candidate_mean_margin_drop": 0.07451580175767623,
+      "baseline_mean_exact_destruction_ratio": 0.3893148820326679,
+      "candidate_mean_exact_destruction_ratio": 0.4190562613430127
+    },
+    {
+      "policy": "CONTEXT_SURVIVAL_BEAM_B6",
+      "baseline_detected_count": 1,
+      "candidate_detected_count": 1,
+      "baseline_mean_margin_drop": 0.08551228417992851,
+      "candidate_mean_margin_drop": 0.08655341126272223,
+      "baseline_mean_exact_destruction_ratio": 0.5254007864488808,
+      "candidate_mean_exact_destruction_ratio": 0.5551421657592257
+    }
+  ],
+  "kill_criteria": [
+    "Reject unless a matched B4 or B6 cell lowers the historical detected count.",
+    "Require the other high-budget cell to remain non-inferior and the improved cell to have a larger mean detector-margin drop.",
+    "Reject on transformed-control regression, detector or secret access during selection, replay failure, protected-span violation, or text-fidelity invariant failure."
+  ],
+  "kill_criterion_triggered": "Neither high-budget cell lowered the historical detected count: B4 remained 3/4 and B6 remained 1/4 despite greater mean exact observation destruction and slightly larger mean detector-margin drops.",
+  "interpretation": "Broad, durable sentence-boundary retokenization improved public-tokenizer geometry but not detector classification. The primitive is not retained as a countermeasure.",
+  "next_research_gate": "Require a mechanism that predicts materially larger aggregate-evidence disruption and validate it on more independent watermarked sources before release consideration.",
+  "rejection_hash": "22747ea3ede1bb1d2b7379e420e41ba3c37a35e135f0cb03e7a3562eb04e7dd3"
+}

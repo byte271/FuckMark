@@ -92,14 +92,6 @@ from .scheduler import (
     ScheduleResult,
     SchedulerCandidate,
 )
-from .sequence_boundaries import (
-    ASCII_SPACE,
-    LINE_FEED,
-    SENTENCE_BOUNDARY_SOFTBREAK_RULE_ALGORITHM_VERSION,
-    SENTENCE_BOUNDARY_SOFTBREAK_RULESET_VERSION,
-    SentenceBoundarySoftbreakRule,
-    development_sentence_boundary_softbreak_rules,
-)
 from .schema import CandidateRejectionReason, HardInvariantReason, InvariantStatus, ProtectedSpanKind, TransformFamily, TransformTier
 from .syntax_audit import (
     MINIMUM_SYNTAX_EQUIVALENT_OR_MINOR_RATE,
@@ -139,7 +131,6 @@ from .trace import TransformOperation, TransformResult, TransformationTrace
 
 
 __all__ = [
-    "ASCII_SPACE",
     "TASK29_FIDELITY_READINESS_ALGORITHM_VERSION",
     "FidelityReadinessStatus",
     "FidelityReadinessVerificationError",
@@ -207,7 +198,6 @@ __all__ = [
     "LexicalRulePromotionError",
     "LexicalTemplateRule",
     "LiteralTransformRule",
-    "LINE_FEED",
     "MINIMUM_EQUIVALENT_OR_MINOR_RATE",
     "MINIMUM_GRAMMAR_FIXTURES_PER_CLASS",
     "MINIMUM_HUMAN_AUDIT_SAMPLES",
@@ -225,9 +215,6 @@ __all__ = [
     "SchedulePolicy",
     "ScheduleResult",
     "SchedulerCandidate",
-    "SENTENCE_BOUNDARY_SOFTBREAK_RULE_ALGORITHM_VERSION",
-    "SENTENCE_BOUNDARY_SOFTBREAK_RULESET_VERSION",
-    "SentenceBoundarySoftbreakRule",
     "SYNTAX_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION",
     "SYNTAX_RULE_AUDIT_ALGORITHM_VERSION",
     "SYNTAX_TEMPLATE_RULE_ALGORITHM_VERSION",
@@ -255,7 +242,6 @@ __all__ = [
     "default_contraction_rules",
     "default_transform_registry",
     "development_lexical_rules",
-    "development_sentence_boundary_softbreak_rules",
     "development_syntax_rules",
     "development_transform_registry",
     "release_transform_registry",
