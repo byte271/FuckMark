@@ -110,6 +110,8 @@ The diverse Beam regression proves one synthetic dead-end graph where legacy Bea
 
 The representation differential audit is a development-only measurement layer for exact multi-tokenizer replay. It binds the source text, transformed text, transform trace, full model/tokenizer identities, token sequences, and canonical alignment metrics. It rejects duplicate source text, dependent variants presented as independent sources, non-NFC text, and changes to invisible or representation-sensitive Unicode code points. Its output is representation evidence only; it does not measure detector reduction or authorize a release rule.
 
+The visible-typography retokenization candidate was rejected after independent scoring. It slightly increased B6 observation destruction but regressed watermarked detection from 1/4 to 2/4 and reduced mean detector-margin drop. The implementation is not retained. The content-addressed rejection record is `specs/fuckmark-visible-typography-v1.rejection.json`; the mechanism diagnosis and next experiment gate are in `specs/fuckmark-watermark-survival-attack-plan-v1.md`.
+
 Run the local validation layers with:
 
 ```text
