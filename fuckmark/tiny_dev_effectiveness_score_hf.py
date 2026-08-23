@@ -96,13 +96,31 @@ def score_key_blind_high_coverage_plan(
     adapter: HuggingFaceSynthIDAdapter,
     *,
     profile: EffectivenessTransformProfile | None = None,
+    fixed_threshold: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     active_profile = profile if profile is not None else KEY_BLIND_HIGH_COVERAGE_PROFILE
     validate_key_blind_high_coverage_plan(plan, corpus, active_profile)
     if adapter.ngram_len != active_profile.ngram_len:
         raise ValueError("detector ngram length does not match the frozen effectiveness profile")
     calibration = _text_only_calibration(corpus, adapter)
-    threshold = _threshold(calibration, PRIMARY_TARGET_FPR)
+    if fixed_threshold is not None:
+        from .experiments.measurement_threshold import validate_fixed_threshold_artifact
+
+        threshold_value = validate_fixed_threshold_artifact(
+            dict(fixed_threshold),
+            calibration.detector_identity.identity_hash,
+        )
+        threshold_source = "open-detector-measurement-stability-v1"
+        fixed_threshold_artifact_hash = fixed_threshold["artifact_hash"]
+        threshold_hash_for_payload = fixed_threshold["artifact_hash"]
+        threshold_target_fpr = fixed_threshold["target_fpr"]
+    else:
+        threshold = _threshold(calibration, PRIMARY_TARGET_FPR)
+        threshold_value = threshold.value
+        threshold_source = "per-corpus-calibration"
+        fixed_threshold_artifact_hash = None
+        threshold_hash_for_payload = threshold.threshold_hash
+        threshold_target_fpr = threshold.target_fpr
     sources = {sample.sample_id: sample for sample in _attack_samples(corpus)}
     pristine = {
         sample_id: _text_only_weighted_evidence(sample, adapter)
@@ -142,8 +160,8 @@ def score_key_blind_high_coverage_plan(
             "pristine_score": original.raw_score,
             "transformed_score": transformed.raw_score,
             "score_drop": original.raw_score - transformed.raw_score,
-            "pristine_detected": original.raw_score >= threshold.value,
-            "transformed_detected": transformed.raw_score >= threshold.value,
+            "pristine_detected": original.raw_score >= threshold_value,
+            "transformed_detected": transformed.raw_score >= threshold_value,
         }
         rows.append({**row, "row_hash": sha256_json(row)})
     row_tuple = tuple(rows)
@@ -161,9 +179,11 @@ def score_key_blind_high_coverage_plan(
         "ruleset_hash": active_profile.ruleset_hash,
         "detector_identity_hash": calibration.detector_identity.identity_hash,
         "calibration_bundle_hash": calibration.bundle_hash,
-        "threshold_hash": threshold.threshold_hash,
-        "threshold_target_fpr": threshold.target_fpr,
-        "threshold_value": threshold.value,
+        "threshold_hash": threshold_hash_for_payload,
+        "threshold_target_fpr": threshold_target_fpr,
+        "threshold_value": threshold_value,
+        "threshold_source": threshold_source,
+        "fixed_threshold_artifact_hash": fixed_threshold_artifact_hash,
         "selection_detector_access_observed": plan["detector_access_observed"],
         "selection_secret_access_observed": plan["secret_access_observed"],
         "rows": row_tuple,
@@ -236,6 +256,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--budgets", default="")
     parser.add_argument(
+        "--fixed-threshold-json",
+        type=Path,
+        default=None,
+    )
+    parser.add_argument(
         "--json",
         type=Path,
         default=Path("artifacts/tiny-dev-effectiveness-evidence.json"),
@@ -287,7 +312,17 @@ def main(argv: list[str] | None = None) -> int:
         device=args.device,
     )
     started_at = _now()
-    evidence = score_key_blind_high_coverage_plan(corpus, tokenizer, plan, adapter, profile=profile)
+    fixed_threshold = None
+    if args.fixed_threshold_json is not None:
+        fixed_threshold = _load_json(args.fixed_threshold_json)
+    evidence = score_key_blind_high_coverage_plan(
+        corpus,
+        tokenizer,
+        plan,
+        adapter,
+        profile=profile,
+        fixed_threshold=fixed_threshold,
+    )
     write_canonical_json_fsynced(args.json, evidence)
     fsynced_at = _now()
     provenance = _provenance(
