@@ -13,9 +13,10 @@ from .registry import (
     TRANSFORM_REGISTRY_ALGORITHM_VERSION,
     TransformRegistry,
 )
-from .rules import GeneralWordSpacingRule
+from .rules import GeneralWordLeadingSpacingRule, GeneralWordSpacingRule
 from .scheduler import CANDIDATE_SCHEDULER_ALGORITHM_VERSION
 from .surface_rules import coverage_completion_surface_rules, development_surface_rules
+from .rules import SurfaceSpacingRule
 from .syntax_rules import development_syntax_rules
 from .tokenizer_geometry import TOKENIZER_GEOMETRY_ALGORITHM_VERSION
 
@@ -30,6 +31,8 @@ KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID = "key-blind-coverage-completion-v2"
 KEY_BLIND_COVERAGE_COMPLETION_SEED_BASE = 1_140_000
 CONTENT_REGION_COVERAGE_PROFILE_ID = "content-region-coverage-v1"
 CONTENT_REGION_COVERAGE_SEED_BASE = 1_150_000
+CONTENT_REGION_DESTRUCTION_PROFILE_ID = "content-region-destruction-v1"
+CONTENT_REGION_DESTRUCTION_SEED_BASE = 1_160_000
 CONTENT_REGION_GENERAL_ONLY_PROFILE_ID = "content-region-general-only-dev-v1"
 CONTENT_REGION_COMBINED_PROFILE_ID = "content-region-combined-dev-v1"
 
@@ -219,6 +222,10 @@ def resolve_effectiveness_profile(
         if not budgets:
             raise ValueError("the content region coverage profile requires explicit budgets")
         return content_region_coverage_profile(budgets)
+    if profile_id == CONTENT_REGION_DESTRUCTION_PROFILE_ID:
+        if not budgets:
+            raise ValueError("the content region destruction profile requires explicit budgets")
+        return content_region_destruction_profile(budgets)
     if profile_id == CONTENT_REGION_GENERAL_ONLY_PROFILE_ID:
         if not budgets:
             raise ValueError("the general-only ablation profile requires explicit budgets")
@@ -283,6 +290,193 @@ def content_region_general_only_transform_registry(
     identifiers: Sequence[str] = (),
 ) -> TransformRegistry:
     return TransformRegistry(content_region_surface_rules(), identifiers)
+
+
+CONTENT_REGION_DESTRUCTION_EXTENSION_WORDS = (
+    "against",
+    "among",
+    "around",
+    "because",
+    "behind",
+    "below",
+    "beneath",
+    "beside",
+    "beyond",
+    "both",
+    "cannot",
+    "certain",
+    "clear",
+    "common",
+    "could",
+    "different",
+    "does",
+    "doing",
+    "done",
+    "down",
+    "early",
+    "enough",
+    "every",
+    "example",
+    "fact",
+    "far",
+    "few",
+    "first",
+    "found",
+    "given",
+    "good",
+    "great",
+    "group",
+    "help",
+    "however",
+    "important",
+    "instead",
+    "keep",
+    "known",
+    "large",
+    "last",
+    "later",
+    "least",
+    "less",
+    "let",
+    "like",
+    "likely",
+    "little",
+    "long",
+    "looking",
+    "made",
+    "make",
+    "many",
+    "means",
+    "might",
+    "much",
+    "need",
+    "never",
+    "next",
+    "nothing",
+    "number",
+    "off",
+    "often",
+    "once",
+    "order",
+    "other",
+    "others",
+    "outside",
+    "own",
+    "part",
+    "people",
+    "perhaps",
+    "place",
+    "point",
+    "put",
+    "quite",
+    "rather",
+    "really",
+    "reason",
+    "result",
+    "right",
+    "said",
+    "same",
+    "seem",
+    "several",
+    "shall",
+    "show",
+    "side",
+    "since",
+    "small",
+    "still",
+    "sure",
+    "take",
+    "taken",
+    "tell",
+    "thing",
+    "think",
+    "though",
+    "together",
+    "toward",
+    "true",
+    "turn",
+    "under",
+    "until",
+    "upon",
+    "used",
+    "using",
+    "usually",
+    "way",
+    "well",
+    "went",
+    "were",
+    "what",
+    "when",
+    "where",
+    "whether",
+    "which",
+    "while",
+    "whole",
+    "why",
+    "without",
+    "within",
+    "word",
+    "work",
+    "world",
+    "would",
+    "yet",
+)
+
+
+def content_region_destruction_surface_rules():
+    base = content_region_surface_rules()
+    leading = GeneralWordLeadingSpacingRule.create("surface-space-before-sentence")
+    base_words = {rule.source for rule in base if getattr(rule, "source", "").isalpha()}
+    extension_words = tuple(word for word in CONTENT_REGION_DESTRUCTION_EXTENSION_WORDS if word not in base_words)
+    if len(set(extension_words)) != len(extension_words):
+        raise ValueError("content-region destruction extension words must be unique")
+    if any(not word.isalpha() or word != word.lower() or len(word) < 2 for word in extension_words):
+        raise ValueError("content-region destruction extension words must be lowercase alphabetic words of length >= 2")
+    extension_rules = tuple(
+        SurfaceSpacingRule.create(
+            rule_id=f"surface-space-after-{word}",
+            version="v1",
+            source=word,
+            replacement=word + " ",
+        )
+        for word in extension_words
+    )
+    return (*base, leading, *extension_rules)
+
+
+def content_region_destruction_transform_registry(
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    return TransformRegistry(
+        (
+            *development_forward_contraction_rules(),
+            *content_region_destruction_surface_rules(),
+            *development_lexical_rules(),
+            *development_syntax_rules(),
+        ),
+        identifiers,
+    )
+
+
+def content_region_destruction_profile(budgets: tuple[int, ...]) -> EffectivenessTransformProfile:
+    if not isinstance(budgets, tuple):
+        raise TypeError("budgets must be a tuple")
+    return EffectivenessTransformProfile.create(
+        profile_id=CONTENT_REGION_DESTRUCTION_PROFILE_ID,
+        budgets=budgets,
+        budget_unit="operation",
+        schedule_policy_id="COVERAGE_GREEDY_KEY_BLIND",
+        schedule_seed_base=CONTENT_REGION_DESTRUCTION_SEED_BASE,
+        replicate_count=1,
+        ngram_len=5,
+        ruleset_hash=content_region_destruction_transform_registry().ruleset_hash,
+        scientific_scope=(
+            "Frozen detector-blind and key-blind Cycle-4 destruction profile pairing the "
+            "content-region coverage rules with sentence-leading spacing and an extended "
+            "common-word trailing-space list; exploratory effectiveness evidence only and "
+            "not release authorization"
+        ),
+    )
 
 
 def content_region_combined_transform_registry(

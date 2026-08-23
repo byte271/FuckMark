@@ -18,6 +18,8 @@ from .effectiveness_profile import (
     content_region_combined_transform_registry,
     content_region_coverage_profile,
     content_region_coverage_transform_registry,
+    content_region_destruction_profile,
+    content_region_destruction_transform_registry,
     content_region_general_only_profile,
     content_region_general_only_transform_registry,
     key_blind_coverage_completion_profile,
@@ -109,7 +111,14 @@ from .registry import (
     development_transform_registry,
     release_transform_registry,
 )
-from .rules import RULE_ALGORITHM_VERSION, LiteralTransformRule, TransformRule, default_contraction_rules
+from .rules import (
+    RULE_ALGORITHM_VERSION,
+    GeneralWordLeadingSpacingRule,
+    GeneralWordSpacingRule,
+    LiteralTransformRule,
+    TransformRule,
+    default_contraction_rules,
+)
 from .scheduler import (
     CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
     CandidateScheduler,
@@ -234,6 +243,8 @@ __all__ = [
     "CONTENT_REGION_GENERAL_ONLY_PROFILE_ID",
     "content_region_combined_profile",
     "content_region_combined_transform_registry",
+    "content_region_destruction_profile",
+    "content_region_destruction_transform_registry",
     "content_region_general_only_profile",
     "content_region_general_only_transform_registry",
     "content_region_coverage_profile",
