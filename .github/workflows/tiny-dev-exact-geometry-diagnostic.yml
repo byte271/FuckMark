@@ -6,13 +6,16 @@ on:
       - ".github/workflows/tiny-dev-exact-geometry-diagnostic.yml"
       - "requirements-smoke.txt"
       - "fuckmark/corpus/**"
+      - "fuckmark/experiments/effectiveness_exact_greedy_audit.py"
       - "fuckmark/experiments/effectiveness_geometry_audit.py"
       - "fuckmark/experiments/effectiveness_plan.py"
+      - "fuckmark/experiments/exact_survival_greedy.py"
       - "fuckmark/experiments/general_spacing_exact_geometry.py"
       - "fuckmark/geometry/**"
       - "fuckmark/tiny_dev_corpus_hf.py"
       - "fuckmark/tiny_dev_effectiveness_geometry_audit_hf.py"
       - "fuckmark/tiny_dev_effectiveness_plan_hf.py"
+      - "fuckmark/tiny_dev_exact_survival_greedy_audit_hf.py"
       - "fuckmark/tiny_dev_transform_hf.py"
       - "fuckmark/transforms/**"
   workflow_dispatch:
@@ -100,6 +103,14 @@ jobs:
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --json artifacts/cycle4-exact-geometry-audit.json
+      - name: Compare proxy scheduling with exact-survival greedy search
+        run: >-
+          python -m fuckmark.tiny_dev_exact_survival_greedy_audit_hf
+          --corpus-json artifacts/tiny-dev-corpus.json
+          --plan-json artifacts/cycle4-exact-geometry-plan.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --json artifacts/cycle4-exact-survival-greedy-audit.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
