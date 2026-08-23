@@ -55,8 +55,8 @@ def test_fixed_threshold_uses_frozen_order_statistic(monkeypatch) -> None:
     corpus = _patch_scoring(monkeypatch, calibration, audit)
     artifact = build_fixed_threshold_artifact(corpus, None, frozen_at_utc="2026-08-23T00:00:00+00:00")
     ordered = sorted(calibration)
-    assert artifact["threshold_order_statistic"] == 1014
-    assert artifact["threshold"] == ordered[1013]
+    assert artifact["threshold_order_statistic"] == 1015
+    assert artifact["threshold"] == ordered[1014]
     assert artifact["calibration_exceedances"] == 10
     assert artifact["audit_exceedances"] == 6
     assert artifact["audit_realized_fpr"] == 6 / 256

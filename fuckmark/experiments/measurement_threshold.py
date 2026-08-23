@@ -45,7 +45,7 @@ def build_fixed_threshold_artifact(
     )
     scores = sorted(value.raw_score for value in evidence)
     count = len(scores)
-    order_statistic = count - math.floor(MEASUREMENT_STABILITY_TARGET_FPR * count)
+    order_statistic = count - math.floor(MEASUREMENT_STABILITY_TARGET_FPR * count) + 1
     threshold = scores[order_statistic - 1]
     calibration_exceedances = sum(1 for value in scores if value >= threshold)
     audit_scores = tuple(value.raw_score for value in audit_evidence)
@@ -62,9 +62,10 @@ def build_fixed_threshold_artifact(
         "target_fpr": MEASUREMENT_STABILITY_TARGET_FPR,
         "comparison_operator": MEASUREMENT_STABILITY_COMPARISON,
         "threshold_definition": (
-            "ascending order statistic n - floor(target_fpr * n) of the calibration "
-            "negative weighted-mean scores (the 1014th of 1024 for target FPR 0.01); "
-            "detection when score >= threshold; float64 scores as computed; no tie rounding"
+            "ascending order statistic n - floor(target_fpr * n) + 1 of the calibration "
+            "negative weighted-mean scores (the 1015th of 1024 for target FPR 0.01, bounding "
+            "calibration exceedances at floor(target_fpr * n)); detection when score >= "
+            "threshold; float64 scores as computed; no tie rounding"
         ),
         "threshold_order_statistic": order_statistic,
         "threshold": threshold,
