@@ -76,6 +76,7 @@ def test_introduced_codepoint_gate_ignores_preexisting_source_characters() -> No
     from fuckmark.tiny_dev_budget_scaled_robustness import (
         _introduced_forbidden_codepoints,
         _introduced_non_ascii,
+        _robustness_row,
     )
 
     source = "source with\nnewline and " + chr(0x2019) + "curly quote"
@@ -86,6 +87,28 @@ def test_introduced_codepoint_gate_ignores_preexisting_source_characters() -> No
     assert _introduced_forbidden_codepoints(source, transformed_hidden) == ("U+200B(Cf)",)
     transformed_visible_unicode = transformed_same + chr(0x00E9)
     assert _introduced_non_ascii(source, transformed_visible_unicode) == ("U+00E9",)
+
+
+def test_normalization_gate_ignores_source_instability_but_flags_introduced_instability() -> None:
+    from fuckmark.tiny_dev_budget_scaled_robustness import _robustness_row
+
+    stable_source = "plain stable ascii source text"
+    stable_row = _robustness_row(stable_source, stable_source + " edited")
+    assert stable_row["gates_pass"] is True
+    assert stable_row["introduced_normalization_instability"] == ()
+    decomposed_source = "caf" + chr(0x0065) + chr(0x0301) + " source text with several more words here"
+    inherited_decomposed = _robustness_row(decomposed_source, decomposed_source + " edited")
+    assert inherited_decomposed["normalization_noops"]["nfc"] is False
+    assert inherited_decomposed["introduced_normalization_instability"] == ()
+    assert inherited_decomposed["gates_pass"] is True
+    introduced_unstable = _robustness_row(stable_source, stable_source + " caf" + chr(0x0065) + chr(0x0301))
+    assert introduced_unstable["introduced_normalization_instability"] == ("nfc", "nfkc")
+    assert introduced_unstable["gates_pass"] is False
+    unstable_source = "caf" + chr(0x00E9) + " source text with several more words here"
+    inherited_row = _robustness_row(unstable_source, unstable_source + " edited")
+    assert inherited_row["normalization_noops"]["nfd"] is False
+    assert inherited_row["introduced_normalization_instability"] == ()
+    assert inherited_row["gates_pass"] is True
 
 
 def test_robustness_report_gates_pass_on_rule_transforms() -> None:
@@ -100,7 +123,7 @@ def test_robustness_report_gates_pass_on_rule_transforms() -> None:
     report = build_budget_scaled_robustness_report((corpus,), (plan,))
     assert report["summary"]["row_count"] == 2
     assert report["summary"]["gate_pass_fraction"] == 1.0
-    assert report["summary"]["all_normalization_noops"] is True
+    assert report["summary"]["all_normalization_stability_preserved"] is True
     assert report["summary"]["all_cf_strip_noop"] is True
     assert report["summary"]["all_introduced_codepoints_clean"] is True
     assert report["summary"]["corpus_pairwise_text_hash_overlaps"] == {}

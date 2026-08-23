@@ -81,9 +81,13 @@ Gates evaluated on every plan row, development and confirmation:
 5. Codepoint audit: the transformation must introduce no Unicode Cf, Cc, Mn, Mc, Me, Zl, Zp,
    or Zs characters other than U+0020. Pre-existing forbidden-category characters in the
    source are reported separately and do not gate the candidate.
-6. Normalization no-op: NFC, NFD, NFKC, and NFKD of every transformed text must equal the
-   transformed text itself; Unicode Cf stripping must be the identity function on every
-   transformed text. Any non-identity result is an adverse finding and a Level B failure.
+6. Normalization stability: the transformation must not introduce normalization instability;
+   for each of NFC, NFD, NFKC, NFKD, if the source text is stable under the form then the
+   transformed text must be stable under it too. Sources that are themselves normalization
+   unstable (for example precomposed accented characters under NFD) are corpus properties,
+   reported without gating the candidate. Unicode Cf stripping must not alter any
+   candidate-introduced character; candidates introduce ASCII only, so this holds by
+   construction and is verified per row.
 7. Copy/DOM: transformed text must contain no control or format characters, so DOM
    textContent equals the transformed string; verified by the codepoint audit and archived
    fixed-browser renders.

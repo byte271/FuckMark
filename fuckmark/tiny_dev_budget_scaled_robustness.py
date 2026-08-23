@@ -60,6 +60,17 @@ def _robustness_row(source_text: str, transformed_text: str) -> dict[str, object
         "nfkc": unicodedata.normalize("NFKC", transformed_text) == transformed_text,
         "nfkd": unicodedata.normalize("NFKD", transformed_text) == transformed_text,
     }
+    source_normalization_noops = {
+        "nfc": unicodedata.normalize("NFC", source_text) == source_text,
+        "nfd": unicodedata.normalize("NFD", source_text) == source_text,
+        "nfkc": unicodedata.normalize("NFKC", source_text) == source_text,
+        "nfkd": unicodedata.normalize("NFKD", source_text) == source_text,
+    }
+    introduced_instability = tuple(
+        form
+        for form in normalization_noops
+        if source_normalization_noops[form] and not normalization_noops[form]
+    )
     invariant_status = validate_hard_invariants(source_text, transformed_text).status
     row = {
         "source_text_hash": sha256_text(source_text),
@@ -69,6 +80,8 @@ def _robustness_row(source_text: str, transformed_text: str) -> dict[str, object
         "introduced_forbidden_codepoints": _introduced_forbidden_codepoints(source_text, transformed_text),
         "introduced_non_ascii_codepoints": _introduced_non_ascii(source_text, transformed_text),
         "normalization_noops": normalization_noops,
+        "source_normalization_noops": source_normalization_noops,
+        "introduced_normalization_instability": introduced_instability,
         "cf_strip_noop": _cf_stripped(transformed_text) == transformed_text,
         "word_edit_rate": word_edit_rate(source_text, transformed_text),
         "protected_span_violation_count": protected_span_violation_count(source_text, transformed_text),
@@ -77,7 +90,7 @@ def _robustness_row(source_text: str, transformed_text: str) -> dict[str, object
     gates_pass = (
         not row["introduced_forbidden_codepoints"]
         and not row["introduced_non_ascii_codepoints"]
-        and all(normalization_noops.values())
+        and not row["introduced_normalization_instability"]
         and row["cf_strip_noop"]
         and row["word_edit_rate"] <= WORD_EDIT_RATE_MAX
         and row["protected_span_violation_count"] == 0
@@ -127,7 +140,14 @@ def build_budget_scaled_robustness_report(
             not row["introduced_forbidden_codepoints"] and not row["introduced_non_ascii_codepoints"]
             for row in row_tuple
         ),
-        "all_normalization_noops": all(all(row["normalization_noops"].values()) for row in row_tuple),
+        "all_normalization_stability_preserved": all(
+            not row["introduced_normalization_instability"] for row in row_tuple
+        ),
+        "rows_with_preexisting_normalization_instability": sum(
+            1
+            for row in row_tuple
+            if not all(row["normalization_noops"].values())
+        ),
         "all_cf_strip_noop": all(row["cf_strip_noop"] for row in row_tuple),
         "max_word_edit_rate": max((row["word_edit_rate"] for row in row_tuple), default=0.0),
         "total_protected_span_violations": sum(
