@@ -73,6 +73,8 @@ def _fixture():
                 "transformed_text_hash": sha256_text(transformed.output_text),
                 "transform_trace_hash": transformed.trace.trace_hash,
                 "scheduler_covered_interval_size": 3,
+                "requested_budget": 3,
+                "realized_edit_cost": 1,
             }
         ],
     }
@@ -98,7 +100,11 @@ def test_plan_level_audit_captures_proxy_overstatement_and_hidden_exact_gain() -
     assert summary["proxy_overstatement_row_count"] == 1
     assert summary["hidden_exact_gain_row_count"] == 1
     assert summary["hidden_exact_gain_candidate_count"] >= 1
+    assert summary["early_stop_row_count"] == 1
+    assert summary["actionable_hidden_exact_gain_row_count"] == 1
+    assert summary["actionable_hidden_exact_gain_candidate_count"] >= 1
     assert row["hidden_exact_gain_count"] >= 1
+    assert row["unused_budget"] == 2
     assert artifact["selection_detector_access_observed"] is False
     assert artifact["selection_secret_access_observed"] is False
 
