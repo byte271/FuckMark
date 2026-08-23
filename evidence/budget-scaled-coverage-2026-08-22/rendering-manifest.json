@@ -1,0 +1,1030 @@
+{
+  "pair_count": 128,
+  "pairs": [
+    {
+      "pair_index": 0,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-25-unwatermarked",
+      "source_text_hash": "d6708285d65976877cd638c856e189cc2c8731a817539480434f2c4f46d2165f",
+      "transformed_text_hash": "2dedf2b5211b13505c17ed937b95fb6aeb7119db8833a52175c9dd74a03a26ee",
+      "variant_hash": "b0453702a822d2590421804f9af59b7caebb6f23b402f05353bb935014963df9"
+    },
+    {
+      "pair_index": 1,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-25-watermarked",
+      "source_text_hash": "9a286feb31c48e9ed0c9999789711b2579248fb083202063af1c669f37fecce4",
+      "transformed_text_hash": "ccb2c55f42aedd03f029ac83debc2edc3b873ff2b45dcfcc9b7c1c76250edc06",
+      "variant_hash": "9c08407ebff44ab776b64b61359cf13f44b956f72e9c7b9f44f10aec346af42b"
+    },
+    {
+      "pair_index": 2,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-26-unwatermarked",
+      "source_text_hash": "28a63d542a728713d0004d489be3895ec891f42df3ade3474381d3ab0e5f5ef0",
+      "transformed_text_hash": "a2b44c5407188a9969010a6e789828b06dc79ba16fd0080943fd385a76f91aba",
+      "variant_hash": "79be387834ba3bc142b78c77c9518559ab02fc500ee9e761f3883545492b5196"
+    },
+    {
+      "pair_index": 3,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-26-watermarked",
+      "source_text_hash": "1d936ad5aedeb613dc0b674eeae26f5cda6b24002664c061138008810fdf4de9",
+      "transformed_text_hash": "01a1e1aa606b9c9b6c584451302cce0d453c9ac1deeb543fc52ec56ef37d5ec7",
+      "variant_hash": "60197714bdbf8d5108b4b6663c138ebd8ae1406e39fe2c92278956b7946f6b3b"
+    },
+    {
+      "pair_index": 4,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-27-unwatermarked",
+      "source_text_hash": "e093007ba4fd439eecb20a9aff6088aa297f19447b26043c1bf8f753e2c829c4",
+      "transformed_text_hash": "07664b12c1af72e2f7be4829f11c97c008005de86faf15610cb9519abd303e07",
+      "variant_hash": "8403a8a97f960c31d0110a83b3aab6e262b6b464088e67ba2426f45965ac953e"
+    },
+    {
+      "pair_index": 5,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-27-watermarked",
+      "source_text_hash": "1997a2737eaa043176c546ab32aa604dcb6f2201bbc1454ab7965dcc3de57f7e",
+      "transformed_text_hash": "2e167e73821cb00702a32b3d3b620681fbb4c9bde0450c583e58dc372cbd8c4b",
+      "variant_hash": "6703efa875bbbabca3f65fe7c5fcb74d1eb06ce2b38a7bffe7c7d6dcd92871cf"
+    },
+    {
+      "pair_index": 6,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-28-unwatermarked",
+      "source_text_hash": "a671440b0822fcf6fdfd38074e7646e659fffe950db6c360b79eb35877b5240e",
+      "transformed_text_hash": "0959df19e6e37e313a8ed9112ac26880c7367f043fa8dec7d1f8015ec502be53",
+      "variant_hash": "f63a8709b060103b6f7bb5c629ac06a5ed4a023a3a1a44161e6d31daf742559a"
+    },
+    {
+      "pair_index": 7,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-28-watermarked",
+      "source_text_hash": "6a61fb0e5c1bd11ca922cf7549c3c08a05fc767c038fb3ffa5d90d0f43123f65",
+      "transformed_text_hash": "e424251a96f0c0e161ce276bd2163cad2ba2e80e01555ec368bdcacf0fd88ab6",
+      "variant_hash": "4a25eaca09e5299552edcb911d7408fc0699bae0ea24c32ea232721566ad4d1c"
+    },
+    {
+      "pair_index": 8,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-29-unwatermarked",
+      "source_text_hash": "62076d10fb04dc787d008b7cb4a77e9b5caf195029ecb5bed15a22519eaee486",
+      "transformed_text_hash": "658772dbb731fed08c020d90bac7dcf226cec94b2aef742a3f320bc992b5bfcc",
+      "variant_hash": "2745bb294cb9fe86777f26629332f204d718bfca8baf4fc8887f1c039cf204c9"
+    },
+    {
+      "pair_index": 9,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-29-watermarked",
+      "source_text_hash": "efe80422df6408b2e344bf490cc52fb67affc50f8626368df5d75d49ece9f003",
+      "transformed_text_hash": "a9ded56ce0f189d27f942931df5be047bca68d66574a14d75ab07ce4efde56cf",
+      "variant_hash": "b53d7dc17e715c5c465651235845acbf0ca9d3ec4d287a3fcb1ff13fe062f75b"
+    },
+    {
+      "pair_index": 10,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-30-unwatermarked",
+      "source_text_hash": "46110e06178e781b93329a52260164d0da26a9e55ed57a19900b913874b6901e",
+      "transformed_text_hash": "911b00f3456af46f3c0431dd35b1b45513c7144005bb83ad32be55dea7c8e131",
+      "variant_hash": "5acb8cabb0653736272cd6394170e436e58478cf2aec2172f4f3f6b6e0f11856"
+    },
+    {
+      "pair_index": 11,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-30-watermarked",
+      "source_text_hash": "f32ccdb871662f4113ff2adbb9eb6677ac0d8f6cc0d66afcc768093e68b1741c",
+      "transformed_text_hash": "810a16a234f5850f56dbcc92c3a0716a32646ce10d1283a8bbf4ee2693a2bd12",
+      "variant_hash": "3fb6693f7f40c4d2f6b141dcb0ba933e3ebc6b2eab3808c10f976af1df959dcf"
+    },
+    {
+      "pair_index": 12,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-31-unwatermarked",
+      "source_text_hash": "081245380d9b579084680a58e4e00faa4138a9e6593251d946505fdbae1b867c",
+      "transformed_text_hash": "0c07b8bf910d57a0ac858c83a23a57e192bead38a65bd3715e598d94e7caa468",
+      "variant_hash": "32dd000602ad7a62290b0537bc5deb6ae0da8dfa0ceee2837c81dc63e26ecb09"
+    },
+    {
+      "pair_index": 13,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-31-watermarked",
+      "source_text_hash": "84f33bd813a752f02a66f3d54d3a6795ee50f49ca0b17437187f62788ee52d10",
+      "transformed_text_hash": "67e7c3192f3a9c08529225b77eb59a7f3e9edd413c9b4b7ce3132c6984021d94",
+      "variant_hash": "a52bd68ac8affa345789476c33c6035ab3dac9f128cea6b19789909935243b49"
+    },
+    {
+      "pair_index": 14,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-32-unwatermarked",
+      "source_text_hash": "3258bc7eaee6dc1ec7cef4af96fc255c14b5b9ad018303678aa4d4c7fb66943b",
+      "transformed_text_hash": "c41ecdea48958aa641dcf27b4ab317913447f5ca8ed5303e6551d9b8ef7e3bd2",
+      "variant_hash": "8f89499f17f534c52164fe6700544838186284b806ac1034a75c6d9fb3593da2"
+    },
+    {
+      "pair_index": 15,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-32-watermarked",
+      "source_text_hash": "86366f2768d30b0be0407e38d772381c497dea2737135a99accb152c37a9c303",
+      "transformed_text_hash": "2903add455715008ede4664065862a1b8b968880ee7d962f449d5c56e3608aa8",
+      "variant_hash": "c0929a16ea739268db7732a513ceabc0b08b854e27214467ec079298522c581a"
+    },
+    {
+      "pair_index": 16,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-33-unwatermarked",
+      "source_text_hash": "4b0e4f32c2b572aa6fa7f42aef596bd0a468cd10f849562e1ba491e0354ab6bb",
+      "transformed_text_hash": "78416f6bf9af092afbdea548a9c2fe7f8c0f54028c2a511dc2e4f2bd75de3885",
+      "variant_hash": "33b98dceb17f76910e618d8d98f6ec004e3cf6f020addf25b8549d764dd04e1b"
+    },
+    {
+      "pair_index": 17,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-33-watermarked",
+      "source_text_hash": "d3b2df8701d5bfd247b4a1fe53e961d65c64048122c8ae2d4a9e6ba4e9538dc3",
+      "transformed_text_hash": "391d4624d6b6291d6f4a4ba6a5c1db90352979e1cb90975069298cce8007cec3",
+      "variant_hash": "b821af27ee2e7d84fb0af0d74a007c7461d80048cf06abc631c9b855fbf1ba1f"
+    },
+    {
+      "pair_index": 18,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-34-unwatermarked",
+      "source_text_hash": "7409ca9b2af0fa76a7c8d1641b78cfb24eca034777ae5a0b5779e5327186cd0b",
+      "transformed_text_hash": "09af6858fabeaafa6604fe1d831177382d904048cd8bb55a34e23c96a3fee93e",
+      "variant_hash": "ad8b3042f88c3a00e2b969d38f830da91eb8334f1a64098537bc1d37fd7a30fd"
+    },
+    {
+      "pair_index": 19,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-34-watermarked",
+      "source_text_hash": "2c951d293a0ef7aaa3cc150a5b57fd316b292701b344606aba0ebeb1bf39e2bd",
+      "transformed_text_hash": "2de55ce96a831afd1021efdff4b07909ad85e623c223c8166bfc61e41f6ab97d",
+      "variant_hash": "26e613e25b69c6940a2214265fefb7248b0dc6f085c5dbd488e7758dcedd660b"
+    },
+    {
+      "pair_index": 20,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-35-unwatermarked",
+      "source_text_hash": "b4b4eadc592ece2aa02c5cad703b16e32084f3ed6b8e377e60c7b3abe29d9b43",
+      "transformed_text_hash": "fa91884b4482f3494279dcbdc2713cec9e865d515978d6ed3a5781ef15fc79c1",
+      "variant_hash": "8adbf2c7fbd8bd01733424c40a5961978b333c02d8ab2cdc53679af619ad713c"
+    },
+    {
+      "pair_index": 21,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-35-watermarked",
+      "source_text_hash": "39f706f158f225d80afb4f92fe3f9c96edb1ec68a2d0046d3dc2453c1cebbe87",
+      "transformed_text_hash": "cbb85345f10b963dc32d4face2e70175949ead599b9f8f916ccda4cf4067812a",
+      "variant_hash": "621a9f3627902c5fb4e7f90bd8e38f15bc6c95c3c71a41ec180509bdfb78172e"
+    },
+    {
+      "pair_index": 22,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-36-unwatermarked",
+      "source_text_hash": "e8c5dc04c7d846973f1fb1eb16a61a630e3c54cd151af0fd3d241907a7018bd0",
+      "transformed_text_hash": "2bfa9f53db8927820e985fbbc0fb0554f1d56065ae1ac116154863a334f1d6ba",
+      "variant_hash": "551f08c82df5839e9ffa154f6bcd9f43ce7b5c3a571ed379ffd6f6cc4f525c7b"
+    },
+    {
+      "pair_index": 23,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-36-watermarked",
+      "source_text_hash": "71d5675b314dbc6683c6755efe4e4930a96816e85cd09d1d365b08443f2d8f6a",
+      "transformed_text_hash": "6597a4e811a00a590ed4f6ac07cf9c7c4326025f29c41e9aabd90944dc9f321d",
+      "variant_hash": "5e0a898cd8d29645733d5716fada331ee2f45bed3cf4570e4615e3ca69cd55c7"
+    },
+    {
+      "pair_index": 24,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-37-unwatermarked",
+      "source_text_hash": "36ba5db85f67575b54624c78f9b566063b0f58bfe410ae8e8f36517ac4811551",
+      "transformed_text_hash": "2cd123475ec3cd7c75d9696f382044f6f1f43eed09cc6842a8438c67fa166cf1",
+      "variant_hash": "61cfde568b39167933043f28e0bb87681de933cc540c5c6eca2dd848151166a3"
+    },
+    {
+      "pair_index": 25,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-37-watermarked",
+      "source_text_hash": "e2f26924c9d3b4f2bc024ba7e73e30f923485177423c59a518e3e40a3d8ed6ba",
+      "transformed_text_hash": "edeab024e8acb049c29d09330bfd53468223e454bdbbbd02a4a0a33a236605e6",
+      "variant_hash": "432c7f27ac9d2fbb00f938328b6de4d7370fb4c1197b2d1a0e275a555433f44b"
+    },
+    {
+      "pair_index": 26,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-38-unwatermarked",
+      "source_text_hash": "3bcca26dc68d190d03e98d96124babd18dac89a144583a0d1566c2ff588de1d3",
+      "transformed_text_hash": "8dce6a2ff68f1d07fc60482c67a9f7f5f891c4e1c0a3a3a0d4ba1ee9aee6d938",
+      "variant_hash": "aba89a6172474674623e5d783290c558916b5f0db55011c60fe774b8d5ea6482"
+    },
+    {
+      "pair_index": 27,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-38-watermarked",
+      "source_text_hash": "f31c7adbbca6d62a5726eeed8fca7d4aabfb9f9b4c8a36671d976c8789c0c5b4",
+      "transformed_text_hash": "07233fd02d3266a1cd910142e0c1aaf7b1f7ac579578c8b79a5eae364e733728",
+      "variant_hash": "7855fdd337c1865973232afda20fc01af6c76e6d1fa9c79db9b0524142fd3ad3"
+    },
+    {
+      "pair_index": 28,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-39-unwatermarked",
+      "source_text_hash": "59fbd805973ae2c003e7ca3ac05503290701665bf809a644a16dadff4be52291",
+      "transformed_text_hash": "bae50882f9377a2050be86a8808dea5839dd68ec9d1c114f9f5eec2abf02034e",
+      "variant_hash": "82d6672286411d0eaa7318b220e0095a4e7fe87dc3fc11b80fc45a7195c45b76"
+    },
+    {
+      "pair_index": 29,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-39-watermarked",
+      "source_text_hash": "df5150a41694687e719a836d2fa02c0e7200514fd8839a03a965584874d7bc77",
+      "transformed_text_hash": "b6381f2bff3b7499590bc2545ddbc599869a3dd3672239ecb8ae74ef7f4d1162",
+      "variant_hash": "20d19dfaee48c5a90ba8381249e014d917827e9cd6dd685dca27124c28de9f4e"
+    },
+    {
+      "pair_index": 30,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-40-unwatermarked",
+      "source_text_hash": "8c37969af9ad8ba0100a37ca6034167f671a2f3fab2662a96160c253846d3a03",
+      "transformed_text_hash": "cdf14cc71f5fe95995c1f94b0e35e4320c2731fdfbde63d0d3d95aaf8219d308",
+      "variant_hash": "4b99a27f0383ec93748124a8fed5a76dcfee3d55b12feb8eabe2570e6b34a758"
+    },
+    {
+      "pair_index": 31,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-conversational_prose-40-watermarked",
+      "source_text_hash": "8d7c6ee86d885114b21f4d1d0701aa2b1172e3a72a7ffc55089f17d03e79a632",
+      "transformed_text_hash": "fb498ef4516bd6c69a1ac585c90f1ddade1e5efca68e1597a2741040c200d652",
+      "variant_hash": "87b82a74867f3da51f3bc11d469d012d204e7c952556e971c7a8f36e4c29a970"
+    },
+    {
+      "pair_index": 32,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-25-unwatermarked",
+      "source_text_hash": "fbb24992cd2c56529e2e67830c2f1b7e085cfbe8b9fa3165cdb155a8b0322efe",
+      "transformed_text_hash": "91d3c1a54ff9c2298f70b576662c9d4d03284edb78c7254482b29057c793fcf9",
+      "variant_hash": "40ee0209412c287928861d56be4cc1a9a678f69510b2b2b601cf00eec6a3547f"
+    },
+    {
+      "pair_index": 33,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-25-watermarked",
+      "source_text_hash": "92dd95e4efb92c47acf64fa85d32484d0cdf2abd6dc1f6134f25f523fd618d31",
+      "transformed_text_hash": "dead23c8aa8a8a183a1f6f481483b1cf49254dc35cad96c769db012dc7a06c36",
+      "variant_hash": "39cb74587a9fb1eabfb55325985e71b2eb92d40c57191409da123dee61fa0b47"
+    },
+    {
+      "pair_index": 34,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-26-unwatermarked",
+      "source_text_hash": "7ee55c3c1859567a1e62f0d2a5a5a907da34ca9cb506a733fd364d65a2e1a6a9",
+      "transformed_text_hash": "9558bb0e746d4039ede2704c9e7e51455dd8862fb420858d4cdfbfe5b07ed15f",
+      "variant_hash": "d2348c9ba55f78942612e8406bf510e42cd0785b4c127939a10962f6270faba4"
+    },
+    {
+      "pair_index": 35,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-26-watermarked",
+      "source_text_hash": "c6c4688cd77773ef7e81e66dd1e120657b79a936b3bc15316b7cc9f962b4c36a",
+      "transformed_text_hash": "18169915d727a1d811b6dce37ff12de3cdf1f7f435f5c8c21c599834818048f7",
+      "variant_hash": "e183c9a315734f620f3f0d16f7ffd10a4b535a12acecaa59b563a9b5c69727ed"
+    },
+    {
+      "pair_index": 36,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-27-unwatermarked",
+      "source_text_hash": "e22bec68fa599895b14f7a67e9fb25b8eb8ed8e2f19418a9cfc8dc166abcd5fd",
+      "transformed_text_hash": "c10300f3915f526defc1ad88c83246e0ea78a78216accd24b643148e93e0fed7",
+      "variant_hash": "a30c8504f1d215aad8fa100ab6d303aa9510d5b9c4d50ab445786c2de7aa7936"
+    },
+    {
+      "pair_index": 37,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-27-watermarked",
+      "source_text_hash": "3725849e088ec7704fcadd7de1e7b958a262e2161ca7438a14a8b8dedb492622",
+      "transformed_text_hash": "88089edf8f3be3d6c6a00c38af378ddc1158a74986abefaec2d3fa2ee4f5d59f",
+      "variant_hash": "bdef41ca87da0a48341cdbdf8ec7d16c66381739a73ea9dc2e08a0ec95de77c5"
+    },
+    {
+      "pair_index": 38,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-28-unwatermarked",
+      "source_text_hash": "76a08256c0f54cfd3f73dc2c6960b216cd95a02e729f998b33cb68af99879904",
+      "transformed_text_hash": "d60fffb793330229d29bfdeb198d308faa9837061585b28f04866e28a2fb72d7",
+      "variant_hash": "3de4e1b3628b84b6841c7e0e4faae6dade4d4dcb30f6b1b5bb55a18e5d9f6e3b"
+    },
+    {
+      "pair_index": 39,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-28-watermarked",
+      "source_text_hash": "afecfe7217a45d67e7dddf27f3d943670d1ebc4aff3f53dadc23f47441ecb97e",
+      "transformed_text_hash": "1bd61092e33d01d0aad2804b4186fdeed09b5c646159413f6a238f54f4c3a849",
+      "variant_hash": "447e8486345d0aa13749c38272125177a4577c26bd6a726e16539ccf23b72021"
+    },
+    {
+      "pair_index": 40,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-29-unwatermarked",
+      "source_text_hash": "a18560c164f77e6e4cdfbe07c5a0630476f9eb043e20fb97f4945c7523eb7fd3",
+      "transformed_text_hash": "60b2e43535824fd120c5c09e2f70ba7bfb18006973ab56c323fe6f0a87b8b5e0",
+      "variant_hash": "136eec6e4cb72623faba16c2206612609801a047155408294914a4a9d07037f5"
+    },
+    {
+      "pair_index": 41,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-29-watermarked",
+      "source_text_hash": "d34ffbeb248bb79fbe4461bfa05dcced87a608c01d2b72bf137285300ad022a7",
+      "transformed_text_hash": "e484ec1c9861ca847a4369c7a7e080fa325d7751cfde3a866af54b1da7cb54bf",
+      "variant_hash": "6d63eacc156c16b72e6bbe610dd8a9fa1f7feb1a34b1e5637a575b001604fd01"
+    },
+    {
+      "pair_index": 42,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-30-unwatermarked",
+      "source_text_hash": "63b695b0b3095c5999332e768f70374cf781414cf40d3c4dd645045538912fc4",
+      "transformed_text_hash": "5507061be4038001805837243516fe91d6d4f0505341dfa94ecf2f603ad9c756",
+      "variant_hash": "fabba121784618552cbbd7bb6a4e83eeb5354fa04eccaa225888731c5a1a4aa8"
+    },
+    {
+      "pair_index": 43,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-30-watermarked",
+      "source_text_hash": "ff476d79c406a3a7201e13f1efe45d15e8a82febbca45e28549c736329fd320c",
+      "transformed_text_hash": "68569314a56901a307636571791947b6686e1b7e9707d33db9f5631316187853",
+      "variant_hash": "e01da9ca178e8833154f80e3c1b0a5484b71e847eec5d0bc074ceca19d8d0387"
+    },
+    {
+      "pair_index": 44,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-31-unwatermarked",
+      "source_text_hash": "e233350d3c2830701e988fe9eb89e7b7c1fe7772e3e98a46e8a5c564ce5fba68",
+      "transformed_text_hash": "199b6bd6bf6ef33eee0e22c00f3f2935f15869bde16501a1508a526e2db938b6",
+      "variant_hash": "1fb60691ebed77a878169b6b84a744afaf03a2a66b6bb366486ec242bb8bca53"
+    },
+    {
+      "pair_index": 45,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-31-watermarked",
+      "source_text_hash": "1cd4dcdaad6b8682be53683493a326f80da5878f112437958c7de96aae23c588",
+      "transformed_text_hash": "8ddc87de99b05722531dc03d91c8c4abc0cb4e63f71ae5f93f5c482070bad468",
+      "variant_hash": "3853c2fcd01c45b2bee2d6ba6db7fb6c763dd09e643132ba4425bec5a0b57fad"
+    },
+    {
+      "pair_index": 46,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-32-unwatermarked",
+      "source_text_hash": "4f7e460f3f9baab5213a2b877339f83ed726b54973c9217c00e4f27d2987f409",
+      "transformed_text_hash": "a59558cc39d9dd8b6cd60ff5c2aa54938216926a3b543d6601a82da68f5b18d0",
+      "variant_hash": "02e4bc12dde4ac14e557088baf8eafa66474522c3bb01dbe81855988b503d0fb"
+    },
+    {
+      "pair_index": 47,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-32-watermarked",
+      "source_text_hash": "c8a32fcfcde6639a3d5f66aaafeeb9ba1883ebf19fe6aea7aad67d2806f5feb7",
+      "transformed_text_hash": "9fa24d9906ffb87d65b00c2905dc9a1f28defcd5c2d4f5ecb4353a8b041520e8",
+      "variant_hash": "ce32cc63d6bddcce7e015fcd1f7a9032e7f15e77459b8163353a61bb266cc9c9"
+    },
+    {
+      "pair_index": 48,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-33-unwatermarked",
+      "source_text_hash": "6d78c10093957ecff0e6ec0384c48a1460a2708d1790a450aaf7248e439f9943",
+      "transformed_text_hash": "6d78c10093957ecff0e6ec0384c48a1460a2708d1790a450aaf7248e439f9943",
+      "variant_hash": "b56435fe9583008fa031aed539a01b0121d857c0f976ddd51bd4749e93f9a67e"
+    },
+    {
+      "pair_index": 49,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-33-watermarked",
+      "source_text_hash": "dd09e6a66240dd1aa8859c9be952b0788f07bdbee4f4d486034e281e3e0b1a82",
+      "transformed_text_hash": "e247fb3ac95c5b6f1ac1b8ded1f13fd6e3af0ad39316b6c62e9b7d0aa1ac5025",
+      "variant_hash": "b262bafc81817c01401fdce749b5c1d89ca10f04df5ec180e3c4aee816b80279"
+    },
+    {
+      "pair_index": 50,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-34-unwatermarked",
+      "source_text_hash": "5b721d62dfa8ca30b711dc008912332182c4b43d0c9180ca295fc0a87a45755f",
+      "transformed_text_hash": "1f42c4509fc90f69d5007443dd56da99541c4af1bf5001259ead8552f032623f",
+      "variant_hash": "e63e0fee07a46a8e0cb5fabb7ed30ff43b4bf34b712b94515ba230ee420fd4bb"
+    },
+    {
+      "pair_index": 51,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-34-watermarked",
+      "source_text_hash": "193af4f5f4fcc333a30857b687a3aa199488bc118058dc0d403b11263f004a0c",
+      "transformed_text_hash": "2c9b77a7735ba1ba594ddb0944a81b0683e7033489d0db11a1a1f99e94f77efd",
+      "variant_hash": "f50321257fdbe3f15ba1b9745888d256306d63a6e92735c41194506325466c97"
+    },
+    {
+      "pair_index": 52,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-35-unwatermarked",
+      "source_text_hash": "9dc34c5dd7adf1e6bfccc838b803df7edc0b94bd0c1676600685f4a294ff0685",
+      "transformed_text_hash": "7d35791a32750bd62bf272e5ff1e6d3567edf0479c2167e3cdc42739f7a868ac",
+      "variant_hash": "29a49b12e03c2aa1b3d0f298c440e9c263da5f7b1da7f78a474fb4754daf4ca5"
+    },
+    {
+      "pair_index": 53,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-35-watermarked",
+      "source_text_hash": "e4b4d7897a0afee76dc29a7b91f09df662698f27433a2ec6c09128b6f389b1f5",
+      "transformed_text_hash": "2778e3f89efc5e0447bed25b6782fa02b5afcf5e5c60eea3b3ae3f849a02729d",
+      "variant_hash": "cdd6b8abe247ba6c236eea2022f0673665b7e8e56355251c27d183d44741a336"
+    },
+    {
+      "pair_index": 54,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-36-unwatermarked",
+      "source_text_hash": "190d2bbff1e708f7d11f156db266447b976baad7f5c825f0ae8c21e20bf9b4ec",
+      "transformed_text_hash": "a349dbbfb630fce308d29e69d1ebfeb688de91955bb37eab60cc96e5f4161017",
+      "variant_hash": "8890380b8d884bcff83115e8a63076398cdb4b47b112f76eb1c2237fee7b32e8"
+    },
+    {
+      "pair_index": 55,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-36-watermarked",
+      "source_text_hash": "2137ae71b3644ec82423ca4e75b545d8a3c5eb7a788dcb0182752a82305ee887",
+      "transformed_text_hash": "e5d80cd3eb50a7db3eae3cd2d0704a6a6ee3abc8085db5934049f5316636c7f4",
+      "variant_hash": "fc38182d2c0a63328b08db052af33bf4c841e15fd704349d138d25b9804d7a75"
+    },
+    {
+      "pair_index": 56,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-37-unwatermarked",
+      "source_text_hash": "d6813d5634c7657976a49e54e1ee3fb0c262743ba41d03186f3f47ae76f0950f",
+      "transformed_text_hash": "6c5922fb7facab8b2336feb3144d085a8d23d6b7121ff67e5fe678fe657802ce",
+      "variant_hash": "49a9836ab8ff2e6294f9d0b241f5b0eccefbce0cb4ca9450e05b4d5cf7305d8c"
+    },
+    {
+      "pair_index": 57,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-37-watermarked",
+      "source_text_hash": "c026a3b7a76822e5d5fb419554eb33859cb34f470b3f3fd022081958eb095df0",
+      "transformed_text_hash": "5470b665d53db233e8ed64e494338b60ee86e405f77a76d9cc96c6ba1dc9933f",
+      "variant_hash": "3274da063da5db8affb703e59b06f4bb6a8e5b0f4e6258037f9ff38be0ba34aa"
+    },
+    {
+      "pair_index": 58,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-38-unwatermarked",
+      "source_text_hash": "d945e74d3d6302e33d785c0f6aa31218e28de62d562d44b3b20d8139f297309b",
+      "transformed_text_hash": "631dd78c4f8e0f88af9e417255b8d56f11f935111176bc021ff6c68d4170e6b0",
+      "variant_hash": "52ffdb16e60b85637203ac06f95a0886302dd23ade638d5557ee9d34205b504d"
+    },
+    {
+      "pair_index": 59,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-38-watermarked",
+      "source_text_hash": "4863ba551a30470274c01823d63cf6b8da30fb125157a69bb2a313a2c67192ba",
+      "transformed_text_hash": "444297244587797a065cbce91ada0063fb5266e274c06ccba27738dbb29b623f",
+      "variant_hash": "ffae6e5c940f21c65d04d579e0cb844459bc72ccba3f6f11290dc7f173a56ee8"
+    },
+    {
+      "pair_index": 60,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-39-unwatermarked",
+      "source_text_hash": "f3cee919e65c87e7a778a3615d48e5f83461f050cefc4d1ef1220dc3a9347b0b",
+      "transformed_text_hash": "b9c520ff45f3729cb83ac8829562e2e182482d6a5da0a541dda14822b79ed91f",
+      "variant_hash": "665904e5852e2b1a03701312f2252e78af96483e732a1c17a943f11d97e02121"
+    },
+    {
+      "pair_index": 61,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-39-watermarked",
+      "source_text_hash": "58a323a4e75b4ff9a9f3ce1e154280754e04c6834903e20d5e62c2db8fcbef16",
+      "transformed_text_hash": "e9ce6f20bc711e3de9d05f6b851678847068c3bffb9fc3b738cb11e1becadd4f",
+      "variant_hash": "add68877a3c99b5f90334f467c2a72cbf7b3b6ff3b68c83879d63c8a4b2e95f6"
+    },
+    {
+      "pair_index": 62,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-40-unwatermarked",
+      "source_text_hash": "6bcfd4018abf123952fc2f97dc7c72cd3559e0c3cf6f12896093d85662acc9d8",
+      "transformed_text_hash": "1d50801f2efa974968106f09dc90944c5f2d77511ee705cdd038cf6f0753280d",
+      "variant_hash": "1605095faa8955ad813e822cf7dcd0c2e9da8b7df1afeaee5e3fd5ac572a1ca8"
+    },
+    {
+      "pair_index": 63,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-general_explanatory-40-watermarked",
+      "source_text_hash": "4d92361e194b5afbbb52973066877852f23b8d8f884aed764ac1d26b78d3b718",
+      "transformed_text_hash": "186ecbea9be417d64340d31ffe8517dd37cdbe0ff5808353a452a3547a8cedbc",
+      "variant_hash": "0f32e7df37649cb4df387bf78e8a37dd059c41815cdc22eb0ae23b194c92c177"
+    },
+    {
+      "pair_index": 64,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-25-unwatermarked",
+      "source_text_hash": "025cb365b51494a2bdb43d1a2716adb08bb4f381510b14326ba914c03c553220",
+      "transformed_text_hash": "2b81386abec26cfca7f2416a2e625f1d9afb48a07d80870d3aec81bf0a739e04",
+      "variant_hash": "ae4be47fecf6dedc26a38fdeea3bb4feb0ecec819d06ce2a9d4807a0465b216a"
+    },
+    {
+      "pair_index": 65,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-25-watermarked",
+      "source_text_hash": "2b62c7cc0ade63a8eee3e94785107948f74d8876b02966bc4f1c29f5bf4ec80c",
+      "transformed_text_hash": "7beff0b797a693836a34ba440003fe5455a88d40456b3ee91363c9a9f7252483",
+      "variant_hash": "7d112173b225d8bd408f4e91ffaa265699139a550ce3190ada5ed5479e64eee7"
+    },
+    {
+      "pair_index": 66,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-26-unwatermarked",
+      "source_text_hash": "4efb4170d38a7c8d0b0aba17f018f1ec6deb003b21e4267d02b0d380c0d83395",
+      "transformed_text_hash": "2b195d06ba3cb0430145970d0fe2df00d26b636ab170cc063ab9098db6a32e44",
+      "variant_hash": "b9518e71c504d3445f1461deaca2ed121ecf8e0c2f991ce7d0f7ae2417f9028d"
+    },
+    {
+      "pair_index": 67,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-26-watermarked",
+      "source_text_hash": "28bda76ec6e3b385896853cf26d0bd038f9b4fd1448990da55dcb3c795b10ddb",
+      "transformed_text_hash": "f34c47a3a8f747ab6d5b8b0c8df6b6edbe043f14802ce1c546790f666d18efee",
+      "variant_hash": "74bc2667e7f1e6f12af4a6c93df28dcfe7abf2b9b45b5734d1f26f871a325a17"
+    },
+    {
+      "pair_index": 68,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-27-unwatermarked",
+      "source_text_hash": "97ab427fd1c2a9c4a7b0b4f578528e95b26f914838ace8fa1ca397f2e2ce0011",
+      "transformed_text_hash": "5397a002107d780a168dedbde9eb4f25dc5f348f78510c1cb45cec8c61393f8f",
+      "variant_hash": "c574dae9cad08d58df7bf0447b28dcf187d15ec7e507b189d716ffa8193b10ff"
+    },
+    {
+      "pair_index": 69,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-27-watermarked",
+      "source_text_hash": "1be7efc24e0caf1b1fb4d64b3426ec98b5a29ced2570568d60c78f22357eb9b1",
+      "transformed_text_hash": "b8297d63941cde67ffa3c72363f1d900a6ec3e2ee6736b0878b334bf38b434d3",
+      "variant_hash": "4d4c1b67698fa63cbd4815eba8bff9e6e74f683f48a43132c8f465928eb61d4a"
+    },
+    {
+      "pair_index": 70,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-28-unwatermarked",
+      "source_text_hash": "ec7e8b2891ea5a91b2d8b93208f815ea35ac1e134b7f14e66b81857f897133cc",
+      "transformed_text_hash": "2f8ad2074f959c76f29d46e006fd65bdc9b98b56805c80ae27b76ce4d04e3904",
+      "variant_hash": "a337da48e9edebd0e704cdaa4937742b1bf559268de0014da46efb94b1d10b6e"
+    },
+    {
+      "pair_index": 71,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-28-watermarked",
+      "source_text_hash": "f8ab3216d6a5fc3973aa44cd1f7dbd1496453e12cc44ab9a711d037dfcdda2f0",
+      "transformed_text_hash": "cc9fd1b35102fe884339bcb8bd962b56aa5066138c8499e5f45d16f8b236a8b6",
+      "variant_hash": "c2024adad04cf780ca99b1d82133e5daf30e280cfc41b97891d32b2a47d52956"
+    },
+    {
+      "pair_index": 72,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-29-unwatermarked",
+      "source_text_hash": "b57b98a14c7fbf36bef83c9df141069355982d7bb94502fcefec7702c6c61538",
+      "transformed_text_hash": "8ee7eeaa3e68582bff11d7d76edd7b6354d3dff7fdfc5ea74f7464ad560edf0a",
+      "variant_hash": "289e59beafb5ae374633a5bb185890f9cefd9d3b64c7d7c891f333e2fe855bf3"
+    },
+    {
+      "pair_index": 73,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-29-watermarked",
+      "source_text_hash": "12c51d46529466ebb0a2420afb0aa277eddab8f323e4420066d0f30ca4616185",
+      "transformed_text_hash": "e6e22770d7d62c9fce1afdd40936fb07dd457dcd0c89ce01395e4dbb9f7cebd3",
+      "variant_hash": "fb9a511fe33d9049b92cbffd4b85ef7135069f1f7bcd8cbd3fe98e07d7a6e5e3"
+    },
+    {
+      "pair_index": 74,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-30-unwatermarked",
+      "source_text_hash": "b1eca7f8c9b995751ccb280ab6ea6365f6d6d80bfd21684a511fc7759d42e4b2",
+      "transformed_text_hash": "88252014a95fa840d3d2dc85eefa6ebb93c5dc8637c07316b84fe7e2829cf869",
+      "variant_hash": "7d52382dc5621551b86cd4d76f3d955fa384a72832e152d5fab9a36f7a5348a0"
+    },
+    {
+      "pair_index": 75,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-30-watermarked",
+      "source_text_hash": "7943ff3211ce0255b57fcada8a7d80e3954a891b42998ca163a07a086e676eba",
+      "transformed_text_hash": "1cd6a59b4b6dca583da2397e7ea0322ef961058d7800e66637466f7d503c5ae9",
+      "variant_hash": "c293cb3d9243249f8374a6842cbb3bfc6efe996bf476008f5c832ebe8089c2c8"
+    },
+    {
+      "pair_index": 76,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-31-unwatermarked",
+      "source_text_hash": "b13fef25d155ae159a1957e0877d3de50129a7d2c3699d2ddd1a7b84cac67c7c",
+      "transformed_text_hash": "4c94e399423997263863e5f9b935ae5a02627dc7bbcf55aca4ac0b841cd982d7",
+      "variant_hash": "831b48dd7ba0c4e9f4c1058bf2da69b09b21ef8311e81f2ea721430e89e46cf5"
+    },
+    {
+      "pair_index": 77,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-31-watermarked",
+      "source_text_hash": "599477f09b19c1c0c01d8022013f5a0bb9bdf0ea4095a78d3de0be476c1eb591",
+      "transformed_text_hash": "8a0dcac7ba78eca5333732e2d09f03b3d85099be3d239335d763d383c6636a9f",
+      "variant_hash": "b648543b2aa780ffe2da3ea0f9a4126cf168c3e85b817af4a76a174b35014d17"
+    },
+    {
+      "pair_index": 78,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-32-unwatermarked",
+      "source_text_hash": "a216b9ae97e02f6dc4c52b1cbb4afc7ca6f445c38d8bc0c49f72af7351ff50e8",
+      "transformed_text_hash": "d7b23bf24f464fbcc5121758712f47149651688969c5128f9f638f7090f5a1e0",
+      "variant_hash": "609331274f1dc1d9abf8e5bfce75587531cf223f9c131e1e44c9989dc06b8551"
+    },
+    {
+      "pair_index": 79,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-32-watermarked",
+      "source_text_hash": "535192d753ecb53f4aa4ce28ff9589ccb0ee271f1ffef76c24d6e6c7d4635f29",
+      "transformed_text_hash": "b071dff4be47bcad25ebdfb8b5bab2f40ff4f1a85e1ae37ae6ed0414d575deeb",
+      "variant_hash": "a05a0819cc0e2fe2d4e4ac29db2b0dfc433cf92ab693aa7a52eac96b60019dbb"
+    },
+    {
+      "pair_index": 80,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-33-unwatermarked",
+      "source_text_hash": "41bac0e0e10b3b70ac7044cd2bd06b3ec638cb9469f1ecd7f9c985ff9060d748",
+      "transformed_text_hash": "c4342e1245d0c9f85fdc505b6fb29f360c7c52718cf5ed01ad46f46a4b56cf1a",
+      "variant_hash": "6d8dd46c2c7b8c4bed606142e3cc48dc75ab75e9038c08a105c17725cef616ea"
+    },
+    {
+      "pair_index": 81,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-33-watermarked",
+      "source_text_hash": "8f4d92c4f2d69e444775fc921d1088fe519fff017ee6bc55b39a0fa8e4b36ef3",
+      "transformed_text_hash": "59dae99693e5310c7e885a08576daa2683f5f96d9bac50c3016cdb32fea10d3a",
+      "variant_hash": "b1a1787c6f93f55b5dd167a86920f660f2142c28248af13401dc369810a750b2"
+    },
+    {
+      "pair_index": 82,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-34-unwatermarked",
+      "source_text_hash": "d73c7437a3670cb5a2a5027681cbec9f105af66233f025ab8d757b3c13b6ec4e",
+      "transformed_text_hash": "c8f1d0e6b46a8f9d0a8eb46cc0ac35abf6d7657043e92596bffe437a317ab30a",
+      "variant_hash": "585a4ec39c03123d065ea6662c37e93ebab3877807e4c0b440da8cd21765e210"
+    },
+    {
+      "pair_index": 83,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-34-watermarked",
+      "source_text_hash": "f260b4814fb7944dc7d68aa88290ce8a0f5669af4b07adf85ee0e0c27a2957e7",
+      "transformed_text_hash": "2d980c23ae252bc2b7003e70e4bc8d2542bce20adaa385bac509fd8ff914617a",
+      "variant_hash": "9cd1180c34ede01a4800993231ae7574369870fdf82c594e6b6c80c1ad61a73b"
+    },
+    {
+      "pair_index": 84,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-35-unwatermarked",
+      "source_text_hash": "66fc607dde40bc3279c1188a5f918afb7805d47ceff11ad49f02d4480c887da2",
+      "transformed_text_hash": "aa5f467276273194989745b298d195ab45ed4bea26b681dc1e96cea489182a45",
+      "variant_hash": "fb5f7b4cb5ca88b0800883856100957ff374bac34db0db257e58c0564df6db13"
+    },
+    {
+      "pair_index": 85,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-35-watermarked",
+      "source_text_hash": "6ce7960a22fffef0b10c622c7df3c4733d005e81047a4ca592adbd8d44dd79bc",
+      "transformed_text_hash": "8d3e8b257a1252c69a7470b49f1030004361445a3e4443e00945b03e1e248251",
+      "variant_hash": "6f608f138b59772821880aafaeb09036491f17e8892e62c1437171b08bbaddff"
+    },
+    {
+      "pair_index": 86,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-36-unwatermarked",
+      "source_text_hash": "b9fae73db16fdb07bd7d09c8cd7d1453fe6718a375749b7d6e13f9320511e8ac",
+      "transformed_text_hash": "88dda196e468dab97fecae1d7850418d9f764a41e5d4c0ad7f1a91ee600ac3da",
+      "variant_hash": "be549314a745443ea23a13a23cf7a02f5d17e7780d5015c24ac000744d377636"
+    },
+    {
+      "pair_index": 87,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-36-watermarked",
+      "source_text_hash": "6937c1fc3e5eabaf18ceceb43b016e09d2d25120448a96c4db6ccbd47b411ba5",
+      "transformed_text_hash": "6937c1fc3e5eabaf18ceceb43b016e09d2d25120448a96c4db6ccbd47b411ba5",
+      "variant_hash": "e9c4c6e5cee1eaa1ae1c345a701030e56c2e611ed5676713d0085990886e0b08"
+    },
+    {
+      "pair_index": 88,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-37-unwatermarked",
+      "source_text_hash": "d971912c4e81ad68c7660fc6a33227b9ebf2e04ccb877df22ca2470edac8c5c9",
+      "transformed_text_hash": "e7e1a9ba890702e3f482543ccd51244d2401618eca3ebc4c800c6e757ce69a29",
+      "variant_hash": "041b1e76b08a22151466f16457b0524c9574c251f4143b7cc763a0370e2d2218"
+    },
+    {
+      "pair_index": 89,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-37-watermarked",
+      "source_text_hash": "81e85ca4adb64ff68d692f9617155415217c1c14b87e0918b579d741ff16e691",
+      "transformed_text_hash": "80ad71d5e0b77b765e012cbc5df0ce91c8367a1b7bbc23000cf652c3786b16a4",
+      "variant_hash": "2853fc7a000ce089795b26d5953a9b041492154760b650b269cf13b2e4531efb"
+    },
+    {
+      "pair_index": 90,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-38-unwatermarked",
+      "source_text_hash": "af61bfaa7335bde2b4eb156421d8fa7263ba9b042f91f35b0d64d64084ec89fe",
+      "transformed_text_hash": "ddccf6482ec4a8d48b1870130a0429ccf2e3f7e51b729bc4cdabb2756e0fbc56",
+      "variant_hash": "a64666bb99a293af8649d8d2ea1e3eaec82951576156683e4eee13b49779552c"
+    },
+    {
+      "pair_index": 91,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-38-watermarked",
+      "source_text_hash": "d1cb44f88b79e088131054890b7b05cb53bbd7c92d4df6efea28f205ad03abc1",
+      "transformed_text_hash": "6bca44635dc944364c27708ad36be643c68407c8c0cabf787f85de74749d7614",
+      "variant_hash": "2d1519a50547889603a0552179be0ecfad676964c41b0ab1806451f53282132d"
+    },
+    {
+      "pair_index": 92,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-39-unwatermarked",
+      "source_text_hash": "34eef3b23ba205782c5828edc4c645d0276cde52e40a175894edd0f50223791e",
+      "transformed_text_hash": "b18ff457a5ef82be912e1d96fbb7d2393e44ef7d5b3a005195a6fef357462a9f",
+      "variant_hash": "258f0b091e09980b23ab864d80a6e2c801d02a7daff74c833443f835801bf133"
+    },
+    {
+      "pair_index": 93,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-39-watermarked",
+      "source_text_hash": "92be15a5321024b93ad2fb0cef2f5bbf29f9b485a6382e0341459bed04b40664",
+      "transformed_text_hash": "8a9c0b478abebd27403dd97a36b0bc54d9709b2cdac4f1a546e948258d61ac30",
+      "variant_hash": "d9c84e6c4a64cbdf44c4ebd826bf983937d10b246accf23f1ef025b531f36300"
+    },
+    {
+      "pair_index": 94,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-40-unwatermarked",
+      "source_text_hash": "7d769536562ef15be541999941cb806911f884f36da1b7b759eafceb82723b2d",
+      "transformed_text_hash": "513f65a1969b891e0cba62ddbaf3079332a2fc27653ce8955886da94ab594fe9",
+      "variant_hash": "cdfc4fa923862c2cb448a70bec44eb3fab2897983fba3c02f2dcfe1312a2feb3"
+    },
+    {
+      "pair_index": 95,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-structured_instructional-40-watermarked",
+      "source_text_hash": "44ae6a7ec136ae7e66e55bd2ba0721862ce70ad1862dcd773875ad601fbe9ffc",
+      "transformed_text_hash": "a86f84dec6c0149e7384aff7569e2eeefdbc40bff8c99fd8db4d3374189e20d7",
+      "variant_hash": "cf723d83e28180d60454c0e1f44b89405e19f06a6a95e126fb5312e3f3274d77"
+    },
+    {
+      "pair_index": 96,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-25-unwatermarked",
+      "source_text_hash": "f464fe5dd77e49d97663110b42028017254ddff2bf703aa830c70a491d1afe1d",
+      "transformed_text_hash": "c834109fabed0d78ee188336a2274eb9fb3f10fd3cde794468fbfacb390d7f5f",
+      "variant_hash": "7079195b32f233204c6c0cf0718bc8f64810b75e772fc3e34496dbba6c4991f3"
+    },
+    {
+      "pair_index": 97,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-25-watermarked",
+      "source_text_hash": "b92ab33eda4c23ad09d46982047a047ac7519db101054bccdd8692a66f873a80",
+      "transformed_text_hash": "ceab1fefb5abb2e8f13ff08a0182b172a4b0900fd304a3919aa6f14c8a6f2a27",
+      "variant_hash": "b21bf72e5e534a9e0a45483a717a3d6ce36b767d6f2403e5e7b24fc7858ef395"
+    },
+    {
+      "pair_index": 98,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-26-unwatermarked",
+      "source_text_hash": "638b518cb906138ae63dbb6f054db29361d4b453f09f3ed0cb94f54eaea2ea7b",
+      "transformed_text_hash": "936c59e657595a50caef360777a611f0a156eb60d39f9e83f8ae847f1fc92317",
+      "variant_hash": "9485089156ff14456c831902be3cabb24edafa8c69a173392fd5b7dea1423019"
+    },
+    {
+      "pair_index": 99,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-26-watermarked",
+      "source_text_hash": "bdc4461bce35c07a1927dbf598b5809e2d50071bde32b9ac8ae5c18e6b32519b",
+      "transformed_text_hash": "f6329d37338f0c3e49e54a834ec6411b69ea6069d588e51eefd6801ceceb924a",
+      "variant_hash": "71d51c7fa965207398e419319835981fe19b62ded1b9b2ae746c141fedc9cd20"
+    },
+    {
+      "pair_index": 100,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-27-unwatermarked",
+      "source_text_hash": "ef6b15b678fc3448315915f6296fd4e0d0e58d2413bf637015a11e23c2282354",
+      "transformed_text_hash": "bad14c2f83880468f4326f972cfc26818fed495a85c4cf591bdf890496c43704",
+      "variant_hash": "203e1e06eb9fc71351229bc5ad25948906704cdcff9acb405ff05ce082bce296"
+    },
+    {
+      "pair_index": 101,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-27-watermarked",
+      "source_text_hash": "a6ba58ebe6cd82e56ec0a2b20ef0cff8204f8401ef697b989b08132bf34314ce",
+      "transformed_text_hash": "3b899135d9c844e876de686a3acab79c10ce2be9e851219affd491a1e4e1ce16",
+      "variant_hash": "78e2fb373786cf778ed94664926b9e147273440ec31426551cf3602831975cd0"
+    },
+    {
+      "pair_index": 102,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-28-unwatermarked",
+      "source_text_hash": "c9e67b9c40119311fbb5b562ad9afb0bd43252edd286705b9241fafefff2389d",
+      "transformed_text_hash": "445f9ae528fca119e4e36944631999110fe1944f4ac92367d65b6f54937f33ec",
+      "variant_hash": "8ede6ccaa5eebe866e1add38abd37984406457a0f4cb28bb1b5e6645143d9178"
+    },
+    {
+      "pair_index": 103,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-28-watermarked",
+      "source_text_hash": "4001ba60d8426872b3e703ab1c6128133564b26f60de106f5680a0f90ca6059f",
+      "transformed_text_hash": "a394992f13eaf7b42e956e093df019fe448d244a7cc7e5a3aa55aec8af86428f",
+      "variant_hash": "101edf0542389a3632279541dd410e5ff11d87bcb4d1f40c00af9a72856499b0"
+    },
+    {
+      "pair_index": 104,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-29-unwatermarked",
+      "source_text_hash": "af70907cafd4785f441751a7bf4a7f28d120225e13183426715167a8124aacf1",
+      "transformed_text_hash": "2b658e6a925ae3d136eaf7548a1bcc85b4f1a0d5ca577480800d5afd64c301ad",
+      "variant_hash": "5aa0130cbc61d32d3705d675f8ad3a9d69c492bd69f3d692c567e9bb54ca5bf8"
+    },
+    {
+      "pair_index": 105,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-29-watermarked",
+      "source_text_hash": "c7f6fbd4a3a0ff9b172c2457c58d03ed10e7685cf05dbe2bdf9e875313b64fa9",
+      "transformed_text_hash": "60d3de4ab47e84a6da8f5facc55089dfd8c9fe52c6dca7c7e55195547e98a260",
+      "variant_hash": "76d9d13a1d571e24dac6e90b1afde35bac45c34424c41d742b67f26dedd13511"
+    },
+    {
+      "pair_index": 106,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-30-unwatermarked",
+      "source_text_hash": "094c4c617e17470fcaf797ccee0bcb48948d0d2ba0e76d7cfec918dc9faf3509",
+      "transformed_text_hash": "15ad814dca73485a43954fb79516fb79afc6619bae65f2551f7838a3ee1d3d94",
+      "variant_hash": "fc2369ac1c4a922d17c0ee1f85d57eee7644c182ceeefeb1630762f33422eb4a"
+    },
+    {
+      "pair_index": 107,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-30-watermarked",
+      "source_text_hash": "d65c37c8c61d01f8cf570d56c0caaae2edae2e88c3462332d6462b49e8003f9a",
+      "transformed_text_hash": "bed2060dba326f55e33077cb220fb16db0e29d6d3378fa232d42e9638dd1c117",
+      "variant_hash": "81e080adfcfb45dd69cfc9f32ca291ac72cdd2bfc26ef2a2fd686a6354b78427"
+    },
+    {
+      "pair_index": 108,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-31-unwatermarked",
+      "source_text_hash": "f87342601a1f3b7d8883725c6d07dcd9a482b46eda7839e464fb7842561bddf6",
+      "transformed_text_hash": "625296697efb81d18cf4f09117f19616e3287c94e0609e0cf2fb8d00f1230af4",
+      "variant_hash": "4728cf5cf89c08015dc022ff4d112f1831dc7887bba208780ae10bbe7d9209eb"
+    },
+    {
+      "pair_index": 109,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-31-watermarked",
+      "source_text_hash": "005d6e251ea9cebf868c324dfe2a2c2cf7f11825579aaab0451f8e7b98bbc98b",
+      "transformed_text_hash": "005d6e251ea9cebf868c324dfe2a2c2cf7f11825579aaab0451f8e7b98bbc98b",
+      "variant_hash": "7fc1e764877aedcd81a4fc2d8f9dd188447246baf7c269f05ad3776673f68fc5"
+    },
+    {
+      "pair_index": 110,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-32-unwatermarked",
+      "source_text_hash": "00c2abda02876c7d1571e18044b3a5a43221be9a127655b7741ed82911011585",
+      "transformed_text_hash": "da725dbfa5490d0f037b5f2e92e61d5e407c6951ebb00b99c766e8632cbe9fa0",
+      "variant_hash": "0e205bc0450566c7499f2ae50f6e0a62f7a57f9b1594f3c372527e02d9f0a248"
+    },
+    {
+      "pair_index": 111,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-32-watermarked",
+      "source_text_hash": "e53e90ee0a99b0064a3e47f2e08ba23cc187d92467309b8cd05df6f8965606bc",
+      "transformed_text_hash": "eb04e7f9f46744eeb14402f7c5533befdb02bc2c15bb09e5ec6351561c2c10f6",
+      "variant_hash": "5b6242917e8d9db7e14e095124cc02417edc633c1b437b9e68bf7476670021b3"
+    },
+    {
+      "pair_index": 112,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-33-unwatermarked",
+      "source_text_hash": "0e18166a22e16d906c5da852a06f3b5e3908fa7d5fc95701b854ff7502fe4b8e",
+      "transformed_text_hash": "ad0add174f7f566c0b5eeb7f661a1f0e771c620aa52a115c8c64babd0a396f8c",
+      "variant_hash": "1b94a7a18f204935787f784f4f318f9551c1c1fbecf709756c06a3c64b8d1773"
+    },
+    {
+      "pair_index": 113,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-33-watermarked",
+      "source_text_hash": "25a761f2aea706cfd8e5381b8786f42c422724304cf893209cb44ad6a35ffd8d",
+      "transformed_text_hash": "3d2d5457644383a9c6e990ed5791c2ffae915cbd2c827e66be08e3b043f36745",
+      "variant_hash": "08ab5edf49599d169e6f70a82bb3f2296560458c36442b642f115711bb4c1eb5"
+    },
+    {
+      "pair_index": 114,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-34-unwatermarked",
+      "source_text_hash": "d5da2b31912adb1247d8d5b71530808a672a2714234d3f17f876ca40353353d9",
+      "transformed_text_hash": "fb86dee23e7c44227d89c0bf112abc5f2b7aff2120a5b0a14878f890eef7fc7d",
+      "variant_hash": "07893994f7ce917655496e315eacb7c4cc48033dad62ef0683cba01d1eea3dbe"
+    },
+    {
+      "pair_index": 115,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-34-watermarked",
+      "source_text_hash": "1db050472cb804d5bcb93a9c2cba244ffbcc1e7a3ab61e189c063ccf44e897de",
+      "transformed_text_hash": "cac31cf2a605e3efe5bc38c0df6ef9f34aec4651d74827839d85f4b3da14a84b",
+      "variant_hash": "137e708f493af406fa334ff5451c3dd4a95b29a54ae55a33eb30354cca0d8e23"
+    },
+    {
+      "pair_index": 116,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-35-unwatermarked",
+      "source_text_hash": "ea88cf9308284c3682c879505e1bc1fbbae7f53e9f6c1ccfb3302bfc971f76e0",
+      "transformed_text_hash": "358ca37fd9c40ce020701ed2eedbb85c980abc9c0ea21308f61e3fea5484535a",
+      "variant_hash": "e937a3829e7ad5d84c2453629c271a0eec617eaf50758ac7be5e3d0cd224360e"
+    },
+    {
+      "pair_index": 117,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-35-watermarked",
+      "source_text_hash": "4ca94603c26cae02a9e23dace0a4daa5879337937f9724765f8d0585a7b83835",
+      "transformed_text_hash": "9dd21d3b346d4e5e3755d4c700df1b56acc1ffbd816cabb47a60050681c8d036",
+      "variant_hash": "ac0959e59b01f8c47d6cea45020f23c0e20c6a1bc0948a2a79ada8a9691eaa4c"
+    },
+    {
+      "pair_index": 118,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-36-unwatermarked",
+      "source_text_hash": "110953fbe47df723a63c6ffd3ef36e58932d09fb78dcdd731e5d3b65fffada11",
+      "transformed_text_hash": "e935bfdda819854aec69abc28d5481e45e5c9a83f042e487153b36a6fb13e918",
+      "variant_hash": "9d2215739c2050d7ac5475d3b656b5e24cedd1a8edf79ab763caedd639cc864c"
+    },
+    {
+      "pair_index": 119,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-36-watermarked",
+      "source_text_hash": "90c59b226b947891c69066d1f1fdbc69e33fc4d3fcd43592f6293d2cdbaf6339",
+      "transformed_text_hash": "383d545b2547abf1ffa6f77f8bb68a711a094b6b833e564f942f0dcb96cec01b",
+      "variant_hash": "b45660a5e42d53c994e726847f919e5782329d74b59ea1be137a2c96d90154bc"
+    },
+    {
+      "pair_index": 120,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-37-unwatermarked",
+      "source_text_hash": "36bc0fcae3d2b596a144dbc7fca15fb6ec75a4c8e48fa83c4aaa95b90969894b",
+      "transformed_text_hash": "5d24b1e22028ec3057edd9383a6e251b8b28eb8a7e119d5bc2e87062ea6d3524",
+      "variant_hash": "c618d24cd56aa86c227fc09fa7eeca12a6728f24f854628efe2ba619386d9595"
+    },
+    {
+      "pair_index": 121,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-37-watermarked",
+      "source_text_hash": "a52f86968e94b15c8bbce9cd1b7a4cc5b8f1c6035b8a6e69fbb73c6dec2928cc",
+      "transformed_text_hash": "e81fbf6b76b77c30d5bcbd05f44f23318653ae876229815bd4441fe6f2356ee6",
+      "variant_hash": "6e40c9325747fab7f7e22a6e83331e33d7c11cda1805b37501dca63aae89ae3d"
+    },
+    {
+      "pair_index": 122,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-38-unwatermarked",
+      "source_text_hash": "7619dacb1f52101c1572eed45418ef28b31d5ec9f69335429e0d76424a7940cb",
+      "transformed_text_hash": "57701bb6849780319f4cd928ba4be15e06351c23c6e00c147e51a27bc34053ad",
+      "variant_hash": "0d5e7b500afc636ef61a6a123fc40ee38231190f5d71767af5e2c41974968005"
+    },
+    {
+      "pair_index": 123,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-38-watermarked",
+      "source_text_hash": "f0c3446335e6e0a8a18b61dcc1e5f23536f67bffb8366188babe08b6570f004a",
+      "transformed_text_hash": "a939179ae219bb3ecb63658742509b035001eb609f9b479a9db0e33c146e0c72",
+      "variant_hash": "7265f38fc927641972f017d475e41a2e05d85d627a447913cf037a4d69fbae4d"
+    },
+    {
+      "pair_index": 124,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-39-unwatermarked",
+      "source_text_hash": "0cef400b372e42544f6460d2f9c654d60d2fc21787032c936c1b63e514871817",
+      "transformed_text_hash": "cedd91591392eded86d4899846a6fb0f119504c2c3cecc47dc3a9bff19f24f84",
+      "variant_hash": "b391c6b95a6104f1b7db930e8215dbb62b6cc3cfc9cbe045d4ac5ef8e11c9329"
+    },
+    {
+      "pair_index": 125,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-39-watermarked",
+      "source_text_hash": "2ea43120ab9a29e13e6a28b2d4d425a4b4004487c8736d14e612f9844d8d30b4",
+      "transformed_text_hash": "d1e744f85b98b70c2b61b7b1b877f05926989fc06c083d6907093fc006917b71",
+      "variant_hash": "84d3b8bfc6abb22b000c4d0aea31a5c300662c5913103b8d4e6cee2024856831"
+    },
+    {
+      "pair_index": 126,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-40-unwatermarked",
+      "source_text_hash": "8bf20401901d858b677f85fe7cda63ae176833821aaf2293f7af849019104058",
+      "transformed_text_hash": "d3e26a7c91922b0cc0f78e88551d2bf65026e39d72bbd4bf1527f9f61343f5ba",
+      "variant_hash": "ef0a18812a4c9e7c8df488057ca29dc175282acffe75c66c8e88d6feb902f91c"
+    },
+    {
+      "pair_index": 127,
+      "requested_budget": 16,
+      "source_sample_id": "tiny-dev-attack_development-technical_explanation-40-watermarked",
+      "source_text_hash": "b3d351fbb6710b347298cfe6848d1aa16861865e4577a6f05de46e92c825515d",
+      "transformed_text_hash": "1bf4b9649fc65c6b4a558d408b02486ef7fd2a7a70428321028cb22f538ad4ff",
+      "variant_hash": "671bf1aab76e4d27b4069f2d19c9dc425c13b022eb311d84398ac2bea0181da7"
+    }
+  ],
+  "plan_hash": "0cce41214c3e55ee88cb1ca665d0ebf6c6376bea0d0113a3f4ea481049a5199d"
+}

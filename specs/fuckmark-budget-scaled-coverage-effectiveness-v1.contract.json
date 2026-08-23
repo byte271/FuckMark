@@ -1,0 +1,114 @@
+{
+  "protocol_id": "budget-scaled-coverage-effectiveness-v1",
+  "algorithm_version": "budget-scaled-coverage-effectiveness-contract-v1",
+  "recorded_date": "2026-08-22",
+  "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
+  "claim_boundary": {
+    "status": "EXPLORATORY_FIXED_OPEN_DETECTOR_ONLY",
+    "watermark_removal_claim": false,
+    "undetectability_claim": false,
+    "unknown_key_claim": false,
+    "proprietary_detector_claim": false,
+    "cleaning_durability_claim": false,
+    "release_authorized": false,
+    "level_b_product_admissible": false,
+    "level_b_failure_reason": "candidate intentionally edits visible text (spacing and contractions)"
+  },
+  "candidate_profile": {
+    "profile_id": "key-blind-full-pool-coverage-v1",
+    "ruleset": "development forward contractions + surface + lexical + syntax (B16 line ruleset)",
+    "schedule_policy": "COVERAGE_GREEDY_KEY_BLIND",
+    "geometry_mode": "TOKENIZER_AWARE_PUBLIC",
+    "ngram_len": 5,
+    "replicate_count": 1,
+    "budget_selection": "frozen rule in protocol section 7",
+    "development_sweep_budgets": [16, 24, 32, 48],
+    "selection_access": {
+      "detector_scores": false,
+      "detector_decisions": false,
+      "watermark_secret_keys": false,
+      "confirmation_results": false,
+      "public_tokenizer_geometry": true,
+      "public_detector_ngram_len": true
+    }
+  },
+  "corpora": {
+    "model_id": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "generation": {
+      "device": "cpu",
+      "temperature": 0.8,
+      "top_k": 50,
+      "top_p": 0.95,
+      "target_length": 64,
+      "max_attempts": 16
+    },
+    "watermark_keys_public_dev": [654, 400, 836, 123, 340, 443, 597, 160, 57],
+    "development": [
+      {"seed_base": 401000, "profile": "tiny-dev-v2-canonical", "attack_pairs_per_domain": 1},
+      {"seed_base": 410000, "profile": "tiny-dev-v3-parameterized", "attack_pairs_per_domain": 8}
+    ],
+    "confirmation": {
+      "seed_base": 420000,
+      "profile": "tiny-dev-v3-parameterized",
+      "attack_pairs_per_domain": 16,
+      "watermarked_attack_sources": 64,
+      "unwatermarked_attack_controls": 64,
+      "calibration_pairs_per_domain": 25
+    },
+    "disjointness": "pairwise-distinct text sha256 across corpora; confirmation disjoint from all development texts; asserted at scoring time"
+  },
+  "detector": {
+    "family": "Hugging Face SynthID Weighted Mean",
+    "ngram_len": 5,
+    "input_path": "uncleaned text-only re-tokenized track",
+    "calibration": "100 unwatermarked calibration negatives of the same corpus",
+    "target_fpr": 0.01,
+    "comparison_operator": ">=",
+    "threshold_scope": "recomputed per corpus from its own calibration split"
+  },
+  "fidelity_gates": {
+    "hard_invariants": "PASS required for every row",
+    "protected_span_violations": 0,
+    "word_edit_rate_max": 0.3,
+    "introduced_codepoints_must_be_ascii": true,
+    "introduced_forbidden_codepoint_categories": ["Cc", "Cf", "Mn", "Mc", "Me", "Zl", "Zp"],
+    "introduced_allowed_space": "U+0020 only",
+    "preexisting_source_codepoints": "reported, not gated",
+    "normalization_noop": ["NFC", "NFD", "NFKC", "NFKD"],
+    "cf_stripping_noop": true
+  },
+  "controls": [
+    "pristine_watermarked",
+    "transformed_watermarked",
+    "pristine_unwatermarked",
+    "transformed_unwatermarked"
+  ],
+  "budget_selection_rule": {
+    "eligibility": "development transformed-watermarked detected count == 0 AND all fidelity gates pass on all development rows",
+    "selection": "smallest eligible budget from [16, 24, 32, 48]",
+    "fallback": "smallest development transformed-watermarked detected count, ties toward smaller budget",
+    "freeze": "selected budget recorded in freeze-record appendix before any confirmation scoring"
+  },
+  "primary_endpoint": {
+    "target": "confirmation transformed watermarked detected count == 0 out of 64",
+    "interpretation_if_met": "narrow exploratory detector-specific target met for this detector, keys, and input path only"
+  },
+  "secondary_endpoints": {
+    "pristine_watermarked_detected_min": 60,
+    "transformed_unwatermarked_detected_max": 0,
+    "gate_pass_fraction_required": 1.0
+  },
+  "artifacts": [
+    "specs/fuckmark-budget-scaled-coverage-effectiveness-v1.freeze.json",
+    "artifacts/budget-scaled/dev-corpus-410000.json",
+    "artifacts/budget-scaled/dev-plan-{budget}.json",
+    "artifacts/budget-scaled/dev-evidence-{budget}.json",
+    "artifacts/budget-scaled/confirmation-corpus-420000.json",
+    "artifacts/budget-scaled/confirmation-plan.json",
+    "artifacts/budget-scaled/confirmation-evidence.json",
+    "artifacts/budget-scaled/robustness-report.json",
+    "artifacts/budget-scaled/rendering-manifest.json",
+    "artifacts/budget-scaled/final-report.md"
+  ]
+}

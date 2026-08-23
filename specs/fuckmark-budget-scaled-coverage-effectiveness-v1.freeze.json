@@ -1,0 +1,99 @@
+{
+  "appendix_confirmation_budget": {
+    "development_gate_pass_fraction": 1.0,
+    "evidence_hashes": {
+      "dev_evidence_401000": "3ab52d1adf9ffaa934ad088dd5b425042e3b5ad440b24eacf16f60574adf59c2",
+      "dev_evidence_410000": "2d9776f05ccea7e113449dde08394a498b630e61e14f354487b979b5395e8511",
+      "dev_robustness_pooled": "eacd39a761997d4f66eb214dac3a86a17df9776a189854714dfcb41d9083005a"
+    },
+    "pooled_development_watermarked_sources": 36,
+    "recorded_at_utc": "2026-08-23T00:30:07.496640+00:00",
+    "rule_input": {
+      "16": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      },
+      "24": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      },
+      "32": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      },
+      "48": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      }
+    },
+    "rule_path": "fallback rule (no eligible budget)",
+    "selected_confirmation_budget": 16
+  },
+  "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
+  "contract_sha256": "c878ff9fdbf4c412361f6058a72af1fa8c925e78997c89825d255c8d437f598f",
+  "freeze_record_version": "budget-scaled-coverage-freeze-v1",
+  "frozen_at_utc": "2026-08-23T00:05:32.588787+00:00",
+  "pre_score_amendments": [
+    {
+      "amendment_id": "pre-score-amendment-1",
+      "change": {
+        "confirmation_corpus_seed_base": {
+          "from": 403000,
+          "to": 420000
+        },
+        "development_second_corpus_seed_base": {
+          "from": 402000,
+          "to": 410000
+        }
+      },
+      "justification": "pair seed stride is 32; corpora at 402000/403000 would have overlapping seed ranges (dev spans ~4200 seeds, confirmation ~5250), and shared calibration prompt texts at equal seeds could reproduce identical texts across corpora; bases 410000 and 420000 are disjoint from each other and from the canonical 401000 corpus (which ends near 404300)",
+      "reason": "seed-range overlap arithmetic hazard found during implementation, before any scoring",
+      "recorded_at_utc": "2026-08-23T00:12:24.926060+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-2",
+      "change": {
+        "development_canonical_corpus": {
+          "from": "CI-pinned ee0952 artifact",
+          "to": "locally generated seed-401000 corpus artifact 42240f72 as development data only"
+        }
+      },
+      "finding": "generating the canonical seed-401000 corpus with the pinned model revision, pinned torch 2.13.0+cpu, and the pinned transformers git commit produced artifact_hash 42240f72e17df1a048f44197f216a0b5f30128c26e2da93afbe92820946e4561 and file sha256 57b580c8839ea85a650993e302443fec4e16f76ea4d1ff7156fcb5468017f7ce instead of the CI pin ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+      "interpretation": "generation is platform-sensitive (CPU float nondeterminism across operating systems); detector scoring arithmetic over fixed token sequences is platform-stable; thresholds are computed per corpus from that same corpus calibration split, so all within-cycle comparisons remain internally consistent",
+      "reason": "canonical corpus pin is not byte-reproducible on the local Windows CPU runtime",
+      "recorded_at_utc": "2026-08-23T00:14:34.573438+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-3",
+      "change": {
+        "word_edit_rate_max": {
+          "from": 0.15,
+          "to": 0.3
+        }
+      },
+      "finding": "a contraction rewrite such as \"are not\" to \"aren't\" costs two word-level edit operations (substitute plus delete), so even a semantically faithful, rules-only transformation of a short source reaches a word edit rate near 0.27; the original 0.15 gate would fail rows for reasons unrelated to the research question",
+      "reason": "word edit rate gate was set below the mechanical floor of the ruleset before any scoring",
+      "recorded_at_utc": "2026-08-23T00:16:07.299567+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-4",
+      "change": "gates now bind to characters INTRODUCED by the transformation (present in transformed, absent from source alphabet): introduced characters must be ASCII and must include no Cc, Cf, Mn, Mc, Me, Zl, Zp, or non-space Zs codepoint; pre-existing source codepoints are reported without gating",
+      "finding": "the audit gated on absolute presence of category Cc characters in transformed text, which flags ordinary newlines (U+000A) that the GPT-2 source generation already contains; 28 of 32 development rows failed a gate that measures the corpus, not the candidate",
+      "reason": "codepoint audit scope error found on development robustness evidence before confirmation scoring",
+      "recorded_at_utc": "2026-08-23T00:24:31.440654+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-5",
+      "change": "normalization gates now bind to introduced instability only: for each normalization form, source stability implies transformed stability; pre-existing source instability is reported without gating",
+      "finding": "2 of 128 confirmation robustness rows failed NFD/NFKD no-op checks because the GPT-2 source text itself contains precomposed accented characters that decompose under NFD; the candidate introduced only ASCII characters and cannot have caused the instability",
+      "reason": "normalization gate inherited the same absolute-text scope error corrected for codepoints in amendment 4",
+      "recorded_at_utc": "2026-08-23T00:49:12.978531+00:00"
+    }
+  ],
+  "protocol_id": "budget-scaled-coverage-effectiveness-v1",
+  "protocol_sha256": "4fa68c7519a2064c2bf131393598c5b181b92f2ae5fd62f9fd1959b7ebea0367"
+}

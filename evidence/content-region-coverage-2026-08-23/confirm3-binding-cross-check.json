@@ -1,0 +1,69 @@
+{
+  "460000-A": {
+    "blind": true,
+    "commit": true,
+    "corus": true,
+    "evidence": true,
+    "fixed_threshold": true,
+    "plan": true,
+    "rows": "128/128"
+  },
+  "460000-B": {
+    "blind": true,
+    "commit": true,
+    "corus": true,
+    "evidence": true,
+    "fixed_threshold": true,
+    "plan": true,
+    "rows": "128/128"
+  },
+  "460000-render": true,
+  "460000-robustness": true,
+  "470000-A": {
+    "blind": true,
+    "commit": true,
+    "corus": true,
+    "evidence": true,
+    "fixed_threshold": true,
+    "plan": true,
+    "rows": "128/128"
+  },
+  "470000-B": {
+    "blind": true,
+    "commit": true,
+    "corus": true,
+    "evidence": true,
+    "fixed_threshold": true,
+    "plan": true,
+    "rows": "128/128"
+  },
+  "470000-render": true,
+  "470000-robustness": true,
+  "480000-A": {
+    "blind": true,
+    "commit": true,
+    "corus": true,
+    "evidence": true,
+    "fixed_threshold": true,
+    "plan": true,
+    "rows": "128/128"
+  },
+  "480000-B": {
+    "blind": true,
+    "commit": true,
+    "corus": true,
+    "evidence": true,
+    "fixed_threshold": true,
+    "plan": true,
+    "rows": "128/128"
+  },
+  "480000-render": true,
+  "480000-robustness": true,
+  "calibration_replay": "7a12862c14ab16febc538c152b2c4d51ecda4b2648f9f8b3ec353ef42dc8ea93",
+  "threshold_audit": [
+    0,
+    256
+  ],
+  "threshold_replay": true,
+  "threshold_value": 0.5570987654320988
+}

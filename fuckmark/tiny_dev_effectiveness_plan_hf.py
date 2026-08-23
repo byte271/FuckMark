@@ -6,7 +6,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .corpus import load_tiny_dev_corpus_json
+from .corpus import load_tiny_dev_corpus_by_version_json
 from .durable_io import write_canonical_json_fsynced
 from .experiments.effectiveness_plan import (
     build_key_blind_high_coverage_plan,
@@ -17,7 +17,15 @@ from .tiny_dev_context_survival_plan_hf import (
     DEFAULT_MODEL_REVISION,
     runtime_tokenizer_identity_public,
 )
-from .transforms import KEY_BLIND_HIGH_COVERAGE_PROFILE
+from .transforms import (
+    KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
+    KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
+    KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
+    CONTENT_REGION_COMBINED_PROFILE_ID,
+    CONTENT_REGION_COVERAGE_PROFILE_ID,
+    CONTENT_REGION_GENERAL_ONLY_PROFILE_ID,
+    resolve_effectiveness_profile,
+)
 
 
 EFFECTIVENESS_PLAN_PROVENANCE_VERSION = "effectiveness-plan-provenance-v1"
@@ -53,12 +61,43 @@ def _provenance(
     return {**payload, "provenance_hash": sha256_json(payload)}
 
 
+def _parse_budgets(raw: str) -> tuple[int, ...]:
+    if not raw:
+        return ()
+    values: list[int] = []
+    for chunk in raw.split(","):
+        stripped = chunk.strip()
+        if not stripped:
+            raise ValueError("budget list contains an empty entry")
+        value = int(stripped)
+        if value <= 0:
+            raise ValueError("budgets must be positive integers")
+        values.append(value)
+    budgets = tuple(sorted(set(values)))
+    if budgets != tuple(values):
+        raise ValueError("budgets must be provided in ascending order without duplicates")
+    return budgets
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fuckmark-tiny-dev-effectiveness-plan-hf")
     parser.add_argument("--corpus-json", type=Path, required=True)
     parser.add_argument("--model", default=DEFAULT_MODEL_ID)
     parser.add_argument("--model-revision", default=DEFAULT_MODEL_REVISION)
     parser.add_argument("--source-code-commit", required=True)
+    parser.add_argument(
+        "--profile-id",
+        default=KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
+        choices=(
+            KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
+            KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
+            KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
+            CONTENT_REGION_COVERAGE_PROFILE_ID,
+            CONTENT_REGION_GENERAL_ONLY_PROFILE_ID,
+            CONTENT_REGION_COMBINED_PROFILE_ID,
+        ),
+    )
+    parser.add_argument("--budgets", default="")
     parser.add_argument(
         "--plan-json",
         type=Path,
@@ -79,7 +118,8 @@ def main(argv: list[str] | None = None) -> int:
     except ImportError as error:
         raise RuntimeError("Install the pinned TinyDev Transformers dependencies first") from error
 
-    corpus = load_tiny_dev_corpus_json(args.corpus_json)
+    profile = resolve_effectiveness_profile(args.profile_id, _parse_budgets(args.budgets))
+    corpus = load_tiny_dev_corpus_by_version_json(args.corpus_json)
     tokenizer = AutoTokenizer.from_pretrained(
         args.model,
         revision=args.model_revision,
@@ -96,7 +136,7 @@ def main(argv: list[str] | None = None) -> int:
     plan = build_key_blind_high_coverage_plan(
         corpus,
         tokenizer,
-        profile=KEY_BLIND_HIGH_COVERAGE_PROFILE,
+        profile=profile,
         source_code_commit=args.source_code_commit,
     )
     write_canonical_json_fsynced(args.plan_json, plan)
@@ -104,14 +144,14 @@ def main(argv: list[str] | None = None) -> int:
     provenance = _provenance(
         source_code_commit=args.source_code_commit,
         plan_hash=plan["plan_hash"],
-        profile_hash=KEY_BLIND_HIGH_COVERAGE_PROFILE.profile_hash,
+        profile_hash=profile.profile_hash,
         plan_started_at=started_at,
         plan_fsynced_at=fsynced_at,
     )
     write_canonical_json_fsynced(args.provenance_json, provenance)
 
-    sys.stdout.write(f"profile_id={KEY_BLIND_HIGH_COVERAGE_PROFILE.profile_id}\n")
-    sys.stdout.write(f"profile_hash={KEY_BLIND_HIGH_COVERAGE_PROFILE.profile_hash}\n")
+    sys.stdout.write(f"profile_id={profile.profile_id}\n")
+    sys.stdout.write(f"profile_hash={profile.profile_hash}\n")
     sys.stdout.write(f"plan_hash={plan['plan_hash']}\n")
     sys.stdout.write(f"variant_count={len(plan['variants'])}\n")
     sys.stdout.write(f"plan_json={args.plan_json.as_posix()}\n")

@@ -1,0 +1,14 @@
+{
+  "corpus_artifact_hash_replay": "ccc9d5d6ffe5168f8059f7b2ab5f418050ed11b487e34e68ebf1634284a96760",
+  "evidence_binds_plan": true,
+  "evidence_hash_replay": true,
+  "evidence_profile": "key-blind-coverage-completion-v2",
+  "evidence_row_hash_replays": "128/128",
+  "plan_binds_corpus": true,
+  "plan_detector_access_false": true,
+  "plan_hash_replay": true,
+  "render_manifest_binds_plan": true,
+  "render_manifest_pair_count": 128,
+  "robustness_binds_plan": true,
+  "robustness_hash_replay": true
+}

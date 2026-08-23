@@ -14,9 +14,17 @@ from ..transforms import (
     ScheduleGeometryMode,
     SchedulePolicy,
     build_candidate_tokenizer_geometry,
+    content_region_combined_transform_registry,
+    content_region_coverage_transform_registry,
+    content_region_general_only_transform_registry,
+    key_blind_coverage_completion_transform_registry,
     key_blind_high_coverage_transform_registry,
     validate_effectiveness_profile_registry,
     validate_hard_invariants,
+    CONTENT_REGION_COMBINED_PROFILE_ID,
+    CONTENT_REGION_COVERAGE_PROFILE_ID,
+    CONTENT_REGION_GENERAL_ONLY_PROFILE_ID,
+    KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
 )
 
 
@@ -151,6 +159,18 @@ def _schedule_seed(
     return seed
 
 
+def _registry_for_profile(profile: EffectivenessTransformProfile):
+    if profile.profile_id == KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID:
+        return key_blind_coverage_completion_transform_registry()
+    if profile.profile_id == CONTENT_REGION_COVERAGE_PROFILE_ID:
+        return content_region_coverage_transform_registry()
+    if profile.profile_id == CONTENT_REGION_GENERAL_ONLY_PROFILE_ID:
+        return content_region_general_only_transform_registry()
+    if profile.profile_id == CONTENT_REGION_COMBINED_PROFILE_ID:
+        return content_region_combined_transform_registry()
+    return key_blind_high_coverage_transform_registry()
+
+
 def build_key_blind_high_coverage_plan(
     corpus: Any,
     tokenizer: Any,
@@ -159,7 +179,7 @@ def build_key_blind_high_coverage_plan(
     source_code_commit: str,
 ) -> dict[str, object]:
     _require_git_object_id("source_code_commit", source_code_commit)
-    registry = key_blind_high_coverage_transform_registry()
+    registry = _registry_for_profile(profile)
     validate_effectiveness_profile_registry(profile, registry)
     policy = SchedulePolicy(profile.schedule_policy_id)
     if policy is not SchedulePolicy.COVERAGE_GREEDY_KEY_BLIND:

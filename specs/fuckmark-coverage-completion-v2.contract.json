@@ -1,0 +1,136 @@
+{
+  "algorithm_version": "coverage-completion-contract-v2",
+  "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
+  "candidate_profile": {
+    "budget": 16,
+    "budget_justification": "cycle-1 coverage saturation below 16 on every source; no sweep needed",
+    "geometry_mode": "TOKENIZER_AWARE_PUBLIC",
+    "ngram_len": 5,
+    "profile_id": "key-blind-coverage-completion-v2",
+    "replicate_count": 1,
+    "ruleset": "cycle-1 development ruleset plus 65 frozen extension surface words",
+    "schedule_policy": "COVERAGE_GREEDY_KEY_BLIND",
+    "schedule_seed_base": 1140000
+  },
+  "claim_boundary": {
+    "level_b_product_admissible": false,
+    "release_authorized": false,
+    "status": "EXPLORATORY_FIXED_OPEN_DETECTOR_ONLY",
+    "undetectability_claim": false,
+    "watermark_removal_claim": false
+  },
+  "corpora": {
+    "confirmation": {
+      "attack_pairs_per_domain": 16,
+      "profile": "tiny-dev-v3",
+      "seed_base": 440000
+    },
+    "development": [
+      {
+        "attack_pairs_per_domain": 8,
+        "profile": "tiny-dev-v3",
+        "seed_base": 430000
+      },
+      {
+        "attack_pairs_per_domain": 8,
+        "note": "repeat use from cycle 1, labeled",
+        "profile": "tiny-dev-v3",
+        "seed_base": 410000
+      }
+    ],
+    "forbidden": "cycle-1 confirmation corpus at seed base 420000 may not be scored in cycle 2"
+  },
+  "cycle1_reference": {
+    "confirmation_residual_detected": 11,
+    "confirmation_watermarked_sources": 64,
+    "mean_achievable_coverage_all": 0.8187,
+    "mean_achievable_coverage_detected": 0.6818,
+    "mean_achievable_coverage_escaped": 0.8469
+  },
+  "detector": {
+    "comparison_operator": ">=",
+    "family": "Hugging Face SynthID Weighted Mean",
+    "keys": "public development keys",
+    "ngram_len": 5,
+    "target_fpr": 0.01
+  },
+  "endpoints": {
+    "controls": {
+      "gate_pass_fraction_required": 1.0,
+      "pristine_watermarked_detected_min": 60,
+      "transformed_unwatermarked_detected_max": 0
+    },
+    "improvement": "detected count < 11",
+    "mechanistic": "mean achievable coverage >= 0.80 on confirmation watermarked sources",
+    "primary": "confirmation transformed watermarked detected == 0/64"
+  },
+  "extension_words": [
+    "an",
+    "he",
+    "she",
+    "his",
+    "her",
+    "its",
+    "our",
+    "their",
+    "them",
+    "him",
+    "us",
+    "me",
+    "my",
+    "your",
+    "if",
+    "when",
+    "where",
+    "which",
+    "who",
+    "what",
+    "how",
+    "why",
+    "because",
+    "so",
+    "than",
+    "then",
+    "there",
+    "here",
+    "all",
+    "any",
+    "each",
+    "more",
+    "most",
+    "some",
+    "such",
+    "only",
+    "very",
+    "just",
+    "also",
+    "into",
+    "about",
+    "over",
+    "under",
+    "after",
+    "before",
+    "between",
+    "during",
+    "through",
+    "without",
+    "while",
+    "do",
+    "does",
+    "been",
+    "being",
+    "would",
+    "could",
+    "should",
+    "may",
+    "might",
+    "must",
+    "were",
+    "one",
+    "even",
+    "still",
+    "often"
+  ],
+  "protocol_id": "coverage-completion-v2",
+  "recorded_date": "2026-08-23"
+}
