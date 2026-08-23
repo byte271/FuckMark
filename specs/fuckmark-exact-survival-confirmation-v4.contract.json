@@ -1,0 +1,87 @@
+{
+  "algorithm_version": "exact-survival-confirmation-contract-v4",
+  "recorded_date": "2026-08-23",
+  "research_pr": 82,
+  "candidate": {
+    "profile_id": "content-region-coverage-v1",
+    "profile_hash": "5f4d417a13c2d222c68f70767aef8ed11d7a71c8a5ab9f9c0c21eb278977063c",
+    "ruleset_hash": "82011e6dd7048a97e07918d32f7f8670e7723c66eb1b5b0ac859adb4e9cde8ca",
+    "budget": 16,
+    "budget_unit": "operation",
+    "scheduler_algorithm_version": "exact-survival-greedy-key-blind-v1",
+    "scheduler_policy_id": "all-eligible-root-observation-survival-v1",
+    "scheduler_source_commit": "fa823ba724fd24ec8c595151f2cff383a3147615",
+    "scheduler_source_blob_sha": "5f2443663d05ac9cb7d0268a747c7616d7c9153c",
+    "promotion_artifact_hash": "fb808c4a14b801fff20a6856801a92c3aee1fa71a796a93c9b913ad3d9a1db08",
+    "promotion_result": {
+      "baseline_exact_destroyed": 411,
+      "exact_greedy_destroyed": 437,
+      "gain": 26,
+      "improved_sources": 7,
+      "equal_sources": 1,
+      "regressed_sources": 0,
+      "baseline_selected": 121,
+      "exact_selected": 128
+    }
+  },
+  "baseline": {
+    "profile_id": "content-region-coverage-v1",
+    "budget": 16,
+    "schedule_policy": "COVERAGE_GREEDY_KEY_BLIND"
+  },
+  "measurement": {
+    "identity": "open-detector-measurement-stability-v1",
+    "model": "openai-community/gpt2",
+    "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "transformers_source_commit": "a61d5f9e4fc184cff66938ff6c521cc358b5e024",
+    "torch": "2.13.0+cpu",
+    "target_fpr": 0.01,
+    "comparison": ">=",
+    "threshold": 0.5570987654320988,
+    "prior_fixed_threshold_file_sha256": "0b1b9e6ead71caf567e1b21bb3996098298aa207ae86db15c07584faaae09f37",
+    "prior_threshold_replay": true,
+    "prior_audit_exceedances": 0,
+    "prior_audit_count": 256,
+    "threshold_must_not_be_recalibrated": true
+  },
+  "confirmation": {
+    "corpus_profile": "v3",
+    "attack_pairs_per_domain": 16,
+    "seed_bases": [530000, 540000, 550000],
+    "expected_attack_rows_per_label_per_corpus": 64,
+    "freeze_before_score": true,
+    "cross_corpus_attack_text_hashes_must_be_disjoint": true,
+    "paired_arms": ["A_cycle3_proxy_scheduler", "B_exact_survival_greedy_v1"]
+  },
+  "outcome_policy": {
+    "priority_1": "INVALID_CONTROL if any corpus has fewer than 60/64 pristine watermarked detections",
+    "priority_2": "REGRESSION if pooled exact transformed-watermarked detections exceed pooled baseline",
+    "priority_3": "NEUTRAL if pooled exact transformed-watermarked detections equal pooled baseline",
+    "priority_4": "CONFIRMATORY_IMPROVEMENT if pooled exact detections are lower, exact is non-worse on every corpus, and pooled transformed-unwatermarked detections do not exceed baseline",
+    "otherwise": "PARTIAL_IMPROVEMENT"
+  },
+  "seed_ledger": {
+    "previously_consumed": [
+      "401000-404296",
+      "410000-414192",
+      "420000-425216",
+      "430000-434192",
+      "440000-445216",
+      "450000-455216",
+      "460000-465216",
+      "470000-475216",
+      "480000-485216",
+      "500000-520480"
+    ],
+    "cycle4_confirmation": ["530000-535216", "540000-545216", "550000-555216"]
+  },
+  "claim_boundary": {
+    "status": "FRESH_PAIRED_FIXED_OPEN_DETECTOR_CONFIRMATION_ONLY",
+    "release_authorized": false,
+    "watermark_removal_claim": false,
+    "undetectability_claim": false,
+    "unknown_key_transfer_claim": false,
+    "proprietary_detector_transfer_claim": false,
+    "blind_human_fidelity_evidence": "NOT_PROVIDED"
+  }
+}
