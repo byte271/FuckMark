@@ -31,6 +31,7 @@ from .transforms import (
     resolve_effectiveness_profile,
     validate_effectiveness_profile_registry,
 )
+from .transforms.effectiveness_profile import CONTENT_REGION_GENERAL_SPACING_RULE_ID
 
 
 def _load_json(path: Path) -> dict[str, object]:
@@ -65,6 +66,33 @@ def _registry_for_profile(profile_id: str):
     if profile_id == CONTENT_REGION_COMBINED_PROFILE_ID:
         return content_region_combined_transform_registry()
     raise ValueError("unknown effectiveness profile id")
+
+
+def _general_spacing_hidden_counts(artifact: Mapping[str, object]) -> tuple[int, int, int]:
+    rows = artifact.get("rows")
+    if not isinstance(rows, (list, tuple)):
+        raise TypeError("audit rows must be a sequence")
+    hidden_count = 0
+    actionable_count = 0
+    row_count = 0
+    for raw_row in rows:
+        if not isinstance(raw_row, Mapping):
+            raise TypeError("audit row must be a mapping")
+        hidden_rows = raw_row.get("hidden_exact_gain_rows")
+        if not isinstance(hidden_rows, (list, tuple)):
+            raise TypeError("hidden exact gain rows must be a sequence")
+        matches = tuple(
+            value
+            for value in hidden_rows
+            if isinstance(value, Mapping)
+            and value.get("rule_id") == CONTENT_REGION_GENERAL_SPACING_RULE_ID
+        )
+        if matches:
+            row_count += 1
+            hidden_count += len(matches)
+            if raw_row.get("proxy_saturated_before_budget") is True:
+                actionable_count += len(matches)
+    return row_count, hidden_count, actionable_count
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -121,6 +149,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     write_canonical_json_fsynced(args.json, artifact)
     summary = artifact["summary"]
+    general_rows, general_hidden, general_actionable = _general_spacing_hidden_counts(artifact)
     sys.stdout.write(f"profile_id={profile.profile_id}\n")
     sys.stdout.write(f"plan_hash={plan['plan_hash']}\n")
     sys.stdout.write(f"artifact_hash={artifact['artifact_hash']}\n")
@@ -130,9 +159,21 @@ def main(argv: list[str] | None = None) -> int:
         f"exact_minus_proxy={summary['exact_minus_proxy_count']}\n"
     )
     sys.stdout.write(
+        f"proxy_overstatement_rows={summary['proxy_overstatement_row_count']} "
+        f"proxy_understatement_rows={summary['proxy_understatement_row_count']} "
+        f"proxy_saturation_rows={summary['proxy_saturation_row_count']}\n"
+    )
+    sys.stdout.write(
         f"hidden_exact_gain_rows={summary['hidden_exact_gain_row_count']} "
         f"hidden_exact_gain_candidates={summary['hidden_exact_gain_candidate_count']} "
+        f"actionable_hidden_exact_gain_rows={summary['actionable_hidden_exact_gain_row_count']} "
+        f"actionable_hidden_exact_gain_candidates={summary['actionable_hidden_exact_gain_candidate_count']} "
         f"maximum_hidden_exact_gain={summary['maximum_hidden_exact_gain']}\n"
+    )
+    sys.stdout.write(
+        f"general_spacing_hidden_rows={general_rows} "
+        f"general_spacing_hidden_candidates={general_hidden} "
+        f"general_spacing_actionable_hidden_candidates={general_actionable}\n"
     )
     sys.stdout.write(f"json={args.json.as_posix()}\n")
     return 0
