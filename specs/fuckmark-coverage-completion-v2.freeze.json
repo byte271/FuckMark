@@ -1,5 +1,21 @@
 {
   "appendix_confirmation_budget": 16,
+  "appendix_development_outcome": {
+    "cycle1_ruleset_paired_baseline_on_430000": 4,
+    "cycle2_dev_detected": {
+      "410000": 0,
+      "430000": 5,
+      "pooled_of_64": 5
+    },
+    "evidence_hashes": {
+      "dev1_paired_baseline_430000": "7c7f9624e2a95dfb16fac5b17dac7778bbe7d87be6af988c2412f09aadb26e9e",
+      "dev2_evidence_410000": "2eda8a0d1c3599e35df38d6779f0ed395e56a13fc958c31f7cf3d689a6b736db",
+      "dev2_evidence_430000": "cf46b933ce3b7ae17a893432d4230db9b7b4f04bae8905844e30f74ad2f9a49a"
+    },
+    "interpretation": "pooled dev detection identical between rulesets (5/64 each); the extension grew candidate pools but residuals concentrate in sources with high pristine scores and content-word-dense low-candidate regions; confirmation proceeds as pre-registered and may return a neutral result",
+    "phase": "development outcome recorded before confirmation scoring",
+    "recorded_at_utc": "2026-08-23T01:39:54.423362+00:00"
+  },
   "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
   "contract_sha256": "20ba6145793a89f0aa5cbc530305d9345731a60d60ad906199b323c74942d825",
   "freeze_record_version": "coverage-completion-v2-freeze-v1",
