@@ -1,0 +1,82 @@
+name: Cycle4 Exact Geometry Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/tiny-dev-exact-geometry-diagnostic.yml"
+      - "requirements-smoke.txt"
+      - "fuckmark/corpus/**"
+      - "fuckmark/experiments/effectiveness_geometry_audit.py"
+      - "fuckmark/experiments/effectiveness_plan.py"
+      - "fuckmark/experiments/general_spacing_exact_geometry.py"
+      - "fuckmark/geometry/**"
+      - "fuckmark/tiny_dev_corpus_hf.py"
+      - "fuckmark/tiny_dev_effectiveness_geometry_audit_hf.py"
+      - "fuckmark/tiny_dev_effectiveness_plan_hf.py"
+      - "fuckmark/tiny_dev_transform_hf.py"
+      - "fuckmark/transforms/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-geometry:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install maintained Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Reproduce canonical real TinyDev corpus
+        run: >-
+          python -m fuckmark.tiny_dev_corpus_hf
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --seed-base 401000
+          --max-attempts 16
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --json artifacts/tiny-dev-corpus.json
+      - name: Verify canonical corpus SHA-256
+        shell: bash
+        run: |
+          actual="$(sha256sum artifacts/tiny-dev-corpus.json | cut -d' ' -f1)"
+          test "$actual" = "ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664"
+      - name: Freeze Cycle4 diagnostic selections
+        run: >-
+          python -m fuckmark.tiny_dev_effectiveness_plan_hf
+          --corpus-json artifacts/tiny-dev-corpus.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --source-code-commit "$(git rev-parse HEAD)"
+          --profile-id content-region-coverage-v1
+          --budgets 16
+          --plan-json artifacts/cycle4-exact-geometry-plan.json
+          --provenance-json artifacts/cycle4-exact-geometry-plan-provenance.json
+      - name: Audit proxy coverage against exact retokenization
+        run: >-
+          python -m fuckmark.tiny_dev_effectiveness_geometry_audit_hf
+          --corpus-json artifacts/tiny-dev-corpus.json
+          --plan-json artifacts/cycle4-exact-geometry-plan.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --json artifacts/cycle4-exact-geometry-audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cycle4-exact-geometry-diagnostic
+          path: artifacts/
+          if-no-files-found: error
