@@ -35,6 +35,7 @@ from .transforms import (
     KEY_BLIND_HIGH_COVERAGE_PROFILE,
     KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
     KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
+    KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
     EffectivenessTransformProfile,
     resolve_effectiveness_profile,
 )
@@ -226,7 +227,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--profile-id",
         default=KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
-        choices=(KEY_BLIND_HIGH_COVERAGE_PROFILE_ID, KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID),
+        choices=(
+            KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
+            KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
+            KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
+        ),
     )
     parser.add_argument("--budgets", default="")
     parser.add_argument(
