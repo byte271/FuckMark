@@ -252,6 +252,8 @@ def _parser() -> argparse.ArgumentParser:
             KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
             KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
             CONTENT_REGION_COVERAGE_PROFILE_ID,
+            CONTENT_REGION_GENERAL_ONLY_PROFILE_ID,
+            CONTENT_REGION_COMBINED_PROFILE_ID,
         ),
     )
     parser.add_argument("--budgets", default="")
