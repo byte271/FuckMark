@@ -42,7 +42,7 @@ def test_cli_main_processes_and_copies_result() -> None:
     assert status == 0
     assert copied == ["I don't agree."]
     rendered = output.getvalue()
-    assert "FuckMark 0.1.0" in rendered
+    assert "FuckMark 0.2.0" in rendered
     assert "Processing..." in rendered
     assert "Done — 1 change applied." in rendered
     assert "Copied to clipboard." in rendered
@@ -78,7 +78,7 @@ def test_cli_version_reports_project_and_algorithm_identity(capsys) -> None:
         main(argv=("--version",))
     assert result.value.code == 0
     rendered = capsys.readouterr().out
-    assert "FuckMark 0.1.0" in rendered
+    assert "FuckMark 0.2.0" in rendered
     assert "release-cli-v3" in rendered
     assert "transform-registry-v6" in rendered
 
