@@ -151,8 +151,13 @@ def build_real_tiny_dev_v3_corpus(
         accepted = False
         for attempt in range(max_attempts):
             seed = pair_seed_base + attempt
-            control = backend.generate(prompt.text, seed, watermarked=False)
-            watermarked = backend.generate(prompt.text, seed, watermarked=True)
+            try:
+                control = backend.generate(prompt.text, seed, watermarked=False)
+                watermarked = backend.generate(prompt.text, seed, watermarked=True)
+            except RuntimeError:
+                continue
+            if not control.text.strip() or not watermarked.text.strip():
+                continue
             candidates = (
                 (WatermarkLabel.UNWATERMARKED, control),
                 (WatermarkLabel.WATERMARKED, watermarked),
