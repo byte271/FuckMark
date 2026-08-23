@@ -1,0 +1,85 @@
+{
+  "algorithm_version": "content-region-coverage-contract-v3",
+  "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
+  "blind_human_fidelity_evidence": "NOT_PROVIDED",
+  "candidate": {
+    "budget": 16,
+    "new_rule": "surface-space-after-any-word (general word spacing, no word list)",
+    "profile_hash": "5f4d417a13c2d222c68f70767aef8ed11d7a71c8a5ab9f9c0c21eb278977063c",
+    "profile_id": "content-region-coverage-v1",
+    "ruleset_hash": "82011e6dd7048a97e07918d32f7f8670e7723c66eb1b5b0ac859adb4e9cde8ca",
+    "schedule_policy": "COVERAGE_GREEDY_KEY_BLIND",
+    "schedule_seed_base": 1150000
+  },
+  "claim_boundary": {
+    "cross_platform_generation_reproducibility": "NOT_CLAIMED",
+    "level_b_product_admissible": false,
+    "release_authorized": false,
+    "status": "EXPLORATORY_FIXED_OPEN_DETECTOR_ONLY",
+    "undetectability_claim": false,
+    "watermark_removal_claim": false
+  },
+  "confirmation_gates": {
+    "corpora": 3,
+    "fidelity_rows_required_per_arm": 128,
+    "pristine_watermarked_min": 60,
+    "stretch_target": "0/192 pooled transformed watermarked detections",
+    "transformed_unwatermarked_max": 0
+  },
+  "dev_arms": [
+    "A_cycle2_baseline",
+    "B_cycle3_candidate",
+    "C_general_only",
+    "D_combined_ablation"
+  ],
+  "environment": {
+    "machine": "AMD64",
+    "model": "openai-community/gpt2@607a30d783dfa663caf39e06633721c8d4cfcd7e",
+    "os": "Windows-10-10.0.26220-SP0",
+    "processor": "AuthenticAMD Family 25 Model 68 Stepping 1",
+    "python": "3.11.15",
+    "torch": "2.13.0+cpu",
+    "transformers": "5.16.0.dev0 (pinned git revision a61d5f9e4fc184cff66938ff6c521cc358b5e024)"
+  },
+  "measurement": {
+    "audit_negatives": 256,
+    "calibration_negatives": 1024,
+    "calibration_seed_base": 500000,
+    "comparison": ">=",
+    "identity": "open-detector-measurement-stability-v1",
+    "order_statistic": "n - floor(target_fpr*n) + 1 ascending",
+    "target_fpr": 0.01,
+    "threshold_frozen_before_confirmation_scoring": true
+  },
+  "outcome_classes": [
+    "STRONG_SUCCESS",
+    "PARTIAL_SUCCESS",
+    "NEUTRAL",
+    "REJECTED"
+  ],
+  "promotion_gate": {
+    "detector_tolerance_detected_difference": 2,
+    "low_coverage_mean_gain_required": 0.05,
+    "low_coverage_subset_size": 8,
+    "recorded_before_confirmation_scoring": true
+  },
+  "protocol_id": "content-region-coverage-v3",
+  "recorded_date": "2026-08-23",
+  "research_branch_base": "4ddd84fa9bc184b1159946c56f8a370111d20f22",
+  "seed_ledger": {
+    "consumed": [
+      "401000-404296",
+      "410000-414192",
+      "420000-425216",
+      "430000-434192",
+      "440000-445216",
+      "500000-520480"
+    ],
+    "cycle3_confirmations": [
+      "460000",
+      "470000",
+      "480000"
+    ],
+    "cycle3_dev": "450000"
+  }
+}

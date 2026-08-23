@@ -1,0 +1,9 @@
+{
+  "appendices": {},
+  "contract_sha256": "072c360e57abda8fabfafbc23654324a1dfb89efe585c367a0a745aa8474c7b3",
+  "freeze_record_version": "content-region-coverage-v3-freeze-v1",
+  "frozen_at_utc": "2026-08-23T02:55:06.234907+00:00",
+  "pre_score_amendments": [],
+  "protocol_id": "content-region-coverage-v3",
+  "protocol_sha256": "ea0de812869d60f7a5cc8e765eb0c5a68db0c61c8722b2347a64752e12fb24a2"
+}
