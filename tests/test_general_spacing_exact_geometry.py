@@ -6,7 +6,10 @@ from dataclasses import replace
 
 import pytest
 
-from fuckmark.experiments.general_spacing_exact_geometry import diagnose_selected_candidate_geometry
+from fuckmark.experiments.general_spacing_exact_geometry import (
+    diagnose_selected_candidate_geometry,
+    diagnose_unselected_exact_marginals,
+)
 from fuckmark.hashing import sha256_text
 from fuckmark.transforms.registry import TransformRegistry
 from fuckmark.transforms.rules import GeneralWordSpacingRule
@@ -66,10 +69,15 @@ def _registry() -> TransformRegistry:
     )
 
 
-def _diagnose(word: str):
+def _fixture():
     text = "alpha beta gamma delta epsilon zeta"
     registry = _registry()
     enumeration = registry.enumerate(text)
+    return text, registry, enumeration
+
+
+def _diagnose(word: str):
+    text, registry, enumeration = _fixture()
     candidate = next(value for value in enumeration.candidates if value.source_text == word)
     return diagnose_selected_candidate_geometry(
         source_sample_id=f"fixture-{word}",
@@ -102,6 +110,33 @@ def test_general_spacing_proxy_matches_boundary_case_without_extra_left_window()
     assert diagnostic.proxy_covered_observation_count == 1
     assert diagnostic.exact_destroyed_observation_count == 1
     assert diagnostic.exact_minus_proxy_count == 0
+
+
+def test_zero_proxy_marginal_can_hide_positive_exact_destruction_gain() -> None:
+    text, registry, enumeration = _fixture()
+    gamma = next(value for value in enumeration.candidates if value.source_text == "gamma")
+    diagnostic = diagnose_unselected_exact_marginals(
+        source_sample_id="fixture-hidden-gain",
+        source_text=text,
+        registry=registry,
+        enumeration=enumeration,
+        selected_candidate_ids=(gamma.candidate_id,),
+        tokenizer=SpaceSensitiveTokenizer(),
+        tokenizer_identity_hash=sha256_text("space-sensitive-tokenizer-v1"),
+        ngram_len=3,
+    )
+    rows_by_word = {
+        next(value.source_text for value in enumeration.candidates if value.candidate_id == row.candidate_id): row
+        for row in diagnostic.rows
+    }
+    beta = rows_by_word["beta"]
+    assert beta.proxy_marginal_gain == 0
+    assert beta.exact_marginal_gain == 1
+    assert beta.hidden_exact_gain is True
+    assert diagnostic.hidden_exact_gain_count >= 1
+    assert diagnostic.maximum_hidden_exact_gain >= 1
+    assert diagnostic.detector_access_observed is False
+    assert diagnostic.secret_access_observed is False
 
 
 def test_exact_spacing_geometry_diagnostic_hash_is_tamper_evident() -> None:
