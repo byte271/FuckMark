@@ -14,12 +14,16 @@ from ..transforms import (
     ScheduleGeometryMode,
     SchedulePolicy,
     build_candidate_tokenizer_geometry,
+    content_region_combined_transform_registry,
     content_region_coverage_transform_registry,
+    content_region_general_only_transform_registry,
     key_blind_coverage_completion_transform_registry,
     key_blind_high_coverage_transform_registry,
     validate_effectiveness_profile_registry,
     validate_hard_invariants,
+    CONTENT_REGION_COMBINED_PROFILE_ID,
     CONTENT_REGION_COVERAGE_PROFILE_ID,
+    CONTENT_REGION_GENERAL_ONLY_PROFILE_ID,
     KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
 )
 
@@ -160,6 +164,10 @@ def _registry_for_profile(profile: EffectivenessTransformProfile):
         return key_blind_coverage_completion_transform_registry()
     if profile.profile_id == CONTENT_REGION_COVERAGE_PROFILE_ID:
         return content_region_coverage_transform_registry()
+    if profile.profile_id == CONTENT_REGION_GENERAL_ONLY_PROFILE_ID:
+        return content_region_general_only_transform_registry()
+    if profile.profile_id == CONTENT_REGION_COMBINED_PROFILE_ID:
+        return content_region_combined_transform_registry()
     return key_blind_high_coverage_transform_registry()
 
 

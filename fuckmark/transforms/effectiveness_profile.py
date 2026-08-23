@@ -30,6 +30,8 @@ KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID = "key-blind-coverage-completion-v2"
 KEY_BLIND_COVERAGE_COMPLETION_SEED_BASE = 1_140_000
 CONTENT_REGION_COVERAGE_PROFILE_ID = "content-region-coverage-v1"
 CONTENT_REGION_COVERAGE_SEED_BASE = 1_150_000
+CONTENT_REGION_GENERAL_ONLY_PROFILE_ID = "content-region-general-only-dev-v1"
+CONTENT_REGION_COMBINED_PROFILE_ID = "content-region-combined-dev-v1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -217,6 +219,14 @@ def resolve_effectiveness_profile(
         if not budgets:
             raise ValueError("the content region coverage profile requires explicit budgets")
         return content_region_coverage_profile(budgets)
+    if profile_id == CONTENT_REGION_GENERAL_ONLY_PROFILE_ID:
+        if not budgets:
+            raise ValueError("the general-only ablation profile requires explicit budgets")
+        return content_region_general_only_profile(budgets)
+    if profile_id == CONTENT_REGION_COMBINED_PROFILE_ID:
+        if not budgets:
+            raise ValueError("the combined ablation profile requires explicit budgets")
+        return content_region_combined_profile(budgets)
     raise ValueError("unknown effectiveness profile id")
 
 
@@ -266,6 +276,73 @@ def content_region_coverage_profile(
             "contractions and punctuation spacing with a general any-word spacing rule; "
             "exploratory effectiveness evidence only and not release authorization"
         ),
+    )
+
+
+def content_region_general_only_transform_registry(
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    return TransformRegistry(content_region_surface_rules(), identifiers)
+
+
+def content_region_combined_transform_registry(
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    general = GeneralWordSpacingRule.create(CONTENT_REGION_GENERAL_SPACING_RULE_ID)
+    return TransformRegistry(
+        (
+            *development_forward_contraction_rules(),
+            *coverage_completion_surface_rules(),
+            general,
+            *development_lexical_rules(),
+            *development_syntax_rules(),
+        ),
+        identifiers,
+    )
+
+
+def _dev_ablation_profile(
+    profile_id: str,
+    ruleset_hash: str,
+    budgets: tuple[int, ...],
+) -> EffectivenessTransformProfile:
+    return EffectivenessTransformProfile.create(
+        profile_id=profile_id,
+        budgets=budgets,
+        budget_unit="operation",
+        schedule_policy_id="COVERAGE_GREEDY_KEY_BLIND",
+        schedule_seed_base=CONTENT_REGION_COVERAGE_SEED_BASE,
+        replicate_count=1,
+        ngram_len=5,
+        ruleset_hash=ruleset_hash,
+        scientific_scope=(
+            "Development-only ablation profile for the content-region cycle; exploratory "
+            "evidence only and not release authorization"
+        ),
+    )
+
+
+def content_region_general_only_profile(
+    budgets: tuple[int, ...],
+) -> EffectivenessTransformProfile:
+    if not isinstance(budgets, tuple):
+        raise TypeError("budgets must be a tuple")
+    return _dev_ablation_profile(
+        CONTENT_REGION_GENERAL_ONLY_PROFILE_ID,
+        content_region_general_only_transform_registry().ruleset_hash,
+        budgets,
+    )
+
+
+def content_region_combined_profile(
+    budgets: tuple[int, ...],
+) -> EffectivenessTransformProfile:
+    if not isinstance(budgets, tuple):
+        raise TypeError("budgets must be a tuple")
+    return _dev_ablation_profile(
+        CONTENT_REGION_COMBINED_PROFILE_ID,
+        content_region_combined_transform_registry().ruleset_hash,
+        budgets,
     )
 
 
