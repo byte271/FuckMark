@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+import tomllib
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +26,7 @@ def test_dependency_lock_is_present_and_project_bound() -> None:
     lock = ROOT / "uv.lock"
     assert lock.is_file()
     text = lock.read_text(encoding="utf-8")
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert text.startswith("version = 1\nrevision = 3\n")
-    assert 'name = "fuckmark"' in text
-    assert 'version = "0.1.0"' in text
+    assert f'name = "fuckmark"\nversion = "{project["version"]}"' in text
     assert 'requires-python = ">=3.11"' in text
