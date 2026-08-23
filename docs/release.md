@@ -9,7 +9,7 @@ FuckMark v0.2.0 is a deterministic CLI and research-infrastructure release. The 
 3. U+200C remains diagnostic-only and is never promoted into automatic CLI behavior.
 4. Frozen historical contracts and evidence under `specs/` remain byte-stable unless their own protocol explicitly defines a successor artifact.
 5. The release must build and clean-install on Linux, macOS, and Windows.
-6. GitHub Release publication occurs only from an immutable `v*` tag.
+6. Every published GitHub Release must be backed by an immutable `v*` tag.
 
 ## Required release sequence
 
@@ -22,16 +22,17 @@ FuckMark v0.2.0 is a deterministic CLI and research-infrastructure release. The 
 7. Verify every installed console alias, `--version`, deterministic stream output, wheel metadata, and source-distribution metadata.
 8. Generate `SHA256SUMS.txt` from the exact verified wheel and source distribution.
 9. Merge the release branch only after required GitHub Actions are green.
-10. Create the immutable `v0.2.0` tag at the exact green `main` commit.
-11. Let the tag-triggered `Release Engineering` workflow rebuild and re-verify the artifacts before it creates the GitHub Release.
+10. On the resulting `main` push, rerun the cross-platform release matrix.
+11. If `v<project-version>` does not already exist, the release job creates that immutable tag at the exact verified `main` commit and then publishes the GitHub Release from the verified distributions.
+12. Later `main` pushes with the same already-tagged project version do not republish the release.
 
 ## Publication workflow
 
 The `Release Engineering` workflow runs its package matrix on Ubuntu, macOS, and Windows. It uses current Node 24 GitHub Actions, builds the distributions independently in each operating-system job, runs `twine check`, and invokes `tools/verify_release_install.py` against both artifacts.
 
-The Linux job uploads the verified release distributions. The publication job runs only for `refs/tags/v*`, verifies that the tag name exactly matches the version in `pyproject.toml`, downloads the verified artifacts, and creates the GitHub Release with the wheel, source distribution, and SHA-256 manifest.
+The Linux job uploads the verified release distributions. On a `main` push, the publication job derives the tag from `pyproject.toml`. If that exact tag already exists, publication is a no-op. If the tag is absent, the job creates `v<project-version>` at the verified commit, downloads the verified artifacts, and creates the GitHub Release with the wheel, source distribution, and SHA-256 manifest. Direct `v*` tag events are also accepted only when the tag exactly matches the package version.
 
-A normal push to `main` can run release verification, but it cannot publish a release. There is no commit-message fallback and no hard-coded release tag.
+There is no hard-coded release tag and no commit-message release trigger. The package version is the release identity source of truth, while the actual GitHub Release remains tag-backed.
 
 ## v0.2.0 scientific result
 
