@@ -1,5 +1,5 @@
 __project_name__ = "FuckMark"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .adapters import (
     DEEPMIND_REFERENCE_ADAPTER_ID,

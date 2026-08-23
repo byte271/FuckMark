@@ -32,10 +32,12 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -54,7 +56,7 @@ jobs:
 
       - name: Upload release distributions
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-distributions
           path: dist/
@@ -64,39 +66,75 @@ jobs:
     name: Publish GitHub Release
     if: >-
       startsWith(github.ref, 'refs/tags/v') ||
-      (github.ref == 'refs/heads/main' && github.event.head_commit.message == 'Release v0.1.0')
+      github.ref == 'refs/heads/main'
     needs: package-e2e
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      published: ${{ steps.version.outputs.publish }}
     steps:
       - name: Checkout release commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          persist-credentials: false
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')"
+          release_tag="v${package_version}"
+          echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "$GITHUB_REF_NAME" = "$release_tag"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --tags --force
+          if git rev-parse --verify --quiet "refs/tags/$release_tag" >/dev/null; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create immutable release tag
+        if: github.ref == 'refs/heads/main' && steps.version.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.tag }}" "$GITHUB_SHA" -m "${{ steps.version.outputs.tag }}"
+          git push origin "refs/tags/${{ steps.version.outputs.tag }}"
 
       - name: Download verified distributions
-        uses: actions/download-artifact@v4
+        if: steps.version.outputs.publish == 'true'
+        uses: actions/download-artifact@v8
         with:
           name: release-distributions
           path: release-dist
 
       - name: Create release
+        if: steps.version.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v0.1.0' }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            gh release create "$RELEASE_TAG" release-dist/* --verify-tag --title "FuckMark $RELEASE_TAG" --generate-notes
-          else
-            gh release create "$RELEASE_TAG" release-dist/* --target "$GITHUB_SHA" --title "FuckMark $RELEASE_TAG" --generate-notes
-          fi
+          gh release create "$RELEASE_TAG" release-dist/* --verify-tag --title "FuckMark $RELEASE_TAG" --generate-notes
 
   cleanup-merged-branches:
     name: Remove merged branches
-    if: needs.release.result == 'success'
+    if: needs.release.outputs.published == 'true'
     needs: release
     runs-on: ubuntu-latest
     permissions:

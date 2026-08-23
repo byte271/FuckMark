@@ -1,124 +1,59 @@
 # Changelog
 
-The project remains at `v0.1.0` for this research line.
+## v0.2.0 — Exact-survival confirmation and release hardening
 
-## Cycle 4 — content-region destruction (research branch, unreleased)
+### Research
 
-- Added `exact-survival-greedy-key-blind-v2`: the frozen v1 exact-retokenization greedy scheduler extended with one deterministic pairwise-completion pass. When no single remaining candidate yields positive marginal exact destruction, conflict-free candidate pairs are evaluated (bounded by lexicographically-first feasible IDs for replay) and the best strictly-positive pair is committed; selection remains detector-blind and key-blind throughout.
-- Added the `content-region-destruction-v1` development effectiveness profile: a strict superset of the frozen Cycle-3 ruleset that adds a sentence-leading spacing rule (`surface-space-before-sentence`, one visible leading space before words following ". ", "? ", "! ") and an extended common-word trailing-space list. The Cycle-3 ruleset hash `82011e6d…` is unchanged and remains bound to the v4 confirmation contract.
-- Added `sanitizer-robustness-report-v1`, a reusable observation-only report that scores every transformed text under raw, NFKC-normalized, Cf-stripped, and combined conditions against the inherited fixed threshold, records introduced invisible-codepoint counts per arm, and refuses detector or secret access.
-- Added the quarantined U+200C visible-projection registry as an explicitly labeled diagnostic upper-bound arm in development runs only; it stays excluded from every development, release, and automatic product path.
-- Added development runner `tiny_dev_destruction_dev_hf` producing paired A/B/C comparisons (Cycle-3 proxy scheduling, Cycle-3 exact-survival v1, destruction pool with exact-survival v2) plus the labeled diagnostic arm on fresh watermarked sources.
-- The frozen Cycle-4 confirmation (`fuckmark-exact-survival-confirmation-v4.contract.json`) is untouched: paired arms, seed ledger 530000/540000/550000, fixed threshold, and outcome policy are unchanged.
+- Confirmed the Cycle 4 exact post-retokenization scheduling objective on three independent frozen confirmation corpora.
+- The preregistered aggregate outcome is `CONFIRMATORY_IMPROVEMENT`.
+- Cycle-3 proxy scheduling left 8/192 transformed watermarked samples detected; exact-survival scheduling left 5/192 detected under the same inherited threshold.
+- The measured evasion rate on that frozen open Hugging Face SynthID configuration therefore changed from 95.83% to 97.40%.
+- Matched unwatermarked detections remained 2/192 in both aggregate arms.
+- Every independent 64-source confirmation corpus improved by one residual detection: 3->2, 3->2, and 2->1.
+- Added `exact-survival-greedy-key-blind-v2`, extending the frozen v1 objective with deterministic pairwise completion after single-candidate saturation.
+- Added the development-only `content-region-destruction-v1` visible candidate pool without mutating the frozen Cycle-3 ruleset hash.
+- Added raw, NFKC, Cf-strip, and combined sanitizer robustness reporting.
+- Kept U+200C explicitly quarantined as a diagnostic upper-bound mechanism and excluded it from automatic release behavior.
+- The expanded pool plus scheduler v2 reached 0/12 detected in the fresh development run, but this remains development evidence rather than a large-corpus confirmatory claim.
+
+### Release engineering
+
+- Advanced the project version to 0.2.0 across package metadata, package identity, lock metadata, CLI regressions, and clean-install verification.
+- Removed the hard-coded `v0.1.0` publication fallback from `Release Engineering`.
+- GitHub Release publication now occurs only from an immutable `v*` tag.
+- Added a publication guard that requires the Git tag to exactly match the version in `pyproject.toml`.
+- Made `tools/verify_release_install.py` derive the expected version from project metadata instead of embedding a release-specific literal.
+- Upgraded the core CI and release workflows to current Node 24 GitHub Actions.
+- Retained cross-platform wheel/sdist build, `twine check`, clean-install verification, console-command verification, and SHA-256 generation.
+
+### Documentation
+
+- Rewrote the README for the v0.2.0 release and current Cycle 4 evidence.
+- Updated all current documentation under `docs/`: CLI, installation, and release process.
+- Separated the confirmed 97.40% open-detector research result from the conservative public CLI behavior.
+- Preserved frozen historical evidence and v0.1.0 release-readiness artifacts rather than rewriting old contracts to match the new release.
+
+### Claim boundary
+
+The 97.40% figure is specific to the frozen open GPT-2 / Hugging Face SynthID Weighted Mean confirmation configuration and its fixed threshold. v0.2.0 does not claim perfect watermark removal, arbitrary-model transfer, proprietary-detector transfer, future-watermark transfer, or formal confirmation of scheduler v2.
 
 ## v0.1.0 — Foundation hardening
 
-- Replaced the opaque magenta logo background with transparent light and dark variants selected by the interface color scheme.
-- Adopted the MIT License and matching package metadata by explicit owner choice.
-- Added the official FM-star logo, [mark.q1z.org](https://mark.q1z.org), and verified one-command installation instructions for Windows, macOS, and Linux through `d.q1z.org/mark`.
-- Added release-time cleanup for branches whose pull requests have already been merged; open and unmerged research branches remain intact.
-- Rebuilt the public CLI as `release-cli-v3`: piped input now selects stream mode automatically; UTF-8 file input, atomic output files, optional clipboard copying, terminal-aware color, precise exit errors, clipboard timeouts, overwrite protection, and applied-change counts are supported.
-- Added clean wheel and source-distribution verification on Linux, macOS, and Windows plus tag-gated GitHub Release publication with SHA-256 assets.
-- Advanced environment capture to `environment-snapshot-v3`: when multiple metadata distributions share a normalized package name, the canonical snapshot selects the distribution with actual `sys.path` import precedence while retaining v1 and v2 replay support.
-- Added the evidence-backed U+200C visible-projection mechanism only as an explicitly constructed quarantined experiment. It remains absent from default, development, release, CLI, and automatic selection paths; format-control stripping restores the evaluated detection behavior.
-- Rewrote the exploratory B16 candidate as the isolated `key-blind-high-coverage-v1` effectiveness profile instead of mutating the ordinary development registry.
-- Bound the independently tested B16 requested operation budget, per-source candidate-count truncation, `1120000 + sorted_source_index` seed schedule, forward-only reversible contraction catalog, public-tokenizer n-gram geometry, key-blind coverage policy, algorithm identities, and ruleset hash into one self-validating profile.
-- Added separate detector-free planning and fixed open-detector scoring entry points with plan fsync provenance, complete source-denominator checks, per-variant hashes, and strict profile/corpus/tokenizer/commit replay validation.
-- Advanced hard-invariant validation to `hard-invariant-validator-v4` so unambiguous `you're`, `we're`, and `they're` negations replay against their expanded forms without silently changing the prior algorithm identity.
-- Recorded the two 12-source exploratory hold-outs without broadening the claim: B10 changed detection from 12/12 to 8/12 and B16 from 12/12 to 6/12, transformed controls remained 0/12, and release authorization and blind human fidelity remain absent.
-- Recorded the frozen four-source TinyDev development run: watermarked detection changed from 4/4 to 0/4, matched controls remained 0/4, and all artifact identities and narrow claim exclusions are bound into a self-validating evidence record.
+v0.1.0 established the deterministic research and release foundation used by Cycle 4. Major work included:
 
-- Added the earlier `release-cli-v2` interface with `--version`, deterministic non-interactive `--stdin` and `--non-interactive` modes, and package repository and issue URLs. The release registry and development-only rule boundary remained unchanged.
+- deterministic source/run identities, hashing, canonical serialization, and replayable evidence;
+- token alignment and exact n-gram observation geometry;
+- pinned DeepMind and Hugging Face SynthID observation adapters;
+- source-conformant Mean and Weighted Mean detector primitives;
+- conservative fixed-FPR calibration and pristine-baseline evidence;
+- content-addressed corpora, prompt provenance, generation boundaries, and matched watermarked/control validation;
+- immutable protected-span extraction and hard semantic invariants;
+- deterministic transform registries, candidate enumeration, conflict graphs, traces, and replay;
+- TinyDev and MidDev experiment infrastructure with separate planning and scoring paths;
+- release-safe CLI behavior for interactive, stream, file, clipboard, and atomic-output use;
+- wheel and source-distribution verification on Linux, macOS, and Windows;
+- MIT licensing, package metadata, project URLs, and tagged GitHub Release support;
+- explicit rejection records for experiments that failed preregistered effectiveness gates;
+- quarantining of invisible-format-character experiments that failed sanitizer durability.
 
-- Added the development-only `mid-dev-calibration-independence-v3` protocol with structural identity hard failures, deterministic text/token first-occurrence compaction, explicit cross-role collision exclusions, content-addressed role manifests, and strict replay parsers. The rejected v2 calibration pair remains immutable; no v3 corpus or confirmatory detector claim exists yet.
-
-- Added `blind-fidelity-review-packet-v1`, a deterministic source-bound review packet layer that samples unique text pairs, randomizes orientation and display order, hides source mapping from reviewer payloads, and verifies exact replay before binding judgments.
-
-- Recorded and rejected the visible-typography retokenization pilot after its strongest B6 policy regressed from 1/4 to 2/4 detected despite slightly greater observation destruction; no implementation was retained.
-- Recorded and rejected the `sequence-boundary-softbreak-v1` pilot: it increased mean observation destruction at B4/B6 but left detected counts unchanged at 3/4 and 1/4, triggering the preregistered effectiveness kill criterion; no implementation was retained.
-- Added `representation-differential-audit-v1` for strict replay of the same transformed pair across at least two pinned model/tokenizer identities.
-- Bound representation rows to exact token sequences, canonical token alignment metrics, transform traces, one transformed pair per independent source, and zero detector or secret queries.
-- Rejected duplicate source text, dependent variant inflation, non-NFC text, and mutation of invisible or representation-sensitive Unicode code points in representation evidence.
-- Added the content-addressed `release-readiness-baseline-v1` artifact with all 26 release-program gates, exact baseline repository identities, workflow evidence, and explicit blockers.
-- Added deterministic baseline generation and replay validation plus a `Release Readiness Baseline` workflow that builds and clean-installs both wheel and sdist artifacts.
-- Recorded project licensing, package license metadata, release-engine qualification, and calibration independence as release blockers instead of inferring or weakening them.
-- Added `context-survival-diverse-beam-v1` as a separately versioned development search strategy while preserving the historical `context-survival-beam-v2` implementation.
-- Added deterministic root-branch diversity pruning and an exact-budget dead-end regression; real-corpus improvement over Beam v2 remains unproven.
-- Added `context-survival-baseline-invariant-screen-v1` so expected context-invalid candidates are excluded before baseline scheduling instead of crashing a complete plan.
-- Bound baseline candidate pools and source diagnostics to invariant-screen hashes, accepted counts, and rejection counts while leaving programming and replay errors visible.
-- Added five reversible context-survival contraction pairs for `I am`, `you are`, `we are`, `they are`, and `must not`; candidate legality remains context-dependent and fail-closed.
-- Expanded the development-only surface catalog to `development-surface-rules-v4` with 35 reversible tier-1 rules.
-- Measured the frozen real TinyDev watermarked attack-development opportunity change from 51 to 65 raw candidates and from 51 to 64 independent candidates, with all four sources remaining transformable.
-- Added `tiny-dev-context-survival-plan-v3` to bind the invariant-screened baseline pool and diverse Beam identity without changing frozen MidDev Beam v2 semantics.
-- Added `environment-snapshot-v2`, canonicalized surrounding whitespace and empty platform metadata, and retained validation support for v1 snapshots.
-- Corrected the MidDev calibration workflow regression to assert the implemented split 80 SELECT plus 80 AUDIT matrices instead of the obsolete combined 160-job source shape.
-- Added immutable protected-span extraction for URLs, emails, IP literals, numeric values, dates, currency, percentages, code, Markdown destinations, quotations, file paths, CLI flags, citations, math, configured identifiers, and user-marked entities.
-- Added overlap-merged protected-span manifests plus hard-invariant comparison over exact protected content.
-- Added deterministic canonical negation and modality signatures so transform application fails closed if a rule changes polarity, possibility, ability, obligation, or commitment markers.
-- Added a versioned deterministic transform registry with a deliberately narrow built-in English negation-contraction ruleset and no network/model inference path.
-- Added candidate precondition failures, protected-overlap rejection before application, canonical candidate conflict graphs, and input-bound candidate identities.
-- Added explicit-candidate transformation traces with independent enumeration replay, exact source/output operation geometry, deterministic seed provenance, and byte-identical replay guarantees.
-- Added adversarial transform regressions for forged enumerations, conflict omission, all-caps blocks, Unicode apostrophes, sentence casing, newline boundaries, Markdown lists, protected conflicts, and rule reapplication.
-- Added immutable corpus manifests with content-addressed prompt and sample records, deterministic ordering, and self-validating manifest hashes.
-- Added exact prompt provenance and license records with English v1 scope, exact UTF-8 hashing, prompt-family partition enforcement, and duplicate-prompt leakage rejection.
-- Added immutable model/tokenizer identities covering pinned revisions, chat-template identity, special-token maps, BOS/EOS policy, padding side, and token IDs.
-- Added exact generation-token boundary records that preserve padded inputs, attention masks, generated sequences, continuation slices, and prompt length after templating.
-- Added separate generation-token and text-only re-encoding views for the same source sample without silently replacing canonical generation tokens.
-- Added matched watermarked/control corpus validation that freezes all non-watermark generation parameters while allowing distinct realized seeds under a shared seed policy.
-- Added exact-output deduplication, TEST_KEYS isolation, target-length feasibility checks, padding-token validation, and controlled-group integrity checks.
-- Added conservative finite-sample fixed-FPR calibration over unwatermarked control evidence with observed-score thresholds and no interpolation.
-- Added explicit `>` and `>=` threshold semantics, empirical achieved-FPR accounting, and exact equal-tailed Clopper-Pearson uncertainty intervals.
-- Bound calibration artifacts to immutable corpus scope, detector identity, negative manifests, statistical method identities, threshold hashes, and calibration-bundle hashes.
-- Added robust null center and scale estimates plus standardized detector margins for calibrated evidence comparison.
-- Added pristine-watermarked baseline summaries with exact TPR intervals and a default 80% interpretability floor before downstream perturbation claims.
-- Fixed Weighted Mean floating-point boundary drift that could produce scores slightly above 1.0 or make evidence reject its own mathematically valid score.
-- Changed Mean and Weighted Mean component algorithm identities to v2 because detector result rows and serialized evidence changed while the project version remains v0.1.0.
-- Bound uncalibrated detector evidence to the exact native observation batch with a canonical SHA-256 digest so distinct detector inputs cannot collapse to identical evidence records.
-- Added detector evidence self-validation for detector configuration hashes and controlled rejection of integer weights that cannot be represented as finite floats.
-- Added source-conformant Mean and Weighted Mean detector primitives matching the pinned DeepMind detector formulas on golden and randomized g-value/mask fixtures.
-- Added explicit zero-valid-observation failure behavior so detector runs cannot silently emit NaN scores or disappear from analysis.
-- Added normalized source-defined Weighted Mean layer weights with strict finite, non-negative, non-zero validation.
-- Added structured detector compatibility results with `SUPPORTED`, `UNSUPPORTED`, and `UNVERIFIED` states.
-- Added fail-closed Bayesian compatibility until watermark mode, Bernoulli(0.5) assumptions, checkpoint identity, and source-compatible configuration are bound.
-- Added immutable uncalibrated detector evidence carrying detector identity, adapter identity, source revisions, valid-observation count, score direction, raw score, and normalized weights.
-- Added detector regression fixtures covering all-zero, all-one, alternating, mixed-depth, depth 1/2/30, single-valid, mixed-mask, zero-valid, repetition-mask, and EOS-mask cases.
-- Hardened alignment validation to require the canonical minimum-distance deterministic traceback rather than accepting merely self-consistent alternative alignments.
-- Added a separate alignment-step resource limit so extremely unbalanced sequences cannot bypass the dynamic-programming cell limit and allocate unbounded step objects.
-- Replaced Python-object Hugging Face sampling tables with compact byte storage and chunked Torch conversion.
-- Replaced preallocated repeated-context history lists with sparse bounded hash history while preserving the source-defined zero-initialized semantics.
-- Added adapter-identity stability checks around native observation signal computation.
-- Added strict source-pin loading and a deterministic source-pin registry with duplicate-key and schema-drift rejection.
-- Added the implementation-neutral watermark adapter protocol and deterministic adapter registry.
-- Added a pinned DeepMind SynthID Text reference observation adapter.
-- Reproduced the reference signed-int64 LCG-style hash semantics without adding a Torch runtime dependency.
-- Added source-conformant n-gram key generation, binary g-value generation, bounded context-repetition masks, and EOS masks.
-- Added immutable native observation records and batches that preserve g-values, repetition state, EOS validity, combined validity, exact n-gram geometry, source revision, and adapter fingerprint.
-- Added fixed upstream-derived golden conformance fixtures and randomized differential validation against a direct Torch reproduction of the pinned source behavior.
-- Added a separate pinned Hugging Face Transformers SynthID observation adapter without conflating its hashing and g-value path with the DeepMind reference implementation.
-- Added exact Hugging Face n-gram hashing from the source-defined initial hash value and binary g-value lookup through the source-defined sampling table.
-- Added an optional Torch bridge that reproduces the pinned Hugging Face sampling table from its seed while keeping Torch out of FuckMark core dependencies.
-- Added sampling-table hashing and provenance tracking so Hugging Face observation artifacts bind to the effective table used for computation.
-- Added randomized differential validation against direct Torch reproductions for both pinned open implementations.
-- Strengthened native observation batches to retain the exact immutable token sequence and verify every recorded n-gram against it.
-- Renamed the project completely to FuckMark while preserving the frozen project version.
-- Renamed the distribution and Python package namespace to `fuckmark`.
-- Added project-name and version regression enforcement.
-- Switched wheel packaging to bounded `fuckmark*` package discovery so future internal subpackages cannot disappear from built artifacts.
-- Replaced full Python-object alignment matrices with packed traceback and tie grids plus rolling numeric distance rows.
-- Preserved exact deterministic traceback priority while substantially reducing alignment memory overhead.
-- Added strict construction validation for alignment steps and results.
-- Preserved positional correspondence for one-to-one substitutions so replaced observations retain their transformed index.
-- Distinguished replaced observations from observations that have no contiguous aligned counterpart after insertion or deletion.
-- Added full alignment consistency validation before observation comparison.
-- Added a dynamic-programming cell limit to prevent accidental unbounded alignment allocation.
-- Rejected non-sequence and non-integer token inputs at public boundaries.
-- Rejected invalid observation states and malformed observation index/count types.
-- Rejected non-string canonical JSON object keys instead of allowing key coercion collisions.
-- Normalized negative floating-point zero in canonical JSON.
-- Rejected dataclass types when an instance is required for canonicalization.
-- Preserved type separation between integer and string master seeds.
-- Rejected invalid file-hashing input types and chunk sizes.
-- Strengthened source pins to require immutable Git revisions and canonical repository-relative file paths.
-- Strengthened run identities to require immutable revisions, SHA-256 digests, and clean control-free identity strings.
-- Added validation for malformed observation summaries and structural diff indices.
-- Expanded regression, exhaustive, packaging, and invariant coverage.
+The detailed v0.1.0 research chronology remains preserved in the repository history and frozen artifacts under `specs/`. Those historical contracts are not rewritten by later releases.

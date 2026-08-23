@@ -1,24 +1,59 @@
-# v0.1.0 Release Process
+# v0.2.0 Release Process
 
-FuckMark v0.1.0 is a research-harness and deterministic CLI release. Publishing the software does not authorize claims of watermark removal, universal undetectability, unknown-key transfer, proprietary-detector transfer, normalization durability, or completed human fidelity review.
+FuckMark v0.2.0 is a deterministic CLI and research-infrastructure release. The release contains the Cycle 4 exact-survival research machinery and its confirmatory evidence path, while the public CLI remains restricted to the separately reviewed release transform registry.
+
+## Release invariants
+
+1. `pyproject.toml`, `fuckmark.__version__`, `uv.lock`, installed CLI output, and the Git tag must agree on `0.2.0` / `v0.2.0`.
+2. The release registry is not broadened merely because a development experiment succeeds.
+3. U+200C remains diagnostic-only and is never promoted into automatic CLI behavior.
+4. Frozen historical contracts and evidence under `specs/` remain byte-stable unless their own protocol explicitly defines a successor artifact.
+5. The release must build and clean-install on Linux, macOS, and Windows.
+6. Every published GitHub Release must be backed by an immutable `v*` tag.
 
 ## Required release sequence
 
-1. Keep the release registry unchanged unless a separately reviewed promotion record authorizes a rule.
-2. Run the complete test suite and dependency-lock check on the final source tree.
-3. Build one wheel and one source distribution from that tree.
-4. Run `twine check` on both distributions.
-5. Clean-install and execute both distributions on Linux, macOS, and Windows.
-6. Verify every installed console alias, `--version`, deterministic stream output, wheel metadata, and source-distribution metadata.
-7. Generate `SHA256SUMS.txt` from the exact verified artifacts.
-8. Confirm the MIT project license and package metadata are present in both distributions.
-9. Push the final commit to `main` and require all repository workflows to succeed.
-10. Create the immutable `v0.1.0` tag at that exact green commit.
+1. Start from the latest green `main`.
+2. Update the package version, lock metadata, tests, current documentation, and release notes on a dedicated release branch.
+3. Run the complete test suite and `uv lock --check` through CI.
+4. Build one wheel and one source distribution.
+5. Run `twine check` on both distributions.
+6. Clean-install and execute both distributions on Linux, macOS, and Windows.
+7. Verify every installed console alias, `--version`, deterministic stream output, wheel metadata, and source-distribution metadata.
+8. Generate `SHA256SUMS.txt` from the exact verified wheel and source distribution.
+9. Merge the release branch only after required GitHub Actions are green.
+10. On the resulting `main` push, rerun the cross-platform release matrix.
+11. If `v<project-version>` does not already exist, the release job creates that immutable tag at the exact verified `main` commit and then publishes the GitHub Release from the verified distributions.
+12. Later `main` pushes with the same already-tagged project version do not republish the release.
 
-The `Release Engineering` workflow implements steps 3 through 7 for all three operating systems. A release commit can create the `v0.1.0` tag and GitHub Release at the exact verified commit; an existing `v*` tag follows the same publication path. The release job downloads the verified Linux-built artifacts only after every operating-system job succeeds, then uploads the wheel, source distribution, and checksum manifest. After publication, merged pull-request branches are removed while open and unmerged research branches are preserved.
+## Publication workflow
 
-## Current scientific boundary
+The `Release Engineering` workflow runs its package matrix on Ubuntu, macOS, and Windows. It uses current Node 24 GitHub Actions, builds the distributions independently in each operating-system job, runs `twine check`, and invokes `tools/verify_release_install.py` against both artifacts.
 
-The historical release-readiness artifact in `specs/fuckmark-v0.1.0-release-readiness-baseline.json` remains immutable. Later engineering fixes do not turn pending scientific gates into passes. In particular, the rejected calibration pair, absent confirmatory corpus, missing blind human fidelity judgments, and normalization-durability gaps continue to limit scientific wording.
+The Linux job uploads the verified release distributions. On a `main` push, the publication job derives the tag from `pyproject.toml`. If that exact tag already exists, publication is a no-op. If the tag is absent, the job creates `v<project-version>` at the verified commit, downloads the verified artifacts, and creates the GitHub Release with the wheel, source distribution, and SHA-256 manifest. Direct `v*` tag events are also accepted only when the tag exactly matches the package version.
 
-The U+200C visible-projection experiment is quarantined. It is not release-safe, changes copied and DOM text, and loses the measured effect when Unicode format controls are stripped. Its contract explicitly forbids release-registry and CLI use.
+There is no hard-coded release tag and no commit-message release trigger. The package version is the release identity source of truth, while the actual GitHub Release remains tag-backed.
+
+## v0.2.0 scientific result
+
+The preregistered Cycle 4 exact-survival confirmation reports `CONFIRMATORY_IMPROVEMENT` on the frozen open Hugging Face SynthID evaluation:
+
+- Cycle-3 proxy scheduling: 8/192 transformed watermarked samples remained detected.
+- Exact-survival scheduling: 5/192 remained detected.
+- Measured evasion rate: 95.83% -> 97.40%.
+- Matched unwatermarked detections: 2/192 -> 2/192.
+- Each of the three independent 64-source confirmation corpora improved by one residual detection.
+
+This evidence supports the exact post-retokenization objective on the frozen open-detector setup. It does not prove perfect watermark removal, proprietary-detector transfer, arbitrary-model transfer, or the superiority of the development-only scheduler v2.
+
+The expanded pool plus scheduler v2 achieved 0/12 detected in its fresh development run, but that result has not yet received the same large-corpus confirmatory treatment and is documented as development evidence only.
+
+## Historical boundary
+
+`specs/fuckmark-v0.1.0-release-readiness-baseline.json` remains an immutable historical artifact. v0.2.0 does not rewrite the old baseline's gate statuses or reinterpret the repository state it captured.
+
+Likewise, rejected experiments remain rejected records. The U+200C visible-projection mechanism stays quarantined because Unicode format-character stripping restores the evaluated detection behavior.
+
+## Distribution scope
+
+The GitHub Release is the authoritative v0.2.0 publication produced by this repository workflow. Publishing to another package index is a separate action and must not be implied unless that publication actually occurs and its credentials/workflow are configured.
