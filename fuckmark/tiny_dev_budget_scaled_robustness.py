@@ -90,10 +90,9 @@ def build_budget_scaled_robustness_report(
     corpora: tuple[object, ...],
     plans: tuple[dict[str, object], ...],
 ) -> dict[str, object]:
-    sources: dict[str, object] = {}
+    corpus_by_artifact: dict[str, object] = {}
     for corpus in corpora:
-        for sample in corpus.manifest.samples:
-            sources[sample.sample_id] = sample
+        corpus_by_artifact[corpus.artifact_hash] = corpus
     corpus_text_hashes: list[set[str]] = [
         {sample.text_sha256 for sample in corpus.manifest.samples} for corpus in corpora
     ]
@@ -105,11 +104,16 @@ def build_budget_scaled_robustness_report(
             )
     rows: list[dict[str, object]] = []
     for plan in plans:
+        corpus = corpus_by_artifact.get(plan["tiny_dev_artifact_hash"])
+        if corpus is None:
+            raise ValueError("robustness report received a plan whose corpus was not supplied")
+        sources = {sample.sample_id: sample for sample in corpus.manifest.samples}
         for variant in plan["variants"]:
             sample = sources[variant["source_sample_id"]]
             rows.append(
                 {
                     "plan_hash": plan["plan_hash"],
+                    "corpus_artifact_hash": corpus.artifact_hash,
                     "source_sample_id": variant["source_sample_id"],
                     "requested_budget": variant["requested_budget"],
                     **_robustness_row(sample.text, variant["transformed_text"]),

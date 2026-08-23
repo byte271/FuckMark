@@ -108,6 +108,29 @@ def test_robustness_report_gates_pass_on_rule_transforms() -> None:
     assert report["artifact_hash"]
 
 
+def test_robustness_report_joins_plans_to_their_own_corpus_by_artifact_hash() -> None:
+    identity_hash = sha256_text("fake-tokenizer")
+    first_text = "You are not ready, and we do not stop when the system is in use."
+    second_text = "A second corpus shares sample IDs but holds different source texts here."
+    first = _corpus(first_text, "1")
+    second = _corpus(second_text, "1")
+    first.artifact_hash = sha256_text("corpus-a")
+    second.artifact_hash = sha256_text("corpus-b")
+    for corpus, text in ((first, first_text), (second, second_text)):
+        for sample in corpus.manifest.samples:
+            sample.text = text
+            sample.text_sha256 = sha256_text(text)
+    plan = build_key_blind_high_coverage_plan(
+        first,
+        FakeTokenizer(),
+        profile=key_blind_full_pool_coverage_profile((16,)),
+        source_code_commit="a" * 40,
+    )
+    report = build_budget_scaled_robustness_report((first, second), (plan,))
+    assert all(row["corpus_artifact_hash"] == sha256_text("corpus-a") for row in report["rows"])
+    assert report["summary"]["gate_pass_fraction"] == 1.0
+
+
 def test_robustness_report_detects_cross_corpus_text_overlap() -> None:
     text = "Shared generation text that appears in two corpora at once."
     first = _corpus(text, "1")
