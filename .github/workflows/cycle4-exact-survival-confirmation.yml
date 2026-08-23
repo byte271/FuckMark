@@ -1,0 +1,281 @@
+name: Cycle4 Exact Survival Confirmation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cycle4-exact-survival-confirmation.yml"
+      - "requirements-smoke.txt"
+      - "specs/fuckmark-exact-survival-confirmation-v4.contract.json"
+      - "fuckmark/corpus/**"
+      - "fuckmark/experiments/effectiveness_plan.py"
+      - "fuckmark/experiments/exact_survival_effectiveness_plan.py"
+      - "fuckmark/experiments/exact_survival_greedy.py"
+      - "fuckmark/geometry/**"
+      - "fuckmark/tiny_dev_corpus_hf.py"
+      - "fuckmark/tiny_dev_effectiveness_plan_hf.py"
+      - "fuckmark/tiny_dev_exact_survival_effectiveness_plan_hf.py"
+      - "fuckmark/tiny_dev_exact_survival_confirmation_score_hf.py"
+      - "fuckmark/tiny_dev_exact_survival_confirmation_aggregate.py"
+      - "fuckmark/transforms/**"
+      - "tests/test_exact_survival_confirmation_contract.py"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: cycle4-exact-survival-confirmation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  freeze:
+    name: Freeze ${{ matrix.seed_base }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        seed_base: [530000, 540000, 550000]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install pinned Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Generate fresh confirmation corpus
+        run: >-
+          python -m fuckmark.tiny_dev_corpus_hf
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --seed-base ${{ matrix.seed_base }}
+          --max-attempts 16
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --profile v3
+          --attack-pairs-per-domain 16
+          --json artifacts/cycle4-corpus-${{ matrix.seed_base }}.json
+      - name: Freeze Cycle3 proxy baseline plan
+        run: >-
+          python -m fuckmark.tiny_dev_effectiveness_plan_hf
+          --corpus-json artifacts/cycle4-corpus-${{ matrix.seed_base }}.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --source-code-commit "$(git rev-parse HEAD)"
+          --profile-id content-region-coverage-v1
+          --budgets 16
+          --plan-json artifacts/cycle4-baseline-plan-${{ matrix.seed_base }}.json
+          --provenance-json artifacts/cycle4-baseline-plan-${{ matrix.seed_base }}-provenance.json
+      - name: Freeze exact-survival plan
+        run: >-
+          python -m fuckmark.tiny_dev_exact_survival_effectiveness_plan_hf
+          --corpus-json artifacts/cycle4-corpus-${{ matrix.seed_base }}.json
+          --contract-json specs/fuckmark-exact-survival-confirmation-v4.contract.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --source-code-commit "$(git rev-parse HEAD)"
+          --plan-json artifacts/cycle4-exact-plan-${{ matrix.seed_base }}.json
+          --provenance-json artifacts/cycle4-exact-plan-${{ matrix.seed_base }}-provenance.json
+      - name: Seal freeze manifest
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          seed = ${{ matrix.seed_base }}
+          root = Path("artifacts")
+          names = [
+              f"cycle4-corpus-{seed}.json",
+              f"cycle4-baseline-plan-{seed}.json",
+              f"cycle4-exact-plan-{seed}.json",
+          ]
+          files = {}
+          for name in names:
+              path = root / name
+              payload = path.read_bytes()
+              data = json.loads(payload)
+              files[name] = {
+                  "file_sha256": hashlib.sha256(payload).hexdigest(),
+                  "artifact_hash": data.get("artifact_hash"),
+                  "plan_hash": data.get("plan_hash"),
+              }
+          manifest = {
+              "algorithm_version": "cycle4-freeze-manifest-v1",
+              "seed_base": seed,
+              "source_code_commit": "${{ github.event.pull_request.head.sha || github.sha }}",
+              "files": files,
+              "detector_scoring_performed": False,
+          }
+          canonical = json.dumps(manifest, sort_keys=True, separators=(",", ":"))
+          manifest["manifest_hash"] = hashlib.sha256(canonical.encode()).hexdigest()
+          (root / f"cycle4-freeze-manifest-{seed}.json").write_text(
+              json.dumps(manifest, sort_keys=True, separators=(",", ":")) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle4-freeze-${{ matrix.seed_base }}
+          path: artifacts/
+          if-no-files-found: error
+
+  freeze-cross-check:
+    name: Cross-check frozen corpora
+    needs: freeze
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cycle4-freeze-*
+          path: frozen
+      - name: Enforce three-way attack-text disjointness and freeze integrity
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          seeds = (530000, 540000, 550000)
+          attack_hashes = {}
+          corpora = {}
+          for seed in seeds:
+              root = Path("frozen") / f"cycle4-freeze-{seed}"
+              corpus_path = root / f"cycle4-corpus-{seed}.json"
+              baseline_path = root / f"cycle4-baseline-plan-{seed}.json"
+              exact_path = root / f"cycle4-exact-plan-{seed}.json"
+              manifest_path = root / f"cycle4-freeze-manifest-{seed}.json"
+              for path in (corpus_path, baseline_path, exact_path, manifest_path):
+                  if not path.is_file():
+                      raise SystemExit(f"missing frozen file: {path}")
+              corpus = json.loads(corpus_path.read_text(encoding="utf-8"))
+              baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+              exact = json.loads(exact_path.read_text(encoding="utf-8"))
+              rows = [row for row in corpus["manifest"]["samples"] if row["split"] == "attack_development"]
+              if len(rows) != 128:
+                  raise SystemExit(f"seed {seed}: expected 128 attack rows, got {len(rows)}")
+              hashes = {row["text_sha256"] for row in rows}
+              if len(hashes) != 128:
+                  raise SystemExit(f"seed {seed}: duplicate attack text hash")
+              if len(baseline["variants"]) != 128 or len(exact["variants"]) != 128:
+                  raise SystemExit(f"seed {seed}: paired plan row count mismatch")
+              if baseline["tiny_dev_artifact_hash"] != corpus["artifact_hash"] or exact["tiny_dev_artifact_hash"] != corpus["artifact_hash"]:
+                  raise SystemExit(f"seed {seed}: plan/corpus binding mismatch")
+              if baseline["ruleset_hash"] != exact["ruleset_hash"]:
+                  raise SystemExit(f"seed {seed}: paired ruleset mismatch")
+              attack_hashes[seed] = hashes
+              corpora[seed] = corpus["artifact_hash"]
+          for i, left in enumerate(seeds):
+              for right in seeds[i + 1:]:
+                  overlap = attack_hashes[left] & attack_hashes[right]
+                  if overlap:
+                      raise SystemExit(f"attack text overlap between {left} and {right}: {len(overlap)}")
+          result = {
+              "algorithm_version": "cycle4-freeze-cross-check-v1",
+              "seed_bases": seeds,
+              "corpus_artifact_hashes": corpora,
+              "attack_rows_per_corpus": 128,
+              "pairwise_attack_text_overlap": 0,
+              "all_plans_frozen_before_scoring": True,
+          }
+          canonical = json.dumps(result, sort_keys=True, separators=(",", ":"))
+          result["artifact_hash"] = hashlib.sha256(canonical.encode()).hexdigest()
+          Path("cycle4-freeze-cross-check.json").write_text(
+              json.dumps(result, sort_keys=True, separators=(",", ":")) + "\n",
+              encoding="utf-8",
+          )
+          print(f"artifact_hash={result['artifact_hash']}")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle4-freeze-cross-check
+          path: cycle4-freeze-cross-check.json
+          if-no-files-found: error
+
+  score:
+    name: Score ${{ matrix.seed_base }}
+    needs: freeze-cross-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        seed_base: [530000, 540000, 550000]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install pinned Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle4-freeze-${{ matrix.seed_base }}
+          path: frozen
+      - name: Score frozen paired plans with inherited threshold
+        run: >-
+          python -m fuckmark.tiny_dev_exact_survival_confirmation_score_hf
+          --corpus-json frozen/cycle4-corpus-${{ matrix.seed_base }}.json
+          --baseline-plan-json frozen/cycle4-baseline-plan-${{ matrix.seed_base }}.json
+          --exact-plan-json frozen/cycle4-exact-plan-${{ matrix.seed_base }}.json
+          --contract-json specs/fuckmark-exact-survival-confirmation-v4.contract.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --confirmation-seed-base ${{ matrix.seed_base }}
+          --source-code-commit "$(git rev-parse HEAD)"
+          --json artifacts/cycle4-confirmation-evidence-${{ matrix.seed_base }}.json
+          --provenance-json artifacts/cycle4-confirmation-evidence-${{ matrix.seed_base }}-provenance.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle4-score-${{ matrix.seed_base }}
+          path: artifacts/
+          if-no-files-found: error
+
+  aggregate:
+    name: Aggregate confirmation
+    needs: score
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cycle4-score-*
+          path: scored
+      - name: Aggregate preregistered outcome
+        run: >-
+          python -m fuckmark.tiny_dev_exact_survival_confirmation_aggregate
+          --contract-json specs/fuckmark-exact-survival-confirmation-v4.contract.json
+          --evidence-json scored/cycle4-score-530000/cycle4-confirmation-evidence-530000.json
+          --evidence-json scored/cycle4-score-540000/cycle4-confirmation-evidence-540000.json
+          --evidence-json scored/cycle4-score-550000/cycle4-confirmation-evidence-550000.json
+          --json artifacts/cycle4-confirmation-aggregate.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle4-confirmation-aggregate
+          path: artifacts/cycle4-confirmation-aggregate.json
+          if-no-files-found: error
