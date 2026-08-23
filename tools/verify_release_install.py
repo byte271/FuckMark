@@ -5,12 +5,15 @@ import os
 import subprocess
 import sys
 import tempfile
+import tomllib
 import venv
 from pathlib import Path
 
 
 EXPECTED_INPUT = "I do not agree and I cannot stay.\n"
 EXPECTED_OUTPUT = "I don't agree and I can't stay.\n"
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_VERSION = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 
 
 def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -57,7 +60,7 @@ def _verify_artifact(artifact: Path) -> None:
             if not command.is_file():
                 raise RuntimeError(f"missing installed console command: {command.name}")
             version = _run([str(command), "--version"], capture_output=True).stdout
-            if "FuckMark 0.1.0" not in version or "release-cli-v3" not in version:
+            if f"FuckMark {PROJECT_VERSION}" not in version or "release-cli-v3" not in version:
                 raise RuntimeError(f"unexpected version output from {command.name}: {version!r}")
             transformed = _run(
                 [str(command), "--stdin"],
