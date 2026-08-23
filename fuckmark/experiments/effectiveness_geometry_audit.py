@@ -117,10 +117,14 @@ def build_effectiveness_geometry_audit(
         require_int("scheduler_covered_interval_size", scheduler_covered)
         if scheduler_covered != selected_geometry.proxy_covered_observation_count:
             raise ValueError("plan scheduler coverage does not match replayed proxy geometry")
+        candidate_count = entry.get("candidate_count")
         requested_budget = entry.get("requested_budget")
         realized_edit_cost = entry.get("realized_edit_cost")
+        require_int("candidate_count", candidate_count)
         require_int("requested_budget", requested_budget)
         require_int("realized_edit_cost", realized_edit_cost)
+        if candidate_count != len(enumeration.candidates):
+            raise ValueError("candidate_count does not match replayed enumeration")
         if requested_budget <= 0:
             raise ValueError("requested_budget must be positive")
         if not 0 <= realized_edit_cost <= requested_budget:
@@ -128,6 +132,8 @@ def build_effectiveness_geometry_audit(
         if realized_edit_cost != len(selected_ids):
             raise ValueError("realized_edit_cost does not match selected candidate count")
         unused_budget = requested_budget - realized_edit_cost
+        unselected_candidate_count = candidate_count - realized_edit_cost
+        proxy_saturated_before_budget = unused_budget > 0 and unselected_candidate_count > 0
 
         marginals = diagnose_unselected_exact_marginals(
             source_sample_id=source_id,
@@ -150,9 +156,12 @@ def build_effectiveness_geometry_audit(
             "diagnostic_transform_trace_hash": selected_geometry.transform_trace_hash,
             "selected_geometry_hash": selected_geometry.diagnostic_hash,
             "marginal_geometry_hash": marginals.diagnostic_hash,
+            "candidate_count": candidate_count,
             "requested_budget": requested_budget,
             "realized_edit_cost": realized_edit_cost,
             "unused_budget": unused_budget,
+            "unselected_candidate_count": unselected_candidate_count,
+            "proxy_saturated_before_budget": proxy_saturated_before_budget,
             "root_observation_count": selected_geometry.root_observation_count,
             "proxy_covered_observation_count": selected_geometry.proxy_covered_observation_count,
             "exact_destroyed_observation_count": selected_geometry.exact_destroyed_observation_count,
@@ -160,7 +169,7 @@ def build_effectiveness_geometry_audit(
             "exact_minus_proxy_count": selected_geometry.exact_minus_proxy_count,
             "hidden_exact_gain_count": marginals.hidden_exact_gain_count,
             "actionable_hidden_exact_gain_count": (
-                marginals.hidden_exact_gain_count if unused_budget > 0 else 0
+                marginals.hidden_exact_gain_count if proxy_saturated_before_budget else 0
             ),
             "maximum_hidden_exact_gain": marginals.maximum_hidden_exact_gain,
             "hidden_exact_gain_candidate_ids": tuple(row.candidate_id for row in hidden_rows),
@@ -187,13 +196,16 @@ def build_effectiveness_geometry_audit(
         "proxy_understatement_row_count": sum(int(row["exact_minus_proxy_count"]) > 0 for row in row_tuple),
         "proxy_exact_match_row_count": sum(int(row["exact_minus_proxy_count"]) == 0 for row in row_tuple),
         "early_stop_row_count": sum(int(row["unused_budget"]) > 0 for row in row_tuple),
+        "proxy_saturation_row_count": sum(
+            bool(row["proxy_saturated_before_budget"]) for row in row_tuple
+        ),
         "hidden_exact_gain_candidate_count": hidden_total,
         "hidden_exact_gain_row_count": sum(int(row["hidden_exact_gain_count"]) > 0 for row in row_tuple),
         "actionable_hidden_exact_gain_candidate_count": sum(
             int(row["actionable_hidden_exact_gain_count"]) for row in row_tuple
         ),
         "actionable_hidden_exact_gain_row_count": sum(
-            int(row["unused_budget"]) > 0 and int(row["hidden_exact_gain_count"]) > 0
+            bool(row["proxy_saturated_before_budget"]) and int(row["hidden_exact_gain_count"]) > 0
             for row in row_tuple
         ),
         "maximum_hidden_exact_gain": max(
