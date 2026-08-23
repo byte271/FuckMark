@@ -8,7 +8,8 @@ import pytest
 
 from fuckmark.experiments.general_spacing_exact_geometry import diagnose_selected_candidate_geometry
 from fuckmark.hashing import sha256_text
-from fuckmark.transforms import GeneralWordSpacingRule, TransformRegistry
+from fuckmark.transforms.registry import TransformRegistry
+from fuckmark.transforms.rules import GeneralWordSpacingRule
 
 
 class SpaceSensitiveTokenizer:
