@@ -1,5 +1,88 @@
 {
-  "appendices": {},
+  "appendices": {
+    "promotion_decision": {
+      "ablation_note": "arm C (general rule plus punctuation only) achieves the same mean achievable coverage as arm B; the cycle-2 word list in arm D adds candidates but no additional coverage; the general rule is the operative mechanism",
+      "confirmation_plan": {
+        "arms": [
+          "A_cycle2_baseline",
+          "B_content_region"
+        ],
+        "corpora_seed_bases": [
+          460000,
+          470000,
+          480000
+        ],
+        "threshold": "fixed open-detector-measurement-stability-v1 artifact, frozen before any confirmation score"
+      },
+      "decision": "PROMOTE_CONTENT_REGION_CANDIDATE_TO_CONFIRMATION",
+      "dev_arm_summary": {
+        "evidence": {
+          "A": {
+            "artifact_hash": "9220f05c8d60000e7854ca967f3565ea966fe49824fa2852b6d647957551ae73",
+            "detected": 1,
+            "mean_score_drop": 0.10520081825713615
+          },
+          "B": {
+            "artifact_hash": "1fa95328246858bf49b6ae8a6ce0a4c5bdf97fc0c30dfdec6c89b7bea2930089",
+            "detected": 1,
+            "mean_score_drop": 0.1138549714227548
+          },
+          "C": {
+            "artifact_hash": "92b0e20199be75aa3a18fba21b0134764625ff95de1f99298ebf6d4332f26c90",
+            "detected": 1,
+            "mean_score_drop": 0.11398387642298335
+          },
+          "D": {
+            "artifact_hash": "a3a420a98ba552f5d8016465b3398a210b4fbb9eee5c3fd1ee7e76f4fe6b8d94",
+            "detected": 1,
+            "mean_score_drop": 0.11056383858328153
+          }
+        },
+        "structure": {
+          "A": {
+            "artifact_hash": "ab547b487cf37633eeaf0abdf151ed213bcd132ebe29912032b2d37b5e91bdc0",
+            "mean_achievable_coverage": 0.8405455508474576,
+            "mean_pool": 21.625,
+            "zero_candidate_sources": 0
+          },
+          "B": {
+            "artifact_hash": "308ccaa1153149b302593d33208db69968176c8948e7149db0e3a847f144feb4",
+            "mean_achievable_coverage": 0.9411458333333332,
+            "mean_pool": 45.0,
+            "zero_candidate_sources": 0
+          },
+          "C": {
+            "artifact_hash": "66c16e2a82b22a2e422d1e38a03d7c508b0a8111506ee272908fe67e17ceff8b",
+            "mean_achievable_coverage": 0.9411458333333332,
+            "mean_pool": 44.71875,
+            "zero_candidate_sources": 0
+          },
+          "D": {
+            "artifact_hash": "f533484077270016da9609ffe14d614f7249f83b0b19efb98814894fbe4ddd49",
+            "mean_achievable_coverage": 0.9411458333333332,
+            "mean_pool": 61.90625,
+            "zero_candidate_sources": 0
+          }
+        }
+      },
+      "gate_results": {
+        "cf_strip_identity": true,
+        "hard_invariants_all_rows": true,
+        "historical_hashes_unchanged": true,
+        "introduced_hidden_codepoints": 0,
+        "introduced_normalization_instability": 0,
+        "low_coverage_gate_required": 0.05,
+        "low_coverage_mean_gain": 0.2,
+        "max_word_edit_rate": 0.1509,
+        "paired_detector_B_minus_A_detected_difference": 0,
+        "protected_span_violations": 0,
+        "robustness_gate_pass_fraction": 1.0,
+        "tolerance": 2,
+        "zero_candidate_rate": 0
+      },
+      "recorded_at_utc": "2026-08-23T03:09:39.090311+00:00"
+    }
+  },
   "contract_sha256": "072c360e57abda8fabfafbc23654324a1dfb89efe585c367a0a745aa8474c7b3",
   "freeze_record_version": "content-region-coverage-v3-freeze-v1",
   "frozen_at_utc": "2026-08-23T02:55:06.234907+00:00",
