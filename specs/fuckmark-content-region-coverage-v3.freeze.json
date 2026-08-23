@@ -1,5 +1,38 @@
 {
   "appendices": {
+    "confirmation_corpus_freeze": {
+      "corpora": {
+        "460000": {
+          "artifact_hash": "aa4b0fab8589e2830218b93a75a1f3cf6ca1ded01a505f7fb084d27843a57ab1",
+          "file_sha256": "ae7f847af1b4b22a0206483989480eb8925ad69a5533eed56b9b87107e87b55d",
+          "sample_count": 328,
+          "seed_span": [
+            460000,
+            465216
+          ]
+        },
+        "470000": {
+          "artifact_hash": "381bb01ad2ce1a01a5f970bcded8c09fd22da784eba148fda208b9efe4e94974",
+          "file_sha256": "222c8eeb8ef88463a51c6802b4fd41c2b7bc7ffc8ff04b696fc3e4e036b9bff7",
+          "sample_count": 328,
+          "seed_span": [
+            470000,
+            475216
+          ]
+        },
+        "480000": {
+          "artifact_hash": "60604bda9a6b7589a99b40d528ae967948a030f0d777d6554ef836bfab6cd701",
+          "file_sha256": "226185d0a73720189933612f2ddad3e8853f3cb89d3dfa5dcaf113351b45ef4e",
+          "sample_count": 328,
+          "seed_span": [
+            480000,
+            485216
+          ]
+        }
+      },
+      "note": "all three confirmation corpora hashed and frozen before any cycle-3 confirmation detector score",
+      "recorded_at_utc": "2026-08-23T03:51:31.062376+00:00"
+    },
     "promotion_decision": {
       "ablation_note": "arm C (general rule plus punctuation only) achieves the same mean achievable coverage as arm B; the cycle-2 word list in arm D adds candidates but no additional coverage; the general rule is the operative mechanism",
       "confirmation_plan": {
