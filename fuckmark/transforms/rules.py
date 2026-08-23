@@ -186,7 +186,7 @@ class GeneralWordSpacingRule(LiteralTransformRule):
         )
 
     def pattern(self) -> re.Pattern[str]:
-        return re.compile(r"(?<![A-Za-z])[A-Za-z]+(?= [A-Za-z])")
+        return re.compile(r"(?<![A-Za-z])[A-Za-z]+(?= [^ \t\r\n])")
 
     def replacement_for(self, source_text: str) -> str:
         return source_text + " "

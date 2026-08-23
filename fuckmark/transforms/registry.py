@@ -106,7 +106,8 @@ class TransformRegistry:
                 if isinstance(rule, (LexicalTemplateRule, SyntaxTemplateRule)) and not rule.precondition(text, start, end):
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.PRECONDITION_FAILED))
                     continue
-                replacement = rule.replacement_for(source_text)
+                replacement_getter = getattr(rule, "replacement_for", None)
+                replacement = replacement_getter(source_text) if callable(replacement_getter) else rule.replacement
                 if rule.preserve_simple_case:
                     replacement = _simple_case_replacement(source_text, replacement)
                     if replacement is None:
