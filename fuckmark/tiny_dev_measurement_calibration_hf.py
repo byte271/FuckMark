@@ -148,8 +148,13 @@ def build_real_measurement_calibration_corpus(
             accepted = False
             for attempt in range(MEASUREMENT_CALIBRATION_MAX_ATTEMPTS):
                 seed = slot_seed_base + attempt
-                generated = backend.generate(prompt.text, seed, watermarked=False)
+                try:
+                    generated = backend.generate(prompt.text, seed, watermarked=False)
+                except RuntimeError:
+                    continue
                 if len(generated.continuation_token_ids) != TINY_DEV_TARGET_LENGTH:
+                    continue
+                if not generated.text.strip():
                     continue
                 text_hash = sha256_text(generated.text)
                 token_hash = sha256_json(generated.continuation_token_ids)

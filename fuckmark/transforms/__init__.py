@@ -1,5 +1,7 @@
 from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate
 from .effectiveness_profile import (
+    CONTENT_REGION_COVERAGE_PROFILE_ID,
+    CONTENT_REGION_COVERAGE_SEED_BASE,
     EFFECTIVENESS_PROFILE_ALGORITHM_VERSION,
     KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
     KEY_BLIND_COVERAGE_COMPLETION_SEED_BASE,
@@ -10,6 +12,8 @@ from .effectiveness_profile import (
     KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
     KEY_BLIND_HIGH_COVERAGE_SEED_BASE,
     EffectivenessTransformProfile,
+    content_region_coverage_profile,
+    content_region_coverage_transform_registry,
     key_blind_coverage_completion_profile,
     key_blind_coverage_completion_transform_registry,
     key_blind_full_pool_coverage_profile,
@@ -218,6 +222,10 @@ __all__ = [
     "KEY_BLIND_FULL_POOL_COVERAGE_SEED_BASE",
     "KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID",
     "KEY_BLIND_COVERAGE_COMPLETION_SEED_BASE",
+    "CONTENT_REGION_COVERAGE_PROFILE_ID",
+    "CONTENT_REGION_COVERAGE_SEED_BASE",
+    "content_region_coverage_profile",
+    "content_region_coverage_transform_registry",
     "key_blind_coverage_completion_profile",
     "key_blind_coverage_completion_transform_registry",
     "LEXICAL_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION",

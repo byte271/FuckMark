@@ -13,6 +13,7 @@ from .registry import (
     TRANSFORM_REGISTRY_ALGORITHM_VERSION,
     TransformRegistry,
 )
+from .rules import GeneralWordSpacingRule
 from .scheduler import CANDIDATE_SCHEDULER_ALGORITHM_VERSION
 from .surface_rules import coverage_completion_surface_rules, development_surface_rules
 from .syntax_rules import development_syntax_rules
@@ -27,6 +28,8 @@ KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID = "key-blind-full-pool-coverage-v1"
 KEY_BLIND_FULL_POOL_COVERAGE_SEED_BASE = 1_130_000
 KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID = "key-blind-coverage-completion-v2"
 KEY_BLIND_COVERAGE_COMPLETION_SEED_BASE = 1_140_000
+CONTENT_REGION_COVERAGE_PROFILE_ID = "content-region-coverage-v1"
+CONTENT_REGION_COVERAGE_SEED_BASE = 1_150_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -210,7 +213,60 @@ def resolve_effectiveness_profile(
         if not budgets:
             raise ValueError("the coverage completion profile requires explicit budgets")
         return key_blind_coverage_completion_profile(budgets)
+    if profile_id == CONTENT_REGION_COVERAGE_PROFILE_ID:
+        if not budgets:
+            raise ValueError("the content region coverage profile requires explicit budgets")
+        return content_region_coverage_profile(budgets)
     raise ValueError("unknown effectiveness profile id")
+
+
+CONTENT_REGION_GENERAL_SPACING_RULE_ID = "surface-space-after-any-word"
+
+
+def content_region_surface_rules():
+    punctuation = tuple(
+        rule
+        for rule in development_surface_rules()
+        if not rule.source.isalpha()
+    )
+    general = GeneralWordSpacingRule.create(CONTENT_REGION_GENERAL_SPACING_RULE_ID)
+    return (*punctuation, general)
+
+
+def content_region_coverage_transform_registry(
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    return TransformRegistry(
+        (
+            *development_forward_contraction_rules(),
+            *content_region_surface_rules(),
+            *development_lexical_rules(),
+            *development_syntax_rules(),
+        ),
+        identifiers,
+    )
+
+
+def content_region_coverage_profile(
+    budgets: tuple[int, ...],
+) -> EffectivenessTransformProfile:
+    if not isinstance(budgets, tuple):
+        raise TypeError("budgets must be a tuple")
+    return EffectivenessTransformProfile.create(
+        profile_id=CONTENT_REGION_COVERAGE_PROFILE_ID,
+        budgets=budgets,
+        budget_unit="operation",
+        schedule_policy_id="COVERAGE_GREEDY_KEY_BLIND",
+        schedule_seed_base=CONTENT_REGION_COVERAGE_SEED_BASE,
+        replicate_count=1,
+        ngram_len=5,
+        ruleset_hash=content_region_coverage_transform_registry().ruleset_hash,
+        scientific_scope=(
+            "Frozen detector-blind and key-blind content-region coverage profile pairing "
+            "contractions and punctuation spacing with a general any-word spacing rule; "
+            "exploratory effectiveness evidence only and not release authorization"
+        ),
+    )
 
 
 def key_blind_coverage_completion_transform_registry(

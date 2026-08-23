@@ -111,6 +111,86 @@ class LiteralTransformRule:
                 pattern = rf"{pattern}(?!\w)"
         return re.compile(pattern)
 
+    def replacement_for(self, source_text: str) -> str:
+        return self.replacement
+
+
+GENERAL_WORD_SPACING_RULE_VERSION = "general-word-space-after-v1"
+
+
+@dataclass(frozen=True, slots=True)
+class GeneralWordSpacingRule(LiteralTransformRule):
+    def __post_init__(self) -> None:
+        require_clean_string("rule_id", self.rule_id)
+        require_clean_string("version", self.version)
+        if self.version != GENERAL_WORD_SPACING_RULE_VERSION:
+            raise ValueError("unsupported general word spacing rule version")
+        if self.family is not TransformFamily.ORTHOGRAPHY:
+            raise ValueError("general word spacing rules must use the orthography family")
+        if self.tier is not TransformTier.SURFACE:
+            raise ValueError("general word spacing rules must use tier 1 surface")
+        if self.source != "word" or self.replacement != "word ":
+            raise ValueError("general word spacing rules use the fixed word sentinel contract")
+        if "\n" in self.source or "\r" in self.source or "\n" in self.replacement or "\r" in self.replacement:
+            raise ValueError("general word spacing rules must stay single-line")
+        require_bool("whole_word", self.whole_word)
+        require_bool("preserve_simple_case", self.preserve_simple_case)
+        require_bool("block_all_caps", self.block_all_caps)
+        if self.whole_word or self.preserve_simple_case or self.block_all_caps:
+            raise ValueError("general word spacing rules use an exact case-sensitive boundary contract")
+        require_sha256("rule_hash", self.rule_hash)
+        if self.rule_hash != sha256_json(self._payload()):
+            raise ValueError("rule_hash does not match general word spacing rule")
+
+    def _payload(self) -> dict[str, object]:
+        return {
+            "algorithm_version": RULE_ALGORITHM_VERSION,
+            "rule_id": self.rule_id,
+            "version": self.version,
+            "family": self.family.value,
+            "tier": self.tier.value,
+            "source": self.source,
+            "replacement": self.replacement,
+            "whole_word": self.whole_word,
+            "preserve_simple_case": self.preserve_simple_case,
+            "block_all_caps": self.block_all_caps,
+            "general_pattern": GENERAL_WORD_SPACING_RULE_VERSION,
+        }
+
+    @classmethod
+    def create(cls, rule_id: str) -> "GeneralWordSpacingRule":
+        hashed = {
+            "algorithm_version": RULE_ALGORITHM_VERSION,
+            "rule_id": rule_id,
+            "version": GENERAL_WORD_SPACING_RULE_VERSION,
+            "family": TransformFamily.ORTHOGRAPHY.value,
+            "tier": TransformTier.SURFACE.value,
+            "source": "word",
+            "replacement": "word ",
+            "whole_word": False,
+            "preserve_simple_case": False,
+            "block_all_caps": False,
+            "general_pattern": GENERAL_WORD_SPACING_RULE_VERSION,
+        }
+        return cls(
+            rule_id=rule_id,
+            version=GENERAL_WORD_SPACING_RULE_VERSION,
+            family=TransformFamily.ORTHOGRAPHY,
+            tier=TransformTier.SURFACE,
+            source="word",
+            replacement="word ",
+            whole_word=False,
+            preserve_simple_case=False,
+            block_all_caps=False,
+            rule_hash=sha256_json(hashed),
+        )
+
+    def pattern(self) -> re.Pattern[str]:
+        return re.compile(r"(?<![A-Za-z])[A-Za-z]+(?= [A-Za-z])")
+
+    def replacement_for(self, source_text: str) -> str:
+        return source_text + " "
+
 
 class SurfaceSpacingRule(LiteralTransformRule):
     def __post_init__(self) -> None:
