@@ -119,7 +119,16 @@
   "contract_sha256": "072c360e57abda8fabfafbc23654324a1dfb89efe585c367a0a745aa8474c7b3",
   "freeze_record_version": "content-region-coverage-v3-freeze-v1",
   "frozen_at_utc": "2026-08-23T02:55:06.234907+00:00",
-  "pre_score_amendments": [],
+  "pre_score_amendments": [
+    {
+      "amendment_id": "pre-score-amendment-1",
+      "commit": "0e9429d1fe17d9fc4c7f000812272a8e4e59d53f",
+      "finding": "plan A on corpus 480000 failed fail-closed with PROTECTED_CONTENT_CHANGED: the currency protected-span regex consumed preceding horizontal whitespace whenever a double space preceded a currency amount, so an extra space inserted before \"$100\" changed the extracted span text from \"$100\" to \" $100\"",
+      "fix": "currency extraction now requires a sign for the sign-whitespace branch, making span text invariant under preceding whitespace; signed forms still extract; regression tests added; no frozen ruleset or profile hash changed (extractor fix only); the fail-closed plan builder behaved correctly",
+      "kind": "mechanical_correction",
+      "recorded_at_utc": "2026-08-23T04:09:49.020302+00:00"
+    }
+  ],
   "protocol_id": "content-region-coverage-v3",
   "protocol_sha256": "ea0de812869d60f7a5cc8e765eb0c5a68db0c61c8722b2347a64752e12fb24a2"
 }
