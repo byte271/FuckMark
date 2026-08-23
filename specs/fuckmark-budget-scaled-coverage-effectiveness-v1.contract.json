@@ -70,7 +70,7 @@
   "fidelity_gates": {
     "hard_invariants": "PASS required for every row",
     "protected_span_violations": 0,
-    "word_edit_rate_max": 0.15,
+    "word_edit_rate_max": 0.3,
     "ascii_gate": true,
     "forbidden_codepoint_categories": ["Cc", "Cf", "Mn", "Mc", "Me", "Zl", "Zp"],
     "allowed_space": "U+0020 only",

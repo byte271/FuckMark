@@ -1,7 +1,7 @@
 {
   "appendix_confirmation_budget": null,
   "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
-  "contract_sha256": "d7b96e2b11b5a54e0518e9dcb74d6809269f6a3b9bc7aaedb6fabb89fde91753",
+  "contract_sha256": "47873d48f3a0c3a3eb1a3872c65426a5a440a65e33d3c05e7b801e9bfe8ca1f8",
   "freeze_record_version": "budget-scaled-coverage-freeze-v1",
   "frozen_at_utc": "2026-08-23T00:05:32.588787+00:00",
   "pre_score_amendments": [
@@ -33,8 +33,20 @@
       "interpretation": "generation is platform-sensitive (CPU float nondeterminism across operating systems); detector scoring arithmetic over fixed token sequences is platform-stable; thresholds are computed per corpus from that same corpus calibration split, so all within-cycle comparisons remain internally consistent",
       "reason": "canonical corpus pin is not byte-reproducible on the local Windows CPU runtime",
       "recorded_at_utc": "2026-08-23T00:14:34.573438+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-3",
+      "change": {
+        "word_edit_rate_max": {
+          "from": 0.15,
+          "to": 0.3
+        }
+      },
+      "finding": "a contraction rewrite such as \"are not\" to \"aren't\" costs two word-level edit operations (substitute plus delete), so even a semantically faithful, rules-only transformation of a short source reaches a word edit rate near 0.27; the original 0.15 gate would fail rows for reasons unrelated to the research question",
+      "reason": "word edit rate gate was set below the mechanical floor of the ruleset before any scoring",
+      "recorded_at_utc": "2026-08-23T00:16:07.299567+00:00"
     }
   ],
   "protocol_id": "budget-scaled-coverage-effectiveness-v1",
-  "protocol_sha256": "e242a93b4d81614ead88946dcd4ccc95462c4590ab3a83de09978a755518b63e"
+  "protocol_sha256": "8b2e5aac454705e3a346a737e3f7854aa5688c6c3ebd3c27cc55984a0e9a87e7"
 }

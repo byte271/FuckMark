@@ -74,7 +74,7 @@ Gates evaluated on every plan row, development and confirmation:
 
 1. Hard invariants: status PASS (enforced at plan build; any failure aborts).
 2. Protected spans: zero violations under the symmetric protected-span counter.
-3. Word edit rate: word-level edit distance divided by source word count must be <= 0.15.
+3. Word edit rate: word-level edit distance divided by source word count must be <= 0.30.
 4. ASCII gate: transformed text `isascii()` must be True (rules are ASCII-only by design).
 5. Codepoint audit: transformed text must contain no Unicode Cf, Cc, Mn, Mc, Me, Zl, Zp, or Zs
    characters other than U+0020, and no character outside the source alphabet union rule
