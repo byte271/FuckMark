@@ -1,0 +1,10 @@
+{
+  "appendix_confirmation_budget": null,
+  "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
+  "contract_sha256": "e9cec62e6f208db7ed8f13e47b0e7657fc9808d74ce0979115a8ab30f4f8043e",
+  "freeze_record_version": "budget-scaled-coverage-freeze-v1",
+  "frozen_at_utc": "2026-08-23T00:05:32.588787+00:00",
+  "pre_score_amendments": [],
+  "protocol_id": "budget-scaled-coverage-effectiveness-v1",
+  "protocol_sha256": "ad657b3ff9a719a5e3c06f268b1d8281dcf84208e5735ec0a173cc8e886fd688"
+}
