@@ -2,6 +2,15 @@
 
 The project remains at `v0.1.0` for this research line.
 
+## Cycle 4 — content-region destruction (research branch, unreleased)
+
+- Added `exact-survival-greedy-key-blind-v2`: the frozen v1 exact-retokenization greedy scheduler extended with one deterministic pairwise-completion pass. When no single remaining candidate yields positive marginal exact destruction, conflict-free candidate pairs are evaluated (bounded by lexicographically-first feasible IDs for replay) and the best strictly-positive pair is committed; selection remains detector-blind and key-blind throughout.
+- Added the `content-region-destruction-v1` development effectiveness profile: a strict superset of the frozen Cycle-3 ruleset that adds a sentence-leading spacing rule (`surface-space-before-sentence`, one visible leading space before words following ". ", "? ", "! ") and an extended common-word trailing-space list. The Cycle-3 ruleset hash `82011e6d…` is unchanged and remains bound to the v4 confirmation contract.
+- Added `sanitizer-robustness-report-v1`, a reusable observation-only report that scores every transformed text under raw, NFKC-normalized, Cf-stripped, and combined conditions against the inherited fixed threshold, records introduced invisible-codepoint counts per arm, and refuses detector or secret access.
+- Added the quarantined U+200C visible-projection registry as an explicitly labeled diagnostic upper-bound arm in development runs only; it stays excluded from every development, release, and automatic product path.
+- Added development runner `tiny_dev_destruction_dev_hf` producing paired A/B/C comparisons (Cycle-3 proxy scheduling, Cycle-3 exact-survival v1, destruction pool with exact-survival v2) plus the labeled diagnostic arm on fresh watermarked sources.
+- The frozen Cycle-4 confirmation (`fuckmark-exact-survival-confirmation-v4.contract.json`) is untouched: paired arms, seed ledger 530000/540000/550000, fixed threshold, and outcome policy are unchanged.
+
 ## v0.1.0 — Foundation hardening
 
 - Replaced the opaque magenta logo background with transparent light and dark variants selected by the interface color scheme.
