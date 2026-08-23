@@ -20,7 +20,8 @@ _DAY_FIRST_DATE_RE = re.compile(rf"(?<!\d)\d{{1,2}}{_HWS}+{_MONTH}{_HWS}+\d{{4}}
 _SLASH_DATE_RE = re.compile(r"(?<!\d)(?:\d{1,2}/\d{1,2}/\d{2,4}|\d{4}/\d{1,2}/\d{1,2})(?!\d)")
 _NUMBER_BODY = r"[-+]?(?:(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?|\.\d+)(?:[eE][-+]?\d+)?"
 _CURRENCY_CODE = r"(?ai:USD|EUR|GBP|JPY|CNY|RMB)"
-_CURRENCY_RE = re.compile(rf"(?<!\w)(?:[-+]?{_HWS}*{_CURRENCY_CODE}{_HWS}*{_NUMBER_BODY}|[-+]?{_HWS}*[$€£¥]{_HWS}*{_NUMBER_BODY}|{_NUMBER_BODY}{_HWS}*{_CURRENCY_CODE})(?!\w)")
+_SIGNED_HWS = rf"(?:[-+]{_HWS}*)?"
+_CURRENCY_RE = re.compile(rf"(?<!\w)(?:{_SIGNED_HWS}{_CURRENCY_CODE}{_HWS}*{_NUMBER_BODY}|{_SIGNED_HWS}[$€£¥]{_HWS}*{_NUMBER_BODY}|{_NUMBER_BODY}{_HWS}*{_CURRENCY_CODE})(?!\w)")
 _PERCENT_RE = re.compile(rf"(?<![\w.]){_NUMBER_BODY}{_HWS}*%(?!\w)")
 _NUMBER_RE = re.compile(rf"(?<![\w.]){_NUMBER_BODY}(?!\w)")
 _CLI_FLAG_RE = re.compile(r"(?<![\w-])--?[A-Za-z][A-Za-z0-9-]*(?:=[^\s]+)?")
