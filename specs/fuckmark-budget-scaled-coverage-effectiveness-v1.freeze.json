@@ -1,7 +1,7 @@
 {
   "appendix_confirmation_budget": null,
   "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
-  "contract_sha256": "47873d48f3a0c3a3eb1a3872c65426a5a440a65e33d3c05e7b801e9bfe8ca1f8",
+  "contract_sha256": "c878ff9fdbf4c412361f6058a72af1fa8c925e78997c89825d255c8d437f598f",
   "freeze_record_version": "budget-scaled-coverage-freeze-v1",
   "frozen_at_utc": "2026-08-23T00:05:32.588787+00:00",
   "pre_score_amendments": [
@@ -45,8 +45,15 @@
       "finding": "a contraction rewrite such as \"are not\" to \"aren't\" costs two word-level edit operations (substitute plus delete), so even a semantically faithful, rules-only transformation of a short source reaches a word edit rate near 0.27; the original 0.15 gate would fail rows for reasons unrelated to the research question",
       "reason": "word edit rate gate was set below the mechanical floor of the ruleset before any scoring",
       "recorded_at_utc": "2026-08-23T00:16:07.299567+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-4",
+      "change": "gates now bind to characters INTRODUCED by the transformation (present in transformed, absent from source alphabet): introduced characters must be ASCII and must include no Cc, Cf, Mn, Mc, Me, Zl, Zp, or non-space Zs codepoint; pre-existing source codepoints are reported without gating",
+      "finding": "the audit gated on absolute presence of category Cc characters in transformed text, which flags ordinary newlines (U+000A) that the GPT-2 source generation already contains; 28 of 32 development rows failed a gate that measures the corpus, not the candidate",
+      "reason": "codepoint audit scope error found on development robustness evidence before confirmation scoring",
+      "recorded_at_utc": "2026-08-23T00:24:31.440654+00:00"
     }
   ],
   "protocol_id": "budget-scaled-coverage-effectiveness-v1",
-  "protocol_sha256": "8b2e5aac454705e3a346a737e3f7854aa5688c6c3ebd3c27cc55984a0e9a87e7"
+  "protocol_sha256": "e9ed870944a32ad7bcfe38993d1fdd6287618a04d638192734b82bcfaf9de833"
 }

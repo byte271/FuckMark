@@ -20,9 +20,28 @@ WORD_EDIT_RATE_MAX = 0.30
 def _forbidden_codepoints(text: str) -> tuple[str, ...]:
     return tuple(
         f"U+{ord(character):04X}({unicodedata.category(character)})"
-        for character in text
+        for character in sorted(set(text))
         if unicodedata.category(character) in FORBIDDEN_CATEGORIES
         or (unicodedata.category(character) == "Zs" and character != " ")
+    )
+
+
+def _introduced_forbidden_codepoints(source_text: str, transformed_text: str) -> tuple[str, ...]:
+    source_alphabet = set(source_text)
+    return tuple(
+        f"U+{ord(character):04X}({unicodedata.category(character)})"
+        for character in sorted(set(transformed_text) - source_alphabet)
+        if unicodedata.category(character) in FORBIDDEN_CATEGORIES
+        or (unicodedata.category(character) == "Zs" and character != " ")
+    )
+
+
+def _introduced_non_ascii(source_text: str, transformed_text: str) -> tuple[str, ...]:
+    source_alphabet = set(source_text)
+    return tuple(
+        f"U+{ord(character):04X}"
+        for character in sorted(set(transformed_text) - source_alphabet)
+        if not character.isascii()
     )
 
 
@@ -45,8 +64,10 @@ def _robustness_row(source_text: str, transformed_text: str) -> dict[str, object
     row = {
         "source_text_hash": sha256_text(source_text),
         "transformed_text_hash": sha256_text(transformed_text),
-        "ascii_gate": transformed_text.isascii(),
-        "forbidden_codepoints": _forbidden_codepoints(transformed_text),
+        "transformed_is_ascii": transformed_text.isascii(),
+        "preexisting_forbidden_codepoints": _forbidden_codepoints(transformed_text),
+        "introduced_forbidden_codepoints": _introduced_forbidden_codepoints(source_text, transformed_text),
+        "introduced_non_ascii_codepoints": _introduced_non_ascii(source_text, transformed_text),
         "normalization_noops": normalization_noops,
         "cf_strip_noop": _cf_stripped(transformed_text) == transformed_text,
         "word_edit_rate": word_edit_rate(source_text, transformed_text),
@@ -54,8 +75,8 @@ def _robustness_row(source_text: str, transformed_text: str) -> dict[str, object
         "hard_invariant_status": invariant_status.value,
     }
     gates_pass = (
-        row["ascii_gate"]
-        and not row["forbidden_codepoints"]
+        not row["introduced_forbidden_codepoints"]
+        and not row["introduced_non_ascii_codepoints"]
         and all(normalization_noops.values())
         and row["cf_strip_noop"]
         and row["word_edit_rate"] <= WORD_EDIT_RATE_MAX
@@ -98,8 +119,10 @@ def build_budget_scaled_robustness_report(
     summary = {
         "row_count": len(row_tuple),
         "gate_pass_fraction": sum(1 for row in row_tuple if row["gates_pass"]) / len(row_tuple) if row_tuple else 1.0,
-        "all_ascii": all(row["ascii_gate"] for row in row_tuple),
-        "all_forbidden_codepoints_empty": all(not row["forbidden_codepoints"] for row in row_tuple),
+        "all_introduced_codepoints_clean": all(
+            not row["introduced_forbidden_codepoints"] and not row["introduced_non_ascii_codepoints"]
+            for row in row_tuple
+        ),
         "all_normalization_noops": all(all(row["normalization_noops"].values()) for row in row_tuple),
         "all_cf_strip_noop": all(row["cf_strip_noop"] for row in row_tuple),
         "max_word_edit_rate": max((row["word_edit_rate"] for row in row_tuple), default=0.0),

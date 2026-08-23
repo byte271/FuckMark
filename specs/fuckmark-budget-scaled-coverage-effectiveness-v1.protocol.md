@@ -75,10 +75,12 @@ Gates evaluated on every plan row, development and confirmation:
 1. Hard invariants: status PASS (enforced at plan build; any failure aborts).
 2. Protected spans: zero violations under the symmetric protected-span counter.
 3. Word edit rate: word-level edit distance divided by source word count must be <= 0.30.
-4. ASCII gate: transformed text `isascii()` must be True (rules are ASCII-only by design).
-5. Codepoint audit: transformed text must contain no Unicode Cf, Cc, Mn, Mc, Me, Zl, Zp, or Zs
-   characters other than U+0020, and no character outside the source alphabet union rule
-   alphabet.
+4. Introduced-codepoint gate: every character the transformation introduces (present in the
+   transformed text but absent from the source alphabet) must be ASCII; pre-existing source
+   characters such as newlines are corpus properties and are reported, not gated.
+5. Codepoint audit: the transformation must introduce no Unicode Cf, Cc, Mn, Mc, Me, Zl, Zp,
+   or Zs characters other than U+0020. Pre-existing forbidden-category characters in the
+   source are reported separately and do not gate the candidate.
 6. Normalization no-op: NFC, NFD, NFKC, and NFKD of every transformed text must equal the
    transformed text itself; Unicode Cf stripping must be the identity function on every
    transformed text. Any non-identity result is an adverse finding and a Level B failure.

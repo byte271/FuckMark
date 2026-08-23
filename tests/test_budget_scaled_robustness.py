@@ -72,6 +72,22 @@ def test_forbidden_codepoint_audit_detects_hidden_representation() -> None:
     assert _cf_stripped(clean) == clean
 
 
+def test_introduced_codepoint_gate_ignores_preexisting_source_characters() -> None:
+    from fuckmark.tiny_dev_budget_scaled_robustness import (
+        _introduced_forbidden_codepoints,
+        _introduced_non_ascii,
+    )
+
+    source = "source with\nnewline and " + chr(0x2019) + "curly quote"
+    transformed_same = source + " and one more plain ascii word"
+    assert _introduced_forbidden_codepoints(source, transformed_same) == ()
+    assert _introduced_non_ascii(source, transformed_same) == ()
+    transformed_hidden = transformed_same + chr(0x200B)
+    assert _introduced_forbidden_codepoints(source, transformed_hidden) == ("U+200B(Cf)",)
+    transformed_visible_unicode = transformed_same + chr(0x00E9)
+    assert _introduced_non_ascii(source, transformed_visible_unicode) == ("U+00E9",)
+
+
 def test_robustness_report_gates_pass_on_rule_transforms() -> None:
     text = "You are not ready, and we do not stop when the system is in use."
     corpus = _corpus(text, "1")
@@ -86,7 +102,7 @@ def test_robustness_report_gates_pass_on_rule_transforms() -> None:
     assert report["summary"]["gate_pass_fraction"] == 1.0
     assert report["summary"]["all_normalization_noops"] is True
     assert report["summary"]["all_cf_strip_noop"] is True
-    assert report["summary"]["all_ascii"] is True
+    assert report["summary"]["all_introduced_codepoints_clean"] is True
     assert report["summary"]["corpus_pairwise_text_hash_overlaps"] == {}
     assert all(row["gates_pass"] for row in report["rows"])
     assert report["artifact_hash"]
