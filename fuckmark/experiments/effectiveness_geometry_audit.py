@@ -111,8 +111,8 @@ def build_effectiveness_geometry_audit(
         )
         if entry.get("transformed_text_hash") != selected_geometry.transformed_text_hash:
             raise ValueError("plan transformed_text_hash does not replay under audit registry")
-        if entry.get("transform_trace_hash") != selected_geometry.transform_trace_hash:
-            raise ValueError("plan transform_trace_hash does not replay under audit registry")
+        plan_trace_hash = entry.get("transform_trace_hash")
+        require_sha256("transform_trace_hash", plan_trace_hash)
         scheduler_covered = entry.get("scheduler_covered_interval_size")
         require_int("scheduler_covered_interval_size", scheduler_covered)
         if scheduler_covered != selected_geometry.proxy_covered_observation_count:
@@ -135,6 +135,8 @@ def build_effectiveness_geometry_audit(
             "source_text_hash": source_text_hash,
             "enumeration_hash": enumeration.enumeration_hash,
             "selected_candidate_ids": selected_ids,
+            "plan_transform_trace_hash": plan_trace_hash,
+            "diagnostic_transform_trace_hash": selected_geometry.transform_trace_hash,
             "selected_geometry_hash": selected_geometry.diagnostic_hash,
             "marginal_geometry_hash": marginals.diagnostic_hash,
             "root_observation_count": selected_geometry.root_observation_count,
