@@ -11,6 +11,9 @@ from .corpus import (
     ModelTokenizerIdentity,
     PaddingSide,
     WatermarkCondition,
+    build_real_tiny_dev_v3_corpus,
+    load_tiny_dev_corpus_json,
+    load_tiny_dev_v3_corpus_json,
 )
 from .corpus.tiny_dev import TINY_DEV_TARGET_LENGTH
 from .corpus.tiny_dev_generation import (
@@ -215,12 +218,26 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--top-p", type=float, default=0.95)
+    parser.add_argument(
+        "--profile",
+        choices=("v2", "v3"),
+        default="v2",
+    )
+    parser.add_argument(
+        "--attack-pairs-per-domain",
+        type=int,
+        default=1,
+    )
     parser.add_argument("--json", type=Path, default=Path("artifacts/tiny-dev-corpus.json"))
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    if args.profile == "v3" and args.attack_pairs_per_domain < 1:
+        raise ValueError("the v3 profile requires at least one attack pair per domain")
+    if args.profile == "v2" and args.attack_pairs_per_domain != 1:
+        raise ValueError("the v2 profile is frozen at one attack pair per domain")
     backend = HuggingFaceTinyDevBackend(
         args.model,
         args.model_revision,
@@ -229,13 +246,28 @@ def main(argv: list[str] | None = None) -> int:
         top_k=args.top_k,
         top_p=args.top_p,
     )
-    artifact = build_real_tiny_dev_corpus(
-        backend,
-        seed_base=args.seed_base,
-        max_attempts=args.max_attempts,
-    )
+    if args.profile == "v3":
+        artifact = build_real_tiny_dev_v3_corpus(
+            backend,
+            seed_base=args.seed_base,
+            attack_pairs_per_domain=args.attack_pairs_per_domain,
+            max_attempts=args.max_attempts,
+        )
+    else:
+        artifact = build_real_tiny_dev_corpus(
+            backend,
+            seed_base=args.seed_base,
+            max_attempts=args.max_attempts,
+        )
     args.json.parent.mkdir(parents=True, exist_ok=True)
     args.json.write_text(canonical_json_text(artifact) + "\n", encoding="utf-8")
+    loaded = (
+        load_tiny_dev_v3_corpus_json(args.json)
+        if args.profile == "v3"
+        else load_tiny_dev_corpus_json(args.json)
+    )
+    if loaded.artifact_hash != artifact.artifact_hash:
+        raise RuntimeError("canonical corpus JSON did not replay the generated artifact hash")
     sys.stdout.write(f"artifact_hash={artifact.artifact_hash}\n")
     sys.stdout.write(f"manifest_hash={artifact.manifest.manifest_hash}\n")
     sys.stdout.write(f"prompt_count={len(artifact.manifest.prompts)}\n")
@@ -245,6 +277,9 @@ def main(argv: list[str] | None = None) -> int:
         f"generation_signature_hash={artifact.generation_matching_signature_hash}\n"
     )
     sys.stdout.write(f"watermark_condition_hash={artifact.watermark_condition_hash}\n")
+    sys.stdout.write(f"profile={args.profile}\n")
+    if args.profile == "v3":
+        sys.stdout.write(f"attack_pairs_per_domain={args.attack_pairs_per_domain}\n")
     sys.stdout.write(f"json={args.json.as_posix()}\n")
     return 0
 

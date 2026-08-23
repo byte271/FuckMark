@@ -38,6 +38,21 @@ from .tiny_dev_io import (
     load_tiny_dev_corpus_json,
     parse_tiny_dev_corpus_json,
 )
+from .tiny_dev_v3 import (
+    TINY_DEV_V3_CORPUS_ALGORITHM_VERSION,
+    TINY_DEV_V3_MAX_ATTACK_PAIRS_PER_DOMAIN,
+    TinyDevV3CorpusArtifact,
+    build_tiny_dev_v3_corpus,
+)
+from .tiny_dev_v3_generation import (
+    build_real_tiny_dev_v3_corpus,
+    build_tiny_dev_v3_prompt_records,
+)
+from .tiny_dev_io_v3 import (
+    load_tiny_dev_corpus_by_version_json,
+    load_tiny_dev_v3_corpus_json,
+    parse_tiny_dev_v3_corpus_json,
+)
 from .tokenization import GenerationTokenRecord, TextOnlyTokenRecord, TokenTrack
 from .mid_dev_calibration_independence_v3 import (
     MID_DEV_CALIBRATION_INDEPENDENCE_V3_SELECTION_RULE,
@@ -78,6 +93,8 @@ __all__ = [
     "TINY_DEV_JSON_MAX_BYTES",
     "TINY_DEV_SPLITS",
     "TINY_DEV_TARGET_LENGTH",
+    "TINY_DEV_V3_CORPUS_ALGORITHM_VERSION",
+    "TINY_DEV_V3_MAX_ATTACK_PAIRS_PER_DOMAIN",
     "CorpusDomain",
     "CorpusIntegrityError",
     "CorpusLeakageError",
@@ -107,14 +124,20 @@ __all__ = [
     "TinyDevCorpusCell",
     "TinyDevCorpusError",
     "TinyDevCorpusJsonError",
+    "TinyDevV3CorpusArtifact",
     "TokenTrack",
     "WatermarkCondition",
     "WatermarkLabel",
     "build_corpus_manifest",
     "build_calibration_independence_v3",
     "build_calibration_independence_v3_from_samples",
+    "build_real_tiny_dev_v3_corpus",
     "build_tiny_dev_corpus",
+    "build_tiny_dev_v3_corpus",
+    "build_tiny_dev_v3_prompt_records",
     "load_tiny_dev_corpus_json",
+    "load_tiny_dev_corpus_by_version_json",
+    "load_tiny_dev_v3_corpus_json",
     "load_mid_dev_calibration_independence_v3_artifact_json",
     "load_mid_dev_calibration_independence_v3_exclusion_json",
     "load_mid_dev_calibration_independence_v3_manifest_json",
@@ -122,4 +145,5 @@ __all__ = [
     "parse_mid_dev_calibration_independence_v3_exclusion_json",
     "parse_mid_dev_calibration_independence_v3_manifest_json",
     "parse_tiny_dev_corpus_json",
+    "parse_tiny_dev_v3_corpus_json",
 ]

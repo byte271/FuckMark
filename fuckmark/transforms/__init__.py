@@ -1,12 +1,16 @@
 from .candidate_artifacts import CandidateConflict, CandidateEnumeration, CandidateRejection, TransformCandidate
 from .effectiveness_profile import (
     EFFECTIVENESS_PROFILE_ALGORITHM_VERSION,
+    KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
+    KEY_BLIND_FULL_POOL_COVERAGE_SEED_BASE,
     KEY_BLIND_HIGH_COVERAGE_BUDGETS,
     KEY_BLIND_HIGH_COVERAGE_PROFILE,
     KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
     KEY_BLIND_HIGH_COVERAGE_SEED_BASE,
     EffectivenessTransformProfile,
+    key_blind_full_pool_coverage_profile,
     key_blind_high_coverage_transform_registry,
+    resolve_effectiveness_profile,
     validate_effectiveness_profile_registry,
 )
 from .fidelity_readiness import (
@@ -196,6 +200,8 @@ __all__ = [
     "HardInvariantSignature",
     "hard_invariant_signature",
     "key_blind_high_coverage_transform_registry",
+    "key_blind_full_pool_coverage_profile",
+    "resolve_effectiveness_profile",
     "validate_hard_invariants",
     "InvariantDifference",
     "InvariantStatus",
@@ -204,6 +210,8 @@ __all__ = [
     "KEY_BLIND_HIGH_COVERAGE_PROFILE",
     "KEY_BLIND_HIGH_COVERAGE_PROFILE_ID",
     "KEY_BLIND_HIGH_COVERAGE_SEED_BASE",
+    "KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID",
+    "KEY_BLIND_FULL_POOL_COVERAGE_SEED_BASE",
     "LEXICAL_RETOKENIZATION_FIXTURE_ALGORITHM_VERSION",
     "LEXICAL_RULE_AUDIT_ALGORITHM_VERSION",
     "LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION",

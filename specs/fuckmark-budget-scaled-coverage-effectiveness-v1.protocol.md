@@ -33,10 +33,10 @@ decisions, keys beyond the public development keys, or confirmation results.
 ## 3. Data splits and source disjointness
 
 - Development: the canonical pinned TinyDev corpus (seed base 401000, corpus artifact hash
-  recorded at generation time) plus one fresh development corpus at seed base 402000 with 8
+  recorded at generation time) plus one fresh development corpus at seed base 410000 with 8
   attack pairs per domain (32 watermarked attack sources). Pooled development watermarked
   attack sources: 36.
-- Confirmation: one fresh corpus at seed base 403000 with 16 attack pairs per domain
+- Confirmation: one fresh corpus at seed base 420000 with 16 attack pairs per domain
   (64 watermarked attack sources plus 64 unwatermarked attack controls), generated only after
   the protocol, contract, and freeze record exist, and scored exactly once.
 - Every corpus keeps the frozen 25 threshold-calibration pairs per domain (100 negatives).

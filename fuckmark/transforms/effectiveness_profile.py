@@ -23,6 +23,8 @@ EFFECTIVENESS_PROFILE_ALGORITHM_VERSION = "effectiveness-transform-profile-v1"
 KEY_BLIND_HIGH_COVERAGE_PROFILE_ID = "key-blind-high-coverage-v1"
 KEY_BLIND_HIGH_COVERAGE_BUDGETS = (16,)
 KEY_BLIND_HIGH_COVERAGE_SEED_BASE = 1_120_000
+KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID = "key-blind-full-pool-coverage-v1"
+KEY_BLIND_FULL_POOL_COVERAGE_SEED_BASE = 1_130_000
 
 
 @dataclass(frozen=True, slots=True)
@@ -165,6 +167,44 @@ KEY_BLIND_HIGH_COVERAGE_PROFILE = EffectivenessTransformProfile.create(
         "and not release authorization"
     ),
 )
+
+
+def key_blind_full_pool_coverage_profile(
+    budgets: tuple[int, ...],
+) -> EffectivenessTransformProfile:
+    if not isinstance(budgets, tuple):
+        raise TypeError("budgets must be a tuple")
+    return EffectivenessTransformProfile.create(
+        profile_id=KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
+        budgets=budgets,
+        budget_unit="operation",
+        schedule_policy_id="COVERAGE_GREEDY_KEY_BLIND",
+        schedule_seed_base=KEY_BLIND_FULL_POOL_COVERAGE_SEED_BASE,
+        replicate_count=1,
+        ngram_len=5,
+        ruleset_hash=key_blind_high_coverage_transform_registry().ruleset_hash,
+        scientific_scope=(
+            "Frozen detector-blind and key-blind budget-scaled coverage profile over the "
+            "development ruleset with one fixed source-index seed per sorted source; "
+            "exploratory effectiveness evidence only and not release authorization"
+        ),
+    )
+
+
+def resolve_effectiveness_profile(
+    profile_id: str,
+    budgets: tuple[int, ...] = (),
+) -> EffectivenessTransformProfile:
+    require_clean_string("profile_id", profile_id)
+    if profile_id == KEY_BLIND_HIGH_COVERAGE_PROFILE_ID:
+        if budgets:
+            raise ValueError("the frozen B16 profile does not accept custom budgets")
+        return KEY_BLIND_HIGH_COVERAGE_PROFILE
+    if profile_id == KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID:
+        if not budgets:
+            raise ValueError("the full-pool coverage profile requires explicit budgets")
+        return key_blind_full_pool_coverage_profile(budgets)
+    raise ValueError("unknown effectiveness profile id")
 
 
 def validate_effectiveness_profile_registry(

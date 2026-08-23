@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .adapters import HuggingFaceSynthIDAdapter, HuggingFaceSynthIDConfig
-from .corpus import load_tiny_dev_corpus_json
+from .corpus import load_tiny_dev_corpus_by_version_json
 from .detectors import weighted_mean_evidence
 from .durable_io import write_canonical_json_fsynced
 from .experiments.effectiveness_plan import validate_key_blind_high_coverage_plan
@@ -31,7 +31,13 @@ from .tiny_dev_transform_hf import (
     _threshold,
     _word_edit_distance,
 )
-from .transforms import KEY_BLIND_HIGH_COVERAGE_PROFILE
+from .transforms import (
+    KEY_BLIND_HIGH_COVERAGE_PROFILE,
+    KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
+    KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID,
+    EffectivenessTransformProfile,
+    resolve_effectiveness_profile,
+)
 
 
 KEY_BLIND_HIGH_COVERAGE_EVIDENCE_VERSION = "key-blind-high-coverage-evidence-v1"
@@ -87,9 +93,12 @@ def score_key_blind_high_coverage_plan(
     tokenizer: Any,
     plan: Mapping[str, object],
     adapter: HuggingFaceSynthIDAdapter,
+    *,
+    profile: EffectivenessTransformProfile | None = None,
 ) -> dict[str, object]:
-    validate_key_blind_high_coverage_plan(plan, corpus, KEY_BLIND_HIGH_COVERAGE_PROFILE)
-    if adapter.ngram_len != KEY_BLIND_HIGH_COVERAGE_PROFILE.ngram_len:
+    active_profile = profile if profile is not None else KEY_BLIND_HIGH_COVERAGE_PROFILE
+    validate_key_blind_high_coverage_plan(plan, corpus, active_profile)
+    if adapter.ngram_len != active_profile.ngram_len:
         raise ValueError("detector ngram length does not match the frozen effectiveness profile")
     calibration = _text_only_calibration(corpus, adapter)
     threshold = _threshold(calibration, PRIMARY_TARGET_FPR)
@@ -146,9 +155,9 @@ def score_key_blind_high_coverage_plan(
         "tiny_dev_artifact_hash": corpus.artifact_hash,
         "corpus_manifest_hash": corpus.manifest.manifest_hash,
         "plan_hash": plan["plan_hash"],
-        "profile_id": KEY_BLIND_HIGH_COVERAGE_PROFILE.profile_id,
-        "profile_hash": KEY_BLIND_HIGH_COVERAGE_PROFILE.profile_hash,
-        "ruleset_hash": KEY_BLIND_HIGH_COVERAGE_PROFILE.ruleset_hash,
+        "profile_id": active_profile.profile_id,
+        "profile_hash": active_profile.profile_hash,
+        "ruleset_hash": active_profile.ruleset_hash,
         "detector_identity_hash": calibration.detector_identity.identity_hash,
         "calibration_bundle_hash": calibration.bundle_hash,
         "threshold_hash": threshold.threshold_hash,
@@ -188,6 +197,24 @@ def _provenance(
     return {**payload, "provenance_hash": sha256_json(payload)}
 
 
+def _parse_budgets(raw: str) -> tuple[int, ...]:
+    if not raw:
+        return ()
+    values: list[int] = []
+    for chunk in raw.split(","):
+        stripped = chunk.strip()
+        if not stripped:
+            raise ValueError("budget list contains an empty entry")
+        value = int(stripped)
+        if value <= 0:
+            raise ValueError("budgets must be positive integers")
+        values.append(value)
+    budgets = tuple(sorted(set(values)))
+    if budgets != tuple(values):
+        raise ValueError("budgets must be provided in ascending order without duplicates")
+    return budgets
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fuckmark-tiny-dev-effectiveness-score-hf")
     parser.add_argument("--corpus-json", type=Path, required=True)
@@ -196,6 +223,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--model-revision", default=DEFAULT_MODEL_REVISION)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
     parser.add_argument("--source-code-commit", required=True)
+    parser.add_argument(
+        "--profile-id",
+        default=KEY_BLIND_HIGH_COVERAGE_PROFILE_ID,
+        choices=(KEY_BLIND_HIGH_COVERAGE_PROFILE_ID, KEY_BLIND_FULL_POOL_COVERAGE_PROFILE_ID),
+    )
+    parser.add_argument("--budgets", default="")
     parser.add_argument(
         "--json",
         type=Path,
@@ -216,9 +249,10 @@ def main(argv: list[str] | None = None) -> int:
     except ImportError as error:
         raise RuntimeError("Install the pinned TinyDev Transformers dependencies first") from error
 
-    corpus = load_tiny_dev_corpus_json(args.corpus_json)
+    profile = resolve_effectiveness_profile(args.profile_id, _parse_budgets(args.budgets))
+    corpus = load_tiny_dev_corpus_by_version_json(args.corpus_json)
     plan = _load_json(args.plan_json)
-    validate_key_blind_high_coverage_plan(plan, corpus, KEY_BLIND_HIGH_COVERAGE_PROFILE)
+    validate_key_blind_high_coverage_plan(plan, corpus, profile)
     if plan["source_code_commit"] != args.source_code_commit:
         raise ValueError("score invocation commit does not match the frozen plan")
     tokenizer = AutoTokenizer.from_pretrained(
@@ -247,7 +281,7 @@ def main(argv: list[str] | None = None) -> int:
         device=args.device,
     )
     started_at = _now()
-    evidence = score_key_blind_high_coverage_plan(corpus, tokenizer, plan, adapter)
+    evidence = score_key_blind_high_coverage_plan(corpus, tokenizer, plan, adapter, profile=profile)
     write_canonical_json_fsynced(args.json, evidence)
     fsynced_at = _now()
     provenance = _provenance(
@@ -259,7 +293,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     write_canonical_json_fsynced(args.provenance_json, provenance)
 
-    sys.stdout.write(f"profile_id={KEY_BLIND_HIGH_COVERAGE_PROFILE.profile_id}\n")
+    sys.stdout.write(f"profile_id={profile.profile_id}\n")
     sys.stdout.write(f"plan_hash={plan['plan_hash']}\n")
     sys.stdout.write(f"artifact_hash={evidence['artifact_hash']}\n")
     for summary in evidence["summaries"]:

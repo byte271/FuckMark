@@ -1,10 +1,40 @@
 {
   "appendix_confirmation_budget": null,
   "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
-  "contract_sha256": "e9cec62e6f208db7ed8f13e47b0e7657fc9808d74ce0979115a8ab30f4f8043e",
+  "contract_sha256": "d7b96e2b11b5a54e0518e9dcb74d6809269f6a3b9bc7aaedb6fabb89fde91753",
   "freeze_record_version": "budget-scaled-coverage-freeze-v1",
   "frozen_at_utc": "2026-08-23T00:05:32.588787+00:00",
-  "pre_score_amendments": [],
+  "pre_score_amendments": [
+    {
+      "amendment_id": "pre-score-amendment-1",
+      "change": {
+        "confirmation_corpus_seed_base": {
+          "from": 403000,
+          "to": 420000
+        },
+        "development_second_corpus_seed_base": {
+          "from": 402000,
+          "to": 410000
+        }
+      },
+      "justification": "pair seed stride is 32; corpora at 402000/403000 would have overlapping seed ranges (dev spans ~4200 seeds, confirmation ~5250), and shared calibration prompt texts at equal seeds could reproduce identical texts across corpora; bases 410000 and 420000 are disjoint from each other and from the canonical 401000 corpus (which ends near 404300)",
+      "reason": "seed-range overlap arithmetic hazard found during implementation, before any scoring",
+      "recorded_at_utc": "2026-08-23T00:12:24.926060+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-2",
+      "change": {
+        "development_canonical_corpus": {
+          "from": "CI-pinned ee0952 artifact",
+          "to": "locally generated seed-401000 corpus artifact 42240f72 as development data only"
+        }
+      },
+      "finding": "generating the canonical seed-401000 corpus with the pinned model revision, pinned torch 2.13.0+cpu, and the pinned transformers git commit produced artifact_hash 42240f72e17df1a048f44197f216a0b5f30128c26e2da93afbe92820946e4561 and file sha256 57b580c8839ea85a650993e302443fec4e16f76ea4d1ff7156fcb5468017f7ce instead of the CI pin ee09527d06abc58e612f7157b69908d5abe06101865714ce13a1287d1f0d7664",
+      "interpretation": "generation is platform-sensitive (CPU float nondeterminism across operating systems); detector scoring arithmetic over fixed token sequences is platform-stable; thresholds are computed per corpus from that same corpus calibration split, so all within-cycle comparisons remain internally consistent",
+      "reason": "canonical corpus pin is not byte-reproducible on the local Windows CPU runtime",
+      "recorded_at_utc": "2026-08-23T00:14:34.573438+00:00"
+    }
+  ],
   "protocol_id": "budget-scaled-coverage-effectiveness-v1",
-  "protocol_sha256": "ad657b3ff9a719a5e3c06f268b1d8281dcf84208e5735ec0a173cc8e886fd688"
+  "protocol_sha256": "e242a93b4d81614ead88946dcd4ccc95462c4590ab3a83de09978a755518b63e"
 }

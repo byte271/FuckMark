@@ -46,10 +46,10 @@
     "watermark_keys_public_dev": [654, 400, 836, 123, 340, 443, 597, 160, 57],
     "development": [
       {"seed_base": 401000, "profile": "tiny-dev-v2-canonical", "attack_pairs_per_domain": 1},
-      {"seed_base": 402000, "profile": "tiny-dev-v3-parameterized", "attack_pairs_per_domain": 8}
+      {"seed_base": 410000, "profile": "tiny-dev-v3-parameterized", "attack_pairs_per_domain": 8}
     ],
     "confirmation": {
-      "seed_base": 403000,
+      "seed_base": 420000,
       "profile": "tiny-dev-v3-parameterized",
       "attack_pairs_per_domain": 16,
       "watermarked_attack_sources": 64,
@@ -100,10 +100,10 @@
   },
   "artifacts": [
     "specs/fuckmark-budget-scaled-coverage-effectiveness-v1.freeze.json",
-    "artifacts/budget-scaled/dev-corpus-402000.json",
+    "artifacts/budget-scaled/dev-corpus-410000.json",
     "artifacts/budget-scaled/dev-plan-{budget}.json",
     "artifacts/budget-scaled/dev-evidence-{budget}.json",
-    "artifacts/budget-scaled/confirmation-corpus-403000.json",
+    "artifacts/budget-scaled/confirmation-corpus-420000.json",
     "artifacts/budget-scaled/confirmation-plan.json",
     "artifacts/budget-scaled/confirmation-evidence.json",
     "artifacts/budget-scaled/robustness-report.json",
