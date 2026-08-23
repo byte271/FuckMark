@@ -23,16 +23,17 @@ FuckMark v0.2.0 is a deterministic CLI and research-infrastructure release. The 
 8. Generate `SHA256SUMS.txt` from the exact verified wheel and source distribution.
 9. Merge the release branch only after required GitHub Actions are green.
 10. On the resulting `main` push, rerun the cross-platform release matrix.
-11. If `v<project-version>` does not already exist, the release job creates that immutable tag at the exact verified `main` commit and then publishes the GitHub Release from the verified distributions.
-12. Later `main` pushes with the same already-tagged project version do not republish the release.
+11. If `v<project-version>` does not already exist, the release job creates that immutable tag at the exact verified `main` commit.
+12. The same job separately checks whether the GitHub Release exists. If the tag exists but the Release does not, publication is repaired from the verified distributions instead of silently stopping in a half-published state.
+13. Later `main` pushes with the same project version and an existing GitHub Release are safe no-ops for publication.
 
 ## Publication workflow
 
 The `Release Engineering` workflow runs its package matrix on Ubuntu, macOS, and Windows. It uses current Node 24 GitHub Actions, builds the distributions independently in each operating-system job, runs `twine check`, and invokes `tools/verify_release_install.py` against both artifacts.
 
-The Linux job uploads the verified release distributions. On a `main` push, the publication job derives the tag from `pyproject.toml`. If that exact tag already exists, publication is a no-op. If the tag is absent, the job creates `v<project-version>` at the verified commit, downloads the verified artifacts, and creates the GitHub Release with the wheel, source distribution, and SHA-256 manifest. Direct `v*` tag events are also accepted only when the tag exactly matches the package version.
+The Linux job uploads the verified release distributions. On a `main` push, the publication job derives `v<project-version>` from `pyproject.toml`, checks the Git tag and GitHub Release independently, creates the tag only when it is missing, and creates the GitHub Release only when it is missing. This makes publication idempotent and repairs the specific boundary where a tag was created successfully but Release creation failed afterward.
 
-There is no hard-coded release tag and no commit-message release trigger. The package version is the release identity source of truth, while the actual GitHub Release remains tag-backed.
+Direct tag pushes do not trigger the release workflow. That avoids duplicate release runs racing against the `main` run that created the tag. There is no hard-coded release tag and no commit-message release trigger.
 
 ## v0.2.0 scientific result
 
