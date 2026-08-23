@@ -1,0 +1,10 @@
+{
+  "appendix_confirmation_budget": 16,
+  "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
+  "contract_sha256": "20ba6145793a89f0aa5cbc530305d9345731a60d60ad906199b323c74942d825",
+  "freeze_record_version": "coverage-completion-v2-freeze-v1",
+  "frozen_at_utc": "2026-08-23T01:24:49.558549+00:00",
+  "pre_score_amendments": [],
+  "protocol_id": "coverage-completion-v2",
+  "protocol_sha256": "65856295a595acaa404392239ccd9db9fa43d3f45a86ae61ee0d88b0d1e0851a"
+}
