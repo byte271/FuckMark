@@ -281,20 +281,11 @@ def build_coverage_hole_report(corpus: Any, tokenizer: Any, plan: dict[str, obje
 
 
 def _registry_for_plan(plan: dict[str, object]):
-    from ..transforms import (
-        KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID,
-        CONTENT_REGION_COVERAGE_PROFILE_ID,
-        content_region_coverage_transform_registry,
-        key_blind_coverage_completion_transform_registry,
-        key_blind_high_coverage_transform_registry,
-    )
+    from .effectiveness_plan import _registry_for_profile
+    from ..transforms import EffectivenessTransformProfile, resolve_effectiveness_profile
 
-    profile_id = plan["profile_id"]
-    if profile_id == KEY_BLIND_COVERAGE_COMPLETION_PROFILE_ID:
-        return key_blind_coverage_completion_transform_registry()
-    if profile_id == CONTENT_REGION_COVERAGE_PROFILE_ID:
-        return content_region_coverage_transform_registry()
-    return key_blind_high_coverage_transform_registry()
+    profile = resolve_effectiveness_profile(plan["profile_id"], tuple(plan["budgets"]))
+    return _registry_for_profile(profile)
 
 
 def main(argv: list[str] | None = None) -> int:
