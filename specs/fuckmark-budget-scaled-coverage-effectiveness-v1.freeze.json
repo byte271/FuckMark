@@ -1,5 +1,38 @@
 {
-  "appendix_confirmation_budget": null,
+  "appendix_confirmation_budget": {
+    "development_gate_pass_fraction": 1.0,
+    "evidence_hashes": {
+      "dev_evidence_401000": "3ab52d1adf9ffaa934ad088dd5b425042e3b5ad440b24eacf16f60574adf59c2",
+      "dev_evidence_410000": "2d9776f05ccea7e113449dde08394a498b630e61e14f354487b979b5395e8511",
+      "dev_robustness_pooled": "eacd39a761997d4f66eb214dac3a86a17df9776a189854714dfcb41d9083005a"
+    },
+    "pooled_development_watermarked_sources": 36,
+    "recorded_at_utc": "2026-08-23T00:30:07.496640+00:00",
+    "rule_input": {
+      "16": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      },
+      "24": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      },
+      "32": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      },
+      "48": {
+        "detected_401000": 0,
+        "detected_410000": 1,
+        "pooled": 1
+      }
+    },
+    "rule_path": "fallback rule (no eligible budget)",
+    "selected_confirmation_budget": 16
+  },
   "base_main_commit": "16e153fdfa3739a88bca9b1559543a10ded2d859",
   "contract_sha256": "c878ff9fdbf4c412361f6058a72af1fa8c925e78997c89825d255c8d437f598f",
   "freeze_record_version": "budget-scaled-coverage-freeze-v1",
