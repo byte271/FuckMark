@@ -85,8 +85,15 @@
       "finding": "the audit gated on absolute presence of category Cc characters in transformed text, which flags ordinary newlines (U+000A) that the GPT-2 source generation already contains; 28 of 32 development rows failed a gate that measures the corpus, not the candidate",
       "reason": "codepoint audit scope error found on development robustness evidence before confirmation scoring",
       "recorded_at_utc": "2026-08-23T00:24:31.440654+00:00"
+    },
+    {
+      "amendment_id": "pre-score-amendment-5",
+      "change": "normalization gates now bind to introduced instability only: for each normalization form, source stability implies transformed stability; pre-existing source instability is reported without gating",
+      "finding": "2 of 128 confirmation robustness rows failed NFD/NFKD no-op checks because the GPT-2 source text itself contains precomposed accented characters that decompose under NFD; the candidate introduced only ASCII characters and cannot have caused the instability",
+      "reason": "normalization gate inherited the same absolute-text scope error corrected for codepoints in amendment 4",
+      "recorded_at_utc": "2026-08-23T00:49:12.978531+00:00"
     }
   ],
   "protocol_id": "budget-scaled-coverage-effectiveness-v1",
-  "protocol_sha256": "e9ed870944a32ad7bcfe38993d1fdd6287618a04d638192734b82bcfaf9de833"
+  "protocol_sha256": "4fa68c7519a2064c2bf131393598c5b181b92f2ae5fd62f9fd1959b7ebea0367"
 }

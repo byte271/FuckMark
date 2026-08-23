@@ -1,0 +1,20 @@
+{
+  "corpus_artifact_hash_replay": "85cdda3bef549c961caac07767126ec2924f360f299b5d5a6b43f4272aa7e2ba",
+  "evidence_binds_corpus": true,
+  "evidence_binds_plan": true,
+  "evidence_hash_replay": true,
+  "evidence_profile": "key-blind-full-pool-coverage-v1",
+  "evidence_row_hash_replays": "128/128",
+  "evidence_row_texts_match_plan": true,
+  "evidence_threshold": 0.5584848484848485,
+  "evidence_threshold_hash_present": true,
+  "plan_binds_commit": true,
+  "plan_binds_corpus": true,
+  "plan_binds_manifest": true,
+  "plan_detector_access_false": true,
+  "plan_hash_replay": true,
+  "render_manifest_binds_plan": true,
+  "render_manifest_pair_count": 128,
+  "robustness_binds_plan": true,
+  "robustness_hash_replay": true
+}
