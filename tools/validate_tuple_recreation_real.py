@@ -10,7 +10,12 @@ from fuckmark.adapters import HuggingFaceSynthIDAdapter, HuggingFaceSynthIDConfi
 from fuckmark.alignment import align_tokens
 from fuckmark.detectors import weighted_mean_evidence, weighted_mean_score
 from fuckmark.experiments.cover_greedy_v3 import schedule_cover_greedy_v3
-from fuckmark.geometry.counterfactual import CounterfactualGeometryEngine, GeometryConfig
+from fuckmark.geometry.counterfactual import (
+    DEFAULT_MAX_ALIGNMENT_CELLS,
+    CounterfactualGeometryEngine,
+    GeometryConfig,
+    _ambiguous_root_indices,
+)
 from fuckmark.geometry.repetition import PublicRepetitionGeometry
 from fuckmark.geometry.tuple_closure import compute_tuple_closure
 from fuckmark.native_observations import build_native_observations
@@ -47,6 +52,55 @@ def encode(tokenizer, text: str) -> tuple[int, ...]:
     return tuple(int(value) for value in ids)
 
 
+def positional_survivor_starts(
+    root_observations,
+    source_tokens: tuple[int, ...],
+    out_tokens: tuple[int, ...],
+    repetition: PublicRepetitionGeometry,
+) -> set[int]:
+    alignment = align_tokens(source_tokens, out_tokens)
+    ambiguous_original_indices = _ambiguous_root_indices(
+        source_tokens,
+        out_tokens,
+        alignment.distance,
+        max_cells=DEFAULT_MAX_ALIGNMENT_CELLS,
+    )
+    output_eligibility = repetition.evaluate(out_tokens).eligible_windows
+    positional_starts: set[int] = set()
+    for obs in root_observations.observations:
+        if not obs.eligible:
+            continue
+        if any(
+            index in ambiguous_original_indices
+            for index in range(obs.token_start, obs.token_end_exclusive)
+        ):
+            continue
+        mapped = tuple(
+            alignment.original_to_transformed[index]
+            for index in range(obs.token_start, obs.token_end_exclusive)
+        )
+        if any(position is None for position in mapped):
+            continue
+        positions = tuple(int(position) for position in mapped if position is not None)
+        if positions != tuple(range(positions[0], positions[0] + len(positions))):
+            continue
+        if positions[-1] >= len(out_tokens):
+            continue
+        if tuple(out_tokens[position] for position in positions) != obs.token_ids:
+            continue
+        mapped_start = positions[0]
+        if mapped_start >= len(output_eligibility) or not output_eligibility[mapped_start]:
+            continue
+        positional_starts.add(mapped_start)
+    return positional_starts
+
+
+def subset_score(rows_list):
+    if not rows_list:
+        return None
+    return weighted_mean_score(tuple(rows_list), (True,) * len(rows_list))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--samples", type=int, default=8)
@@ -60,8 +114,8 @@ def main() -> int:
     model.eval()
     eos = tokenizer.eos_token_id
 
+    from fuckmark.hashing import sha256_json
     from fuckmark.tiny_dev_context_survival_plan_hf import runtime_tokenizer_identity_public
-    from fuckmark.hashing import sha256_json, sha256_text
 
     identity = runtime_tokenizer_identity_public(tokenizer, MODEL_ID, MODEL_REVISION)
     tokenizer_identity_hash = sha256_json(
@@ -153,16 +207,14 @@ def main() -> int:
         batch = build_native_observations(f"val-{index}-transformed", out_tokens, eos, adapter)
         transformed_score = weighted_mean_evidence(batch).raw_score
 
-        alignment = align_tokens(source_tokens, out_tokens)
-        positional_starts = set()
-        for obs in root_obs.observations:
-            if not obs.eligible:
-                continue
-            mapped = [alignment.original_to_transformed[i] for i in range(obs.token_start, obs.token_end_exclusive)]
-            if None not in mapped:
-                positions = [int(p) for p in mapped]
-                if positions == list(range(positions[0], positions[0] + len(positions))):
-                    positional_starts.add(positions[0])
+        positional_starts = positional_survivor_starts(
+            root_obs,
+            source_tokens,
+            out_tokens,
+            repetition,
+        )
+        if len(positional_starts) != result.intact_window_count:
+            raise RuntimeError("validation positional taxonomy disagrees with geometry survival count")
 
         surv_rows, rec_rows, new_rows = [], [], []
         seen_recreated: set[tuple[int, ...]] = set()
@@ -179,13 +231,6 @@ def main() -> int:
                 pass
             else:
                 new_rows.append(record.g_values)
-
-        def subset_score(rows_list):
-            if not rows_list:
-                return None
-            depth = len(rows_list[0])
-            flat = [value for row in rows_list for value in row]
-            return sum(flat) / (len(rows_list) * depth)
 
         rows.append(
             {
@@ -222,12 +267,12 @@ def main() -> int:
         print(f"detected at frozen threshold: {sum(r['detected'] for r in rows)}")
         print(f"samples containing recreated root tuples: {len(rec_samples)}")
         print(
-            "recreated-tuple mean g > 0.5 (above-null evidence): "
+            "recreated-tuple weighted mean g > 0.5 (above-null evidence): "
             f"{len(above_null_rec)}/{len(rec_samples)}"
         )
         if rec_samples:
             means = [r["recreated_mean_g"] for r in rec_samples]
-            print(f"recreated mean-g distribution: mean={statistics.mean(means):.4f}")
+            print(f"recreated weighted mean-g distribution: mean={statistics.mean(means):.4f}")
         survivors = [r for r in rows if r["positional_survivors"] > 0]
         print(f"samples with positional survivors: {len(survivors)}")
     return 0
