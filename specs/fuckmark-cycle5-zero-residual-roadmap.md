@@ -29,11 +29,16 @@ cannot respond to recreation at shifted positions.
 
 The calibration corpus measured 10/1024 exceedances at the frozen threshold (0.977%).
 Applied to 192 samples that is an expectation of ~1.88 detections for text whose score
-distribution is *perfectly null*. Zero detections requires pushing transformed scores below
-the null mean, not merely to it: with per-window sigma_w = 0.30 and ~64 valid windows,
-the transformed mean must land at or below roughly **0.45** (about 0.11 under threshold,
-3 standard deviations) for E[detections] < 0.5 across all three corpora simultaneously.
-Current transformed means sit near 0.52-0.53.
+distribution is *perfectly null*. An expectation near two does NOT make a 0/192 outcome
+impossible; it means merely matching the ordinary null distribution does not reliably
+produce zero detections. The open research question is whether detector-blind
+transformation can push the transformed watermarked score distribution far enough below
+the frozen boundary — with per-window sigma_w = 0.30 and ~64 valid windows, roughly
+0.45 or lower on average, about three standard deviations under threshold — to make a
+reproducible 0/N result. Current transformed means sit near 0.52-0.53; the real-stack
+validation in this cycle already measured individual transformed samples at 0.474-0.553
+under the fixed scheduler, so the required regime is reachable per-sample and the
+remaining work is consistency across the whole corpus.
 
 ### Channel C — margin-driven residuals
 
@@ -59,11 +64,19 @@ mean reduction.
 ### W1. Closure-aware scheduling (implemented, needs dev evidence)
 
 v4's repair objective is jointly `(positional survivors) + (tuple leaks)` with no window
-restriction. Expected effect: removes Channel-A evidence from scored output without any
-new transform rules. Required next steps:
-1. paired dev run v3-vs-v4 on a fresh corpus (new seed base, never-consumed);
+restriction. Expected effect: removes any recreated-evidence channel from scored output
+without new transform rules. Real-stack validation on fresh pinned GPT-2/SynthID samples
+(seeds 700001+) measured tuple recreation in 0/7 transformed outputs once the corrected
+coverage math landed, so the closure term is retained as a cheap correctness invariant
+rather than a primary mechanism. The same validation showed positional survivors (5-29
+per sample, mean g 0.569-0.75) carry the residual score mass, and the un-gated exact
+repair phase now fires 4-6 times per sample with 0/7 detections at the frozen threshold.
+Required next steps:
+1. paired dev run v3-vs-v4 on a larger fresh corpus (new seed base, never-consumed);
 2. report raw/NFKC/Cf-strip sanitizer robustness for both arms;
-3. verify fidelity gates row-by-row before any outcome filtering.
+3. verify fidelity gates row-by-row before any outcome filtering;
+4. attribute every residual detection to positional survivors vs recreation vs
+   candidate-scarcity vs budget limits before choosing the next pool expansion.
 
 ### W2. Variance discipline (design phase)
 
@@ -74,15 +87,16 @@ preference in plan selection and reject candidates whose application lowers the 
 count. This raises detector noise *symmetrically*, which moves the effective decision
 threshold away from the null distribution faster than it moves watermarked scores.
 
-### W3. Threshold sharpening under spec §5 (protocol work)
+### W3. Sharper negative-control measurement (separate track; NOT the primary path)
 
 The spec explicitly permits a 0.1% headline FPR given a responsibly large negative
-calibration set (>= 10,000 negatives). A new measurement identity (following the Cycle-3
-`open-detector-measurement-stability-v1` precedent) with a 16k-negative corpus yields a
-threshold near the empirical null maximum, collapsing the null tail contribution
-(Channel B) from ~1.9 expected detections toward ~0.2. This is a new measurement, not a
-recalibration of the frozen one; the v4 contract's `threshold_must_not_be_recalibrated`
-constraint remains respected because the old protocol stays intact and replayable.
+calibration set (>= 10,000 negatives). Such a measurement identity is scientifically
+interesting as an independent detector-characterization experiment, but it is NOT a valid
+route to the primary 0/192 objective: changing from the frozen 1% FPR threshold to a
+stricter one changes the ruler and cannot be reported as "5/192 became 0/192." The frozen
+threshold 0.5570987654320988 stays fixed for every primary claim in this cycle. If the
+sharper measurement identity is built, it is reported separately, never substituted, and
+never used to select or tune candidates after scores are observed.
 
 ### W4. Residual taxonomy automation (instrumentation)
 
@@ -111,7 +125,10 @@ The U+200C mechanism stays out of every development and release profile.
 
 ## 5. Immediate next actions
 
-1. Run the W1 paired dev experiment (v3 arm vs v4 arm, fresh seed base).
-2. Land W2's denominator-aware selection behind a profile flag; ablate.
-3. Draft the W3 measurement-identity contract and negative-corpus generation plan.
+1. Run the W1 paired dev experiment (v3 arm vs v4 arm, fresh seed base, larger N).
+2. Expand the candidate pool where the coverage-hole audit shows positional survivors
+   concentrate; ablate each new family against a kill criterion.
+3. Land W2's denominator-aware selection behind a profile flag; ablate.
 4. Extend W4 attribution tooling; wire into the next cycle report template.
+5. Only after dev evidence materially approaches zero: design the next sealed
+   confirmation under the UNCHANGED frozen measurement identity.
