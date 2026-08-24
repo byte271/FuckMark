@@ -61,7 +61,7 @@ mean reduction.
 
 ## 3. Cycle 5 workstreams
 
-### W1. Closure-aware scheduling (implemented, needs dev evidence)
+### W1. Closure-aware scheduling (implemented, dev-run measured)
 
 v4's repair objective is jointly `(positional survivors) + (tuple leaks)` with no window
 restriction. Expected effect: removes any recreated-evidence channel from scored output
@@ -71,12 +71,29 @@ coverage math landed, so the closure term is retained as a cheap correctness inv
 rather than a primary mechanism. The same validation showed positional survivors (5-29
 per sample, mean g 0.569-0.75) carry the residual score mass, and the un-gated exact
 repair phase now fires 4-6 times per sample with 0/7 detections at the frozen threshold.
+
+A fresh paired 16-sample development run (`tools/cycle5_dev_paired_run.py`, seed base
+710000, budget 16, frozen threshold unchanged) produced:
+
+| Arm | Detected | Mean score | Mean drop | Notes |
+| --- | --- | --- | --- | --- |
+| pristine | n/a | 0.615 | - | |
+| fixed v3 | 2/16 | 0.530 | 0.086 | repair fired on 11/16 sources |
+| cover-greedy v4 | 2/16 | 0.523 | 0.094 | identical 2 residuals |
+
+Both detections concentrate on the SAME two sources (indices 5, 12) where the candidate
+pool exhausts after 2-3 selections and 53-54 root windows remain untouched: a pure
+candidate-scarcity residual, not a search failure. Sanitizer variants (raw/NFKC/Cf-strip/
+combined) did not restore detection on any transformed arm output.
+
 Required next steps:
-1. paired dev run v3-vs-v4 on a larger fresh corpus (new seed base, never-consumed);
-2. report raw/NFKC/Cf-strip sanitizer robustness for both arms;
-3. verify fidelity gates row-by-row before any outcome filtering;
-4. attribute every residual detection to positional survivors vs recreation vs
-   candidate-scarcity vs budget limits before choosing the next pool expansion.
+1. expand the candidate pool for scarcity sources (the merged ZRD contraction-extension
+   catalog is not yet part of `content_region_coverage_transform_registry`);
+2. re-run this paired harness after expansion and require the two scarcity residuals to
+   become reachable;
+3. report raw/NFKC/Cf-strip sanitizer robustness per arm (harness already emits it);
+4. verify fidelity gates row-by-row before any outcome filtering;
+5. only then scale to a larger fresh corpus for the pre-confirmation dev estimate.
 
 ### W2. Variance discipline (design phase)
 
