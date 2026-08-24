@@ -123,6 +123,57 @@ def reversible_contraction_metadata() -> tuple[ReversibleContractionMetadata, ..
     )
 
 
+ZRD_CONTRACTION_EXTENSION_ALGORITHM_VERSION = "reversible-contraction-extension-v1"
+
+
+def zrd_contraction_extension_metadata() -> tuple[ReversibleContractionMetadata, ...]:
+    rows = (
+        ("contract-she-is-not-x", "expand-she-is-not-x", "contraction-she-is-not-x", "she is not", "she isn't"),
+        ("contract-he-is-not-x", "expand-he-is-not-x", "contraction-he-is-not-x", "he is not", "he isn't"),
+        ("contract-that-is-not-x", "expand-that-is-not-x", "contraction-that-is-not-x", "that is not", "that isn't"),
+        ("contract-there-was-not-x", "expand-there-was-not-x", "contraction-there-was-not-x", "there was not", "there wasn't"),
+        ("contract-one-does-not-x", "expand-one-does-not-x", "contraction-one-does-not-x", "one does not", "one doesn't"),
+    )
+    return tuple(
+        ReversibleContractionMetadata.create(
+            forward_rule_id=forward_rule_id,
+            reverse_rule_id=reverse_rule_id,
+            inverse_semantic_group_id=group_id,
+            expanded_form=expanded_form,
+            contracted_form=contracted_form,
+        )
+        for forward_rule_id, reverse_rule_id, group_id, expanded_form, contracted_form in rows
+    )
+
+
+def zrd_forward_contraction_extension_rules() -> tuple[LiteralTransformRule, ...]:
+    return tuple(
+        LiteralTransformRule.create(
+            rule_id=value.forward_rule_id,
+            version="v1",
+            family=TransformFamily.CONTRACTION,
+            tier=TransformTier.SURFACE,
+            source=value.expanded_form,
+            replacement=value.contracted_form,
+        )
+        for value in zrd_contraction_extension_metadata()
+    )
+
+
+def zrd_reverse_contraction_extension_rules() -> tuple[LiteralTransformRule, ...]:
+    return tuple(
+        LiteralTransformRule.create(
+            rule_id=value.reverse_rule_id,
+            version="v1",
+            family=TransformFamily.CONTRACTION,
+            tier=TransformTier.SURFACE,
+            source=value.contracted_form,
+            replacement=value.expanded_form,
+        )
+        for value in zrd_contraction_extension_metadata()
+    )
+
+
 def development_forward_contraction_rules() -> tuple[LiteralTransformRule, ...]:
     existing = {rule.rule_id: rule for rule in default_contraction_rules()}
     output: list[LiteralTransformRule] = []

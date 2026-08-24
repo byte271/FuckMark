@@ -226,6 +226,10 @@ def resolve_effectiveness_profile(
         if not budgets:
             raise ValueError("the content region destruction profile requires explicit budgets")
         return content_region_destruction_profile(budgets)
+    if profile_id == ZRD_PROFILE_ID:
+        if not budgets:
+            raise ValueError("the ZRD destruction profile requires explicit budgets")
+        return zrd_destruction_profile(budgets)
     if profile_id == CONTENT_REGION_GENERAL_ONLY_PROFILE_ID:
         if not budgets:
             raise ValueError("the general-only ablation profile requires explicit budgets")
@@ -455,6 +459,48 @@ def content_region_destruction_transform_registry(
             *development_syntax_rules(),
         ),
         identifiers,
+    )
+
+
+ZRD_PROFILE_ID = "zrd-destruction-extension-v1"
+ZRD_SEED_BASE = 1_170_000
+
+
+def zrd_destruction_transform_registry(
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    from .contractions import zrd_forward_contraction_extension_rules
+
+    return TransformRegistry(
+        (
+            *development_forward_contraction_rules(),
+            *zrd_forward_contraction_extension_rules(),
+            *content_region_destruction_surface_rules(),
+            *development_lexical_rules(),
+            *development_syntax_rules(),
+        ),
+        identifiers,
+    )
+
+
+def zrd_destruction_profile(budgets: tuple[int, ...]) -> EffectivenessTransformProfile:
+    if not isinstance(budgets, tuple):
+        raise TypeError("budgets must be a tuple")
+    return EffectivenessTransformProfile.create(
+        profile_id=ZRD_PROFILE_ID,
+        budgets=budgets,
+        budget_unit="operation",
+        schedule_policy_id="COVERAGE_GREEDY_KEY_BLIND",
+        schedule_seed_base=ZRD_SEED_BASE,
+        replicate_count=1,
+        ngram_len=5,
+        ruleset_hash=zrd_destruction_transform_registry().ruleset_hash,
+        scientific_scope=(
+            "Frozen detector-blind and key-blind Cycle-5 zero-residual-destruction profile "
+            "layering the reversible contraction extension catalog and the destruction "
+            "surface rules; exploratory effectiveness evidence only and not release "
+            "authorization"
+        ),
     )
 
 
