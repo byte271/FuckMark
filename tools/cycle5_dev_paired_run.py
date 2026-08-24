@@ -10,14 +10,6 @@ from pathlib import Path
 
 sys.path.insert(0, ".")
 
-from fuckmark.adapters import HuggingFaceSynthIDAdapter, HuggingFaceSynthIDConfig
-from fuckmark.detectors import weighted_mean_evidence
-from fuckmark.experiments.cover_greedy_v3 import schedule_cover_greedy_v3
-from fuckmark.experiments.cover_greedy_v4 import schedule_cover_greedy_v4
-from fuckmark.geometry.counterfactual import CounterfactualGeometryEngine, GeometryConfig
-from fuckmark.geometry.repetition import PublicRepetitionGeometry
-from fuckmark.geometry.tuple_closure import compute_tuple_closure
-
 PROMPTS = (
     ("general_explanatory", "Explain why regular sleep schedules matter for concentration."),
     ("technical_explanation", "Describe how a refrigerator keeps food cold using a compressor."),
@@ -58,22 +50,52 @@ def sanitizer_variants(text: str) -> dict[str, str]:
     }
 
 
+def _load_texts(args, tokenizer) -> list[dict[str, object]]:
+    corpus = json.loads(Path(args.corpus).read_text(encoding="utf-8"))
+    if corpus.get("prompt_count") != len(PROMPTS[: args.samples]):
+        raise ValueError("corpus does not bind this prompt set")
+    if corpus.get("seed_base") != args.seed_base:
+        raise ValueError("corpus seed base does not match requested seed base")
+    rows = []
+    seen = 0
+    for entry in corpus["samples"]:
+        text = entry["text"]
+        if len(encode(tokenizer, text)) < 21:
+            continue
+        rows.append({"index": entry["index"], "domain": entry["domain"], "seed": entry["seed"], "text": text})
+        seen += 1
+    if not rows:
+        raise ValueError("frozen corpus produced no usable samples")
+    return rows
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--samples", type=int, default=16)
     parser.add_argument("--budget", type=int, default=16)
     parser.add_argument("--seed-base", type=int, default=710_000)
     parser.add_argument("--threshold", type=float, default=0.5570987654320988)
+    parser.add_argument("--registry", type=str, choices=("coverage", "zrd"), default="coverage")
+    parser.add_argument("--corpus", type=str, default=None)
+    parser.add_argument("--generate-only", action="store_true")
     parser.add_argument("--out", type=str, default="artifacts/cycle5-dev-paired-run.json")
     args = parser.parse_args()
 
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, SynthIDTextWatermarkingConfig
 
+    from fuckmark.adapters import HuggingFaceSynthIDAdapter, HuggingFaceSynthIDConfig
+    from fuckmark.detectors import weighted_mean_evidence
+    from fuckmark.experiments.cover_greedy_v3 import schedule_cover_greedy_v3
+    from fuckmark.experiments.cover_greedy_v4 import schedule_cover_greedy_v4
+    from fuckmark.geometry.counterfactual import CounterfactualGeometryEngine, GeometryConfig
+    from fuckmark.geometry.repetition import PublicRepetitionGeometry
+    from fuckmark.geometry.tuple_closure import compute_tuple_closure
     from fuckmark.hashing import sha256_json, sha256_text
     from fuckmark.native_observations import build_native_observations
     from fuckmark.tiny_dev_context_survival_plan_hf import runtime_tokenizer_identity_public
     from fuckmark.transforms import content_region_coverage_transform_registry
+    from fuckmark.transforms.effectiveness_profile import zrd_destruction_transform_registry
 
     model_id = "openai-community/gpt2"
     model_revision = "607a30d783dfa663caf39e06633721c8d4cfcd7e"
@@ -81,9 +103,6 @@ def main() -> int:
     ngram_len = 5
 
     tokenizer = AutoTokenizer.from_pretrained(model_id, revision=model_revision, padding_side="left")
-    model = AutoModelForCausalLM.from_pretrained(model_id, revision=model_revision)
-    model.eval()
-    eos = tokenizer.eos_token_id
     identity = runtime_tokenizer_identity_public(tokenizer, model_id, model_revision)
     tokenizer_identity_hash = sha256_json(
         {
@@ -94,6 +113,56 @@ def main() -> int:
         }
     )
 
+    if args.generate_only:
+        model = AutoModelForCausalLM.from_pretrained(model_id, revision=model_revision)
+        model.eval()
+        eos = tokenizer.eos_token_id
+        watermark_config = SynthIDTextWatermarkingConfig(ngram_len=ngram_len, keys=list(keys))
+        samples = []
+        for index in range(min(args.samples, len(PROMPTS))):
+            domain, prompt = PROMPTS[index]
+            seed = args.seed_base + index + 1
+            torch.manual_seed(seed)
+            encoded = tokenizer(prompt, return_tensors="pt")
+            with torch.inference_mode():
+                output = model.generate(
+                    **encoded,
+                    do_sample=True,
+                    temperature=0.8,
+                    top_k=50,
+                    top_p=0.95,
+                    min_new_tokens=64,
+                    max_new_tokens=64,
+                    pad_token_id=tokenizer.pad_token_id or eos,
+                    watermarking_config=watermark_config,
+                )
+            continuation = tuple(int(v) for v in output[0, encoded["input_ids"].shape[1]:])
+            text = tokenizer.decode(continuation, skip_special_tokens=True)
+            samples.append({"index": index, "domain": domain, "seed": seed, "text": text, "text_sha256": sha256_text(text)})
+        artifact = {
+            "algorithm_version": "cycle5-dev-corpus-freeze-v1",
+            "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+            "model": model_id,
+            "model_revision": model_revision,
+            "seed_base": args.seed_base,
+            "prompt_count": min(args.samples, len(PROMPTS)),
+            "sample_count": len(samples),
+            "generation_note": "single-process generation; cross-process byte-reproducibility is NOT claimed",
+            "samples": samples,
+        }
+        artifact["corpus_hash"] = sha256_json({k: v for k, v in artifact.items() if k != "corpus_hash"})
+        out_path = Path(args.out)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(artifact, indent=1) + "\n", encoding="utf-8")
+        print(f"frozen corpus: {out_path} ({len(samples)} samples)")
+        return 0
+
+    if not args.corpus:
+        raise SystemExit("scoring mode requires --corpus pointing at a frozen cycle5-dev-corpus file")
+
+    model = AutoModelForCausalLM.from_pretrained(model_id, revision=model_revision)
+    model.eval()
+    eos = tokenizer.eos_token_id
     watermark_config = SynthIDTextWatermarkingConfig(ngram_len=ngram_len, keys=list(keys))
     adapter_config = HuggingFaceSynthIDConfig(ngram_len=ngram_len, keys=keys)
     adapter = HuggingFaceSynthIDAdapter.from_torch(adapter_config, device="cpu")
@@ -109,39 +178,19 @@ def main() -> int:
         config=geometry_config,
         eligibility_policy=repetition.eligibility_policy,
     )
-    registry = content_region_coverage_transform_registry()
+    registry = zrd_destruction_transform_registry() if args.registry == "zrd" else content_region_coverage_transform_registry()
 
     def score_text(sample_id: str, text: str) -> float:
         tokens = encode(tokenizer, text)
         batch = build_native_observations(sample_id, tokens, eos, adapter)
         return weighted_mean_evidence(batch).raw_score
 
+    frozen_rows = _load_texts(args, tokenizer)
     rows = []
-    count = min(args.samples, len(PROMPTS))
-    for index in range(count):
-        domain, prompt = PROMPTS[index]
-        seed = args.seed_base + index + 1
-        torch.manual_seed(seed)
-        encoded = tokenizer(prompt, return_tensors="pt")
-        with torch.inference_mode():
-            output = model.generate(
-                **encoded,
-                do_sample=True,
-                temperature=0.8,
-                top_k=50,
-                top_p=0.95,
-                min_new_tokens=64,
-                max_new_tokens=64,
-                pad_token_id=tokenizer.pad_token_id or eos,
-                watermarking_config=watermark_config,
-            )
-        continuation = tuple(int(v) for v in output[0, encoded["input_ids"].shape[1]:])
-        text = tokenizer.decode(continuation, skip_special_tokens=True)
-        if len(encode(tokenizer, text)) < ngram_len + 16:
-            continue
+    for entry in frozen_rows:
+        index, domain, text = entry["index"], entry["domain"], entry["text"]
 
         pristine_score = score_text(f"dev-{index}-pristine", text)
-        pristine_detected = pristine_score >= args.threshold
         enumeration = registry.enumerate(text)
         if not enumeration.candidates:
             continue
@@ -167,11 +216,9 @@ def main() -> int:
         row = {
             "index": index,
             "domain": domain,
-            "seed": seed,
-            "prompt_sha256": sha256_text(prompt)[:16],
+            "seed": entry["seed"],
             "text_sha256": sha256_text(text)[:16],
             "pristine_score": round(pristine_score, 6),
-            "pristine_detected": pristine_detected,
             "v3": {
                 "score": round(score_text(f"dev-{index}-v3", out_v3), 6),
                 "selected": plan_v3.selected_candidate_count,
@@ -189,15 +236,12 @@ def main() -> int:
         }
         row["v3"]["detected"] = row["v3"]["score"] >= args.threshold
         row["v4"]["detected"] = row["v4"]["score"] >= args.threshold
-        for arm in ("v3", "v4"):
-            source_text = text if arm == "v3" else None
         variants = {"v3": sanitizer_variants(out_v3), "v4": sanitizer_variants(out_v4)}
         row["sanitizers"] = {
             arm: {
                 variant: {
                     "score": round(score_text(f"dev-{index}-{arm}-{variant}", value), 6),
                     "detected": score_text(f"dev-{index}-{arm}-{variant}", value) >= args.threshold,
-                    "unchanged_vs_raw": value == variants[arm]["raw"],
                 }
                 for variant, value in pair.items()
             }
@@ -206,8 +250,7 @@ def main() -> int:
         rows.append(row)
         print(
             f"[{index:02d}] pristine={row['pristine_score']:.4f} "
-            f"v3={row['v3']['score']:.4f} (sel={row['v3']['selected']} rep={row['v3']['repair_used']} "
-            f"leak={row['v3']['closure_leaks']}) "
+            f"v3={row['v3']['score']:.4f} (sel={row['v3']['selected']} rep={row['v3']['repair_used']}) "
             f"v4={row['v4']['score']:.4f} (sel={row['v4']['selected']} rep={row['v4']['repair_used']} "
             f"leak={row['v4']['closure_leaks']})"
         )
@@ -221,24 +264,22 @@ def main() -> int:
             "mean_score": round(statistics.mean(scores), 6) if scores else None,
             "mean_drop": round(statistics.mean(drops), 6) if drops else None,
             "mean_selected": round(statistics.mean(r[f"{arm}"]["selected"] for r in rows), 2) if rows else None,
-            "zero_positional_rate": (
-                round(sum(1 for r in rows if r[arm]["intact_windows"] == 0) / len(rows), 4) if rows else None
-            ),
             "closure_free_rate": (
                 round(sum(1 for r in rows if r[arm]["closure_leaks"] == 0) / len(rows), 4) if rows else None
             ),
-        }
-        summary[arm]["sanitizer_detection_counts"] = {
-            variant: sum(1 for r in rows if r["sanitizers"][arm][variant]["detected"])
-            for variant in ("raw", "nfkc", "cf_strip", "combined")
+            "sanitizer_detection_counts": {
+                variant: sum(1 for r in rows if r["sanitizers"][arm][variant]["detected"])
+                for variant in ("raw", "nfkc", "cf_strip", "combined")
+            },
         }
 
     artifact = {
-        "algorithm_version": "cycle5-dev-paired-run-v1",
+        "algorithm_version": "cycle5-dev-paired-scored-v2",
         "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
         "model": model_id,
         "model_revision": model_revision,
-        "seed_base": args.seed_base,
+        "frozen_corpus": Path(args.corpus).name,
+        "registry": args.registry,
         "budget": args.budget,
         "threshold": args.threshold,
         "threshold_note": "frozen confirmation measurement identity; unchanged",

@@ -72,28 +72,43 @@ rather than a primary mechanism. The same validation showed positional survivors
 per sample, mean g 0.569-0.75) carry the residual score mass, and the un-gated exact
 repair phase now fires 4-6 times per sample with 0/7 detections at the frozen threshold.
 
-A fresh paired 16-sample development run (`tools/cycle5_dev_paired_run.py`, seed base
-710000, budget 16, frozen threshold unchanged) produced:
+A fresh paired development experiment on a hash-frozen 16-sample corpus
+(`tools/cycle5_dev_paired_run.py`, single-process generation then separate scoring pass,
+seed base 710000, budget 16, frozen threshold unchanged) produced:
 
-| Arm | Detected | Mean score | Mean drop | Notes |
-| --- | --- | --- | --- | --- |
-| pristine | n/a | 0.615 | - | |
-| fixed v3 | 2/16 | 0.530 | 0.086 | repair fired on 11/16 sources |
-| cover-greedy v4 | 2/16 | 0.523 | 0.094 | identical 2 residuals |
+| Arm | Detected | Mean score | Mean drop |
+| --- | --- | --- | --- |
+| pristine | n/a | ~0.61 | - |
+| fixed v3 | 2/16 | 0.530 | 0.086 |
+| cover-greedy v4 | 2/16 | 0.523 | 0.094 |
 
-Both detections concentrate on the SAME two sources (indices 5, 12) where the candidate
-pool exhausts after 2-3 selections and 53-54 root windows remain untouched: a pure
-candidate-scarcity residual, not a search failure. Sanitizer variants (raw/NFKC/Cf-strip/
-combined) did not restore detection on any transformed arm output.
+An identical-corpus arm with the expanded `zrd_destruction_transform_registry` pool
+(contraction extensions, sentence-leading spacing, extended word list) reproduced the
+same two residuals byte-identically and changed no detection counts: pool expansion does
+not address this residual class.
 
-Required next steps:
-1. expand the candidate pool for scarcity sources (the merged ZRD contraction-extension
-   catalog is not yet part of `content_region_coverage_transform_registry`);
-2. re-run this paired harness after expansion and require the two scarcity residuals to
-   become reachable;
-3. report raw/NFKC/Cf-strip sanitizer robustness per arm (harness already emits it);
-4. verify fidelity gates row-by-row before any outcome filtering;
-5. only then scale to a larger fresh corpus for the pre-confirmation dev estimate.
+### Residual root cause (frozen-corpus forensics)
+
+Both residual sources (indices 5, 12) are QUOTE-DOMINANT continuations: the model
+generated multi-sentence direct dialogue. Blanket quotation-span protection rejects
+46-53 of roughly 50 candidates per source, leaving 2-3 eligible operations and 53-54
+intact root windows whose above-null g-values keep the weighted-mean score near 0.62.
+Because the detector mean runs over valid windows only, destroying every window OUTSIDE
+the quotes cannot lower a score carried almost entirely by untouched quote-interior
+windows. Classification per the residual taxonomy: PROTECTED-REGION-UNREACHABLE.
+
+### W6. In-quote durable surface rules (proposed; requires full family onboarding)
+
+The fidelity principle protects quotation MEANING, and durable spacing/punctuation
+surface edits are meaning-preserving inside dialogue exactly as outside. Allowing only
+surface-tier spacing rules inside quotation spans - while keeping contractions, lexical,
+syntax families and all hard invariants blocked - would remove the unreachable region
+without touching quoted wording. This is a fidelity-policy change and must follow the
+full family protocol before any adoption: mechanism hypothesis, deterministic
+implementation, dedicated blind fidelity review packet covering in-quote edits,
+sanitizer analysis, isolated ablation against this exact residual class, and an explicit
+kill criterion. Until that gate passes, quote-dominant samples remain protected-region
+residuals by design and any headline count inherits them.
 
 ### W2. Variance discipline (design phase)
 
