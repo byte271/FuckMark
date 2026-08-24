@@ -328,6 +328,8 @@ def schedule_cover_greedy_v3(
         for cid in feasible():
             if cid in selected_set:
                 continue
+            if not static_cover[cid] & uncovered:
+                continue
             trial_ids = tuple(sorted((*selected_set, cid)))
             try:
                 trial_transformed = registry.apply(enumeration, trial_ids)
