@@ -3,6 +3,7 @@ import pytest
 from fuckmark.experiments.cover_greedy_v3 import (
     COVER_GREEDY_V3_ALGORITHM_VERSION,
     COVER_GREEDY_V3_POLICY_ID,
+    _affected_window_indices,
     schedule_cover_greedy_v3,
 )
 from fuckmark.transforms import content_region_coverage_transform_registry
@@ -39,6 +40,95 @@ def _run(budget, text=PROSE):
         ngram_len=5,
         budget=budget,
     )
+
+
+def test_static_cover_uses_union_not_minmax_range():
+    # For touched token indices {10, 11, 12} with ngram_len=5, every window that
+    # contains ANY of those tokens must be marked affected. The windows touching
+    # token 10 start at 6..10, token 11 at 7..11, and token 12 at 8..12; the
+    # union is 6..12. A min/max shortcut (last_index - n + 1 .. first_index)
+    # wrongly collapses this to 8..10.
+    affected = _affected_window_indices({10, 11, 12}, token_count=30, ngram_len=5, eligible_window_indices=range(30))
+    assert affected == {6, 7, 8, 9, 10, 11, 12}
+
+
+def test_static_cover_empty_touched_is_clean():
+    assert _affected_window_indices(set(), 30, 5, range(30)) == set()
+
+
+def test_static_cover_respects_eligible_windows():
+    # Only eligible windows may be reported; ineligible windows are excluded even
+    # when they geometrically intersect a touched token.
+    eligible = (6, 8, 12)
+    affected = _affected_window_indices({10, 11, 12}, token_count=30, ngram_len=5, eligible_window_indices=eligible)
+    assert affected == {6, 8, 12}
+
+
+def test_repair_phase_actually_selects_when_static_stops_short():
+    text = "cannot cannot cannot cannot cannot cannot cannot cannot"
+    registry = content_region_coverage_transform_registry()
+    enumeration = registry.enumerate(text)
+    result = schedule_cover_greedy_v3(
+        source_sample_id="repair-liveness",
+        source_text=text,
+        registry=registry,
+        enumeration=enumeration,
+        tokenizer=_OffsetTokenizer(),
+        tokenizer_identity_hash="0" * 64,
+        ngram_len=5,
+        budget=4,
+    )
+    assert result.repair_phase_selections > 0
+    assert result.selected_candidate_count == (
+        result.static_phase_selections + result.repair_phase_selections
+    )
+
+
+def test_exact_zero_reached_via_repair():
+    text = "cannot cannot cannot cannot cannot cannot cannot cannot"
+    registry = content_region_coverage_transform_registry()
+    enumeration = registry.enumerate(text)
+    result = schedule_cover_greedy_v3(
+        source_sample_id="repair-zero",
+        source_text=text,
+        registry=registry,
+        enumeration=enumeration,
+        tokenizer=_OffsetTokenizer(),
+        tokenizer_identity_hash="0" * 64,
+        ngram_len=5,
+        budget=16,
+    )
+    assert result.achieved_zero is True
+    assert result.intact_window_count == 0
+
+
+class _MismatchedOffsetTokenizer:
+    """encode() and __call__ disagree on token IDs, exercising the binding check."""
+
+    def encode(self, text, add_special_tokens=False):
+        return [0] * len(text)
+
+    def __call__(self, text, add_special_tokens=False, return_offsets_mapping=False):
+        result = {"input_ids": list(range(len(text)))}
+        if return_offsets_mapping:
+            result["offset_mapping"] = [(index, index + 1) for index in range(len(text))]
+        return result
+
+
+def test_tokenization_mismatch_raises():
+    registry = content_region_coverage_transform_registry()
+    enumeration = registry.enumerate(PROSE)
+    with pytest.raises(ValueError, match="diverges"):
+        schedule_cover_greedy_v3(
+            source_sample_id="mismatch",
+            source_text=PROSE,
+            registry=registry,
+            enumeration=enumeration,
+            tokenizer=_MismatchedOffsetTokenizer(),
+            tokenizer_identity_hash="0" * 64,
+            ngram_len=5,
+            budget=4,
+        )
 
 
 def test_algorithm_identity_is_pinned():

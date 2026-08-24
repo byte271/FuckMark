@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
 from .._validation import require_clean_string, require_int, require_sha256
+from ..coverage import merge_intervals, substitution_observation_interval
 from ..hashing import sha256_json, sha256_text
 from ..transforms.candidate_artifacts import CandidateEnumeration
 from ..transforms.registry import TransformRegistry
@@ -201,6 +202,77 @@ def _root_eligible_windows(tokens: Sequence[Any], repetition: Any) -> tuple[bool
     return tuple(bool(flag) for flag in report.eligible_windows)
 
 
+def _single_call_tokenization(
+    tokenizer: Any,
+    text: str,
+) -> tuple[tuple[int, ...], tuple[tuple[int, int], ...]]:
+    if tokenizer is None or not callable(tokenizer):
+        raise TypeError("tokenizer must be callable to obtain offset mappings")
+    result = tokenizer(text, add_special_tokens=False, return_offsets_mapping=True)
+    if not isinstance(result, Mapping):
+        raise TypeError("tokenizer with return_offsets_mapping must return a mapping")
+    if "input_ids" not in result or "offset_mapping" not in result:
+        raise TypeError("tokenizer mapping must contain input_ids and offset_mapping")
+    ids = result["input_ids"]
+    raw_offsets = result["offset_mapping"]
+    if hasattr(ids, "tolist") and callable(ids.tolist):
+        ids = ids.tolist()
+    if (
+        isinstance(ids, Sequence)
+        and not isinstance(ids, (str, bytes, bytearray))
+        and len(ids) == 1
+        and isinstance(ids[0], Sequence)
+        and not isinstance(ids[0], (str, bytes, bytearray))
+    ):
+        ids = ids[0]
+    token_ids = tuple(int(value) for value in ids)
+    if not isinstance(raw_offsets, Sequence) or isinstance(raw_offsets, (str, bytes, bytearray)):
+        raise TypeError("tokenizer offset_mapping must be a sequence")
+    if len(raw_offsets) != len(token_ids):
+        if (
+            len(raw_offsets) == 1
+            and isinstance(raw_offsets[0], Sequence)
+            and not isinstance(raw_offsets[0], (str, bytes, bytearray))
+        ):
+            raw_offsets = raw_offsets[0]
+    if len(raw_offsets) != len(token_ids):
+        raise ValueError("tokenizer input_ids and offset_mapping lengths diverge")
+    offsets: list[tuple[int, int]] = []
+    for row in raw_offsets:
+        if (
+            not isinstance(row, Sequence)
+            or isinstance(row, (str, bytes, bytearray))
+            or len(row) != 2
+        ):
+            raise TypeError("offset_mapping entries must be two-item sequences")
+        start, end = int(row[0]), int(row[1])
+        if start < 0 or end < start or end > len(text):
+            raise ValueError("tokenizer offset is outside source text")
+        offsets.append((start, end))
+    return token_ids, tuple(offsets)
+
+
+def _affected_window_indices(
+    touched_token_indices: set[int],
+    token_count: int,
+    ngram_len: int,
+    eligible_window_indices: Sequence[int],
+) -> set[int]:
+    eligible = set(eligible_window_indices)
+    if not touched_token_indices:
+        return set()
+    merged = merge_intervals(
+        substitution_observation_interval(index, token_count, ngram_len)
+        for index in touched_token_indices
+    )
+    affected: set[int] = set()
+    for interval in merged:
+        for start in range(interval.start, interval.end_exclusive):
+            if start in eligible:
+                affected.add(start)
+    return affected
+
+
 def schedule_cover_greedy_v3(
     *,
     source_sample_id: str,
@@ -249,27 +321,21 @@ def schedule_cover_greedy_v3(
     )
     root = engine.build_root(source_sample_id=source_sample_id, source_text=source_text)
 
-    encoded = tokenizer(source_text, add_special_tokens=False, return_offsets_mapping=True)
-    offsets = tuple((int(s), int(e)) for s, e in encoded["offset_mapping"])
+    token_ids, offsets = _single_call_tokenization(tokenizer, source_text)
+    if token_ids != root.root_tokens:
+        raise ValueError(
+            "tokenizer offset tokenization diverges from geometry root token sequence"
+        )
+    token_count = len(root.root_tokens)
     elig_flags = _root_eligible_windows(root.root_tokens, repetition)
     root_window_indices = tuple(index for index, flag in enumerate(elig_flags) if flag)
-
-    def windows_touched_by_token_indices(token_indices: set[int]) -> set[int]:
-        first_index = min(token_indices)
-        last_index = max(token_indices)
-        lowest_start = max(0, last_index - ngram_len + 1)
-        highest_start = min(first_index, len(root.root_tokens) - ngram_len)
-        return {
-            index
-            for index in root_window_indices
-            if lowest_start <= index <= highest_start
-            and any(offset in token_indices for offset in range(index, index + ngram_len))
-        }
 
     static_cover: dict[str, set[int]] = {}
     for candidate in enumeration.candidates:
         touched = _token_index_ranges(offsets, candidate.start, candidate.end, boundary_margin)
-        static_cover[candidate.candidate_id] = windows_touched_by_token_indices(touched)
+        static_cover[candidate.candidate_id] = _affected_window_indices(
+            touched, token_count, ngram_len, root_window_indices
+        )
 
     candidates_by_id = {candidate.candidate_id: candidate for candidate in enumeration.candidates}
     conflicts = _conflict_map(enumeration)
@@ -328,8 +394,6 @@ def schedule_cover_greedy_v3(
         for cid in feasible():
             if cid in selected_set:
                 continue
-            if not static_cover[cid] & uncovered:
-                continue
             trial_ids = tuple(sorted((*selected_set, cid)))
             try:
                 trial_transformed = registry.apply(enumeration, trial_ids)
@@ -354,6 +418,7 @@ def schedule_cover_greedy_v3(
             break
         selected_order.append(best_id)
         selected_set.add(best_id)
+        uncovered -= static_cover[best_id]
         transformed, exact = best_state
         intact = exact.surviving_count
         repair_selections += 1
