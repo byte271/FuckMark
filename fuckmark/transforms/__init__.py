@@ -24,6 +24,8 @@ from .effectiveness_profile import (
     content_region_general_only_transform_registry,
     key_blind_coverage_completion_profile,
     key_blind_coverage_completion_transform_registry,
+    zrd_destruction_profile,
+    zrd_destruction_transform_registry,
     key_blind_full_pool_coverage_profile,
     key_blind_high_coverage_transform_registry,
     resolve_effectiveness_profile,
@@ -118,6 +120,11 @@ from .rules import (
     LiteralTransformRule,
     TransformRule,
     default_contraction_rules,
+)
+from .contractions import (
+    zrd_contraction_extension_metadata,
+    zrd_forward_contraction_extension_rules,
+    zrd_reverse_contraction_extension_rules,
 )
 from .scheduler import (
     CANDIDATE_SCHEDULER_ALGORITHM_VERSION,
@@ -245,6 +252,11 @@ __all__ = [
     "content_region_combined_transform_registry",
     "content_region_destruction_profile",
     "content_region_destruction_transform_registry",
+    "zrd_contraction_extension_metadata",
+    "zrd_destruction_profile",
+    "zrd_destruction_transform_registry",
+    "zrd_forward_contraction_extension_rules",
+    "zrd_reverse_contraction_extension_rules",
     "content_region_general_only_profile",
     "content_region_general_only_transform_registry",
     "content_region_coverage_profile",
