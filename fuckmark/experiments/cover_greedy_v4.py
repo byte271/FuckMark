@@ -218,14 +218,18 @@ def schedule_cover_greedy_v4(
 
     encoded = tokenizer(source_text, add_special_tokens=False, return_offsets_mapping=True)
     offsets = tuple((int(s), int(e)) for s, e in encoded["offset_mapping"])
+    if tuple(int(t) for t in encoded["input_ids"]) != root.root_tokens:
+        raise ValueError(
+            "tokenizer path inconsistency: offset-mapping tokenization does not match geometry root tokens"
+        )
     elig_flags = _root_eligible_windows(root.root_tokens, repetition)
     root_window_indices = tuple(index for index, flag in enumerate(elig_flags) if flag)
 
     def windows_touched_by_token_indices(token_indices: set[int]) -> set[int]:
-        first_index = min(token_indices)
-        last_index = max(token_indices)
-        lowest_start = max(0, last_index - ngram_len + 1)
-        highest_start = min(first_index, len(root.root_tokens) - ngram_len)
+        if not token_indices:
+            return set()
+        lowest_start = max(0, min(token_indices) - (ngram_len - 1))
+        highest_start = min(max(token_indices), len(root.root_tokens) - ngram_len)
         return {
             index
             for index in root_window_indices
