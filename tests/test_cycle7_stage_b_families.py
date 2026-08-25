@@ -1,3 +1,5 @@
+import pytest
+
 from fuckmark.cycle7.density import durable_density_row
 from fuckmark.cycle7.durable_rules import (
     cycle7_complementizer_that_rules,
@@ -242,6 +244,7 @@ def test_stage_b_families_respect_protected_spans_and_quotes() -> None:
 
 
 def test_gpt2_tokenization_changes_for_stage_b_channels() -> None:
+    pytest.importorskip("transformers")
     from transformers import AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained(
