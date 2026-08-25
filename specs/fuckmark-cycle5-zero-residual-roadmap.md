@@ -284,3 +284,31 @@ every arm remained detector-blind and key-blind.
 This disjoint result is replication on unseen development data, not a formal confirmation
 and not a universal claim. Independent fidelity adjudication remains a release gate before
 designing a new sealed 0/192 experiment.
+
+### Formal confirmation preregistration start (2026-08-25)
+
+Cycle 6 is frozen at main commit
+`4a091bde9e8f91cbd9c3feecb4186caa75228c36`, quote-safe ruleset
+`f09569fb20f313bc16db7f0e98305c0832ce508ca653546828cfd92c73ef632b`,
+v4 scheduler, and B14. The machine-readable source-bound contract is
+`specs/fuckmark-cycle6-confirmation-v1.contract.json`.
+
+The next sealed design uses seed bases 760000, 770000, and 780000, 64 matched
+watermarked/unwatermarked attack rows per label per corpus, the inherited threshold, and
+the same four sanitizer arms. Corpus construction and detector-blind plans must freeze and
+cross-check as pairwise text-disjoint before any detector score is computed.
+
+Formal scoring is intentionally not yet authorized. The earlier blind packet covered only
+the two original residuals. A new workflow now constructs a detector-blind packet covering
+all sixteen B14 development outputs plus mechanical checks for exact protected content,
+non-whitespace text, quote delimiters, invisible characters, and trace-level one-space
+edits. Independent human review remains mandatory. The adverse repeated-space-collapse
+finding is a gate input, not hidden: canonicalizing repeated ASCII spaces removes every
+admitted spacing edit, while separately admitted non-spacing operations can remain.
+
+GitHub Actions run `32817911506` generated the all-sixteen packet hash
+`8b83c170ea04f212e8f373f96c0a8ba9dd1420fcfb6d5466cb9fc8207fe059ce`
+and mechanical artifact hash
+`761aefcc26da4ecb4323b9ef7d0bfd87e6d5730cde95637111849e12f8a66384`.
+All sixteen mechanical gates passed; human adjudication remains pending and sealed
+detector scoring remains blocked.

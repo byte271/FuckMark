@@ -1,0 +1,405 @@
+name: Cycle6 Sealed Confirmation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cycle6-confirmation.yml"
+      - "requirements-smoke.txt"
+      - "specs/fuckmark-cycle6-confirmation-v1.contract.json"
+      - "evidence/cycle6-quote-safe-zero-2026-08-25/frozen16-content-snapshot.json"
+      - "fuckmark/corpus/**"
+      - "fuckmark/detectors/**"
+      - "fuckmark/experiments/cover_greedy_v4.py"
+      - "fuckmark/experiments/cycle6_confirmation.py"
+      - "fuckmark/experiments/cycle6_fidelity.py"
+      - "fuckmark/native_observations.py"
+      - "fuckmark/sanitizer_robustness.py"
+      - "fuckmark/tiny_dev_corpus_hf.py"
+      - "fuckmark/tiny_dev_cycle6_confirmation_*.py"
+      - "fuckmark/transforms/**"
+      - "tools/build_cycle6_full_fidelity_packet.py"
+      - "tests/test_cycle6_confirmation_contract.py"
+      - "tests/test_cycle6_confirmation_review_fixes.py"
+  workflow_dispatch:
+    inputs:
+      confirmation_authorized:
+        description: "Run sealed scoring only after the independent fidelity audit is contract-bound"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: cycle6-sealed-confirmation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  preflight:
+    name: Contract and harness preflight
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_SHA }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Validate frozen contract, source blobs, and confirmation tests
+        run: >-
+          python -m pytest -q
+          tests/test_cycle6_confirmation_contract.py
+          tests/test_cycle6_confirmation_review_fixes.py
+          tests/test_cycle6_reproduction_defaults.py
+          tests/test_quote_safe_policy.py
+
+  fidelity:
+    name: Build full detector-blind B14 fidelity packet
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_SHA }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install pinned Transformers dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Build all-16 blind packet and mechanical audit
+        run: >-
+          python tools/build_cycle6_full_fidelity_packet.py
+          --corpus evidence/cycle6-quote-safe-zero-2026-08-25/frozen16-content-snapshot.json
+          --budget 14
+          --public-out artifacts/cycle6-full-fidelity-public.json
+          --private-out private/cycle6-full-fidelity-private.json
+          --mechanical-out artifacts/cycle6-full-fidelity-mechanical.json
+      - name: Upload reviewer-safe fidelity packet
+        uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-full-fidelity-packet
+          path: |
+            artifacts/cycle6-full-fidelity-public.json
+            artifacts/cycle6-full-fidelity-mechanical.json
+          if-no-files-found: error
+
+  authorize-confirmation:
+    name: Verify independent fidelity authorization
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    needs: preflight
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_SHA }}
+      - name: Refuse scoring while fidelity is pending
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          contract = json.loads(
+              Path("specs/fuckmark-cycle6-confirmation-v1.contract.json").read_text()
+          )
+          gate = contract["fidelity_gate"]
+          if gate.get("status") != "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
+              raise SystemExit("sealed scoring is blocked: independent fidelity review is not accepted")
+          audit_hash = gate.get("independent_audit_hash")
+          if not isinstance(audit_hash, str) or len(audit_hash) != 64:
+              raise SystemExit("sealed scoring is blocked: fidelity audit hash is not bound")
+          if contract["confirmation"].get("scoring_authorized") is not True:
+              raise SystemExit("sealed scoring is blocked: contract does not authorize scoring")
+          print(f"independent_audit_hash={audit_hash}")
+          PY
+
+  freeze:
+    name: Freeze ${{ matrix.seed_base }}
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    needs: authorize-confirmation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        seed_base: [760000, 770000, 780000]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_SHA }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install pinned Transformers dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Generate fresh matched confirmation corpus
+        run: >-
+          python -m fuckmark.tiny_dev_corpus_hf
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --seed-base ${{ matrix.seed_base }}
+          --max-attempts 16
+          --temperature 0.8
+          --top-k 50
+          --top-p 0.95
+          --profile v3
+          --attack-pairs-per-domain 16
+          --json artifacts/cycle6-corpus-${{ matrix.seed_base }}.json
+      - name: Freeze detector-blind B14 plan
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_confirmation_plan_hf
+          --corpus-json artifacts/cycle6-corpus-${{ matrix.seed_base }}.json
+          --contract-json specs/fuckmark-cycle6-confirmation-v1.contract.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --source-code-commit "$(git rev-parse HEAD)"
+          --plan-json artifacts/cycle6-plan-${{ matrix.seed_base }}.json
+          --provenance-json artifacts/cycle6-plan-${{ matrix.seed_base }}-provenance.json
+      - name: Seal detector-free freeze manifest
+        env:
+          SEED_BASE: ${{ matrix.seed_base }}
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          seed = int(os.environ["SEED_BASE"])
+          root = Path("artifacts")
+          names = (f"cycle6-corpus-{seed}.json", f"cycle6-plan-{seed}.json")
+          files = {}
+          for name in names:
+              path = root / name
+              data = json.loads(path.read_text(encoding="utf-8"))
+              files[name] = {
+                  "file_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                  "artifact_hash": data.get("artifact_hash"),
+                  "plan_hash": data.get("plan_hash"),
+              }
+          payload = {
+              "algorithm_version": "cycle6-freeze-manifest-v1",
+              "confirmation_seed_base": seed,
+              "source_code_commit": os.environ["CHECKOUT_SHA"],
+              "files": files,
+              "detector_scoring_performed": False,
+              "secret_access_performed": False,
+          }
+          canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+          payload["manifest_hash"] = hashlib.sha256(canonical.encode()).hexdigest()
+          (root / f"cycle6-freeze-manifest-{seed}.json").write_text(
+              json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-freeze-${{ matrix.seed_base }}
+          path: artifacts/
+          if-no-files-found: error
+
+  freeze-cross-check:
+    name: Cross-check frozen corpora and plans
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    needs: freeze
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_SHA }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cycle6-freeze-*
+          path: frozen
+      - name: Validate hashes, bindings, access attestations, and disjointness
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from fuckmark.corpus import load_tiny_dev_corpus_by_version_json
+          from fuckmark.experiments.cycle6_confirmation import (
+              validate_cycle6_confirmation_contract,
+              validate_cycle6_confirmation_plan,
+              validate_cycle6_frozen_source_blobs,
+          )
+          from fuckmark.hashing import sha256_json
+
+          seeds = (760000, 770000, 780000)
+          contract = json.loads(
+              Path("specs/fuckmark-cycle6-confirmation-v1.contract.json").read_text()
+          )
+          contract_hash = validate_cycle6_confirmation_contract(contract)
+          validate_cycle6_frozen_source_blobs(Path.cwd(), contract)
+          attack_hashes = {}
+          corpus_hashes = {}
+          plan_hashes = {}
+          for seed in seeds:
+              root = Path("frozen") / f"cycle6-freeze-{seed}"
+              corpus_path = root / f"cycle6-corpus-{seed}.json"
+              plan_path = root / f"cycle6-plan-{seed}.json"
+              manifest_path = root / f"cycle6-freeze-manifest-{seed}.json"
+              for path in (corpus_path, plan_path, manifest_path):
+                  if not path.is_file():
+                      raise SystemExit(f"missing frozen file: {path}")
+              corpus = load_tiny_dev_corpus_by_version_json(corpus_path)
+              plan = json.loads(plan_path.read_text(encoding="utf-8"))
+              plan_hash = validate_cycle6_confirmation_plan(
+                  plan, corpus, contract=contract
+              )
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+              manifest_payload = {
+                  key: value for key, value in manifest.items() if key != "manifest_hash"
+              }
+              if manifest["manifest_hash"] != sha256_json(manifest_payload):
+                  raise SystemExit(f"seed {seed}: freeze manifest hash drifted")
+              if manifest["detector_scoring_performed"] is not False:
+                  raise SystemExit(f"seed {seed}: detector accessed before freeze")
+              for name, record in manifest["files"].items():
+                  path = root / name
+                  if hashlib.sha256(path.read_bytes()).hexdigest() != record["file_sha256"]:
+                      raise SystemExit(f"seed {seed}: frozen file hash drifted: {name}")
+              rows = plan["rows"]
+              labels = {
+                  label: sum(row["source_label"] == label for row in rows)
+                  for label in ("watermarked", "unwatermarked")
+              }
+              if labels != {"watermarked": 64, "unwatermarked": 64}:
+                  raise SystemExit(f"seed {seed}: attack label counts drifted: {labels}")
+              hashes = {row["source_text_hash"] for row in rows}
+              if len(hashes) != 128:
+                  raise SystemExit(f"seed {seed}: duplicate attack text hash")
+              attack_hashes[seed] = hashes
+              corpus_hashes[seed] = corpus.artifact_hash
+              plan_hashes[seed] = plan_hash
+          for index, left in enumerate(seeds):
+              for right in seeds[index + 1:]:
+                  overlap = attack_hashes[left] & attack_hashes[right]
+                  if overlap:
+                      raise SystemExit(
+                          f"attack text overlap between {left} and {right}: {len(overlap)}"
+                      )
+          payload = {
+              "algorithm_version": "cycle6-freeze-cross-check-v1",
+              "contract_hash": contract_hash,
+              "seed_bases": seeds,
+              "corpus_artifact_hashes": corpus_hashes,
+              "plan_hashes": plan_hashes,
+              "attack_rows_per_corpus": 128,
+              "pairwise_attack_text_overlap": 0,
+              "all_plans_frozen_before_scoring": True,
+              "detector_access_used_for_selection": False,
+              "secret_access_used_for_selection": False,
+          }
+          payload["artifact_hash"] = sha256_json(payload)
+          Path("cycle6-freeze-cross-check.json").write_text(
+              json.dumps(payload, sort_keys=True, separators=(",", ":")) + "\n",
+              encoding="utf-8",
+          )
+          print(f"artifact_hash={payload['artifact_hash']}")
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-freeze-cross-check
+          path: cycle6-freeze-cross-check.json
+          if-no-files-found: error
+
+  score:
+    name: Score ${{ matrix.seed_base }}
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    needs: freeze-cross-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        seed_base: [760000, 770000, 780000]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_SHA }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install pinned Transformers dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle6-freeze-${{ matrix.seed_base }}
+          path: frozen
+      - name: Score frozen plan under unchanged detector and threshold
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_confirmation_score_hf
+          --corpus-json frozen/cycle6-corpus-${{ matrix.seed_base }}.json
+          --plan-json frozen/cycle6-plan-${{ matrix.seed_base }}.json
+          --contract-json specs/fuckmark-cycle6-confirmation-v1.contract.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --confirmation-seed-base ${{ matrix.seed_base }}
+          --source-code-commit "$(git rev-parse HEAD)"
+          --json artifacts/cycle6-confirmation-evidence-${{ matrix.seed_base }}.json
+          --provenance-json artifacts/cycle6-confirmation-evidence-${{ matrix.seed_base }}-provenance.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-score-${{ matrix.seed_base }}
+          path: artifacts/
+          if-no-files-found: error
+
+  aggregate:
+    name: Aggregate sealed confirmation
+    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    needs: score
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_SHA }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cycle6-score-*
+          path: scored
+      - name: Aggregate preregistered outcome
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_confirmation_aggregate
+          --contract-json specs/fuckmark-cycle6-confirmation-v1.contract.json
+          --evidence-json scored/cycle6-score-760000/cycle6-confirmation-evidence-760000.json
+          --evidence-json scored/cycle6-score-770000/cycle6-confirmation-evidence-770000.json
+          --evidence-json scored/cycle6-score-780000/cycle6-confirmation-evidence-780000.json
+          --json artifacts/cycle6-confirmation-aggregate.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-confirmation-aggregate
+          path: artifacts/cycle6-confirmation-aggregate.json
+          if-no-files-found: error

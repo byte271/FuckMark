@@ -134,6 +134,14 @@ The formal exact-survival confirmation freezes three independent corpora, valida
 
 The U+200C mechanism is not promoted into release behavior. It can strongly perturb raw tokenization, but stripping Unicode format characters can restore the evaluated detector behavior. It remains useful as a diagnostic upper bound rather than a durable product mechanism.
 
+## Cycle 6 development status
+
+Cycle 6 reached **0 of 16 detected** on the frozen seed-720000 development corpus with the unchanged `0.5570987654320988` threshold and the raw, NFKC, Cf-strip, and combined sanitizer arms. The timestamp-independent corpus content hash is `b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3`; the stable scored-result hash is `73f44b173d7ec55ea80e7d2e9a46b7ea70d8b32682f465dc66643387d99aa8b6`.
+
+This is detector-endpoint development evidence, not geometry zero and not a release claim. Surviving original observations remain in every output. The attack also relies on visible repeated ASCII spaces: NFKC and Cf stripping preserve them, but repeated-space canonicalization removes the mechanism and human fidelity review is still pending.
+
+The Cycle 6 formal-confirmation harness is preregistered for three new 64-sample corpora with matched transformed-unwatermarked controls. Sealed detector scoring remains blocked until the full all-16 blind B14 fidelity packet receives independent human adjudication and its audit hash is bound into the confirmation contract.
+
 ## Reproduce the research environment
 
 Install the development package and pinned smoke dependencies:
@@ -149,7 +157,7 @@ Run the ordinary test suite:
 python -m pytest
 ```
 
-The repository's GitHub Actions additionally run package installation checks, frozen research gates, TinyDev/MidDev evidence workflows, and the Cycle 4 exact-survival confirmation workflow.
+The repository's GitHub Actions additionally run package installation checks, frozen research gates, TinyDev/MidDev evidence workflows, the Cycle 4 exact-survival confirmation workflow, and the fidelity-gated Cycle 6 sealed-confirmation harness.
 
 ## Release engineering
 
