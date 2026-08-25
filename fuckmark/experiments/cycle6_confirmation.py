@@ -145,10 +145,18 @@ def validate_cycle6_confirmation_contract(contract: Mapping[str, object]) -> str
     elif fidelity_status == "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
         if scoring_authorized is not True:
             raise ValueError("accepted Cycle 6 fidelity must explicitly authorize scoring")
-        for name in ("full_packet_hash", "independent_audit_hash"):
+        for name in (
+            "full_packet_hash",
+            "mechanical_artifact_hash",
+            "independent_audit_hash",
+        ):
             value = fidelity.get(name)
-            if not isinstance(value, str) or len(value) != 64:
-                raise ValueError(f"accepted Cycle 6 fidelity requires {name}")
+            if (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError(f"accepted Cycle 6 fidelity requires a valid {name}")
     else:
         raise ValueError("unsupported Cycle 6 fidelity status")
 
@@ -330,6 +338,8 @@ def _validate_evidence_artifact(
         raise ValueError("Cycle 6 evidence reports detector access during selection")
     if item.get("selection_secret_access_observed") is not False:
         raise ValueError("Cycle 6 evidence reports secret access during selection")
+    if tuple(item.get("sanitizer_ids", ())) != CYCLE6_SANITIZER_IDS:
+        raise ValueError("Cycle 6 evidence sanitizer set drifted")
     rows = item.get("rows")
     if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes)) or len(rows) != 128:
         raise ValueError("Cycle 6 evidence must contain exactly 128 rows")
@@ -355,8 +365,8 @@ def _validate_evidence_artifact(
             raise ValueError("Cycle 6 evidence contains an unknown source label")
         label_counts[label] += 1
         sanitizers = row.get("sanitizers")
-        if not isinstance(sanitizers, Mapping) or tuple(sanitizers) != CYCLE6_SANITIZER_IDS:
-            raise ValueError("Cycle 6 evidence row sanitizer order drifted")
+        if not isinstance(sanitizers, Mapping) or set(sanitizers) != set(CYCLE6_SANITIZER_IDS):
+            raise ValueError("Cycle 6 evidence row sanitizer set drifted")
     if label_counts != {"watermarked": 64, "unwatermarked": 64}:
         raise ValueError("Cycle 6 evidence must contain 64 rows per label")
     summaries = item.get("summaries")
@@ -369,6 +379,8 @@ def _validate_evidence_artifact(
         summary_payload = {key: value for key, value in summary.items() if key != "summary_hash"}
         if summary.get("summary_hash") != sha256_json(summary_payload):
             raise ValueError("Cycle 6 evidence summary hash drifted")
+        if tuple(summary.get("sanitizer_ids", ())) != CYCLE6_SANITIZER_IDS:
+            raise ValueError("Cycle 6 evidence summary sanitizer set drifted")
         by_label[str(summary.get("source_label"))] = summary
     if set(by_label) != set(label_counts):
         raise ValueError("Cycle 6 evidence summaries must cover both source labels")
@@ -428,8 +440,15 @@ def aggregate_cycle6_confirmation(
     )
     first = evidence[0]
     for field in stable:
-        if any(item.get(field) != first.get(field) for item in evidence[1:]):
-            raise ValueError(f"Cycle 6 evidence {field} drifted across corpora")
+        first_value = (
+            tuple(first.get(field, ())) if field == "sanitizer_ids" else first.get(field)
+        )
+        for item in evidence[1:]:
+            item_value = (
+                tuple(item.get(field, ())) if field == "sanitizer_ids" else item.get(field)
+            )
+            if item_value != first_value:
+                raise ValueError(f"Cycle 6 evidence {field} drifted across corpora")
     measurement = _require_mapping("measurement", contract.get("measurement"))
     expected_stable = {
         "ruleset_hash": CYCLE6_RULESET_HASH,
@@ -445,7 +464,10 @@ def aggregate_cycle6_confirmation(
         "adapter_source_commit": measurement.get("transformers_source_commit"),
     }
     for field, expected in expected_stable.items():
-        if first.get(field) != expected:
+        observed = (
+            tuple(first.get(field, ())) if field == "sanitizer_ids" else first.get(field)
+        )
+        if observed != expected:
             raise ValueError(f"Cycle 6 evidence {field} drifted from the frozen contract")
     source_hash_sets: list[set[str]] = []
     validated_summaries: dict[int, tuple[Mapping[str, object], Mapping[str, object]]] = {}
