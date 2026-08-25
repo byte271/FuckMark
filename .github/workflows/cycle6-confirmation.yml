@@ -6,6 +6,7 @@ on:
       - ".github/workflows/cycle6-confirmation.yml"
       - "requirements-smoke.txt"
       - "specs/fuckmark-cycle6-confirmation-v1.contract.json"
+      - "specs/fuckmark-cycle6-confirmation-v2.contract.json"
       - "evidence/cycle6-quote-safe-zero-2026-08-25/frozen16-content-snapshot.json"
       - "fuckmark/corpus/**"
       - "fuckmark/detectors/**"
@@ -20,10 +21,16 @@ on:
       - "tools/build_cycle6_full_fidelity_packet.py"
       - "tests/test_cycle6_confirmation_contract.py"
       - "tests/test_cycle6_confirmation_review_fixes.py"
+      - "tests/test_cycle6_effectiveness_protocol_v2.py"
+  push:
+    branches:
+      - main
+    paths:
+      - "specs/fuckmark-cycle6-confirmation-v2.contract.json"
   workflow_dispatch:
     inputs:
       confirmation_authorized:
-        description: "Run sealed scoring only after the independent fidelity audit is contract-bound"
+        description: "Run the preregistered Cycle 6 v2 sealed effectiveness confirmation"
         required: true
         default: false
         type: boolean
@@ -58,6 +65,7 @@ jobs:
           python -m pytest -q
           tests/test_cycle6_confirmation_contract.py
           tests/test_cycle6_confirmation_review_fixes.py
+          tests/test_cycle6_effectiveness_protocol_v2.py
           tests/test_cycle6_reproduction_defaults.py
           tests/test_quote_safe_policy.py
 
@@ -97,36 +105,48 @@ jobs:
           if-no-files-found: error
 
   authorize-confirmation:
-    name: Verify independent fidelity authorization
-    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    name: Verify preregistered effectiveness authorization
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized)
     needs: preflight
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ env.CHECKOUT_SHA }}
-      - name: Refuse scoring while fidelity is pending
+      - name: Verify v2 pre-score effectiveness authorization
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          contract = json.loads(
-              Path("specs/fuckmark-cycle6-confirmation-v1.contract.json").read_text()
+          from fuckmark.experiments.cycle6_confirmation import (
+              validate_cycle6_confirmation_contract,
           )
-          gate = contract["fidelity_gate"]
-          if gate.get("status") != "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
-              raise SystemExit("sealed scoring is blocked: independent fidelity review is not accepted")
-          audit_hash = gate.get("independent_audit_hash")
-          if not isinstance(audit_hash, str) or len(audit_hash) != 64:
-              raise SystemExit("sealed scoring is blocked: fidelity audit hash is not bound")
+
+          contract = json.loads(
+              Path("specs/fuckmark-cycle6-confirmation-v2.contract.json").read_text()
+          )
+          validate_cycle6_confirmation_contract(contract)
+          if contract.get("status") != "PREREGISTERED_UNSCORED_EFFECTIVENESS":
+              raise SystemExit("sealed scoring is blocked: v2 is not preregistered and unscored")
+          change = contract["protocol_change"]
+          if change.get("prior_formal_detector_scoring_performed") is not False:
+              raise SystemExit("sealed scoring is blocked: v2 was not adopted before formal scoring")
+          authorization = contract["effectiveness_authorization"]
+          if authorization.get("status") != "AUTHORIZED_PRE_SCORE_PROTOCOL_REVISION":
+              raise SystemExit("sealed scoring is blocked: effectiveness endpoint is not authorized")
           if contract["confirmation"].get("scoring_authorized") is not True:
               raise SystemExit("sealed scoring is blocked: contract does not authorize scoring")
-          print(f"independent_audit_hash={audit_hash}")
+          fidelity = contract["fidelity_endpoint"]
+          if fidelity.get("status") != "SECONDARY_NOT_GATING":
+              raise SystemExit("sealed scoring is blocked: fidelity endpoint role drifted")
+          if fidelity.get("human_fidelity_claim_authorized") is not False:
+              raise SystemExit("sealed scoring is blocked: v2 cannot claim human fidelity")
+          print("effectiveness_authorization=AUTHORIZED_PRE_SCORE_PROTOCOL_REVISION")
           PY
 
   freeze:
     name: Freeze ${{ matrix.seed_base }}
-    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized)
     needs: authorize-confirmation
     runs-on: ubuntu-24.04
     timeout-minutes: 240
@@ -166,7 +186,7 @@ jobs:
         run: >-
           python -m fuckmark.tiny_dev_cycle6_confirmation_plan_hf
           --corpus-json artifacts/cycle6-corpus-${{ matrix.seed_base }}.json
-          --contract-json specs/fuckmark-cycle6-confirmation-v1.contract.json
+          --contract-json specs/fuckmark-cycle6-confirmation-v2.contract.json
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --source-code-commit "$(git rev-parse HEAD)"
@@ -216,7 +236,7 @@ jobs:
 
   freeze-cross-check:
     name: Cross-check frozen corpora and plans
-    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized)
     needs: freeze
     runs-on: ubuntu-24.04
     steps:
@@ -248,7 +268,7 @@ jobs:
 
           seeds = (760000, 770000, 780000)
           contract = json.loads(
-              Path("specs/fuckmark-cycle6-confirmation-v1.contract.json").read_text()
+              Path("specs/fuckmark-cycle6-confirmation-v2.contract.json").read_text()
           )
           contract_hash = validate_cycle6_confirmation_contract(contract)
           validate_cycle6_frozen_source_blobs(Path.cwd(), contract)
@@ -327,7 +347,7 @@ jobs:
 
   score:
     name: Score ${{ matrix.seed_base }}
-    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized)
     needs: freeze-cross-check
     runs-on: ubuntu-24.04
     timeout-minutes: 150
@@ -358,7 +378,7 @@ jobs:
           python -m fuckmark.tiny_dev_cycle6_confirmation_score_hf
           --corpus-json frozen/cycle6-corpus-${{ matrix.seed_base }}.json
           --plan-json frozen/cycle6-plan-${{ matrix.seed_base }}.json
-          --contract-json specs/fuckmark-cycle6-confirmation-v1.contract.json
+          --contract-json specs/fuckmark-cycle6-confirmation-v2.contract.json
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --device cpu
@@ -374,7 +394,7 @@ jobs:
 
   aggregate:
     name: Aggregate sealed confirmation
-    if: github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirmation_authorized)
     needs: score
     runs-on: ubuntu-24.04
     steps:
@@ -393,7 +413,7 @@ jobs:
       - name: Aggregate preregistered outcome
         run: >-
           python -m fuckmark.tiny_dev_cycle6_confirmation_aggregate
-          --contract-json specs/fuckmark-cycle6-confirmation-v1.contract.json
+          --contract-json specs/fuckmark-cycle6-confirmation-v2.contract.json
           --evidence-json scored/cycle6-score-760000/cycle6-confirmation-evidence-760000.json
           --evidence-json scored/cycle6-score-770000/cycle6-confirmation-evidence-770000.json
           --evidence-json scored/cycle6-score-780000/cycle6-confirmation-evidence-780000.json
