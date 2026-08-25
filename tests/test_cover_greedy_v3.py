@@ -102,3 +102,49 @@ def test_empty_pool_returns_identity():
     assert result.static_phase_selections == 0
     assert result.repair_phase_selections == 0
     assert result.achieved_zero is False
+
+
+SPACED_PROSE = (
+    "aaaaaa bbbbbb cccccc dddddd eeeeee ffffff gggggg hhhhhh."
+)
+
+
+def test_multi_token_candidates_participate_in_static_coverage():
+    result = _run(8, text=SPACED_PROSE)
+    assert result.selected_candidate_count > 0
+    assert result.static_phase_selections > 0
+
+
+def test_exact_repair_is_not_gated_by_static_coverage():
+    result = _run(16)
+    if result.intact_window_count > 0 and result.candidate_count > 0:
+        assert (
+            result.repair_phase_selections > 0
+            or result.budget_exhausted
+        )
+
+
+class _MismatchedOffsetTokenizer(_OffsetTokenizer):
+    def __call__(self, text, add_special_tokens=False, return_offsets_mapping=False):
+        data = text.encode("utf-8")
+        result = {"input_ids": [value + 1024 for value in data]}
+        if return_offsets_mapping:
+            result["offset_mapping"] = [(index, index + 1) for index in range(len(data))]
+        return result
+
+
+def test_tokenizer_path_mismatch_fails_closed():
+    text = "The quick brown fox jumps over the lazy dog near the river bank."
+    registry = content_region_coverage_transform_registry()
+    enumeration = registry.enumerate(text)
+    with pytest.raises(ValueError, match="tokenizer path inconsistency"):
+        schedule_cover_greedy_v3(
+            source_sample_id="mismatch",
+            source_text=text,
+            registry=registry,
+            enumeration=enumeration,
+            tokenizer=_MismatchedOffsetTokenizer(),
+            tokenizer_identity_hash="0" * 64,
+            ngram_len=5,
+            budget=8,
+        )

@@ -1,0 +1,90 @@
+name: Cycle5 Fresh16 Rerun
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/cycle5-fresh16-rerun.yml"
+      - "fuckmark/experiments/cover_greedy_v3.py"
+      - "fuckmark/experiments/cover_greedy_v4.py"
+      - "fuckmark/geometry/**"
+      - "fuckmark/transforms/**"
+      - "tools/cycle5_dev_paired_run.py"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: cycle5-fresh16-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fresh16:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install pinned Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Freeze fresh 16-sample Cycle 5 corpus
+        run: >-
+          python tools/cycle5_dev_paired_run.py
+          --generate-only
+          --samples 16
+          --seed-base 720000
+          --out artifacts/cycle5-fresh16-corpus.json
+      - name: Score fixed v3 vs corrected v4 on coverage registry
+        run: >-
+          python tools/cycle5_dev_paired_run.py
+          --samples 16
+          --budget 16
+          --seed-base 720000
+          --threshold 0.5570987654320988
+          --registry coverage
+          --corpus artifacts/cycle5-fresh16-corpus.json
+          --out artifacts/cycle5-fresh16-coverage.json
+      - name: Score fixed v3 vs corrected v4 on expanded ZRD registry
+        run: >-
+          python tools/cycle5_dev_paired_run.py
+          --samples 16
+          --budget 16
+          --seed-base 720000
+          --threshold 0.5570987654320988
+          --registry zrd
+          --corpus artifacts/cycle5-fresh16-corpus.json
+          --out artifacts/cycle5-fresh16-zrd.json
+      - name: Print sealed summaries
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          corpus = json.loads(Path('artifacts/cycle5-fresh16-corpus.json').read_text())
+          print('corpus_hash=' + corpus['corpus_hash'])
+          for name in ('coverage', 'zrd'):
+              payload = json.loads(Path(f'artifacts/cycle5-fresh16-{name}.json').read_text())
+              print(name + '_artifact_hash=' + payload['artifact_hash'])
+              print(name + '_v3_detected=' + str(payload['summary']['v3']['detected']) + '/' + str(payload['row_count']))
+              print(name + '_v4_detected=' + str(payload['summary']['v4']['detected']) + '/' + str(payload['row_count']))
+              print(name + '_v4_mean_score=' + str(payload['summary']['v4']['mean_score']))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle5-fresh16-rerun
+          path: |
+            artifacts/cycle5-fresh16-corpus.json
+            artifacts/cycle5-fresh16-coverage.json
+            artifacts/cycle5-fresh16-zrd.json
+          if-no-files-found: error
