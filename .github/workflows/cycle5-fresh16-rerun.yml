@@ -73,9 +73,11 @@ jobs:
           from pathlib import Path
           corpus = json.loads(Path('artifacts/cycle5-fresh16-corpus.json').read_text())
           print('corpus_hash=' + corpus['corpus_hash'])
+          print('corpus_content_hash=' + corpus['content_hash'])
           for name in ('coverage', 'zrd'):
               payload = json.loads(Path(f'artifacts/cycle5-fresh16-{name}.json').read_text())
               print(name + '_artifact_hash=' + payload['artifact_hash'])
+              print(name + '_result_hash=' + payload['result_hash'])
               print(name + '_v3_detected=' + str(payload['summary']['v3']['detected']) + '/' + str(payload['row_count']))
               print(name + '_v4_detected=' + str(payload['summary']['v4']['detected']) + '/' + str(payload['row_count']))
               print(name + '_v4_mean_score=' + str(payload['summary']['v4']['mean_score']))
