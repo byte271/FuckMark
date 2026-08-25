@@ -2,24 +2,24 @@
  "algorithm_version": "cycle6-scored-evidence-wrapper-v1",
  "source_corpus_container_hash": "12243766af4bc642f10c02a503de7b2794abcf59102e9bce108ca72008732dc1",
  "source_corpus_content_hash": "e055e0f7a6417c9294a7ed55718cae6fba276cab1256869e1f8babe9d1a84208",
- "source_commit": "b26a3d0",
+ "source_commit": "b26a3d03198e9e7ee9646431659ec66a1e293060",
  "scored_artifact": {
   "algorithm_version": "cycle5-dev-paired-scored-v2",
-  "recorded_at_utc": "2026-08-25T01:48:46.434910+00:00",
+  "recorded_at_utc": "2026-08-25T02:10:40.771370+00:00",
   "model": "openai-community/gpt2",
   "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
   "frozen_corpus": "cycle6-unseen16-corpus.json",
   "registry": "quote-safe-zrd",
-  "budget": 16,
+  "budget": 14,
   "threshold": 0.5570987654320988,
   "threshold_note": "frozen confirmation measurement identity; unchanged",
   "row_count": 16,
   "summary": {
    "v3": {
     "detected": 0,
-    "mean_score": 0.50603,
-    "mean_drop": 0.112803,
-    "mean_selected": 16,
+    "mean_score": 0.512638,
+    "mean_drop": 0.106195,
+    "mean_selected": 14,
     "closure_free_rate": 0.0,
     "sanitizer_detection_counts": {
      "raw": 0,
@@ -30,9 +30,9 @@
    },
    "v4": {
     "detected": 0,
-    "mean_score": 0.506611,
-    "mean_drop": 0.112223,
-    "mean_selected": 16,
+    "mean_score": 0.512638,
+    "mean_drop": 0.106195,
+    "mean_selected": 14,
     "closure_free_rate": 0.0,
     "sanitizer_detection_counts": {
      "raw": 0,
@@ -50,55 +50,55 @@
     "text_sha256": "0def6c4d3ba3513a",
     "pristine_score": 0.626263,
     "v3": {
-     "score": 0.521564,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 6,
-     "closure_leaks": 6,
+     "score": 0.503788,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 10,
+     "closure_leaks": 10,
      "detected": false
     },
     "v4": {
-     "score": 0.521564,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 6,
-     "closure_leaks": 6,
+     "score": 0.503788,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 10,
+     "closure_leaks": 10,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       },
       "nfkc": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       },
       "combined": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       },
       "nfkc": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       },
       "combined": {
-       "score": 0.521564,
+       "score": 0.503788,
        "detected": false
       }
      }
@@ -111,55 +111,55 @@
     "text_sha256": "f02bc242b7bfdbc1",
     "pristine_score": 0.608158,
     "v3": {
-     "score": 0.509305,
-     "selected": 16,
-     "repair_used": 4,
-     "intact_windows": 9,
-     "closure_leaks": 9,
+     "score": 0.51661,
+     "selected": 14,
+     "repair_used": 2,
+     "intact_windows": 13,
+     "closure_leaks": 13,
      "detected": false
     },
     "v4": {
-     "score": 0.509305,
-     "selected": 16,
-     "repair_used": 4,
-     "intact_windows": 9,
-     "closure_leaks": 9,
+     "score": 0.51661,
+     "selected": 14,
+     "repair_used": 2,
+     "intact_windows": 13,
+     "closure_leaks": 13,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       },
       "nfkc": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       },
       "combined": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       },
       "nfkc": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       },
       "combined": {
-       "score": 0.509305,
+       "score": 0.51661,
        "detected": false
       }
      }
@@ -172,55 +172,55 @@
     "text_sha256": "c74e6e8fd229fc0f",
     "pristine_score": 0.645034,
     "v3": {
-     "score": 0.504353,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 4,
-     "closure_leaks": 4,
+     "score": 0.515971,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 8,
+     "closure_leaks": 8,
      "detected": false
     },
     "v4": {
-     "score": 0.504353,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 4,
-     "closure_leaks": 4,
+     "score": 0.515971,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 8,
+     "closure_leaks": 8,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       },
       "nfkc": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       },
       "combined": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       },
       "nfkc": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       },
       "combined": {
-       "score": 0.504353,
+       "score": 0.515971,
        "detected": false
       }
      }
@@ -233,55 +233,55 @@
     "text_sha256": "f53a1586fc718a48",
     "pristine_score": 0.646819,
     "v3": {
-     "score": 0.520842,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 5,
-     "closure_leaks": 7,
+     "score": 0.515013,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 9,
+     "closure_leaks": 11,
      "detected": false
     },
     "v4": {
-     "score": 0.520842,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 5,
-     "closure_leaks": 7,
+     "score": 0.515013,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 9,
+     "closure_leaks": 11,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       },
       "nfkc": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       },
       "combined": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       },
       "nfkc": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       },
       "combined": {
-       "score": 0.520842,
+       "score": 0.515013,
        "detected": false
       }
      }
@@ -294,55 +294,55 @@
     "text_sha256": "21f5c321fde32387",
     "pristine_score": 0.607281,
     "v3": {
-     "score": 0.525319,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 10,
-     "closure_leaks": 10,
+     "score": 0.524434,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 14,
+     "closure_leaks": 14,
      "detected": false
     },
     "v4": {
-     "score": 0.525319,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 10,
-     "closure_leaks": 10,
+     "score": 0.524434,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 14,
+     "closure_leaks": 14,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       },
       "nfkc": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       },
       "combined": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       },
       "nfkc": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       },
       "combined": {
-       "score": 0.525319,
+       "score": 0.524434,
        "detected": false
       }
      }
@@ -355,55 +355,55 @@
     "text_sha256": "d24a3bb0fe098804",
     "pristine_score": 0.630303,
     "v3": {
-     "score": 0.518418,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 5,
-     "closure_leaks": 5,
+     "score": 0.511139,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 9,
+     "closure_leaks": 9,
      "detected": false
     },
     "v4": {
-     "score": 0.518418,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 5,
-     "closure_leaks": 5,
+     "score": 0.511139,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 9,
+     "closure_leaks": 9,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       },
       "nfkc": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       },
       "combined": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       },
       "nfkc": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       },
       "combined": {
-       "score": 0.518418,
+       "score": 0.511139,
        "detected": false
       }
      }
@@ -416,55 +416,55 @@
     "text_sha256": "a1ec6b99309267d5",
     "pristine_score": 0.611911,
     "v3": {
-     "score": 0.508938,
-     "selected": 16,
-     "repair_used": 4,
-     "intact_windows": 5,
-     "closure_leaks": 5,
+     "score": 0.519247,
+     "selected": 14,
+     "repair_used": 2,
+     "intact_windows": 9,
+     "closure_leaks": 9,
      "detected": false
     },
     "v4": {
-     "score": 0.508938,
-     "selected": 16,
-     "repair_used": 4,
-     "intact_windows": 5,
-     "closure_leaks": 5,
+     "score": 0.519247,
+     "selected": 14,
+     "repair_used": 2,
+     "intact_windows": 9,
+     "closure_leaks": 9,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       },
       "nfkc": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       },
       "combined": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       },
       "nfkc": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       },
       "combined": {
-       "score": 0.508938,
+       "score": 0.519247,
        "detected": false
       }
      }
@@ -477,55 +477,55 @@
     "text_sha256": "3ae240c98ea4a019",
     "pristine_score": 0.621169,
     "v3": {
-     "score": 0.466075,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 7,
-     "closure_leaks": 7,
+     "score": 0.479184,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 11,
+     "closure_leaks": 11,
      "detected": false
     },
     "v4": {
-     "score": 0.466075,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 7,
-     "closure_leaks": 7,
+     "score": 0.479184,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 11,
+     "closure_leaks": 11,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       },
       "nfkc": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       },
       "combined": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       },
       "nfkc": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       },
       "combined": {
-       "score": 0.466075,
+       "score": 0.479184,
        "detected": false
       }
      }
@@ -538,55 +538,55 @@
     "text_sha256": "697696586948426a",
     "pristine_score": 0.643224,
     "v3": {
-     "score": 0.487912,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 7,
-     "closure_leaks": 7,
+     "score": 0.507472,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 10,
+     "closure_leaks": 10,
      "detected": false
     },
     "v4": {
-     "score": 0.487912,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 7,
-     "closure_leaks": 7,
+     "score": 0.507472,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 10,
+     "closure_leaks": 10,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       },
       "nfkc": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       },
       "combined": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       },
       "nfkc": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       },
       "combined": {
-       "score": 0.487912,
+       "score": 0.507472,
        "detected": false
       }
      }
@@ -599,55 +599,55 @@
     "text_sha256": "6a1f8cc49069d8a6",
     "pristine_score": 0.654183,
     "v3": {
-     "score": 0.469529,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 3,
-     "closure_leaks": 6,
+     "score": 0.493531,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 7,
+     "closure_leaks": 11,
      "detected": false
     },
     "v4": {
-     "score": 0.469529,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 3,
-     "closure_leaks": 6,
+     "score": 0.493531,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 7,
+     "closure_leaks": 11,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       },
       "nfkc": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       },
       "combined": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       },
       "nfkc": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       },
       "combined": {
-       "score": 0.469529,
+       "score": 0.493531,
        "detected": false
       }
      }
@@ -660,55 +660,55 @@
     "text_sha256": "c8cfe58792f9c5cc",
     "pristine_score": 0.598618,
     "v3": {
-     "score": 0.515843,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 5,
-     "closure_leaks": 5,
+     "score": 0.523253,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 9,
+     "closure_leaks": 9,
      "detected": false
     },
     "v4": {
-     "score": 0.515843,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 5,
-     "closure_leaks": 5,
+     "score": 0.523253,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 9,
+     "closure_leaks": 9,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       },
       "nfkc": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       },
       "combined": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       },
       "nfkc": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       },
       "combined": {
-       "score": 0.515843,
+       "score": 0.523253,
        "detected": false
       }
      }
@@ -721,55 +721,55 @@
     "text_sha256": "236f9cac9123e405",
     "pristine_score": 0.595328,
     "v3": {
-     "score": 0.500521,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 5,
-     "closure_leaks": 8,
+     "score": 0.518478,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 7,
+     "closure_leaks": 10,
      "detected": false
     },
     "v4": {
-     "score": 0.509811,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 6,
-     "closure_leaks": 6,
+     "score": 0.518478,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 7,
+     "closure_leaks": 10,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.500521,
+       "score": 0.518478,
        "detected": false
       },
       "nfkc": {
-       "score": 0.500521,
+       "score": 0.518478,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.500521,
+       "score": 0.518478,
        "detected": false
       },
       "combined": {
-       "score": 0.500521,
+       "score": 0.518478,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.509811,
+       "score": 0.518478,
        "detected": false
       },
       "nfkc": {
-       "score": 0.509811,
+       "score": 0.518478,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.509811,
+       "score": 0.518478,
        "detected": false
       },
       "combined": {
-       "score": 0.509811,
+       "score": 0.518478,
        "detected": false
       }
      }
@@ -782,55 +782,55 @@
     "text_sha256": "b27db3fa51a2adff",
     "pristine_score": 0.562948,
     "v3": {
-     "score": 0.49904,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 9,
-     "closure_leaks": 9,
+     "score": 0.498939,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 11,
+     "closure_leaks": 12,
      "detected": false
     },
     "v4": {
-     "score": 0.49904,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 9,
-     "closure_leaks": 9,
+     "score": 0.498939,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 11,
+     "closure_leaks": 12,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       },
       "nfkc": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       },
       "combined": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       },
       "nfkc": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       },
       "combined": {
-       "score": 0.49904,
+       "score": 0.498939,
        "detected": false
       }
      }
@@ -843,55 +843,55 @@
     "text_sha256": "68a3f3d0b4451d43",
     "pristine_score": 0.633795,
     "v3": {
-     "score": 0.502896,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 2,
-     "closure_leaks": 3,
+     "score": 0.508207,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 6,
+     "closure_leaks": 6,
      "detected": false
     },
     "v4": {
-     "score": 0.502896,
-     "selected": 16,
-     "repair_used": 6,
-     "intact_windows": 2,
-     "closure_leaks": 3,
+     "score": 0.508207,
+     "selected": 14,
+     "repair_used": 4,
+     "intact_windows": 6,
+     "closure_leaks": 6,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       },
       "nfkc": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       },
       "combined": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       },
       "nfkc": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       },
       "combined": {
-       "score": 0.502896,
+       "score": 0.508207,
        "detected": false
       }
      }
@@ -904,55 +904,55 @@
     "text_sha256": "bef1258a86c66dc1",
     "pristine_score": 0.638889,
     "v3": {
-     "score": 0.523923,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 8,
-     "closure_leaks": 8,
+     "score": 0.537503,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 13,
+     "closure_leaks": 13,
      "detected": false
     },
     "v4": {
-     "score": 0.523923,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 8,
-     "closure_leaks": 8,
+     "score": 0.537503,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 13,
+     "closure_leaks": 13,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       },
       "nfkc": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       },
       "combined": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       },
       "nfkc": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       },
       "combined": {
-       "score": 0.523923,
+       "score": 0.537503,
        "detected": false
       }
      }
@@ -965,63 +965,63 @@
     "text_sha256": "e8bd1e12f626520a",
     "pristine_score": 0.577412,
     "v3": {
-     "score": 0.522001,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 8,
-     "closure_leaks": 8,
+     "score": 0.529438,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 12,
+     "closure_leaks": 12,
      "detected": false
     },
     "v4": {
-     "score": 0.522001,
-     "selected": 16,
-     "repair_used": 5,
-     "intact_windows": 8,
-     "closure_leaks": 8,
+     "score": 0.529438,
+     "selected": 14,
+     "repair_used": 3,
+     "intact_windows": 12,
+     "closure_leaks": 12,
      "detected": false
     },
     "sanitizers": {
      "v3": {
       "raw": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       },
       "nfkc": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       },
       "combined": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       }
      },
      "v4": {
       "raw": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       },
       "nfkc": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       },
       "cf_strip": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       },
       "combined": {
-       "score": 0.522001,
+       "score": 0.529438,
        "detected": false
       }
      }
     }
    }
   ],
-  "artifact_hash": "deb1d617d59c9f6d079583be81d56adc1adc098dbc632173e5592b07f73c5ded",
-  "result_hash": "13731d69a2a710c6a0d37aacb63af23e0a6c112be2093438a64dd074431d2848"
+  "artifact_hash": "843f950fcc980c02370c8cd3d382191c580679225e9318299cc3b96eee9440e1",
+  "result_hash": "49e13cbfdd134ef9d22b94c447cc4ad57351e8e2c335008119853c9b0e1bb37a"
  },
- "evidence_hash": "d27f9e7cab70a14d46ab1c3829e3b8108c3694fc56c86967ee9b7e7304675bf7"
+ "evidence_hash": "1510ecb31db5c352fa8b6de95d652c3f3f41850737380afc0c4a3fb1c60f99a8"
 }

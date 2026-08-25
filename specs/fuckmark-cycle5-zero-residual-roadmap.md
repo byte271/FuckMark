@@ -210,23 +210,23 @@ delimiters, URLs, numbers, code, citations, identifiers, and user ranges remain 
 Every admitted operation adds exactly one ASCII space and is replay-validated from the
 trace. No invisible Unicode is used.
 
-With the registry change only—same v4 scheduler, B16 budget, detector, threshold, corpus,
+With the registry change only—same v4 scheduler, B14 budget, detector, threshold, corpus,
 and denominator—the fresh16 development result became:
 
 | Arm | Detected | Mean score | Raw | NFKC | Cf strip | Combined |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| quote-safe ZRD v4 | **0/16** | **0.510771** | 0/16 | 0/16 | 0/16 | 0/16 |
+| quote-safe ZRD v4 | **0/16** | **0.512508** | 0/16 | 0/16 | 0/16 | 0/16 |
 
 Original residual changes:
 
 | Sample | Before | After | Selected | Intact | Tuple leaks |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 8 | 0.560003 | 0.514545 | 16 | 5 | 6 |
-| 10 | 0.617551 | 0.486465 | 16 | 3 | 3 |
+| 8 | 0.560003 | 0.510883 | 14 | 8 | 9 |
+| 10 | 0.617551 | 0.490902 | 14 | 7 | 7 |
 
 This is development detector-zero, not geometry-zero. Across all sixteen outputs v4
-intact counts were `6,7,5,13,4,6,5,6,5,4,3,8,2,5,4,9`; tuple leaks were
-`6,7,5,13,4,7,5,6,6,8,3,8,5,6,4,9`. The geometry target remains open and is not
+intact counts were `10,11,9,17,8,8,9,10,8,6,7,11,5,7,9,12`; tuple leaks were
+`10,11,9,17,8,9,9,10,9,10,7,11,9,8,9,12`. The geometry target remains open and is not
 conflated with the measured 0/16 detector result.
 
 ### Fidelity and adverse findings
@@ -237,7 +237,7 @@ stripping leave ASCII spaces unchanged. Aggressive whitespace collapse removes t
 mechanism; that adverse limitation is explicit.
 
 The deterministic blind packet hash is
-`4bde66e0a9f2148373afa78213aecf582dab5d6b6a756f2b96300699181b41fd`.
+`4b135e8b6906b018b80a6b57a7a3b5b1adf9ff34c57f15847a2338edebb8301e`.
 Independent human review is pending. Therefore this cycle does not claim the family is
 release-ready or fidelity-complete even though the frozen detector result reached zero.
 
@@ -258,23 +258,28 @@ release-ready or fidelity-complete even though the frozen detector result reache
 ### Frozen development evidence and disjoint replication
 
 The timestamp-independent scored result hash for the seed-720000 corpus is
-`2e1bcf862bfa0d24423ac5f2d8bca6374e3d72020fc9f092e91f5d4f7d66152c`.
+`73f44b173d7ec55ea80e7d2e9a46b7ea70d8b32682f465dc66643387d99aa8b6`.
 The complete post-fix geometry artifact hash is
-`fb27790381207b4edee4cbb1febebbc1480347391008638f2ec29b9d00339e31`.
-All 16 plans consumed the B16 budget. Exact-protected positional residual counts were
-`0,0,0,1,2,0,0,0,0,0,0,2,0,0,0,0`; quote-container positional residual counts were
-`0,0,0,0,0,0,3,0,4,0,3,0,0,0,0,0`. Quote-container residuals are measured separately
+`202f7d2b2a06585e65fde9abb298b64c003ddc2eef28ae265fb7aa4d37ab325c`.
+All 16 plans consumed the B14 budget. Exact-protected positional residual counts were
+`0,0,0,3,4,0,0,0,0,0,0,3,0,0,0,0`; quote-container positional residual counts were
+`0,0,0,0,0,0,3,0,5,0,7,0,0,0,0,0`. Quote-container residuals are measured separately
 because quote containers are no longer exact-protected content under this policy.
 
-After freezing the registry, quote policy, v4 scheduler, B16 budget, tokenizer/model
+After freezing the registry, quote policy, v4 scheduler, B14 budget, tokenizer/model
 revision, detector, threshold, and sanitizer policy, a disjoint seed-730000 development
 corpus was generated. Its container hash is
 `12243766af4bc642f10c02a503de7b2794abcf59102e9bce108ca72008732dc1` and stable content
 hash is `e055e0f7a6417c9294a7ed55718cae6fba276cab1256869e1f8babe9d1a84208`.
 It also produced **0/16** detections for raw, NFKC, Cf strip, and combined, with v4 mean
-score `0.506611`. Its stable scored result hash is
-`13731d69a2a710c6a0d37aacb63af23e0a6c112be2093438a64dd074431d2848` and geometry
-artifact hash is `d8a6090e9dd18e5679dac62925b4f234b051c1e39ae486784ccfa1b1a0fb3485`.
+score `0.512638`. Its stable scored result hash is
+`49e13cbfdd134ef9d22b94c447cc4ad57351e8e2c335008119853c9b0e1bb37a` and geometry
+artifact hash is `ac8ed3877640ac6caa3e40652a12eebce8adb66d07047e8edb9bd8ec35b8fd61`.
+
+The deterministic edit-cost ablation produced v4 detection counts B10=3, B12=1,
+B13=1, B14=0, B15=0, and B16=0. B14 is the minimum tested successful integer budget.
+This selection used only whole-corpus development evaluation; candidate ranking within
+every arm remained detector-blind and key-blind.
 
 This disjoint result is replication on unseen development data, not a formal confirmation
 and not a universal claim. Independent fidelity adjudication remains a release gate before

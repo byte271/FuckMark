@@ -69,7 +69,7 @@ jobs:
         run: >-
           python tools/cycle5_dev_paired_run.py
           --samples 16
-          --budget 16
+          --budget 14
           --seed-base 720000
           --threshold 0.5570987654320988
           --registry quote-safe-zrd

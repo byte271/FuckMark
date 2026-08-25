@@ -5,7 +5,7 @@
   "scope": {
     "registry": "zrd-destruction-extension-v1 plus quote-container policy",
     "scheduler": "cover-greedy-key-blind-v4",
-    "budget_operations": 16,
+    "budget_operations": 14,
     "ngram_len": 5,
     "detector_blind": true,
     "watermark_key_blind": true,
@@ -68,11 +68,11 @@
     "after_detected": "0/16",
     "sample_8": {
       "before": 0.560003,
-      "after": 0.514545
+      "after": 0.510883
     },
     "sample_10": {
       "before": 0.617551,
-      "after": 0.486465
+      "after": 0.490902
     },
     "sanitizer_detection_counts": {
       "raw": 0,
@@ -82,7 +82,7 @@
     }
   },
   "fidelity_gate": {
-    "packet_hash": "4bde66e0a9f2148373afa78213aecf582dab5d6b6a756f2b96300699181b41fd",
+    "packet_hash": "4b135e8b6906b018b80a6b57a7a3b5b1adf9ff34c57f15847a2338edebb8301e",
     "status": "PENDING_INDEPENDENT_HUMAN_REVIEW",
     "claim_boundary": "Detector-zero development evidence is valid; fidelity-complete or release-ready status is not claimed until the packet is independently adjudicated."
   },
@@ -91,8 +91,8 @@
     "source_container_hash": "12243766af4bc642f10c02a503de7b2794abcf59102e9bce108ca72008732dc1",
     "stable_content_hash": "e055e0f7a6417c9294a7ed55718cae6fba276cab1256869e1f8babe9d1a84208",
     "v4_detected": "0/16",
-    "v4_mean_score": 0.506611,
-    "stable_result_hash": "13731d69a2a710c6a0d37aacb63af23e0a6c112be2093438a64dd074431d2848",
+    "v4_mean_score": 0.512638,
+    "stable_result_hash": "49e13cbfdd134ef9d22b94c447cc4ad57351e8e2c335008119853c9b0e1bb37a",
     "sanitizer_detection_counts": {
       "raw": 0,
       "nfkc": 0,
@@ -100,6 +100,18 @@
       "combined": 0
     },
     "claim_boundary": "Unseen development replication only; not formal confirmation."
+  },
+  "budget_ablation": {
+    "fixed_budget_detection_counts": {
+      "10": 3,
+      "12": 1,
+      "13": 1,
+      "14": 0,
+      "15": 0,
+      "16": 0
+    },
+    "selected_budget": 14,
+    "selection_reason": "Minimum tested integer budget reaching 0/16 on the frozen development corpus; candidate ranking remained detector-blind."
   },
   "kill_criteria": [
     "Any exact protected item, quote delimiter, non-whitespace quoted byte, negation, or modality changes.",
