@@ -17,6 +17,11 @@ from .cover_greedy_v4 import (
 
 
 CYCLE6_CONFIRMATION_CONTRACT_VERSION = "cycle6-confirmation-contract-v1"
+CYCLE6_EFFECTIVENESS_CONTRACT_VERSION = "cycle6-confirmation-contract-v2"
+CYCLE6_CONFIRMATION_CONTRACT_VERSIONS = (
+    CYCLE6_CONFIRMATION_CONTRACT_VERSION,
+    CYCLE6_EFFECTIVENESS_CONTRACT_VERSION,
+)
 CYCLE6_CONFIRMATION_PLAN_VERSION = "cycle6-confirmation-plan-v1"
 CYCLE6_CONFIRMATION_AGGREGATE_VERSION = "cycle6-confirmation-aggregate-v1"
 CYCLE6_ATTACK_SOURCE_COMMIT = "4a091bde9e8f91cbd9c3feecb4186caa75228c36"
@@ -41,6 +46,16 @@ CYCLE6_FROZEN_SOURCE_BLOBS = {
 def _require_mapping(name: str, value: object) -> Mapping[str, object]:
     if not isinstance(value, Mapping):
         raise TypeError(f"{name} must be a mapping")
+    return value
+
+
+def _require_lower_hex_digest(name: str, value: object) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise ValueError(f"Cycle 6 contract requires a valid {name}")
     return value
 
 
@@ -82,7 +97,8 @@ def validate_cycle6_frozen_source_blobs(
 
 
 def validate_cycle6_confirmation_contract(contract: Mapping[str, object]) -> str:
-    if contract.get("algorithm_version") != CYCLE6_CONFIRMATION_CONTRACT_VERSION:
+    contract_version = contract.get("algorithm_version")
+    if contract_version not in CYCLE6_CONFIRMATION_CONTRACT_VERSIONS:
         raise ValueError("unsupported Cycle 6 confirmation contract version")
     attack = _require_mapping("attack", contract.get("attack"))
     if attack.get("implementation_commit") != CYCLE6_ATTACK_SOURCE_COMMIT:
@@ -126,45 +142,83 @@ def validate_cycle6_confirmation_contract(contract: Mapping[str, object]) -> str
     if confirmation.get("cross_corpus_attack_text_hashes_must_be_disjoint") is not True:
         raise ValueError("Cycle 6 confirmation must require disjoint corpora")
 
-    fidelity = _require_mapping("fidelity_gate", contract.get("fidelity_gate"))
-    fidelity_status = fidelity.get("status")
     scoring_authorized = confirmation.get("scoring_authorized")
-    if fidelity_status == "PENDING_INDEPENDENT_HUMAN_REVIEW":
-        if scoring_authorized is not False:
-            raise ValueError("Cycle 6 scoring must remain blocked while fidelity is pending")
-        if fidelity.get("independent_audit_hash") is not None:
-            raise ValueError("pending Cycle 6 fidelity cannot bind a completed audit hash")
-        for name in ("full_packet_hash", "mechanical_artifact_hash"):
-            value = fidelity.get(name)
-            if value is not None and (
-                not isinstance(value, str)
-                or len(value) != 64
-                or any(character not in "0123456789abcdef" for character in value)
+    if contract_version == CYCLE6_CONFIRMATION_CONTRACT_VERSION:
+        fidelity = _require_mapping("fidelity_gate", contract.get("fidelity_gate"))
+        fidelity_status = fidelity.get("status")
+        if fidelity_status == "PENDING_INDEPENDENT_HUMAN_REVIEW":
+            if scoring_authorized is not False:
+                raise ValueError("Cycle 6 scoring must remain blocked while fidelity is pending")
+            if fidelity.get("independent_audit_hash") is not None:
+                raise ValueError("pending Cycle 6 fidelity cannot bind a completed audit hash")
+            for name in ("full_packet_hash", "mechanical_artifact_hash"):
+                value = fidelity.get(name)
+                if value is not None:
+                    _require_lower_hex_digest(name, value)
+        elif fidelity_status == "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
+            if scoring_authorized is not True:
+                raise ValueError("accepted Cycle 6 fidelity must explicitly authorize scoring")
+            for name in (
+                "full_packet_hash",
+                "mechanical_artifact_hash",
+                "independent_audit_hash",
             ):
-                raise ValueError(f"pending Cycle 6 fidelity has an invalid {name}")
-    elif fidelity_status == "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
-        if scoring_authorized is not True:
-            raise ValueError("accepted Cycle 6 fidelity must explicitly authorize scoring")
-        for name in (
-            "full_packet_hash",
-            "mechanical_artifact_hash",
-            "independent_audit_hash",
-        ):
-            value = fidelity.get(name)
-            if (
-                not isinstance(value, str)
-                or len(value) != 64
-                or any(character not in "0123456789abcdef" for character in value)
-            ):
-                raise ValueError(f"accepted Cycle 6 fidelity requires a valid {name}")
+                _require_lower_hex_digest(name, fidelity.get(name))
+        else:
+            raise ValueError("unsupported Cycle 6 fidelity status")
     else:
-        raise ValueError("unsupported Cycle 6 fidelity status")
+        if contract.get("status") != "PREREGISTERED_UNSCORED_EFFECTIVENESS":
+            raise ValueError("Cycle 6 v2 must remain preregistered and unscored before execution")
+        protocol_change = _require_mapping("protocol_change", contract.get("protocol_change"))
+        if protocol_change.get("decision") != "HUMAN_FIDELITY_SECONDARY_NON_GATING":
+            raise ValueError("Cycle 6 v2 protocol decision drifted")
+        if protocol_change.get("effective_before_formal_scoring") is not True:
+            raise ValueError("Cycle 6 v2 protocol change must precede formal scoring")
+        if protocol_change.get("prior_formal_detector_scoring_performed") is not False:
+            raise ValueError("Cycle 6 v2 cannot be adopted after formal detector scoring")
+        if protocol_change.get("human_fidelity_role") != "SECONDARY_ENDPOINT":
+            raise ValueError("Cycle 6 v2 fidelity role drifted")
+        if protocol_change.get("effectiveness_endpoint_independent_of_human_fidelity") is not True:
+            raise ValueError("Cycle 6 v2 effectiveness endpoint must be fidelity-independent")
+
+        authorization = _require_mapping(
+            "effectiveness_authorization", contract.get("effectiveness_authorization")
+        )
+        if authorization.get("status") != "AUTHORIZED_PRE_SCORE_PROTOCOL_REVISION":
+            raise ValueError("Cycle 6 v2 effectiveness authorization drifted")
+        if authorization.get("authorized_endpoint") != "SEALED_3X64_DETECTOR_EFFECTIVENESS":
+            raise ValueError("Cycle 6 v2 authorized endpoint drifted")
+        if authorization.get("authorization_recorded_before_any_formal_score") is not True:
+            raise ValueError("Cycle 6 v2 authorization must precede formal scoring")
+        if authorization.get("human_fidelity_required_for_effectiveness") is not False:
+            raise ValueError("Cycle 6 v2 human fidelity must be secondary, not gating")
+        if authorization.get("attack_or_measurement_change_authorized") is not False:
+            raise ValueError("Cycle 6 v2 cannot authorize attack or measurement changes")
+        if scoring_authorized is not True:
+            raise ValueError("Cycle 6 v2 must explicitly authorize effectiveness scoring")
+
+        fidelity = _require_mapping("fidelity_endpoint", contract.get("fidelity_endpoint"))
+        if fidelity.get("status") != "SECONDARY_NOT_GATING":
+            raise ValueError("Cycle 6 v2 fidelity endpoint status drifted")
+        if fidelity.get("human_review_completed") is not False:
+            raise ValueError("Cycle 6 v2 records no completed human review")
+        if fidelity.get("independent_audit_hash") is not None:
+            raise ValueError("Cycle 6 v2 cannot invent a human audit hash")
+        if fidelity.get("human_review_required_for_effectiveness") is not False:
+            raise ValueError("Cycle 6 v2 human review cannot gate effectiveness")
+        if fidelity.get("human_fidelity_claim_authorized") is not False:
+            raise ValueError("Cycle 6 v2 cannot claim human fidelity without review")
+        for name in ("full_packet_hash", "mechanical_artifact_hash"):
+            _require_lower_hex_digest(name, fidelity.get(name))
 
     claims = _require_mapping("claim_boundary", contract.get("claim_boundary"))
     if claims.get("development_tuning_after_score") is not False:
         raise ValueError("Cycle 6 confirmation forbids post-score tuning")
     if claims.get("universal_watermark_removal_claim") is not False:
         raise ValueError("Cycle 6 confirmation cannot authorize a universal claim")
+    if contract_version == CYCLE6_EFFECTIVENESS_CONTRACT_VERSION:
+        if claims.get("human_fidelity_claim") is not False:
+            raise ValueError("Cycle 6 v2 cannot authorize a human fidelity claim")
     return sha256_json(dict(contract))
 
 
