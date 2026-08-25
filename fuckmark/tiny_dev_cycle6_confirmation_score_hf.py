@@ -63,14 +63,14 @@ def _require_scoring_authorization(contract: Mapping[str, object]) -> None:
     confirmation = contract.get("confirmation")
     if not isinstance(confirmation, Mapping):
         raise ValueError("Cycle 6 scoring requires a confirmation mapping")
-    if confirmation.get("scoring_authorized") is not True:
-        raise ValueError("Cycle 6 scoring is not authorized by the frozen contract")
 
     if contract.get("algorithm_version") == CYCLE6_EFFECTIVENESS_CONTRACT_VERSION:
         authorization = contract.get("effectiveness_authorization")
         fidelity = contract.get("fidelity_endpoint")
         if not isinstance(authorization, Mapping) or not isinstance(fidelity, Mapping):
             raise ValueError("Cycle 6 v2 scoring requires effectiveness and fidelity mappings")
+        if confirmation.get("scoring_authorized") is not True:
+            raise ValueError("Cycle 6 scoring is not authorized by the frozen contract")
         if authorization.get("status") != "AUTHORIZED_PRE_SCORE_PROTOCOL_REVISION":
             raise ValueError("Cycle 6 v2 effectiveness scoring authorization is invalid")
         if authorization.get("authorized_endpoint") != "SEALED_3X64_DETECTOR_EFFECTIVENESS":
@@ -94,6 +94,8 @@ def _require_scoring_authorization(contract: Mapping[str, object]) -> None:
         raise ValueError("Cycle 6 v1 scoring requires a fidelity mapping")
     if fidelity.get("status") != "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
         raise ValueError("Cycle 6 scoring is blocked until independent fidelity review is accepted")
+    if confirmation.get("scoring_authorized") is not True:
+        raise ValueError("Cycle 6 scoring is not authorized by the frozen contract")
     for name in ("full_packet_hash", "mechanical_artifact_hash", "independent_audit_hash"):
         _require_lower_hex_digest(name, fidelity.get(name))
 
