@@ -48,6 +48,29 @@ def _load_json(path: Path) -> dict[str, object]:
     return value
 
 
+def _require_lower_hex_digest(name: str, value: object) -> str:
+    if (
+        not isinstance(value, str)
+        or len(value) != 64
+        or any(character not in "0123456789abcdef" for character in value)
+    ):
+        raise ValueError(f"Cycle 6 scoring requires a valid {name}")
+    return value
+
+
+def _require_scoring_authorization(contract: Mapping[str, object]) -> None:
+    fidelity = contract.get("fidelity_gate")
+    confirmation = contract.get("confirmation")
+    if not isinstance(fidelity, Mapping) or not isinstance(confirmation, Mapping):
+        raise ValueError("Cycle 6 scoring requires fidelity and confirmation mappings")
+    if fidelity.get("status") != "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
+        raise ValueError("Cycle 6 scoring is blocked until independent fidelity review is accepted")
+    if confirmation.get("scoring_authorized") is not True:
+        raise ValueError("Cycle 6 scoring is not authorized by the frozen contract")
+    for name in ("full_packet_hash", "mechanical_artifact_hash", "independent_audit_hash"):
+        _require_lower_hex_digest(name, fidelity.get(name))
+
+
 def _score_text(source: Any, text: str, tokenizer: Any, adapter: Any, suffix: str) -> float:
     tokens = _encode_text(tokenizer, text)
     eos_token_id = source.model.eos_token_id
@@ -100,6 +123,7 @@ def score_cycle6_confirmation(
     confirmation_seed_base: int,
 ) -> dict[str, object]:
     contract_hash = validate_cycle6_confirmation_contract(contract)
+    _require_scoring_authorization(contract)
     if confirmation_seed_base not in CYCLE6_CONFIRMATION_SEED_BASES:
         raise ValueError("Cycle 6 confirmation seed is not frozen in the contract")
     plan_hash = validate_cycle6_confirmation_plan(plan, corpus, contract=contract)
