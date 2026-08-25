@@ -7,7 +7,12 @@ from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateRejection
 from .hard_invariants import HardInvariantReport, hard_invariant_signature
 from .invariants import validate_protected_invariants
-from .quote_policy import validate_quote_safe_surface_operations
+from .cycle7_quote_policy import (
+    CYCLE7_QUOTE_SAFE_DURABLE_POLICY_ID,
+    CYCLE7_QUOTE_SAFE_MIXED_POLICY_ID,
+    validate_cycle7_quote_operations,
+)
+from .quote_policy import QUOTE_SAFE_SURFACE_POLICY_ID, validate_quote_safe_surface_operations
 from .schema import InvariantStatus
 
 @dataclass(frozen=True, slots=True)
@@ -188,15 +193,25 @@ class TransformResult:
             raise ValueError("trace original hard-invariant signature does not match reconstructed input")
         if hard_invariant_signature(self.output_text) != self.trace.invariant_report.transformed_signature:
             raise ValueError("trace transformed hard-invariant signature does not match output_text")
-        quote_safe = self.trace.selection_policy_id.endswith(
-            ":quote-container-surface-spacing-v1"
+        quote_spacing = self.trace.selection_policy_id.endswith(
+            f":{QUOTE_SAFE_SURFACE_POLICY_ID}"
         )
-        if quote_safe:
+        quote_cycle7 = self.trace.selection_policy_id.endswith(
+            (f":{CYCLE7_QUOTE_SAFE_DURABLE_POLICY_ID}", f":{CYCLE7_QUOTE_SAFE_MIXED_POLICY_ID}")
+        )
+        if quote_spacing:
             validate_quote_safe_surface_operations(reconstructed_input, self.trace.operations)
+        elif quote_cycle7:
+            policy_id = self.trace.selection_policy_id.split(":", 1)[1]
+            validate_cycle7_quote_operations(
+                reconstructed_input,
+                self.trace.operations,
+                policy_id,
+            )
         if validate_protected_invariants(
             reconstructed_input,
             self.output_text,
-            include_quotations=not quote_safe,
+            include_quotations=not (quote_spacing or quote_cycle7),
         ).status is not InvariantStatus.PASS:
             raise ValueError("transform result violates default protected-content invariants")
         require_sha256("result_hash", self.result_hash)
