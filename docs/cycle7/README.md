@@ -6,9 +6,10 @@ This directory starts Cycle 7 development. It does not retune Cycle 6 and does n
 
 ## Live state (verified 2026-08-25)
 
-See `docs/cycle7/live-state-audit.md`. Independent GitHub inspection matched the Cycle 6 freeze:
+See `docs/cycle7/live-state-audit.md`. Independent GitHub inspection:
 
-- `main` HEAD `ddccd74a9e0e710085b385fed98959f2730b9d60`
+- `main` HEAD `af341884fff211caeb24649a6ce79305c3491c6c` (PR #95 squash-merge)
+- Cycle 6 freeze parent `ddccd74a9e0e710085b385fed98959f2730b9d60`
 - PR #93 and PR #94 merged
 - Recovery run `32886342498` success
 - Aggregate hash `30577aafaffd0c50f0ddb384a4509eb0bb93e4374bf39704869ddbf5053186a4`
