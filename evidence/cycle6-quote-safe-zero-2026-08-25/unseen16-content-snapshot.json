@@ -1,0 +1,126 @@
+{
+ "algorithm_version": "cycle6-frozen-content-snapshot-v1",
+ "source_container_hash": "12243766af4bc642f10c02a503de7b2794abcf59102e9bce108ca72008732dc1",
+ "content_hash": "e055e0f7a6417c9294a7ed55718cae6fba276cab1256869e1f8babe9d1a84208",
+ "model": "openai-community/gpt2",
+ "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+ "seed_base": 730000,
+ "prompt_count": 16,
+ "sample_count": 16,
+ "generation_note": "single-process generation; cross-process byte-reproducibility is NOT claimed",
+ "samples": [
+  {
+   "index": 0,
+   "domain": "general_explanatory",
+   "seed": 730001,
+   "text": "\n\nThis post is part of the New York Times series Sleep, Longer and More. Follow me on Twitter @nysleep.\n\nIn this story, Michael B. and his wife, Lisa, explore the differences between waking hours and waking hours in relation to their own sleep schedules.\n\nWhat is",
+   "text_sha256": "0def6c4d3ba3513ae90c45b22b0bade8c51480c8503801e170873ad42a2780cf"
+  },
+  {
+   "index": 1,
+   "domain": "technical_explanation",
+   "seed": 730002,
+   "text": " (Photo: Provided by National Institute of Technology)\n\n\"It's like a refrigerator,\" says David Buehler, a research professor at the University of Illinois at Urbana-Champaign and a professor of chemical engineering at the University of Wisconsin. \"We don't know how much cold water is going to",
+   "text_sha256": "f02bc242b7bfdbc1301524df0755a7335f23790f4b5ba5db0dccba6ad068d862"
+  },
+  {
+   "index": 2,
+   "domain": "conversational_prose",
+   "seed": 730003,
+   "text": "\n\nThis is a great opportunity to ask about any questions you have about your life. I'm a huge fan of these answers so I thought I'd share my take on the answers that came out of my personal life.\n\nI've also done the postcard thing where I asked about my favorite way to spend",
+   "text_sha256": "c74e6e8fd229fc0f6cc57710f7930630a4b0c98fa8d8b588f762cc99330b94e1"
+  },
+  {
+   "index": 3,
+   "domain": "structured_instructional",
+   "seed": 730004,
+   "text": "\n\nTo make watering a little easier, you can make a few simple and simple steps. The first thing you'll want to do is to spray the orchid seedlings with water.\n\nSprinkle the orchid seedlings with a small amount of water. This will allow your plant to grow as long as",
+   "text_sha256": "f53a1586fc718a48514fb3395236a74dfc55bb51d7ce9a1b0f5879edf8987cc4"
+  },
+  {
+   "index": 4,
+   "domain": "general_explanatory",
+   "seed": 730005,
+   "text": "\n\nFind out more about this topic.\n\nThe Internet is full of great resources for people with disabilities. These are:\n\nYou can also find other resources in the library.\n\nLearn more about the accessibility of the Internet.\n\nDon't forget to check out our Guide to the Internet.\n",
+   "text_sha256": "21f5c321fde3238741ec26ec8c18117f8eb35123c5f6907c714c642fae445ea3"
+  },
+  {
+   "index": 5,
+   "domain": "technical_explanation",
+   "seed": 730006,
+   "text": "\n\nTo make microwave ovens a thing of the past, it would be wise to set aside a little bit of space for a microwave oven to operate. That's the only possible solution I've found.\n\nThe fact that microwave ovens can be turned on or off is a huge factor in the success of",
+   "text_sha256": "d24a3bb0fe098804a49c19883732c4689d8371d147a6656eed77cea1f3bea227"
+  },
+  {
+   "index": 6,
+   "domain": "conversational_prose",
+   "seed": 730007,
+   "text": "\n\n\"You have to take a risk on yourself, and you have to be prepared for everything. And then, as you move into a new city, you've got to think about how you will do things,\" said DeKauver, who is also co-founder of the city's Economic Research Institute.",
+   "text_sha256": "a1ec6b99309267d51621e39935fee1d64261264bd4315ddd9cc801fcf27ade01"
+  },
+  {
+   "index": 7,
+   "domain": "structured_instructional",
+   "seed": 730008,
+   "text": "\n\n2. Create a Small Group of You\n\nThis is a great way to encourage people to talk about the things they're not sure about.\n\nTake the example of my office. I've always had a group of people talk about the things I love about the office and how they feel about it.",
+   "text_sha256": "3ae240c98ea4a0199e78276ddbc2f2cb523606a9156e62cd438dc47aad5558fe"
+  },
+  {
+   "index": 8,
+   "domain": "general_explanatory",
+   "seed": 730009,
+   "text": " You will find it very hard to be certain, but it does seem to be true.\n\n\"It's called the 'Pigeon Stomping' phenomenon. It's a bit of an odd one. It's not unusual for birds to be able to fly with one's head out of the sky.",
+   "text_sha256": "697696586948426a9373c4497d352bf3c843ae59b5d1b3fc60ff4a4f89290bc1"
+  },
+  {
+   "index": 9,
+   "domain": "technical_explanation",
+   "seed": 730010,
+   "text": "\n\n\"You're always going to have some kind of pressure on the towers. You're always going to have some kind of pressure on your towers, but it's also a pretty constant pressure,\" said Dr. Ramesh. \"You might have a lot of pressure at one place, but not in the same",
+   "text_sha256": "6a1f8cc49069d8a6cb56e9e7ee0e9fca910bf375c550e8fca93765f283ded629"
+  },
+  {
+   "index": 10,
+   "domain": "conversational_prose",
+   "seed": 730011,
+   "text": "\n\nLearning to ride a bicycle is a learning activity. It is similar to an exercise, so you know what to do and what not to do.\n\nYou can learn to ride a bicycle from anywhere. You can train yourself, you can learn to ride a bike, and you can use your training to gain",
+   "text_sha256": "c8cfe58792f9c5ccb813d75d2dc7da9ec028a5cd5e4cafa795e395c51b2f18b1"
+  },
+  {
+   "index": 11,
+   "domain": "structured_instructional",
+   "seed": 730012,
+   "text": "\n\nHang photos from a camera with a picture-in-picture feature.\n\nHang images in the home or office.\n\nHang pictures that are locked on a wall.\n\nHang pictures that are not in the home or office.\n\nHang pictures in the closet.\n",
+   "text_sha256": "236f9cac9123e4053b17cfa17b7bf2a0b5802368835b00ca4e2b321c1361973c"
+  },
+  {
+   "index": 12,
+   "domain": "general_explanatory",
+   "seed": 730013,
+   "text": "\n\nThis article was originally published on The Conversation. Read the original article.\n\nRead more from The Conversation:\n\nFollow us on Twitter at @TheConversation, Facebook at TheConversation, and Google+. Original article on The Conversation.\n\nRead the original article on The Conversation.\n",
+   "text_sha256": "b27db3fa51a2adfff12a4dc897f714ba9107fdaa56554a1d5ccac002b0fc2bdb"
+  },
+  {
+   "index": 13,
+   "domain": "technical_explanation",
+   "seed": 730014,
+   "text": " Use a compass and turn the wheels once. Start in the middle of the corridor on the right and then walk to the left. After the corridor is completed, walk left and go to the left of the door on the right. The door on the left is open and the door on the right is closed. Use the",
+   "text_sha256": "68a3f3d0b4451d430e4268f8872dbfda925da9fd80f5a9f779ef6a846a1d33db"
+  },
+  {
+   "index": 14,
+   "domain": "conversational_prose",
+   "seed": 730015,
+   "text": " Don't use the old Google Now service, however. For now, you can keep using the old Google Now service and then use it to send pictures of you to friends who are on your local time zone. The new service should be available for all Android devices soon.\n\nGoogle Now is a popular way to communicate",
+   "text_sha256": "bef1258a86c66dc124835eb7954e94a158491cb0e5f46e8ece0f0a1c7e767521"
+  },
+  {
+   "index": 15,
+   "domain": "structured_instructional",
+   "seed": 730016,
+   "text": " Use a soft-touch cloth and wash your boots of cold water before handling them.\n\nThis product is a trademark or registered trademark of the United States Department of Agriculture. Use this site to purchase your own boots.\n\nDisclaimer\n\nThis product is not intended to diagnose, treat, cure, or prevent any",
+   "text_sha256": "e8bd1e12f626520a97d1eb79ee5b79d8baef9d3bc1f6849b64386ccdf2beb2e0"
+  }
+ ],
+ "snapshot_hash": "6d3a86c85c16ba221315c29041bfa2e6a699b4230ce02b8246eaaac7d6504106"
+}

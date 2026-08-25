@@ -81,6 +81,8 @@ def main() -> int:
     parser.add_argument("--indices", type=int, nargs="+", default=(8, 10))
     parser.add_argument("--budget", type=int, default=16)
     parser.add_argument("--threshold", type=float, default=0.5570987654320988)
+    parser.add_argument("--source-container-hash")
+    parser.add_argument("--source-content-hash")
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
@@ -220,6 +222,7 @@ def main() -> int:
                     "eligible": observation.eligible,
                     "repeated_context": not observation.eligible,
                     "g_values": detector_record.g_values,
+                    "token_ids": observation.token_ids,
                     "weighted_row_score": row_score,
                     "inside_quote": inside_quote,
                     "intersects_quote": _span_intersects(start, end, quotation_spans),
@@ -308,6 +311,10 @@ def main() -> int:
                 "seed": samples[index]["seed"],
                 "source_text": source,
                 "output_text": output,
+                "source_token_ids": source_tokens,
+                "output_token_ids": output_tokens,
+                "source_token_count": len(source_tokens),
+                "output_token_count": len(output_tokens),
                 "quotation_spans": tuple(
                     {
                         "start": span.start,
@@ -395,7 +402,8 @@ def main() -> int:
 
     artifact = {
         "algorithm_version": "cycle6-residual-reachability-v1",
-        "source_corpus_hash": corpus.get("corpus_hash"),
+        "source_corpus_hash": args.source_container_hash or corpus.get("corpus_hash"),
+        "source_corpus_content_hash": args.source_content_hash or corpus.get("content_hash"),
         "threshold": args.threshold,
         "budget": args.budget,
         "registry": "zrd-destruction-extension-v1",

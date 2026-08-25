@@ -164,3 +164,118 @@ The U+200C mechanism stays out of every development and release profile.
 4. Extend W4 attribution tooling; wire into the next cycle report template.
 5. Only after dev evidence materially approaches zero: design the next sealed
    confirmation under the UNCHANGED frozen measurement identity.
+
+---
+
+## 6. Cycle 6 update — quote-container reachability (2026-08-25)
+
+### Live base and reproduction
+
+Cycle 6 started from PR #87 head `92371eedf84848ad3b67df8e1a34fc53006f2ed6`
+on main base `4f69271c12e5b33072f0727c0168fcc4783be6f8`. The exact seed-720000
+fresh16 scores reproduced byte-for-byte at six-decimal reporting precision:
+
+| Registry / scheduler | Detected | Mean score | Artifact hash from PR #87 |
+| --- | ---: | ---: | --- |
+| coverage v4 | 2/16 | 0.519564 | `4a0082935244fd71ed5bb12252ca5fe96f347f9c1d0f28229c709e8e8f1b9b3e` |
+| ZRD v4 | 2/16 | 0.521805 | `f3570d2a407ad18f8a3f08f1dc7c4e3f361e67d6726f7c8ce54e4aef51e53aa8` |
+
+The original corpus hash `2cbb8483fcfcc1be55c7f0a436aa3664fa3b6c50654ddaa63fd615964434d1dd`
+binds `recorded_at_utc`, so an identical regeneration cannot reproduce that container hash.
+Cycle 6 adds the timestamp-independent content hash
+`b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3`
+and keeps the original container hash as historical provenance.
+
+### Complete original-residual classification
+
+| Sample | Quote-blocked candidates | Selected | Intact (quote/outside) | Tuple leaks | Score | Exact classification |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 8 | 30 | 8 | 30 (26/4) | 33 | 0.560003 | protected-region unreachable; candidate exhausted |
+| 10 | 57 | 2 | 51 (47/4) | 51 | 0.617551 | protected-region unreachable; candidate exhausted |
+
+Neither residual exhausted the operation budget. Sample 8 had no candidate conflicts;
+sample 10 had one conflict and only three admitted candidates, so neither stronger greedy
+ranking nor more budget could reach the quote-contained observations under blanket
+protection. Quote-contained observations contributed 45.41% and 80.84% of the final
+detector numerator, respectively; as signed excess above the 0.5 null mean, the fractions
+were 50.69% and 91.51%. The full observation-to-character-to-protection mapping is emitted
+by `tools/cycle6_residual_reachability.py`.
+
+### One-family isolated ablation
+
+`quote-container-surface-spacing-v1` separates exact protected content from quotation
+container policy. It admits only existing surface-spacing rule types strictly inside one
+recognized quote container. Contractions, lexical templates, syntax templates, quote
+delimiters, URLs, numbers, code, citations, identifiers, and user ranges remain blocked.
+Every admitted operation adds exactly one ASCII space and is replay-validated from the
+trace. No invisible Unicode is used.
+
+With the registry change only—same v4 scheduler, B16 budget, detector, threshold, corpus,
+and denominator—the fresh16 development result became:
+
+| Arm | Detected | Mean score | Raw | NFKC | Cf strip | Combined |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| quote-safe ZRD v4 | **0/16** | **0.510771** | 0/16 | 0/16 | 0/16 | 0/16 |
+
+Original residual changes:
+
+| Sample | Before | After | Selected | Intact | Tuple leaks |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 8 | 0.560003 | 0.514545 | 16 | 5 | 6 |
+| 10 | 0.617551 | 0.486465 | 16 | 3 | 3 |
+
+This is development detector-zero, not geometry-zero. Across all sixteen outputs v4
+intact counts were `6,7,5,13,4,6,5,6,5,4,3,8,2,5,4,9`; tuple leaks were
+`6,7,5,13,4,7,5,6,6,8,3,8,5,6,4,9`. The geometry target remains open and is not
+conflated with the measured 0/16 detector result.
+
+### Fidelity and adverse findings
+
+All selected quote operations preserve non-whitespace quoted bytes, attribution words,
+numbers, exact protected entities, negation, modality, and quote delimiters. NFKC and Cf
+stripping leave ASCII spaces unchanged. Aggressive whitespace collapse removes this
+mechanism; that adverse limitation is explicit.
+
+The deterministic blind packet hash is
+`4bde66e0a9f2148373afa78213aecf582dab5d6b6a756f2b96300699181b41fd`.
+Independent human review is pending. Therefore this cycle does not claim the family is
+release-ready or fidelity-complete even though the frozen detector result reached zero.
+
+### Rejected or demoted approaches
+
+* Global removal of quote protection: rejected; it admits semantic rewriting of quoted
+  content and weakens provenance guarantees.
+* Quote-interior contraction-only registry: insufficient for sample 10, which contains no
+  existing reversible contraction candidate in the dominant protected continuation.
+* Quote-boundary-only retokenization: insufficient reach for 47-51 interior intact windows.
+* Invisible Unicode: remains forbidden and sanitizer-fragile.
+* Detector-score planner ranking: forbidden; the successful planner saw geometry only.
+* A focused exact-greedy replay on samples 8 and 10 was demoted: it improved sample 8
+  geometry only from 5/6 to 4/4 intact/leak windows and left sample 10 at 3/3, while
+  still consuming all 16 operations. It did not reach geometry zero or reduce cost, so
+  no search change was promoted after detector zero was already achieved.
+
+### Frozen development evidence and disjoint replication
+
+The timestamp-independent scored result hash for the seed-720000 corpus is
+`2e1bcf862bfa0d24423ac5f2d8bca6374e3d72020fc9f092e91f5d4f7d66152c`.
+The complete post-fix geometry artifact hash is
+`fb27790381207b4edee4cbb1febebbc1480347391008638f2ec29b9d00339e31`.
+All 16 plans consumed the B16 budget. Exact-protected positional residual counts were
+`0,0,0,1,2,0,0,0,0,0,0,2,0,0,0,0`; quote-container positional residual counts were
+`0,0,0,0,0,0,3,0,4,0,3,0,0,0,0,0`. Quote-container residuals are measured separately
+because quote containers are no longer exact-protected content under this policy.
+
+After freezing the registry, quote policy, v4 scheduler, B16 budget, tokenizer/model
+revision, detector, threshold, and sanitizer policy, a disjoint seed-730000 development
+corpus was generated. Its container hash is
+`12243766af4bc642f10c02a503de7b2794abcf59102e9bce108ca72008732dc1` and stable content
+hash is `e055e0f7a6417c9294a7ed55718cae6fba276cab1256869e1f8babe9d1a84208`.
+It also produced **0/16** detections for raw, NFKC, Cf strip, and combined, with v4 mean
+score `0.506611`. Its stable scored result hash is
+`13731d69a2a710c6a0d37aacb63af23e0a6c112be2093438a64dd074431d2848` and geometry
+artifact hash is `d8a6090e9dd18e5679dac62925b4f234b051c1e39ae486784ccfa1b1a0fb3485`.
+
+This disjoint result is replication on unseen development data, not a formal confirmation
+and not a universal claim. Independent fidelity adjudication remains a release gate before
+designing a new sealed 0/192 experiment.

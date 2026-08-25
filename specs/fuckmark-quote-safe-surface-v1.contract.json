@@ -1,0 +1,118 @@
+{
+  "algorithm_version": "quote-container-surface-spacing-v1",
+  "status": "DEVELOPMENT_VALIDATED_PENDING_INDEPENDENT_FIDELITY_REVIEW",
+  "mechanism_hypothesis": "Blanket quotation protection makes quote-contained SynthID n-gram windows unreachable. Distributed ASCII spacing edits retokenize those windows without changing quoted words, attribution, facts, or delimiter bytes.",
+  "scope": {
+    "registry": "zrd-destruction-extension-v1 plus quote-container policy",
+    "scheduler": "cover-greedy-key-blind-v4",
+    "budget_operations": 16,
+    "ngram_len": 5,
+    "detector_blind": true,
+    "watermark_key_blind": true,
+    "non_neural": true,
+    "deterministic": true
+  },
+  "candidate_identity": "Existing rule-bound transform candidate ID over input hash, rule identity, source geometry, and replacement bytes; quote policy is bound into the registry ruleset hash.",
+  "applicability": {
+    "allowed_rule_types": [
+      "GeneralWordSpacingRule",
+      "GeneralWordLeadingSpacingRule",
+      "SurfaceSpacingRule"
+    ],
+    "allowed_change": "Add exactly one U+0020 ASCII space before or after the matched surface span.",
+    "container": "Operation must remain strictly inside exactly one recognized quotation container and cannot touch either delimiter.",
+    "truncated_generation": "A fail-closed ASCII or curly double-quote container extending to line/sample end may admit the same spacing-only operation because no quoted byte is removed or substituted.",
+    "blocked_families": [
+      "contraction",
+      "lexical_template",
+      "syntax_template"
+    ]
+  },
+  "protected_content_invariants": {
+    "exact": [
+      "URLs",
+      "email addresses",
+      "IP addresses",
+      "numbers",
+      "dates",
+      "currency",
+      "percentages",
+      "code",
+      "Markdown destinations",
+      "paths",
+      "CLI flags",
+      "citations",
+      "math",
+      "configured identifiers",
+      "user-marked ranges"
+    ],
+    "quotation": "Quote containers govern candidate admission; quoted non-whitespace bytes are reconstructed exactly from the operation trace.",
+    "semantic": [
+      "negation signature unchanged",
+      "modality signature unchanged",
+      "attribution words unchanged",
+      "quotation delimiters unchanged"
+    ]
+  },
+  "sanitizer_analysis": {
+    "nfkc": "U+0020 is unchanged.",
+    "cf_strip": "U+0020 is not a format character.",
+    "combined": "Identical to raw for this family.",
+    "whitespace_collapse": "Expected to remove the mechanism; not part of the frozen four-arm sanitizer protocol and recorded as an adverse limitation."
+  },
+  "isolated_ablation": {
+    "source_corpus_hash": "2cbb8483fcfcc1be55c7f0a436aa3664fa3b6c50654ddaa63fd615964434d1dd",
+    "stable_content_hash": "b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3",
+    "threshold": 0.5570987654320988,
+    "before_detected": "2/16",
+    "after_detected": "0/16",
+    "sample_8": {
+      "before": 0.560003,
+      "after": 0.514545
+    },
+    "sample_10": {
+      "before": 0.617551,
+      "after": 0.486465
+    },
+    "sanitizer_detection_counts": {
+      "raw": 0,
+      "nfkc": 0,
+      "cf_strip": 0,
+      "combined": 0
+    }
+  },
+  "fidelity_gate": {
+    "packet_hash": "4bde66e0a9f2148373afa78213aecf582dab5d6b6a756f2b96300699181b41fd",
+    "status": "PENDING_INDEPENDENT_HUMAN_REVIEW",
+    "claim_boundary": "Detector-zero development evidence is valid; fidelity-complete or release-ready status is not claimed until the packet is independently adjudicated."
+  },
+  "disjoint_development_replication": {
+    "seed_base": 730000,
+    "source_container_hash": "12243766af4bc642f10c02a503de7b2794abcf59102e9bce108ca72008732dc1",
+    "stable_content_hash": "e055e0f7a6417c9294a7ed55718cae6fba276cab1256869e1f8babe9d1a84208",
+    "v4_detected": "0/16",
+    "v4_mean_score": 0.506611,
+    "stable_result_hash": "13731d69a2a710c6a0d37aacb63af23e0a6c112be2093438a64dd074431d2848",
+    "sanitizer_detection_counts": {
+      "raw": 0,
+      "nfkc": 0,
+      "cf_strip": 0,
+      "combined": 0
+    },
+    "claim_boundary": "Unseen development replication only; not formal confirmation."
+  },
+  "kill_criteria": [
+    "Any exact protected item, quote delimiter, non-whitespace quoted byte, negation, or modality changes.",
+    "Any raw/NFKC/Cf-strip/combined detection count exceeds the fixed ZRD baseline on the frozen16 development corpus.",
+    "Either original residual remains detected at the unchanged threshold.",
+    "Independent blind review labels either residual as meaning-changing or major degradation.",
+    "A planner accesses detector scores, SynthID keys, or secret detector state."
+  ],
+  "forbidden": [
+    "invisible Unicode",
+    "threshold changes",
+    "detector-guided ranking",
+    "key-guided ranking",
+    "global removal of quotation protection"
+  ]
+}

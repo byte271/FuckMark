@@ -1,0 +1,8237 @@
+{
+ "algorithm_version": "cycle6-residual-reachability-v1",
+ "source_corpus_hash": "2cbb8483fcfcc1be55c7f0a436aa3664fa3b6c50654ddaa63fd615964434d1dd",
+ "source_corpus_content_hash": "b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3",
+ "threshold": 0.5570987654320988,
+ "budget": 16,
+ "registry": "zrd-destruction-extension-v1",
+ "scheduler": "cover-greedy-key-blind-v4",
+ "reports": [
+  {
+   "index": 8,
+   "seed": 720009,
+   "source_text": " For instance, there is an increase in the frequency of migrations from sub-Saharan Africa to Europe, and from Asia to Europe.\n\n\"If you take the migration from sub-Saharan Africa to Europe and the sub-Saharan migration from Asia to Europe, then it is very different from the migration from Asia to",
+   "output_text": " For instance,  there is an  increase in the  frequency of migrations  from sub-Saharan  Africa to  Europe,  and from Asia to  Europe.\n\n\"If you take the migration from sub-Saharan Africa to Europe and the sub-Saharan migration from Asia to Europe, then it is very different from the migration from Asia to",
+   "source_token_ids": [
+    1114,
+    4554,
+    11,
+    612,
+    318,
+    281,
+    2620,
+    287,
+    262,
+    8373,
+    286,
+    15720,
+    602,
+    422,
+    850,
+    12,
+    40461,
+    5478,
+    284,
+    2031,
+    11,
+    290,
+    422,
+    7229,
+    284,
+    2031,
+    13,
+    198,
+    198,
+    1,
+    1532,
+    345,
+    1011,
+    262,
+    13472,
+    422,
+    850,
+    12,
+    40461,
+    5478,
+    284,
+    2031,
+    290,
+    262,
+    850,
+    12,
+    40461,
+    13472,
+    422,
+    7229,
+    284,
+    2031,
+    11,
+    788,
+    340,
+    318,
+    845,
+    1180,
+    422,
+    262,
+    13472,
+    422,
+    7229,
+    284
+   ],
+   "output_token_ids": [
+    1114,
+    4554,
+    11,
+    220,
+    612,
+    318,
+    281,
+    220,
+    2620,
+    287,
+    262,
+    220,
+    8373,
+    286,
+    15720,
+    602,
+    220,
+    422,
+    850,
+    12,
+    40461,
+    220,
+    5478,
+    284,
+    220,
+    2031,
+    11,
+    220,
+    290,
+    422,
+    7229,
+    284,
+    220,
+    2031,
+    13,
+    198,
+    198,
+    1,
+    1532,
+    345,
+    1011,
+    262,
+    13472,
+    422,
+    850,
+    12,
+    40461,
+    5478,
+    284,
+    2031,
+    290,
+    262,
+    850,
+    12,
+    40461,
+    13472,
+    422,
+    7229,
+    284,
+    2031,
+    11,
+    788,
+    340,
+    318,
+    845,
+    1180,
+    422,
+    262,
+    13472,
+    422,
+    7229,
+    284
+   ],
+   "source_token_count": 64,
+   "output_token_count": 72,
+   "quotation_spans": [
+    {
+     "start": 128,
+     "end": 297,
+     "text": "\"If you take the migration from sub-Saharan Africa to Europe and the sub-Saharan migration from Asia to Europe, then it is very different from the migration from Asia to"
+    }
+   ],
+   "protected_spans": [
+    {
+     "start": 128,
+     "end": 297,
+     "kinds": [
+      "quotation"
+     ],
+     "text": "\"If you take the migration from sub-Saharan Africa to Europe and the sub-Saharan migration from Asia to Europe, then it is very different from the migration from Asia to"
+    }
+   ],
+   "candidate_count": 20,
+   "rejected_candidate_count": 30,
+   "rejections_by_reason": {
+    "protected_overlap": 30
+   },
+   "rejections_by_family": {
+    "surface-space-after-any-word": 27,
+    "surface-space-after-take": 1,
+    "surface-space-after-comma": 1,
+    "surface-space-after-different": 1
+   },
+   "conflict_count": 0,
+   "selected_operations": [
+    {
+     "candidate_id": "ef32d1cfb79a2bbc1b0dd4402bf814a05a7ebef60461892b22f5316459e6ab29",
+     "rule_id": "surface-space-after-any-word",
+     "family": "orthography",
+     "start": 56,
+     "end": 66,
+     "before": "migrations",
+     "after": "migrations "
+    },
+    {
+     "candidate_id": "f959dfeffbd071df225aab511df46237b8b8316221baf3954a1b5e14a258bd00",
+     "rule_id": "surface-space-after-comma",
+     "family": "orthography",
+     "start": 100,
+     "end": 102,
+     "before": ", ",
+     "after": ",  "
+    },
+    {
+     "candidate_id": "aa6200c56273f338cd177bcfd0876f42c6b15e52d1843266fe9ee4ed2ffb60e5",
+     "rule_id": "surface-space-after-any-word",
+     "family": "orthography",
+     "start": 24,
+     "end": 26,
+     "before": "an",
+     "after": "an "
+    },
+    {
+     "candidate_id": "e7740bd6ae2b47ae42b25930563c90eb99f0b569f70361fdae10b813b39bd032",
+     "rule_id": "surface-space-after-any-word",
+     "family": "orthography",
+     "start": 116,
+     "end": 118,
+     "before": "to",
+     "after": "to "
+    },
+    {
+     "candidate_id": "0bad9c3e57c1c4e0249b161bb27439041dd952ca7be736d916849b25e952c267",
+     "rule_id": "surface-space-after-any-word",
+     "family": "orthography",
+     "start": 91,
+     "end": 93,
+     "before": "to",
+     "after": "to "
+    },
+    {
+     "candidate_id": "cef7f34b5b60bf344226149ae2d510eb56316c3bda552e199d3d53949edd0fca",
+     "rule_id": "surface-space-after-any-word",
+     "family": "orthography",
+     "start": 39,
+     "end": 42,
+     "before": "the",
+     "after": "the "
+    },
+    {
+     "candidate_id": "4e774b9ae5ef7c893ea9ef7a008d52e9a21c36c40fc2b0a0b7a67952c21957e7",
+     "rule_id": "surface-space-after-comma",
+     "family": "orthography",
+     "start": 13,
+     "end": 15,
+     "before": ", ",
+     "after": ",  "
+    },
+    {
+     "candidate_id": "51f8b0c5bbc3183cbfbb52e05aad10fdaa3cce90921b28c31e58d72189388773",
+     "rule_id": "surface-space-after-any-word",
+     "family": "orthography",
+     "start": 76,
+     "end": 83,
+     "before": "Saharan",
+     "after": "Saharan "
+    }
+   ],
+   "root_window_count": 55,
+   "intact_window_count": 30,
+   "intact_windows_inside_quotes": 26,
+   "intact_windows_outside_quotes": 4,
+   "tuple_leak_window_count": 33,
+   "repeated_root_window_count": 5,
+   "ambiguous_root_token_indices": [],
+   "alignment_distance": 8,
+   "selected_operation_count": 8,
+   "repair_selections": 3,
+   "budget_exhausted": false,
+   "candidate_exhausted": true,
+   "conflict_excluded_candidate_count": 0,
+   "source_score": 0.629981634527089,
+   "output_score": 0.5600030152268959,
+   "detected": true,
+   "sanitizer_scores": {
+    "raw": 0.5600030152268959,
+    "nfkc": 0.5600030152268959,
+    "cf_strip": 0.5600030152268959,
+    "combined": 0.5600030152268959
+   },
+   "sanitizer_detections": {
+    "raw": true,
+    "nfkc": true,
+    "cf_strip": true,
+    "combined": true
+   },
+   "quote_valid_observation_count": 30,
+   "valid_observation_count": 67,
+   "quote_fraction_of_detector_numerator": 0.45409880199219277,
+   "quote_fraction_of_signed_excess_above_null": 0.5069095477386935,
+   "classification": "protected-region-unreachable",
+   "classification_exclusions": {
+    "budget_limited": false,
+    "candidate_density_limited": true,
+    "conflict_limited": false,
+    "search_limited": false,
+    "closure_limited": false,
+    "repetition_mask_limited": false,
+    "statistical_tail": false
+   },
+   "root_observation_map": [
+    {
+     "index": 0,
+     "token_start": 0,
+     "token_end_exclusive": 5,
+     "character_start": 0,
+     "character_end": 23,
+     "text": " For instance, there is",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      1114,
+      4554,
+      11,
+      612,
+      318
+     ],
+     "weighted_row_score": 0.6464646464646464,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "ad5aabe625cfb4bc4909eab179c1bc07b60d141ee4ee54505047c9fffbf154e5",
+      "4e774b9ae5ef7c893ea9ef7a008d52e9a21c36c40fc2b0a0b7a67952c21957e7",
+      "b2754de7f2a00cc4a161b14c5099461b4f89f518f874f07f73b07cb5b5562171",
+      "d442622ea909412887e7dd29c4141783bda964cd15905e6612956d1b063b61c3"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 1,
+     "token_start": 1,
+     "token_end_exclusive": 6,
+     "character_start": 4,
+     "character_end": 26,
+     "text": " instance, there is an",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      4554,
+      11,
+      612,
+      318,
+      281
+     ],
+     "weighted_row_score": 0.6666666666666666,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "4e774b9ae5ef7c893ea9ef7a008d52e9a21c36c40fc2b0a0b7a67952c21957e7",
+      "b2754de7f2a00cc4a161b14c5099461b4f89f518f874f07f73b07cb5b5562171",
+      "d442622ea909412887e7dd29c4141783bda964cd15905e6612956d1b063b61c3",
+      "aa6200c56273f338cd177bcfd0876f42c6b15e52d1843266fe9ee4ed2ffb60e5"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 2,
+     "token_start": 2,
+     "token_end_exclusive": 7,
+     "character_start": 13,
+     "character_end": 35,
+     "text": ", there is an increase",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      11,
+      612,
+      318,
+      281,
+      2620
+     ],
+     "weighted_row_score": 0.7348484848484849,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "4e774b9ae5ef7c893ea9ef7a008d52e9a21c36c40fc2b0a0b7a67952c21957e7",
+      "b2754de7f2a00cc4a161b14c5099461b4f89f518f874f07f73b07cb5b5562171",
+      "d442622ea909412887e7dd29c4141783bda964cd15905e6612956d1b063b61c3",
+      "aa6200c56273f338cd177bcfd0876f42c6b15e52d1843266fe9ee4ed2ffb60e5",
+      "9c0fa3ab3c1e542ba7be500b71d0429735778da8d22bf4201e098b25c4048a4a"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 3,
+     "token_start": 3,
+     "token_end_exclusive": 8,
+     "character_start": 14,
+     "character_end": 38,
+     "text": " there is an increase in",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      612,
+      318,
+      281,
+      2620,
+      287
+     ],
+     "weighted_row_score": 0.51010101010101,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "4e774b9ae5ef7c893ea9ef7a008d52e9a21c36c40fc2b0a0b7a67952c21957e7",
+      "b2754de7f2a00cc4a161b14c5099461b4f89f518f874f07f73b07cb5b5562171",
+      "d442622ea909412887e7dd29c4141783bda964cd15905e6612956d1b063b61c3",
+      "aa6200c56273f338cd177bcfd0876f42c6b15e52d1843266fe9ee4ed2ffb60e5",
+      "9c0fa3ab3c1e542ba7be500b71d0429735778da8d22bf4201e098b25c4048a4a",
+      "eefb5ccb7a92ffc21708359b755b41b562d7e36567352b4f30a33531e7e21b2c"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 4,
+     "token_start": 4,
+     "token_end_exclusive": 9,
+     "character_start": 20,
+     "character_end": 42,
+     "text": " is an increase in the",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      318,
+      281,
+      2620,
+      287,
+      262
+     ],
+     "weighted_row_score": 0.5984848484848484,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "d442622ea909412887e7dd29c4141783bda964cd15905e6612956d1b063b61c3",
+      "aa6200c56273f338cd177bcfd0876f42c6b15e52d1843266fe9ee4ed2ffb60e5",
+      "9c0fa3ab3c1e542ba7be500b71d0429735778da8d22bf4201e098b25c4048a4a",
+      "eefb5ccb7a92ffc21708359b755b41b562d7e36567352b4f30a33531e7e21b2c",
+      "cef7f34b5b60bf344226149ae2d510eb56316c3bda552e199d3d53949edd0fca"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 5,
+     "token_start": 5,
+     "token_end_exclusive": 10,
+     "character_start": 23,
+     "character_end": 52,
+     "text": " an increase in the frequency",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      281,
+      2620,
+      287,
+      262,
+      8373
+     ],
+     "weighted_row_score": 0.8888888888888888,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "aa6200c56273f338cd177bcfd0876f42c6b15e52d1843266fe9ee4ed2ffb60e5",
+      "9c0fa3ab3c1e542ba7be500b71d0429735778da8d22bf4201e098b25c4048a4a",
+      "eefb5ccb7a92ffc21708359b755b41b562d7e36567352b4f30a33531e7e21b2c",
+      "cef7f34b5b60bf344226149ae2d510eb56316c3bda552e199d3d53949edd0fca",
+      "e80658cfe0824961e649676c60cdea9c6547eb1462fc92661d4abb5e361b4e06"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 6,
+     "token_start": 6,
+     "token_end_exclusive": 11,
+     "character_start": 26,
+     "character_end": 55,
+     "text": " increase in the frequency of",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      2620,
+      287,
+      262,
+      8373,
+      286
+     ],
+     "weighted_row_score": 0.4898989898989899,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "9c0fa3ab3c1e542ba7be500b71d0429735778da8d22bf4201e098b25c4048a4a",
+      "eefb5ccb7a92ffc21708359b755b41b562d7e36567352b4f30a33531e7e21b2c",
+      "cef7f34b5b60bf344226149ae2d510eb56316c3bda552e199d3d53949edd0fca",
+      "e80658cfe0824961e649676c60cdea9c6547eb1462fc92661d4abb5e361b4e06",
+      "bd5b15f9235a7f63099da998dc7bbc927e6cd69a14869e56c6e2e9a78a84db06"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 7,
+     "token_start": 7,
+     "token_end_exclusive": 12,
+     "character_start": 35,
+     "character_end": 60,
+     "text": " in the frequency of migr",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      287,
+      262,
+      8373,
+      286,
+      15720
+     ],
+     "weighted_row_score": 0.6464646464646464,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "eefb5ccb7a92ffc21708359b755b41b562d7e36567352b4f30a33531e7e21b2c",
+      "cef7f34b5b60bf344226149ae2d510eb56316c3bda552e199d3d53949edd0fca",
+      "e80658cfe0824961e649676c60cdea9c6547eb1462fc92661d4abb5e361b4e06",
+      "bd5b15f9235a7f63099da998dc7bbc927e6cd69a14869e56c6e2e9a78a84db06",
+      "ef32d1cfb79a2bbc1b0dd4402bf814a05a7ebef60461892b22f5316459e6ab29"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 8,
+     "token_start": 8,
+     "token_end_exclusive": 13,
+     "character_start": 38,
+     "character_end": 66,
+     "text": " the frequency of migrations",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      262,
+      8373,
+      286,
+      15720,
+      602
+     ],
+     "weighted_row_score": 0.8686868686868687,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "cef7f34b5b60bf344226149ae2d510eb56316c3bda552e199d3d53949edd0fca",
+      "e80658cfe0824961e649676c60cdea9c6547eb1462fc92661d4abb5e361b4e06",
+      "bd5b15f9235a7f63099da998dc7bbc927e6cd69a14869e56c6e2e9a78a84db06",
+      "ef32d1cfb79a2bbc1b0dd4402bf814a05a7ebef60461892b22f5316459e6ab29"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 9,
+     "token_start": 9,
+     "token_end_exclusive": 14,
+     "character_start": 42,
+     "character_end": 71,
+     "text": " frequency of migrations from",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      8373,
+      286,
+      15720,
+      602,
+      422
+     ],
+     "weighted_row_score": 0.8434343434343434,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "e80658cfe0824961e649676c60cdea9c6547eb1462fc92661d4abb5e361b4e06",
+      "bd5b15f9235a7f63099da998dc7bbc927e6cd69a14869e56c6e2e9a78a84db06",
+      "ef32d1cfb79a2bbc1b0dd4402bf814a05a7ebef60461892b22f5316459e6ab29",
+      "844af3a37bc752b8c42e5494c5f432f9baf341311e7642a8b654d62cf35d9aa9"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 10,
+     "token_start": 10,
+     "token_end_exclusive": 15,
+     "character_start": 52,
+     "character_end": 75,
+     "text": " of migrations from sub",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      286,
+      15720,
+      602,
+      422,
+      850
+     ],
+     "weighted_row_score": 1.0,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "bd5b15f9235a7f63099da998dc7bbc927e6cd69a14869e56c6e2e9a78a84db06",
+      "ef32d1cfb79a2bbc1b0dd4402bf814a05a7ebef60461892b22f5316459e6ab29",
+      "844af3a37bc752b8c42e5494c5f432f9baf341311e7642a8b654d62cf35d9aa9"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 11,
+     "token_start": 11,
+     "token_end_exclusive": 16,
+     "character_start": 55,
+     "character_end": 76,
+     "text": " migrations from sub-",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      15720,
+      602,
+      422,
+      850,
+      12
+     ],
+     "weighted_row_score": 0.6868686868686869,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "ef32d1cfb79a2bbc1b0dd4402bf814a05a7ebef60461892b22f5316459e6ab29",
+      "844af3a37bc752b8c42e5494c5f432f9baf341311e7642a8b654d62cf35d9aa9"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 12,
+     "token_start": 12,
+     "token_end_exclusive": 17,
+     "character_start": 60,
+     "character_end": 83,
+     "text": "ations from sub-Saharan",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0
+     ],
+     "token_ids": [
+      602,
+      422,
+      850,
+      12,
+      40461
+     ],
+     "weighted_row_score": 0.44696969696969696,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "ef32d1cfb79a2bbc1b0dd4402bf814a05a7ebef60461892b22f5316459e6ab29",
+      "844af3a37bc752b8c42e5494c5f432f9baf341311e7642a8b654d62cf35d9aa9",
+      "51f8b0c5bbc3183cbfbb52e05aad10fdaa3cce90921b28c31e58d72189388773"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 13,
+     "token_start": 13,
+     "token_end_exclusive": 18,
+     "character_start": 66,
+     "character_end": 90,
+     "text": " from sub-Saharan Africa",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      422,
+      850,
+      12,
+      40461,
+      5478
+     ],
+     "weighted_row_score": 0.3560606060606061,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "844af3a37bc752b8c42e5494c5f432f9baf341311e7642a8b654d62cf35d9aa9",
+      "51f8b0c5bbc3183cbfbb52e05aad10fdaa3cce90921b28c31e58d72189388773",
+      "398e22aa62e0c345db8a04c31de4511c6f04c14d4d3c7f1d7962aaf138830c0a"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 14,
+     "token_start": 14,
+     "token_end_exclusive": 19,
+     "character_start": 71,
+     "character_end": 93,
+     "text": " sub-Saharan Africa to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      850,
+      12,
+      40461,
+      5478,
+      284
+     ],
+     "weighted_row_score": 0.3106060606060606,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "51f8b0c5bbc3183cbfbb52e05aad10fdaa3cce90921b28c31e58d72189388773",
+      "398e22aa62e0c345db8a04c31de4511c6f04c14d4d3c7f1d7962aaf138830c0a",
+      "0bad9c3e57c1c4e0249b161bb27439041dd952ca7be736d916849b25e952c267"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 15,
+     "token_start": 15,
+     "token_end_exclusive": 20,
+     "character_start": 75,
+     "character_end": 100,
+     "text": "-Saharan Africa to Europe",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      12,
+      40461,
+      5478,
+      284,
+      2031
+     ],
+     "weighted_row_score": 0.7777777777777778,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "51f8b0c5bbc3183cbfbb52e05aad10fdaa3cce90921b28c31e58d72189388773",
+      "398e22aa62e0c345db8a04c31de4511c6f04c14d4d3c7f1d7962aaf138830c0a",
+      "0bad9c3e57c1c4e0249b161bb27439041dd952ca7be736d916849b25e952c267"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 16,
+     "token_start": 16,
+     "token_end_exclusive": 21,
+     "character_start": 76,
+     "character_end": 101,
+     "text": "Saharan Africa to Europe,",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      40461,
+      5478,
+      284,
+      2031,
+      11
+     ],
+     "weighted_row_score": 0.7323232323232323,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "51f8b0c5bbc3183cbfbb52e05aad10fdaa3cce90921b28c31e58d72189388773",
+      "398e22aa62e0c345db8a04c31de4511c6f04c14d4d3c7f1d7962aaf138830c0a",
+      "0bad9c3e57c1c4e0249b161bb27439041dd952ca7be736d916849b25e952c267",
+      "f959dfeffbd071df225aab511df46237b8b8316221baf3954a1b5e14a258bd00"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 17,
+     "token_start": 17,
+     "token_end_exclusive": 22,
+     "character_start": 83,
+     "character_end": 105,
+     "text": " Africa to Europe, and",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      5478,
+      284,
+      2031,
+      11,
+      290
+     ],
+     "weighted_row_score": 0.914141414141414,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "398e22aa62e0c345db8a04c31de4511c6f04c14d4d3c7f1d7962aaf138830c0a",
+      "0bad9c3e57c1c4e0249b161bb27439041dd952ca7be736d916849b25e952c267",
+      "f959dfeffbd071df225aab511df46237b8b8316221baf3954a1b5e14a258bd00",
+      "8dae56bf50b225383d04a429b084740a8867c3a7fe33d0bed549bb167314ab46"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 18,
+     "token_start": 18,
+     "token_end_exclusive": 23,
+     "character_start": 90,
+     "character_end": 110,
+     "text": " to Europe, and from",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      284,
+      2031,
+      11,
+      290,
+      422
+     ],
+     "weighted_row_score": 0.8030303030303031,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "0bad9c3e57c1c4e0249b161bb27439041dd952ca7be736d916849b25e952c267",
+      "f959dfeffbd071df225aab511df46237b8b8316221baf3954a1b5e14a258bd00",
+      "8dae56bf50b225383d04a429b084740a8867c3a7fe33d0bed549bb167314ab46",
+      "50df1a5d3475e628b8ecfdcf62cf8b9736128dd413bfd452faccdd7e82c6b929"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 19,
+     "token_start": 19,
+     "token_end_exclusive": 24,
+     "character_start": 93,
+     "character_end": 115,
+     "text": " Europe, and from Asia",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      2031,
+      11,
+      290,
+      422,
+      7229
+     ],
+     "weighted_row_score": 0.7777777777777778,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "f959dfeffbd071df225aab511df46237b8b8316221baf3954a1b5e14a258bd00",
+      "8dae56bf50b225383d04a429b084740a8867c3a7fe33d0bed549bb167314ab46",
+      "50df1a5d3475e628b8ecfdcf62cf8b9736128dd413bfd452faccdd7e82c6b929",
+      "697d400e3dd2a64e6d375a50a1850e7fabf9775058fee480d55c33dd270809cb"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 20,
+     "token_start": 20,
+     "token_end_exclusive": 25,
+     "character_start": 100,
+     "character_end": 118,
+     "text": ", and from Asia to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      11,
+      290,
+      422,
+      7229,
+      284
+     ],
+     "weighted_row_score": 0.5555555555555556,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "f959dfeffbd071df225aab511df46237b8b8316221baf3954a1b5e14a258bd00",
+      "8dae56bf50b225383d04a429b084740a8867c3a7fe33d0bed549bb167314ab46",
+      "50df1a5d3475e628b8ecfdcf62cf8b9736128dd413bfd452faccdd7e82c6b929",
+      "697d400e3dd2a64e6d375a50a1850e7fabf9775058fee480d55c33dd270809cb",
+      "e7740bd6ae2b47ae42b25930563c90eb99f0b569f70361fdae10b813b39bd032"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 21,
+     "token_start": 21,
+     "token_end_exclusive": 26,
+     "character_start": 101,
+     "character_end": 125,
+     "text": " and from Asia to Europe",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      290,
+      422,
+      7229,
+      284,
+      2031
+     ],
+     "weighted_row_score": 0.41919191919191917,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "f959dfeffbd071df225aab511df46237b8b8316221baf3954a1b5e14a258bd00",
+      "8dae56bf50b225383d04a429b084740a8867c3a7fe33d0bed549bb167314ab46",
+      "50df1a5d3475e628b8ecfdcf62cf8b9736128dd413bfd452faccdd7e82c6b929",
+      "697d400e3dd2a64e6d375a50a1850e7fabf9775058fee480d55c33dd270809cb",
+      "e7740bd6ae2b47ae42b25930563c90eb99f0b569f70361fdae10b813b39bd032"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 22,
+     "token_start": 22,
+     "token_end_exclusive": 27,
+     "character_start": 105,
+     "character_end": 126,
+     "text": " from Asia to Europe.",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      422,
+      7229,
+      284,
+      2031,
+      13
+     ],
+     "weighted_row_score": 0.5353535353535354,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "50df1a5d3475e628b8ecfdcf62cf8b9736128dd413bfd452faccdd7e82c6b929",
+      "697d400e3dd2a64e6d375a50a1850e7fabf9775058fee480d55c33dd270809cb",
+      "e7740bd6ae2b47ae42b25930563c90eb99f0b569f70361fdae10b813b39bd032"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 23,
+     "token_start": 23,
+     "token_end_exclusive": 28,
+     "character_start": 110,
+     "character_end": 127,
+     "text": " Asia to Europe.\n",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      7229,
+      284,
+      2031,
+      13,
+      198
+     ],
+     "weighted_row_score": 0.601010101010101,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "697d400e3dd2a64e6d375a50a1850e7fabf9775058fee480d55c33dd270809cb",
+      "e7740bd6ae2b47ae42b25930563c90eb99f0b569f70361fdae10b813b39bd032"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 24,
+     "token_start": 24,
+     "token_end_exclusive": 29,
+     "character_start": 115,
+     "character_end": 128,
+     "text": " to Europe.\n\n",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      284,
+      2031,
+      13,
+      198,
+      198
+     ],
+     "weighted_row_score": 0.8661616161616161,
+     "inside_quote": false,
+     "intersects_quote": false,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "e7740bd6ae2b47ae42b25930563c90eb99f0b569f70361fdae10b813b39bd032"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 25,
+     "token_start": 25,
+     "token_end_exclusive": 30,
+     "character_start": 118,
+     "character_end": 129,
+     "text": " Europe.\n\n\"",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      2031,
+      13,
+      198,
+      198,
+      1
+     ],
+     "weighted_row_score": 0.8686868686868687,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 26,
+     "token_start": 26,
+     "token_end_exclusive": 31,
+     "character_start": 125,
+     "character_end": 131,
+     "text": ".\n\n\"If",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      13,
+      198,
+      198,
+      1,
+      1532
+     ],
+     "weighted_row_score": 0.7323232323232323,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 1,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 27,
+     "token_start": 27,
+     "token_end_exclusive": 32,
+     "character_start": 126,
+     "character_end": 135,
+     "text": "\n\n\"If you",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      198,
+      198,
+      1,
+      1532,
+      345
+     ],
+     "weighted_row_score": 0.5782828282828283,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 2,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 28,
+     "token_start": 28,
+     "token_end_exclusive": 33,
+     "character_start": 127,
+     "character_end": 140,
+     "text": "\n\"If you take",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      198,
+      1,
+      1532,
+      345,
+      1011
+     ],
+     "weighted_row_score": 0.6641414141414141,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 29,
+     "token_start": 29,
+     "token_end_exclusive": 34,
+     "character_start": 128,
+     "character_end": 144,
+     "text": "\"If you take the",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      1,
+      1532,
+      345,
+      1011,
+      262
+     ],
+     "weighted_row_score": 0.5757575757575757,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 30,
+     "token_start": 30,
+     "token_end_exclusive": 35,
+     "character_start": 129,
+     "character_end": 154,
+     "text": "If you take the migration",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      1532,
+      345,
+      1011,
+      262,
+      13472
+     ],
+     "weighted_row_score": 0.7575757575757576,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 31,
+     "token_start": 31,
+     "token_end_exclusive": 36,
+     "character_start": 131,
+     "character_end": 159,
+     "text": " you take the migration from",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      345,
+      1011,
+      262,
+      13472,
+      422
+     ],
+     "weighted_row_score": 0.5782828282828283,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 32,
+     "token_start": 32,
+     "token_end_exclusive": 37,
+     "character_start": 135,
+     "character_end": 163,
+     "text": " take the migration from sub",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      1011,
+      262,
+      13472,
+      422,
+      850
+     ],
+     "weighted_row_score": 0.44191919191919193,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 33,
+     "token_start": 33,
+     "token_end_exclusive": 38,
+     "character_start": 140,
+     "character_end": 164,
+     "text": " the migration from sub-",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      262,
+      13472,
+      422,
+      850,
+      12
+     ],
+     "weighted_row_score": 0.7146464646464646,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 34,
+     "token_start": 34,
+     "token_end_exclusive": 39,
+     "character_start": 144,
+     "character_end": 171,
+     "text": " migration from sub-Saharan",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      13472,
+      422,
+      850,
+      12,
+      40461
+     ],
+     "weighted_row_score": 0.6641414141414141,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 35,
+     "token_start": 35,
+     "token_end_exclusive": 40,
+     "character_start": 154,
+     "character_end": 178,
+     "text": " from sub-Saharan Africa",
+     "eligible": false,
+     "repeated_context": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      422,
+      850,
+      12,
+      40461,
+      5478
+     ],
+     "weighted_row_score": 0.3560606060606061,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 36,
+     "token_start": 36,
+     "token_end_exclusive": 41,
+     "character_start": 159,
+     "character_end": 181,
+     "text": " sub-Saharan Africa to",
+     "eligible": false,
+     "repeated_context": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      850,
+      12,
+      40461,
+      5478,
+      284
+     ],
+     "weighted_row_score": 0.3106060606060606,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 37,
+     "token_start": 37,
+     "token_end_exclusive": 42,
+     "character_start": 163,
+     "character_end": 188,
+     "text": "-Saharan Africa to Europe",
+     "eligible": false,
+     "repeated_context": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      12,
+      40461,
+      5478,
+      284,
+      2031
+     ],
+     "weighted_row_score": 0.7777777777777778,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 38,
+     "token_start": 38,
+     "token_end_exclusive": 43,
+     "character_start": 164,
+     "character_end": 192,
+     "text": "Saharan Africa to Europe and",
+     "eligible": false,
+     "repeated_context": true,
+     "g_values": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      40461,
+      5478,
+      284,
+      2031,
+      290
+     ],
+     "weighted_row_score": 0.2424242424242424,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 39,
+     "token_start": 39,
+     "token_end_exclusive": 44,
+     "character_start": 171,
+     "character_end": 196,
+     "text": " Africa to Europe and the",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      5478,
+      284,
+      2031,
+      290,
+      262
+     ],
+     "weighted_row_score": 0.601010101010101,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 40,
+     "token_start": 40,
+     "token_end_exclusive": 45,
+     "character_start": 178,
+     "character_end": 200,
+     "text": " to Europe and the sub",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      284,
+      2031,
+      290,
+      262,
+      850
+     ],
+     "weighted_row_score": 0.6186868686868687,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 41,
+     "token_start": 41,
+     "token_end_exclusive": 46,
+     "character_start": 181,
+     "character_end": 201,
+     "text": " Europe and the sub-",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      2031,
+      290,
+      262,
+      850,
+      12
+     ],
+     "weighted_row_score": 0.4873737373737374,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 42,
+     "token_start": 42,
+     "token_end_exclusive": 47,
+     "character_start": 188,
+     "character_end": 208,
+     "text": " and the sub-Saharan",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      290,
+      262,
+      850,
+      12,
+      40461
+     ],
+     "weighted_row_score": 0.28787878787878785,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 43,
+     "token_start": 43,
+     "token_end_exclusive": 48,
+     "character_start": 192,
+     "character_end": 218,
+     "text": " the sub-Saharan migration",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      262,
+      850,
+      12,
+      40461,
+      13472
+     ],
+     "weighted_row_score": 0.42171717171717166,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 44,
+     "token_start": 44,
+     "token_end_exclusive": 49,
+     "character_start": 196,
+     "character_end": 223,
+     "text": " sub-Saharan migration from",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      850,
+      12,
+      40461,
+      13472,
+      422
+     ],
+     "weighted_row_score": 0.6237373737373737,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 45,
+     "token_start": 45,
+     "token_end_exclusive": 50,
+     "character_start": 200,
+     "character_end": 228,
+     "text": "-Saharan migration from Asia",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      12,
+      40461,
+      13472,
+      422,
+      7229
+     ],
+     "weighted_row_score": 0.8686868686868687,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 46,
+     "token_start": 46,
+     "token_end_exclusive": 51,
+     "character_start": 201,
+     "character_end": 231,
+     "text": "Saharan migration from Asia to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      40461,
+      13472,
+      422,
+      7229,
+      284
+     ],
+     "weighted_row_score": 0.21969696969696967,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 47,
+     "token_start": 47,
+     "token_end_exclusive": 52,
+     "character_start": 208,
+     "character_end": 238,
+     "text": " migration from Asia to Europe",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      13472,
+      422,
+      7229,
+      284,
+      2031
+     ],
+     "weighted_row_score": 0.4898989898989899,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 48,
+     "token_start": 48,
+     "token_end_exclusive": 53,
+     "character_start": 218,
+     "character_end": 239,
+     "text": " from Asia to Europe,",
+     "eligible": false,
+     "repeated_context": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      422,
+      7229,
+      284,
+      2031,
+      11
+     ],
+     "weighted_row_score": 0.5782828282828283,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 49,
+     "token_start": 49,
+     "token_end_exclusive": 54,
+     "character_start": 223,
+     "character_end": 244,
+     "text": " Asia to Europe, then",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      7229,
+      284,
+      2031,
+      11,
+      788
+     ],
+     "weighted_row_score": 0.8030303030303031,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 50,
+     "token_start": 50,
+     "token_end_exclusive": 55,
+     "character_start": 228,
+     "character_end": 247,
+     "text": " to Europe, then it",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      284,
+      2031,
+      11,
+      788,
+      340
+     ],
+     "weighted_row_score": 0.5984848484848485,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 51,
+     "token_start": 51,
+     "token_end_exclusive": 56,
+     "character_start": 231,
+     "character_end": 250,
+     "text": " Europe, then it is",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      2031,
+      11,
+      788,
+      340,
+      318
+     ],
+     "weighted_row_score": 0.755050505050505,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 52,
+     "token_start": 52,
+     "token_end_exclusive": 57,
+     "character_start": 238,
+     "character_end": 255,
+     "text": ", then it is very",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      11,
+      788,
+      340,
+      318,
+      845
+     ],
+     "weighted_row_score": 0.8257575757575757,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 53,
+     "token_start": 53,
+     "token_end_exclusive": 58,
+     "character_start": 239,
+     "character_end": 265,
+     "text": " then it is very different",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      788,
+      340,
+      318,
+      845,
+      1180
+     ],
+     "weighted_row_score": 0.5530303030303031,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 7,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 54,
+     "token_start": 54,
+     "token_end_exclusive": 59,
+     "character_start": 244,
+     "character_end": 270,
+     "text": " it is very different from",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      340,
+      318,
+      845,
+      1180,
+      422
+     ],
+     "weighted_row_score": 0.797979797979798,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 55,
+     "token_start": 55,
+     "token_end_exclusive": 60,
+     "character_start": 247,
+     "character_end": 274,
+     "text": " is very different from the",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      318,
+      845,
+      1180,
+      422,
+      262
+     ],
+     "weighted_row_score": 0.5580808080808081,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 56,
+     "token_start": 56,
+     "token_end_exclusive": 61,
+     "character_start": 250,
+     "character_end": 284,
+     "text": " very different from the migration",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1
+     ],
+     "token_ids": [
+      845,
+      1180,
+      422,
+      262,
+      13472
+     ],
+     "weighted_row_score": 0.4217171717171717,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 57,
+     "token_start": 57,
+     "token_end_exclusive": 62,
+     "character_start": 255,
+     "character_end": 289,
+     "text": " different from the migration from",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      1180,
+      422,
+      262,
+      13472,
+      422
+     ],
+     "weighted_row_score": 0.398989898989899,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 58,
+     "token_start": 58,
+     "token_end_exclusive": 63,
+     "character_start": 265,
+     "character_end": 294,
+     "text": " from the migration from Asia",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      422,
+      262,
+      13472,
+      422,
+      7229
+     ],
+     "weighted_row_score": 0.5984848484848484,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 59,
+     "token_start": 59,
+     "token_end_exclusive": 64,
+     "character_start": 270,
+     "character_end": 297,
+     "text": " the migration from Asia to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      262,
+      13472,
+      422,
+      7229,
+      284
+     ],
+     "weighted_row_score": 0.4671717171717171,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    }
+   ],
+   "output_observations": [
+    {
+     "index": 0,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 0,
+     "character_end": 21,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.1767676767676768
+    },
+    {
+     "index": 1,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 4,
+     "character_end": 24,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.2424242424242424
+    },
+    {
+     "index": 2,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 13,
+     "character_end": 27,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.35353535353535354
+    },
+    {
+     "index": 3,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 14,
+     "character_end": 28,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.3964646464646464
+    },
+    {
+     "index": 4,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 15,
+     "character_end": 37,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 1.0
+    },
+    {
+     "index": 5,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 21,
+     "character_end": 40,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6212121212121212
+    },
+    {
+     "index": 6,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 24,
+     "character_end": 44,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.8914141414141414
+    },
+    {
+     "index": 7,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 27,
+     "character_end": 45,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5126262626262625
+    },
+    {
+     "index": 8,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 28,
+     "character_end": 55,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.4873737373737374
+    },
+    {
+     "index": 9,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 37,
+     "character_end": 58,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5328282828282828
+    },
+    {
+     "index": 10,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 40,
+     "character_end": 63,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.6666666666666666
+    },
+    {
+     "index": 11,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 44,
+     "character_end": 69,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.3787878787878788
+    },
+    {
+     "index": 12,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 45,
+     "character_end": 70,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.601010101010101
+    },
+    {
+     "index": 13,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 55,
+     "character_end": 75,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.601010101010101
+    },
+    {
+     "index": 14,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 58,
+     "character_end": 79,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5555555555555556
+    },
+    {
+     "index": 15,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 63,
+     "character_end": 80,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.3282828282828283
+    },
+    {
+     "index": 16,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 69,
+     "character_end": 87,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.15404040404040403
+    },
+    {
+     "index": 17,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 70,
+     "character_end": 88,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.4015151515151515
+    },
+    {
+     "index": 18,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 75,
+     "character_end": 95,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.7095959595959596
+    },
+    {
+     "index": 19,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 79,
+     "character_end": 98,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.7121212121212122
+    },
+    {
+     "index": 20,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 80,
+     "character_end": 99,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5984848484848485
+    },
+    {
+     "index": 21,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 87,
+     "character_end": 106,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.398989898989899
+    },
+    {
+     "index": 22,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 88,
+     "character_end": 107,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.2904040404040404
+    },
+    {
+     "index": 23,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 95,
+     "character_end": 108,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.24242424242424246
+    },
+    {
+     "index": 24,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 98,
+     "character_end": 112,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.6439393939393939
+    },
+    {
+     "index": 25,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 99,
+     "character_end": 117,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5353535353535354
+    },
+    {
+     "index": 26,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 106,
+     "character_end": 122,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.5984848484848484
+    },
+    {
+     "index": 27,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 107,
+     "character_end": 125,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.8005050505050505
+    },
+    {
+     "index": 28,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 108,
+     "character_end": 126,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.7575757575757576
+    },
+    {
+     "index": 29,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 112,
+     "character_end": 133,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.648989898989899
+    },
+    {
+     "index": 30,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 117,
+     "character_end": 134,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.8005050505050505
+    },
+    {
+     "index": 31,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 122,
+     "character_end": 135,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.6464646464646464
+    },
+    {
+     "index": 32,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 125,
+     "character_end": 136,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.35353535353535354
+    },
+    {
+     "index": 33,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 126,
+     "character_end": 137,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.8686868686868687
+    },
+    {
+     "index": 34,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 133,
+     "character_end": 139,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.7323232323232323
+    },
+    {
+     "index": 35,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 134,
+     "character_end": 143,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.5782828282828283
+    },
+    {
+     "index": 36,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 135,
+     "character_end": 148,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6641414141414141
+    },
+    {
+     "index": 37,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 136,
+     "character_end": 152,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5757575757575757
+    },
+    {
+     "index": 38,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 137,
+     "character_end": 162,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.7575757575757576
+    },
+    {
+     "index": 39,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 139,
+     "character_end": 167,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.5782828282828283
+    },
+    {
+     "index": 40,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 143,
+     "character_end": 171,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.44191919191919193
+    },
+    {
+     "index": 41,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 148,
+     "character_end": 172,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.7146464646464646
+    },
+    {
+     "index": 42,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 152,
+     "character_end": 179,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6641414141414141
+    },
+    {
+     "index": 43,
+     "valid": false,
+     "repeated_context": true,
+     "character_start": 162,
+     "character_end": 186,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.3560606060606061
+    },
+    {
+     "index": 44,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 167,
+     "character_end": 189,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.3106060606060606
+    },
+    {
+     "index": 45,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 171,
+     "character_end": 196,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.7777777777777778
+    },
+    {
+     "index": 46,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 172,
+     "character_end": 200,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.2424242424242424
+    },
+    {
+     "index": 47,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 179,
+     "character_end": 204,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.601010101010101
+    },
+    {
+     "index": 48,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 186,
+     "character_end": 208,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6186868686868687
+    },
+    {
+     "index": 49,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 189,
+     "character_end": 209,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.4873737373737374
+    },
+    {
+     "index": 50,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 196,
+     "character_end": 216,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.28787878787878785
+    },
+    {
+     "index": 51,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 200,
+     "character_end": 226,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.42171717171717166
+    },
+    {
+     "index": 52,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 204,
+     "character_end": 231,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.6237373737373737
+    },
+    {
+     "index": 53,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 208,
+     "character_end": 236,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.8686868686868687
+    },
+    {
+     "index": 54,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 209,
+     "character_end": 239,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.21969696969696967
+    },
+    {
+     "index": 55,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 216,
+     "character_end": 246,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.4898989898989899
+    },
+    {
+     "index": 56,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 226,
+     "character_end": 247,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.5782828282828283
+    },
+    {
+     "index": 57,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 231,
+     "character_end": 252,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.8030303030303031
+    },
+    {
+     "index": 58,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 236,
+     "character_end": 255,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.5984848484848485
+    },
+    {
+     "index": 59,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 239,
+     "character_end": 258,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.755050505050505
+    },
+    {
+     "index": 60,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 246,
+     "character_end": 263,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.8257575757575757
+    },
+    {
+     "index": 61,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 247,
+     "character_end": 273,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5530303030303031
+    },
+    {
+     "index": 62,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 252,
+     "character_end": 278,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.797979797979798
+    },
+    {
+     "index": 63,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 255,
+     "character_end": 282,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.5580808080808081
+    },
+    {
+     "index": 64,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 258,
+     "character_end": 292,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.4217171717171717
+    },
+    {
+     "index": 65,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 263,
+     "character_end": 297,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.398989898989899
+    },
+    {
+     "index": 66,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 273,
+     "character_end": 302,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5984848484848484
+    },
+    {
+     "index": 67,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 278,
+     "character_end": 305,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.4671717171717171
+    }
+   ]
+  },
+  {
+   "index": 10,
+   "seed": 720011,
+   "source_text": "\n\n\"Being a bike enthusiast is like being a kid and learning to ride a bicycle is like learning how to ride a car,\" said Lacey. \"It is a lot of fun and it is a lot of fun to learn to ride a bike. It was an experience that really came to me when I was",
+   "output_text": "\n\n\"Being a bike enthusiast is like being a kid and learning to ride a bicycle is like learning how to ride a car,\" said  Lacey.  \"It is a lot of fun and it is a lot of fun to learn to ride a bike. It was an experience that really came to me when I was",
+   "source_token_ids": [
+    198,
+    198,
+    1,
+    18357,
+    257,
+    7161,
+    33471,
+    318,
+    588,
+    852,
+    257,
+    5141,
+    290,
+    4673,
+    284,
+    6594,
+    257,
+    17026,
+    318,
+    588,
+    4673,
+    703,
+    284,
+    6594,
+    257,
+    1097,
+    553,
+    531,
+    406,
+    25415,
+    13,
+    366,
+    1026,
+    318,
+    257,
+    1256,
+    286,
+    1257,
+    290,
+    340,
+    318,
+    257,
+    1256,
+    286,
+    1257,
+    284,
+    2193,
+    284,
+    6594,
+    257,
+    7161,
+    13,
+    632,
+    373,
+    281,
+    1998,
+    326,
+    1107,
+    1625,
+    284,
+    502,
+    618,
+    314,
+    373
+   ],
+   "output_token_ids": [
+    198,
+    198,
+    1,
+    18357,
+    257,
+    7161,
+    33471,
+    318,
+    588,
+    852,
+    257,
+    5141,
+    290,
+    4673,
+    284,
+    6594,
+    257,
+    17026,
+    318,
+    588,
+    4673,
+    703,
+    284,
+    6594,
+    257,
+    1097,
+    553,
+    531,
+    220,
+    406,
+    25415,
+    13,
+    220,
+    366,
+    1026,
+    318,
+    257,
+    1256,
+    286,
+    1257,
+    290,
+    340,
+    318,
+    257,
+    1256,
+    286,
+    1257,
+    284,
+    2193,
+    284,
+    6594,
+    257,
+    7161,
+    13,
+    632,
+    373,
+    281,
+    1998,
+    326,
+    1107,
+    1625,
+    284,
+    502,
+    618,
+    314,
+    373
+   ],
+   "source_token_count": 64,
+   "output_token_count": 66,
+   "quotation_spans": [
+    {
+     "start": 2,
+     "end": 114,
+     "text": "\"Being a bike enthusiast is like being a kid and learning to ride a bicycle is like learning how to ride a car,\""
+    },
+    {
+     "start": 127,
+     "end": 249,
+     "text": "\"It is a lot of fun and it is a lot of fun to learn to ride a bike. It was an experience that really came to me when I was"
+    }
+   ],
+   "protected_spans": [
+    {
+     "start": 2,
+     "end": 114,
+     "kinds": [
+      "quotation"
+     ],
+     "text": "\"Being a bike enthusiast is like being a kid and learning to ride a bicycle is like learning how to ride a car,\""
+    },
+    {
+     "start": 127,
+     "end": 249,
+     "kinds": [
+      "quotation"
+     ],
+     "text": "\"It is a lot of fun and it is a lot of fun to learn to ride a bike. It was an experience that really came to me when I was"
+    }
+   ],
+   "candidate_count": 3,
+   "rejected_candidate_count": 57,
+   "rejections_by_reason": {
+    "protected_overlap": 57
+   },
+   "rejections_by_family": {
+    "surface-space-after-any-word": 51,
+    "surface-space-after-like": 2,
+    "surface-space-after-period": 1,
+    "surface-space-before-sentence": 1,
+    "surface-space-after-really": 1,
+    "surface-space-after-when": 1
+   },
+   "conflict_count": 1,
+   "selected_operations": [
+    {
+     "candidate_id": "061f1aa2ffd0a38eb24f85ecb942fc31966786d4a7ce60ec4124366d2cb9d192",
+     "rule_id": "surface-space-after-period",
+     "family": "orthography",
+     "start": 125,
+     "end": 127,
+     "before": ". ",
+     "after": ".  "
+    },
+    {
+     "candidate_id": "2dfe07c30d39cababb02a06a98729bfd66b151ee46897c5e86e5635f5add4502",
+     "rule_id": "surface-space-after-said",
+     "family": "orthography",
+     "start": 115,
+     "end": 119,
+     "before": "said",
+     "after": "said "
+    }
+   ],
+   "root_window_count": 58,
+   "intact_window_count": 51,
+   "intact_windows_inside_quotes": 47,
+   "intact_windows_outside_quotes": 4,
+   "tuple_leak_window_count": 51,
+   "repeated_root_window_count": 2,
+   "ambiguous_root_token_indices": [],
+   "alignment_distance": 2,
+   "selected_operation_count": 2,
+   "repair_selections": 0,
+   "budget_exhausted": false,
+   "candidate_exhausted": true,
+   "conflict_excluded_candidate_count": 1,
+   "source_score": 0.6394548937652387,
+   "output_score": 0.6175505050505051,
+   "detected": true,
+   "sanitizer_scores": {
+    "raw": 0.6175505050505051,
+    "nfkc": 0.6175505050505051,
+    "cf_strip": 0.6175505050505051,
+    "combined": 0.6175505050505051
+   },
+   "sanitizer_detections": {
+    "raw": true,
+    "nfkc": true,
+    "cf_strip": true,
+    "combined": true
+   },
+   "quote_valid_observation_count": 47,
+   "valid_observation_count": 60,
+   "quote_fraction_of_detector_numerator": 0.8084236352484154,
+   "quote_fraction_of_signed_excess_above_null": 0.9151450053705692,
+   "classification": "protected-region-unreachable",
+   "classification_exclusions": {
+    "budget_limited": false,
+    "candidate_density_limited": true,
+    "conflict_limited": false,
+    "search_limited": false,
+    "closure_limited": false,
+    "repetition_mask_limited": false,
+    "statistical_tail": false
+   },
+   "root_observation_map": [
+    {
+     "index": 0,
+     "token_start": 0,
+     "token_end_exclusive": 5,
+     "character_start": 0,
+     "character_end": 10,
+     "text": "\n\n\"Being a",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      198,
+      198,
+      1,
+      18357,
+      257
+     ],
+     "weighted_row_score": 0.601010101010101,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 2,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 1,
+     "token_start": 1,
+     "token_end_exclusive": 6,
+     "character_start": 1,
+     "character_end": 15,
+     "text": "\n\"Being a bike",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      198,
+      1,
+      18357,
+      257,
+      7161
+     ],
+     "weighted_row_score": 0.8686868686868687,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 2,
+     "token_start": 2,
+     "token_end_exclusive": 7,
+     "character_start": 2,
+     "character_end": 26,
+     "text": "\"Being a bike enthusiast",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      1,
+      18357,
+      257,
+      7161,
+      33471
+     ],
+     "weighted_row_score": 0.5580808080808081,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 3,
+     "token_start": 3,
+     "token_end_exclusive": 8,
+     "character_start": 3,
+     "character_end": 29,
+     "text": "Being a bike enthusiast is",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      18357,
+      257,
+      7161,
+      33471,
+      318
+     ],
+     "weighted_row_score": 0.8005050505050505,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 4,
+     "token_start": 4,
+     "token_end_exclusive": 9,
+     "character_start": 8,
+     "character_end": 34,
+     "text": " a bike enthusiast is like",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      257,
+      7161,
+      33471,
+      318,
+      588
+     ],
+     "weighted_row_score": 0.7777777777777778,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 5,
+     "token_start": 5,
+     "token_end_exclusive": 10,
+     "character_start": 10,
+     "character_end": 40,
+     "text": " bike enthusiast is like being",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      7161,
+      33471,
+      318,
+      588,
+      852
+     ],
+     "weighted_row_score": 0.5580808080808081,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 6,
+     "token_start": 6,
+     "token_end_exclusive": 11,
+     "character_start": 15,
+     "character_end": 42,
+     "text": " enthusiast is like being a",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      33471,
+      318,
+      588,
+      852,
+      257
+     ],
+     "weighted_row_score": 0.4671717171717171,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 7,
+     "token_start": 7,
+     "token_end_exclusive": 12,
+     "character_start": 26,
+     "character_end": 46,
+     "text": " is like being a kid",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1
+     ],
+     "token_ids": [
+      318,
+      588,
+      852,
+      257,
+      5141
+     ],
+     "weighted_row_score": 0.4419191919191919,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 8,
+     "token_start": 8,
+     "token_end_exclusive": 13,
+     "character_start": 29,
+     "character_end": 50,
+     "text": " like being a kid and",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      588,
+      852,
+      257,
+      5141,
+      290
+     ],
+     "weighted_row_score": 0.8686868686868687,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 9,
+     "token_start": 9,
+     "token_end_exclusive": 14,
+     "character_start": 34,
+     "character_end": 59,
+     "text": " being a kid and learning",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      852,
+      257,
+      5141,
+      290,
+      4673
+     ],
+     "weighted_row_score": 0.6439393939393939,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 10,
+     "token_start": 10,
+     "token_end_exclusive": 15,
+     "character_start": 40,
+     "character_end": 62,
+     "text": " a kid and learning to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "token_ids": [
+      257,
+      5141,
+      290,
+      4673,
+      284
+     ],
+     "weighted_row_score": 0.5378787878787878,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 11,
+     "token_start": 11,
+     "token_end_exclusive": 16,
+     "character_start": 42,
+     "character_end": 67,
+     "text": " kid and learning to ride",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      5141,
+      290,
+      4673,
+      284,
+      6594
+     ],
+     "weighted_row_score": 0.4873737373737374,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 12,
+     "token_start": 12,
+     "token_end_exclusive": 17,
+     "character_start": 46,
+     "character_end": 69,
+     "text": " and learning to ride a",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1
+     ],
+     "token_ids": [
+      290,
+      4673,
+      284,
+      6594,
+      257
+     ],
+     "weighted_row_score": 0.5530303030303031,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 13,
+     "token_start": 13,
+     "token_end_exclusive": 18,
+     "character_start": 50,
+     "character_end": 77,
+     "text": " learning to ride a bicycle",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      4673,
+      284,
+      6594,
+      257,
+      17026
+     ],
+     "weighted_row_score": 0.51010101010101,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 14,
+     "token_start": 14,
+     "token_end_exclusive": 19,
+     "character_start": 59,
+     "character_end": 80,
+     "text": " to ride a bicycle is",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      284,
+      6594,
+      257,
+      17026,
+      318
+     ],
+     "weighted_row_score": 0.6464646464646464,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 15,
+     "token_start": 15,
+     "token_end_exclusive": 20,
+     "character_start": 62,
+     "character_end": 85,
+     "text": " ride a bicycle is like",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1
+     ],
+     "token_ids": [
+      6594,
+      257,
+      17026,
+      318,
+      588
+     ],
+     "weighted_row_score": 0.6439393939393939,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 16,
+     "token_start": 16,
+     "token_end_exclusive": 21,
+     "character_start": 67,
+     "character_end": 94,
+     "text": " a bicycle is like learning",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      257,
+      17026,
+      318,
+      588,
+      4673
+     ],
+     "weighted_row_score": 0.7348484848484849,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 17,
+     "token_start": 17,
+     "token_end_exclusive": 22,
+     "character_start": 69,
+     "character_end": 98,
+     "text": " bicycle is like learning how",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      17026,
+      318,
+      588,
+      4673,
+      703
+     ],
+     "weighted_row_score": 0.7121212121212122,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 18,
+     "token_start": 18,
+     "token_end_exclusive": 23,
+     "character_start": 77,
+     "character_end": 101,
+     "text": " is like learning how to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      318,
+      588,
+      4673,
+      703,
+      284
+     ],
+     "weighted_row_score": 0.601010101010101,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 19,
+     "token_start": 19,
+     "token_end_exclusive": 24,
+     "character_start": 80,
+     "character_end": 106,
+     "text": " like learning how to ride",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      588,
+      4673,
+      703,
+      284,
+      6594
+     ],
+     "weighted_row_score": 0.8207070707070706,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 20,
+     "token_start": 20,
+     "token_end_exclusive": 25,
+     "character_start": 85,
+     "character_end": 108,
+     "text": " learning how to ride a",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      4673,
+      703,
+      284,
+      6594,
+      257
+     ],
+     "weighted_row_score": 0.8661616161616161,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 21,
+     "token_start": 21,
+     "token_end_exclusive": 26,
+     "character_start": 94,
+     "character_end": 112,
+     "text": " how to ride a car",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1
+     ],
+     "token_ids": [
+      703,
+      284,
+      6594,
+      257,
+      1097
+     ],
+     "weighted_row_score": 0.4419191919191919,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 22,
+     "token_start": 22,
+     "token_end_exclusive": 27,
+     "character_start": 98,
+     "character_end": 114,
+     "text": " to ride a car,\"",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "token_ids": [
+      284,
+      6594,
+      257,
+      1097,
+      553
+     ],
+     "weighted_row_score": 0.7828282828282828,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 23,
+     "token_start": 23,
+     "token_end_exclusive": 28,
+     "character_start": 101,
+     "character_end": 119,
+     "text": " ride a car,\" said",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      6594,
+      257,
+      1097,
+      553,
+      531
+     ],
+     "weighted_row_score": 0.4217171717171717,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "e11baf39cc3de33695f65576c9d7948d7384986f204ccc8599c8753ae2f2b2e7",
+      "2dfe07c30d39cababb02a06a98729bfd66b151ee46897c5e86e5635f5add4502"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 2,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 24,
+     "token_start": 24,
+     "token_end_exclusive": 29,
+     "character_start": 106,
+     "character_end": 121,
+     "text": " a car,\" said L",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      257,
+      1097,
+      553,
+      531,
+      406
+     ],
+     "weighted_row_score": 0.8005050505050505,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "e11baf39cc3de33695f65576c9d7948d7384986f204ccc8599c8753ae2f2b2e7",
+      "2dfe07c30d39cababb02a06a98729bfd66b151ee46897c5e86e5635f5add4502"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 1,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 25,
+     "token_start": 25,
+     "token_end_exclusive": 30,
+     "character_start": 108,
+     "character_end": 125,
+     "text": " car,\" said Lacey",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      1097,
+      553,
+      531,
+      406,
+      25415
+     ],
+     "weighted_row_score": 0.41919191919191917,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "e11baf39cc3de33695f65576c9d7948d7384986f204ccc8599c8753ae2f2b2e7",
+      "2dfe07c30d39cababb02a06a98729bfd66b151ee46897c5e86e5635f5add4502"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 26,
+     "token_start": 26,
+     "token_end_exclusive": 31,
+     "character_start": 112,
+     "character_end": 126,
+     "text": ",\" said Lacey.",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      553,
+      531,
+      406,
+      25415,
+      13
+     ],
+     "weighted_row_score": 0.4671717171717171,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "e11baf39cc3de33695f65576c9d7948d7384986f204ccc8599c8753ae2f2b2e7",
+      "2dfe07c30d39cababb02a06a98729bfd66b151ee46897c5e86e5635f5add4502",
+      "061f1aa2ffd0a38eb24f85ecb942fc31966786d4a7ce60ec4124366d2cb9d192"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 27,
+     "token_start": 27,
+     "token_end_exclusive": 32,
+     "character_start": 114,
+     "character_end": 128,
+     "text": " said Lacey. \"",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      531,
+      406,
+      25415,
+      13,
+      366
+     ],
+     "weighted_row_score": 0.37373737373737376,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "e11baf39cc3de33695f65576c9d7948d7384986f204ccc8599c8753ae2f2b2e7",
+      "2dfe07c30d39cababb02a06a98729bfd66b151ee46897c5e86e5635f5add4502",
+      "061f1aa2ffd0a38eb24f85ecb942fc31966786d4a7ce60ec4124366d2cb9d192"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 0,
+     "rejection_reasons": [],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 28,
+     "token_start": 28,
+     "token_end_exclusive": 33,
+     "character_start": 119,
+     "character_end": 130,
+     "text": " Lacey. \"It",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "token_ids": [
+      406,
+      25415,
+      13,
+      366,
+      1026
+     ],
+     "weighted_row_score": 0.8686868686868687,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "061f1aa2ffd0a38eb24f85ecb942fc31966786d4a7ce60ec4124366d2cb9d192"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 1,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 29,
+     "token_start": 29,
+     "token_end_exclusive": 34,
+     "character_start": 121,
+     "character_end": 133,
+     "text": "acey. \"It is",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      25415,
+      13,
+      366,
+      1026,
+      318
+     ],
+     "weighted_row_score": 0.797979797979798,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "061f1aa2ffd0a38eb24f85ecb942fc31966786d4a7ce60ec4124366d2cb9d192"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 2,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 30,
+     "token_start": 30,
+     "token_end_exclusive": 35,
+     "character_start": 125,
+     "character_end": 135,
+     "text": ". \"It is a",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      13,
+      366,
+      1026,
+      318,
+      257
+     ],
+     "weighted_row_score": 0.8005050505050505,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "061f1aa2ffd0a38eb24f85ecb942fc31966786d4a7ce60ec4124366d2cb9d192"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 3,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": false,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 31,
+     "token_start": 31,
+     "token_end_exclusive": 36,
+     "character_start": 126,
+     "character_end": 139,
+     "text": " \"It is a lot",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      366,
+      1026,
+      318,
+      257,
+      1256
+     ],
+     "weighted_row_score": 0.7146464646464646,
+     "inside_quote": false,
+     "intersects_quote": true,
+     "protection_reason": null,
+     "available_candidate_ids": [
+      "061f1aa2ffd0a38eb24f85ecb942fc31966786d4a7ce60ec4124366d2cb9d192"
+     ],
+     "available_candidate_families": [
+      "orthography"
+     ],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 32,
+     "token_start": 32,
+     "token_end_exclusive": 37,
+     "character_start": 128,
+     "character_end": 142,
+     "text": "It is a lot of",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      1026,
+      318,
+      257,
+      1256,
+      286
+     ],
+     "weighted_row_score": 0.24494949494949494,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 33,
+     "token_start": 33,
+     "token_end_exclusive": 38,
+     "character_start": 130,
+     "character_end": 146,
+     "text": " is a lot of fun",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      318,
+      257,
+      1256,
+      286,
+      1257
+     ],
+     "weighted_row_score": 0.7095959595959596,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 34,
+     "token_start": 34,
+     "token_end_exclusive": 39,
+     "character_start": 133,
+     "character_end": 150,
+     "text": " a lot of fun and",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      257,
+      1256,
+      286,
+      1257,
+      290
+     ],
+     "weighted_row_score": 0.803030303030303,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 35,
+     "token_start": 35,
+     "token_end_exclusive": 40,
+     "character_start": 135,
+     "character_end": 153,
+     "text": " lot of fun and it",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1
+     ],
+     "token_ids": [
+      1256,
+      286,
+      1257,
+      290,
+      340
+     ],
+     "weighted_row_score": 0.6666666666666666,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 36,
+     "token_start": 36,
+     "token_end_exclusive": 41,
+     "character_start": 139,
+     "character_end": 156,
+     "text": " of fun and it is",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0
+     ],
+     "token_ids": [
+      286,
+      1257,
+      290,
+      340,
+      318
+     ],
+     "weighted_row_score": 0.6237373737373737,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 37,
+     "token_start": 37,
+     "token_end_exclusive": 42,
+     "character_start": 142,
+     "character_end": 158,
+     "text": " fun and it is a",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      1257,
+      290,
+      340,
+      318,
+      257
+     ],
+     "weighted_row_score": 0.5555555555555556,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 38,
+     "token_start": 38,
+     "token_end_exclusive": 43,
+     "character_start": 146,
+     "character_end": 162,
+     "text": " and it is a lot",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      290,
+      340,
+      318,
+      257,
+      1256
+     ],
+     "weighted_row_score": 0.5757575757575757,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 39,
+     "token_start": 39,
+     "token_end_exclusive": 44,
+     "character_start": 150,
+     "character_end": 165,
+     "text": " it is a lot of",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      340,
+      318,
+      257,
+      1256,
+      286
+     ],
+     "weighted_row_score": 0.28535353535353536,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 40,
+     "token_start": 40,
+     "token_end_exclusive": 45,
+     "character_start": 153,
+     "character_end": 169,
+     "text": " is a lot of fun",
+     "eligible": false,
+     "repeated_context": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      318,
+      257,
+      1256,
+      286,
+      1257
+     ],
+     "weighted_row_score": 0.7095959595959596,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 41,
+     "token_start": 41,
+     "token_end_exclusive": 46,
+     "character_start": 156,
+     "character_end": 172,
+     "text": " a lot of fun to",
+     "eligible": false,
+     "repeated_context": true,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      257,
+      1256,
+      286,
+      1257,
+      284
+     ],
+     "weighted_row_score": 0.37878787878787873,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": false,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 42,
+     "token_start": 42,
+     "token_end_exclusive": 47,
+     "character_start": 158,
+     "character_end": 178,
+     "text": " lot of fun to learn",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      1256,
+      286,
+      1257,
+      284,
+      2193
+     ],
+     "weighted_row_score": 0.398989898989899,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 43,
+     "token_start": 43,
+     "token_end_exclusive": 48,
+     "character_start": 162,
+     "character_end": 181,
+     "text": " of fun to learn to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      286,
+      1257,
+      284,
+      2193,
+      284
+     ],
+     "weighted_row_score": 0.797979797979798,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 44,
+     "token_start": 44,
+     "token_end_exclusive": 49,
+     "character_start": 165,
+     "character_end": 186,
+     "text": " fun to learn to ride",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      1257,
+      284,
+      2193,
+      284,
+      6594
+     ],
+     "weighted_row_score": 0.4671717171717171,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 45,
+     "token_start": 45,
+     "token_end_exclusive": 50,
+     "character_start": 169,
+     "character_end": 188,
+     "text": " to learn to ride a",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "token_ids": [
+      284,
+      2193,
+      284,
+      6594,
+      257
+     ],
+     "weighted_row_score": 0.7828282828282828,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 46,
+     "token_start": 46,
+     "token_end_exclusive": 51,
+     "character_start": 172,
+     "character_end": 193,
+     "text": " learn to ride a bike",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      2193,
+      284,
+      6594,
+      257,
+      7161
+     ],
+     "weighted_row_score": 0.6439393939393939,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 47,
+     "token_start": 47,
+     "token_end_exclusive": 52,
+     "character_start": 178,
+     "character_end": 194,
+     "text": " to ride a bike.",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      284,
+      6594,
+      257,
+      7161,
+      13
+     ],
+     "weighted_row_score": 0.5757575757575757,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 4,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 48,
+     "token_start": 48,
+     "token_end_exclusive": 53,
+     "character_start": 181,
+     "character_end": 197,
+     "text": " ride a bike. It",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1
+     ],
+     "token_ids": [
+      6594,
+      257,
+      7161,
+      13,
+      632
+     ],
+     "weighted_row_score": 0.6212121212121212,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 49,
+     "token_start": 49,
+     "token_end_exclusive": 54,
+     "character_start": 186,
+     "character_end": 201,
+     "text": " a bike. It was",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      257,
+      7161,
+      13,
+      632,
+      373
+     ],
+     "weighted_row_score": 0.7348484848484849,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 50,
+     "token_start": 50,
+     "token_end_exclusive": 55,
+     "character_start": 188,
+     "character_end": 204,
+     "text": " bike. It was an",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      7161,
+      13,
+      632,
+      373,
+      281
+     ],
+     "weighted_row_score": 0.8030303030303031,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 51,
+     "token_start": 51,
+     "token_end_exclusive": 56,
+     "character_start": 193,
+     "character_end": 215,
+     "text": ". It was an experience",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "token_ids": [
+      13,
+      632,
+      373,
+      281,
+      1998
+     ],
+     "weighted_row_score": 0.9570707070707071,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 52,
+     "token_start": 52,
+     "token_end_exclusive": 57,
+     "character_start": 194,
+     "character_end": 220,
+     "text": " It was an experience that",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "token_ids": [
+      632,
+      373,
+      281,
+      1998,
+      326
+     ],
+     "weighted_row_score": 0.6464646464646464,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 7,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 53,
+     "token_start": 53,
+     "token_end_exclusive": 58,
+     "character_start": 197,
+     "character_end": 227,
+     "text": " was an experience that really",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      373,
+      281,
+      1998,
+      326,
+      1107
+     ],
+     "weighted_row_score": 0.7095959595959596,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 54,
+     "token_start": 54,
+     "token_end_exclusive": 59,
+     "character_start": 201,
+     "character_end": 232,
+     "text": " an experience that really came",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      281,
+      1998,
+      326,
+      1107,
+      1625
+     ],
+     "weighted_row_score": 0.8005050505050505,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 55,
+     "token_start": 55,
+     "token_end_exclusive": 60,
+     "character_start": 204,
+     "character_end": 235,
+     "text": " experience that really came to",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      1998,
+      326,
+      1107,
+      1625,
+      284
+     ],
+     "weighted_row_score": 0.7803030303030303,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 56,
+     "token_start": 56,
+     "token_end_exclusive": 61,
+     "character_start": 215,
+     "character_end": 238,
+     "text": " that really came to me",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+     ],
+     "token_ids": [
+      326,
+      1107,
+      1625,
+      284,
+      502
+     ],
+     "weighted_row_score": 0.6035353535353535,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 57,
+     "token_start": 57,
+     "token_end_exclusive": 62,
+     "character_start": 220,
+     "character_end": 243,
+     "text": " really came to me when",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      1107,
+      1625,
+      284,
+      502,
+      618
+     ],
+     "weighted_row_score": 0.5303030303030303,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 7,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 58,
+     "token_start": 58,
+     "token_end_exclusive": 63,
+     "character_start": 227,
+     "character_end": 245,
+     "text": " came to me when I",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "token_ids": [
+      1625,
+      284,
+      502,
+      618,
+      314
+     ],
+     "weighted_row_score": 0.38131313131313127,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 6,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    },
+    {
+     "index": 59,
+     "token_start": 59,
+     "token_end_exclusive": 64,
+     "character_start": 232,
+     "character_end": 249,
+     "text": " to me when I was",
+     "eligible": true,
+     "repeated_context": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "token_ids": [
+      284,
+      502,
+      618,
+      314,
+      373
+     ],
+     "weighted_row_score": 0.8005050505050505,
+     "inside_quote": true,
+     "intersects_quote": true,
+     "protection_reason": "blanket_quotation_exact",
+     "available_candidate_ids": [],
+     "available_candidate_families": [],
+     "rejected_candidate_count": 5,
+     "rejection_reasons": [
+      "protected_overlap"
+     ],
+     "positional_intact": true,
+     "tuple_leak": true,
+     "ambiguous_alignment": false
+    }
+   ],
+   "output_observations": [
+    {
+     "index": 0,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 0,
+     "character_end": 10,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.601010101010101
+    },
+    {
+     "index": 1,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 1,
+     "character_end": 15,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.8686868686868687
+    },
+    {
+     "index": 2,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 2,
+     "character_end": 26,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5580808080808081
+    },
+    {
+     "index": 3,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 3,
+     "character_end": 29,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.8005050505050505
+    },
+    {
+     "index": 4,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 8,
+     "character_end": 34,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.7777777777777778
+    },
+    {
+     "index": 5,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 10,
+     "character_end": 40,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5580808080808081
+    },
+    {
+     "index": 6,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 15,
+     "character_end": 42,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.4671717171717171
+    },
+    {
+     "index": 7,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 26,
+     "character_end": 46,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.4419191919191919
+    },
+    {
+     "index": 8,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 29,
+     "character_end": 50,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.8686868686868687
+    },
+    {
+     "index": 9,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 34,
+     "character_end": 59,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.6439393939393939
+    },
+    {
+     "index": 10,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 40,
+     "character_end": 62,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5378787878787878
+    },
+    {
+     "index": 11,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 42,
+     "character_end": 67,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.4873737373737374
+    },
+    {
+     "index": 12,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 46,
+     "character_end": 69,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5530303030303031
+    },
+    {
+     "index": 13,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 50,
+     "character_end": 77,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.51010101010101
+    },
+    {
+     "index": 14,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 59,
+     "character_end": 80,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.6464646464646464
+    },
+    {
+     "index": 15,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 62,
+     "character_end": 85,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6439393939393939
+    },
+    {
+     "index": 16,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 67,
+     "character_end": 94,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.7348484848484849
+    },
+    {
+     "index": 17,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 69,
+     "character_end": 98,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.7121212121212122
+    },
+    {
+     "index": 18,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 77,
+     "character_end": 101,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.601010101010101
+    },
+    {
+     "index": 19,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 80,
+     "character_end": 106,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.8207070707070706
+    },
+    {
+     "index": 20,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 85,
+     "character_end": 108,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.8661616161616161
+    },
+    {
+     "index": 21,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 94,
+     "character_end": 112,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.4419191919191919
+    },
+    {
+     "index": 22,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 98,
+     "character_end": 114,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.7828282828282828
+    },
+    {
+     "index": 23,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 101,
+     "character_end": 119,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.4217171717171717
+    },
+    {
+     "index": 24,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 106,
+     "character_end": 120,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5580808080808081
+    },
+    {
+     "index": 25,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 108,
+     "character_end": 122,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.37626262626262624
+    },
+    {
+     "index": 26,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 112,
+     "character_end": 126,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.3333333333333333
+    },
+    {
+     "index": 27,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 114,
+     "character_end": 127,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.37626262626262624
+    },
+    {
+     "index": 28,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 119,
+     "character_end": 128,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5782828282828283
+    },
+    {
+     "index": 29,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 120,
+     "character_end": 130,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.4671717171717171
+    },
+    {
+     "index": 30,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 122,
+     "character_end": 132,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.51010101010101
+    },
+    {
+     "index": 31,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 126,
+     "character_end": 135,
+     "inside_quote": false,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6439393939393939
+    },
+    {
+     "index": 32,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 127,
+     "character_end": 137,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.648989898989899
+    },
+    {
+     "index": 33,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 128,
+     "character_end": 141,
+     "inside_quote": false,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.7146464646464646
+    },
+    {
+     "index": 34,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 130,
+     "character_end": 144,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.24494949494949494
+    },
+    {
+     "index": 35,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 132,
+     "character_end": 148,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.7095959595959596
+    },
+    {
+     "index": 36,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 135,
+     "character_end": 152,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.803030303030303
+    },
+    {
+     "index": 37,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 137,
+     "character_end": 155,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6666666666666666
+    },
+    {
+     "index": 38,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 141,
+     "character_end": 158,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      0
+     ],
+     "weighted_row_score": 0.6237373737373737
+    },
+    {
+     "index": 39,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 144,
+     "character_end": 160,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.5555555555555556
+    },
+    {
+     "index": 40,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 148,
+     "character_end": 164,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5757575757575757
+    },
+    {
+     "index": 41,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 152,
+     "character_end": 167,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.28535353535353536
+    },
+    {
+     "index": 42,
+     "valid": false,
+     "repeated_context": true,
+     "character_start": 155,
+     "character_end": 171,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.7095959595959596
+    },
+    {
+     "index": 43,
+     "valid": false,
+     "repeated_context": true,
+     "character_start": 158,
+     "character_end": 174,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.37878787878787873
+    },
+    {
+     "index": 44,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 160,
+     "character_end": 180,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.398989898989899
+    },
+    {
+     "index": 45,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 164,
+     "character_end": 183,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.797979797979798
+    },
+    {
+     "index": 46,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 167,
+     "character_end": 188,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.4671717171717171
+    },
+    {
+     "index": 47,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 171,
+     "character_end": 190,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.7828282828282828
+    },
+    {
+     "index": 48,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 174,
+     "character_end": 195,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6439393939393939
+    },
+    {
+     "index": 49,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 180,
+     "character_end": 196,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.5757575757575757
+    },
+    {
+     "index": 50,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 183,
+     "character_end": 199,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      0,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.6212121212121212
+    },
+    {
+     "index": 51,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 188,
+     "character_end": 203,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.7348484848484849
+    },
+    {
+     "index": 52,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 190,
+     "character_end": 206,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.8030303030303031
+    },
+    {
+     "index": 53,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 195,
+     "character_end": 217,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.9570707070707071
+    },
+    {
+     "index": 54,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 196,
+     "character_end": 222,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1
+     ],
+     "weighted_row_score": 0.6464646464646464
+    },
+    {
+     "index": 55,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 199,
+     "character_end": 229,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.7095959595959596
+    },
+    {
+     "index": 56,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 203,
+     "character_end": 234,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.8005050505050505
+    },
+    {
+     "index": 57,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 206,
+     "character_end": 237,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      1,
+      1,
+      1,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.7803030303030303
+    },
+    {
+     "index": 58,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 217,
+     "character_end": 240,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.6035353535353535
+    },
+    {
+     "index": 59,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 222,
+     "character_end": 245,
+     "inside_quote": true,
+     "g_values": [
+      0,
+      0,
+      1,
+      1,
+      1,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.5303030303030303
+    },
+    {
+     "index": 60,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 229,
+     "character_end": 247,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "weighted_row_score": 0.38131313131313127
+    },
+    {
+     "index": 61,
+     "valid": true,
+     "repeated_context": false,
+     "character_start": 234,
+     "character_end": 251,
+     "inside_quote": true,
+     "g_values": [
+      1,
+      1,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      1
+     ],
+     "weighted_row_score": 0.8005050505050505
+    }
+   ]
+  }
+ ],
+ "artifact_hash": "8152f3a42a208aed592407298151d55e99be5e898f3a6b177a300c03e998c0ad"
+}
