@@ -103,7 +103,7 @@ Stage C1 on seed `870000` (topic frozen as `measurement protocol`) added clause-
 
 ## Stage D
 
-Stage D1 on seed `890000` (topic frozen as `document structure`) adds word-boundary newlines as a denser collapse-resistant layout channel. This is development-only. Seed `880000` is not inspected. The D1 decision document is written only after density, geometry, and detector artifacts exist.
+Stage D1 on seed `890000` (topic frozen as `document structure`) added word-boundary newlines. Mean durable candidates: **38.0**. Collapse-surviving intact/root **0.164**. Detector: durable **0/4** after collapse; Cycle 6 spacing **3/4** after collapse. Overall: **`PROMISING_DEVELOPMENT`**. Seed `880000` was not inspected in D1. Details: `docs/cycle7/stage-d-decision.md`.
 
 Not claimed:
 

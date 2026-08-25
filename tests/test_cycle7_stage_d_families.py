@@ -11,6 +11,8 @@ from fuckmark.cycle7.ledger import (
     CYCLE7_STAGE_D1_TOPIC,
     CYCLE7_STAGE_C_VALIDATION_SEED_BASE,
     CYCLE7_STAGE_C_VALIDATION_TOPIC,
+    CYCLE7_VALIDATION_ROLE,
+    assert_development_seed,
     assert_rule_construction_seed,
 )
 from fuckmark.cycle7.registry import cycle7_durable_transform_registry
@@ -40,6 +42,7 @@ def test_stage_d_ledger_identities_are_frozen_before_inspection() -> None:
     assert CYCLE7_STAGE_C_VALIDATION_SEED_BASE == 880000
     assert CYCLE7_STAGE_C_VALIDATION_TOPIC == "independent check"
     assert_rule_construction_seed(890000)
+    assert_development_seed(CYCLE7_STAGE_C_VALIDATION_SEED_BASE, role=CYCLE7_VALIDATION_ROLE)
 
 
 def test_word_boundary_swaps_space_and_newline() -> None:
