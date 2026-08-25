@@ -19,6 +19,7 @@ on:
       - "fuckmark/transforms/**"
       - "tools/build_cycle6_full_fidelity_packet.py"
       - "tests/test_cycle6_confirmation_contract.py"
+      - "tests/test_cycle6_confirmation_review_fixes.py"
   workflow_dispatch:
     inputs:
       confirmation_authorized:
@@ -56,6 +57,7 @@ jobs:
         run: >-
           python -m pytest -q
           tests/test_cycle6_confirmation_contract.py
+          tests/test_cycle6_confirmation_review_fixes.py
           tests/test_cycle6_reproduction_defaults.py
           tests/test_quote_safe_policy.py
 
@@ -83,12 +85,15 @@ jobs:
           --corpus evidence/cycle6-quote-safe-zero-2026-08-25/frozen16-content-snapshot.json
           --budget 14
           --public-out artifacts/cycle6-full-fidelity-public.json
-          --private-out artifacts/cycle6-full-fidelity-private.json
+          --private-out private/cycle6-full-fidelity-private.json
           --mechanical-out artifacts/cycle6-full-fidelity-mechanical.json
-      - uses: actions/upload-artifact@v4
+      - name: Upload reviewer-safe fidelity packet
+        uses: actions/upload-artifact@v4
         with:
           name: cycle6-full-fidelity-packet
-          path: artifacts/
+          path: |
+            artifacts/cycle6-full-fidelity-public.json
+            artifacts/cycle6-full-fidelity-mechanical.json
           if-no-files-found: error
 
   authorize-confirmation:
@@ -276,7 +281,10 @@ jobs:
                   if hashlib.sha256(path.read_bytes()).hexdigest() != record["file_sha256"]:
                       raise SystemExit(f"seed {seed}: frozen file hash drifted: {name}")
               rows = plan["rows"]
-              labels = {label: sum(row["source_label"] == label for row in rows) for label in ("watermarked", "unwatermarked")}
+              labels = {
+                  label: sum(row["source_label"] == label for row in rows)
+                  for label in ("watermarked", "unwatermarked")
+              }
               if labels != {"watermarked": 64, "unwatermarked": 64}:
                   raise SystemExit(f"seed {seed}: attack label counts drifted: {labels}")
               hashes = {row["source_text_hash"] for row in rows}
