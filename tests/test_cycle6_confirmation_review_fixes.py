@@ -11,6 +11,7 @@ from fuckmark.experiments.cycle6_confirmation import (
     aggregate_cycle6_confirmation,
     validate_cycle6_confirmation_contract,
 )
+from fuckmark.tiny_dev_cycle6_confirmation_score_hf import _require_scoring_authorization
 from tools.build_cycle6_full_fidelity_packet import _validate_output_isolation
 
 
@@ -19,6 +20,19 @@ _HELPERS = runpy.run_path(
 )
 _contract = _HELPERS["_contract"]
 _evidence = _HELPERS["_evidence"]
+
+
+def test_cycle6_scorer_rejects_pending_fidelity_contract() -> None:
+    contract = _contract()
+    validate_cycle6_confirmation_contract(contract)
+    with pytest.raises(ValueError, match="independent fidelity review"):
+        _require_scoring_authorization(contract)
+
+    contract["fidelity_gate"]["status"] = "ACCEPTED_INDEPENDENT_HUMAN_REVIEW"
+    contract["fidelity_gate"]["independent_audit_hash"] = "a" * 64
+    contract["confirmation"]["scoring_authorized"] = True
+    validate_cycle6_confirmation_contract(contract)
+    _require_scoring_authorization(contract)
 
 
 def test_cycle6_aggregate_accepts_canonical_json_roundtrip() -> None:
