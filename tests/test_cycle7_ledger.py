@@ -23,11 +23,11 @@ def test_spent_and_reserved_seeds_are_disjoint_and_documented() -> None:
     assert tuple(payload["spent_confirmation_seed_bases"]) == SPENT_CONFIRMATION_SEED_BASES
     assert SPENT_CONFIRMATION_SEED_BASES == (760000, 770000, 780000)
     assert SPENT_DEVELOPMENT_SEED_BASES == (720000, 730000)
-    assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v3"
+    assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v4"
     assert CYCLE7_EXPLORATORY_SEED_BASE == 810000
-    assert CYCLE7_EXPLORATORY_SEED_BASES == (810000, 860000, 870000)
-    assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000, 860000)
-    assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == (870000,)
+    assert CYCLE7_EXPLORATORY_SEED_BASES == (810000, 860000, 870000, 890000)
+    assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000, 860000, 870000)
+    assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == (890000,)
     assert CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE == 860000
     assert CYCLE7_VALIDATION_SEED_BASE == 820000
     assert CYCLE7_CONFIRMATION_RESERVED_SEED_BASES == (830000, 840000, 850000)
@@ -42,6 +42,7 @@ def test_spent_and_reserved_seeds_are_disjoint_and_documented() -> None:
     assert 860000 not in blocked
     assert 870000 not in blocked
     assert 880000 not in blocked
+    assert 890000 not in blocked
     assert 830000 in blocked
     assert cycle7_seed_ledger_hash() == cycle7_seed_ledger_hash()
 

@@ -26,6 +26,7 @@ def summarize_density_rows(rows: Sequence[Mapping[str, object]]) -> dict[str, ob
     parenthetical_counts = tuple(int(row["parenthetical_candidate_count"]) for row in rows)
     coord_comma_counts = tuple(int(row["coord_comma_candidate_count"]) for row in rows)
     quantifier_counts = tuple(int(row.get("quantifier_of_candidate_count", 0)) for row in rows)
+    word_boundary_counts = tuple(int(row.get("word_boundary_candidate_count", 0)) for row in rows)
     return {
         "sample_count": len(rows),
         "mean_candidate_count": sum(counts) / len(counts),
@@ -39,6 +40,7 @@ def summarize_density_rows(rows: Sequence[Mapping[str, object]]) -> dict[str, ob
         "mean_parenthetical_candidate_count": sum(parenthetical_counts) / len(parenthetical_counts),
         "mean_coord_comma_candidate_count": sum(coord_comma_counts) / len(coord_comma_counts),
         "mean_quantifier_of_candidate_count": sum(quantifier_counts) / len(quantifier_counts),
+        "mean_word_boundary_candidate_count": sum(word_boundary_counts) / len(word_boundary_counts),
         "zero_candidate_rows": sum(count == 0 for count in counts),
     }
 

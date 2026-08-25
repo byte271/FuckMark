@@ -62,6 +62,11 @@ QUANTIFIER_RICH = (
     "Half the notes stayed and all my checks passed."
 )
 
+WORD_BOUNDARY_RICH = (
+    "Measurement protocol remains fixed across independent replications of the "
+    "same experimental apparatus. Calibration uses a held-out population."
+)
+
 QUOTE_INTERIOR = 'He answered, "They are not finished and we do not agree."'
 
 AMBIGUOUS_NEGATIVES = (
@@ -110,6 +115,13 @@ def stage_c_fixture_samples() -> tuple[tuple[str, str], ...]:
         *stage_b_fixture_samples(),
         ("clause-punct-rich", CLAUSE_PUNCT_RICH),
         ("quantifier-rich", QUANTIFIER_RICH),
+    )
+
+
+def stage_d_fixture_samples() -> tuple[tuple[str, str], ...]:
+    return (
+        *stage_c_fixture_samples(),
+        ("word-boundary-rich", WORD_BOUNDARY_RICH),
     )
 
 

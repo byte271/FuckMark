@@ -8,8 +8,8 @@ This directory starts Cycle 7 development. It does not retune Cycle 6 and does n
 
 See `docs/cycle7/live-state-audit.md`. Independent GitHub inspection:
 
-- `main` HEAD `af341884fff211caeb24649a6ce79305c3491c6c` (PR #95 squash-merge)
-- Cycle 6 freeze parent `ddccd74a9e0e710085b385fed98959f2730b9d60`
+- `main` HEAD `d7eeb0f905b7046ddc4a4d8281354f06713d58b0` (PR #96 squash-merge)
+- Cycle 6 freeze ancestor `ddccd74a9e0e710085b385fed98959f2730b9d60`
 - PR #93 and PR #94 merged
 - Recovery run `32886342498` success
 - Aggregate hash `30577aafaffd0c50f0ddb384a4509eb0bb93e4374bf39704869ddbf5053186a4`
@@ -31,9 +31,10 @@ See `docs/cycle7/seed-ledger.md` and `fuckmark/cycle7/ledger.py`.
 | --- | --- | --- |
 | Exploratory development (Stage A) | `810000` | used; do not keep expanding rules against it |
 | Exploratory development / rule construction (Stage B1) | `860000` | used; do not keep expanding rules against it |
-| Exploratory development / rule construction (Stage C1) | `870000` | active; topic frozen as `measurement protocol` |
+| Exploratory development / rule construction (Stage C1) | `870000` | used; do not keep expanding rules against it |
+| Exploratory development / rule construction (Stage D1) | `890000` | active; topic frozen as `document structure` |
 | Validation development (Stage B3) | `820000` | used as Stage B3 disjoint validation; do not retune on it |
-| Validation development (Stage C, reserved) | `880000` | unseen until a v4 freeze |
+| Validation development (Stage C/D, reserved) | `880000` | unseen until a catalog freeze |
 | Confirmation reserved | `830000`, `840000`, `850000` | must not be inspected |
 
 Confirmation seeds were chosen as unused 10k blocks before any Cycle 7 detector look.
@@ -50,7 +51,7 @@ The Cycle 6 frozen sanitizer module is unchanged.
 
 ## Durable transform families
 
-See `docs/cycle7/durable-families.md`. Catalog `cycle7-durable-rule-catalog-v4`.
+See `docs/cycle7/durable-families.md`. Catalog `cycle7-durable-rule-catalog-v5`.
 
 Stage A (`v2`) families:
 
@@ -72,7 +73,11 @@ Stage C (`v4`) additions, aimed at higher natural site density after Stage B sho
 10. Clause punctuation newline (`,` / `;` / `:` + space ↔ mark + LF).
 11. Optional `of` after `all` / `both` / `half` before a closed determiner/possessive.
 
-These change tokens without relying on repeated U+0020. They survive ASCII whitespace collapse by construction. Family 3 also survives NFKC and Cf-strip. Family 4 is a formatting channel: VERIFIED against the six Cycle 7 sanitizer variants, not against an unlisted reflow sanitizer.
+Stage D (`v5`) addition, aimed at a collapse-resistant channel denser than clause punctuation rather than another lexical whitelist:
+
+12. Word-boundary newline (ASCII space between two alphabetic words of length ≥2 ↔ LF).
+
+These change tokens without relying on repeated U+0020. They survive ASCII whitespace collapse by construction. Family 3 also survives NFKC and Cf-strip. Families 4, 10, and 12 are formatting channels: VERIFIED against the six Cycle 7 sanitizer variants, not against an unlisted reflow sanitizer.
 
 Quote interiors may receive these durable edits under `quote-container-durable-v1` without changing quote delimiters. Cycle 6 `quote-container-surface-spacing-v1` still admits only spacing inside quotes.
 
@@ -93,6 +98,10 @@ Seed `820000` is spent as validation. Seed `880000` is the next unused validatio
 ## Stage C
 
 Stage C1 on seed `870000` (topic frozen as `measurement protocol`) added clause-punctuation newlines and optional quantifier `of`. Mean durable candidates: **4.75** (still the Stage B four-site regime). Quantifier `of` mean **0.00**. Collapse-surviving intact/root **0.715**. Detector: durable **3/4** after collapse; Cycle 6 spacing **4/4** after collapse. Overall: **`INSUFFICIENT_EVIDENCE`**. Seed `880000` was not inspected. Details: `docs/cycle7/stage-c-decision.md`.
+
+## Stage D
+
+Stage D1 on seed `890000` (topic frozen as `document structure`) adds word-boundary newlines as a denser collapse-resistant layout channel. This is development-only. Seed `880000` is not inspected. The D1 decision document is written only after density, geometry, and detector artifacts exist.
 
 Not claimed:
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any
 
-from .format_rules import FormatBoundaryRule
+from .format_rules import FormatBoundaryRule, WordBoundaryNewlineRule
 from .lexical_rules import LexicalTemplateRule
 from .quote_policy import (
     QUOTE_SAFE_SURFACE_POLICY_ID,
@@ -42,6 +42,7 @@ _DURABLE_RULE_PREFIXES = (
     "cycle7-expand-",
     "cycle7-ortho-",
     "cycle7-format-",
+    "cycle7-word-",
     "cycle7-syntax-",
     "lexical-compound-",
     "lexical-prenominal-",
@@ -55,7 +56,7 @@ _DURABLE_RULE_PREFIXES = (
 def is_cycle7_quote_durable_rule(rule: object) -> bool:
     if isinstance(rule, (GeneralWordLeadingSpacingRule, GeneralWordSpacingRule, SurfaceSpacingRule)):
         return False
-    if isinstance(rule, FormatBoundaryRule):
+    if isinstance(rule, (FormatBoundaryRule, WordBoundaryNewlineRule)):
         return True
     if isinstance(rule, LiteralTransformRule):
         if rule.family is TransformFamily.CONTRACTION:
@@ -63,7 +64,7 @@ def is_cycle7_quote_durable_rule(rule: object) -> bool:
                 ("contract-", "expand-", "cycle7-contract-", "cycle7-expand-")
             )
         return rule.family is TransformFamily.ORTHOGRAPHY and getattr(rule, "rule_id", "").startswith(
-            ("cycle7-ortho-", "cycle7-format-")
+            ("cycle7-ortho-", "cycle7-format-", "cycle7-word-")
         )
     return isinstance(rule, (LexicalTemplateRule, SyntaxTemplateRule))
 

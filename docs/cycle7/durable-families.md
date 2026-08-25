@@ -1,6 +1,6 @@
 # Cycle 7 durable families
 
-Catalog identity: `cycle7-durable-rule-catalog-v4` (Stage C development). Families 1–3 remain the frozen Stage A `v2` set; families 4–9 remain the frozen Stage B `v3` set. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
+Catalog identity: `cycle7-durable-rule-catalog-v5` (Stage D development). Families 1–3 remain the frozen Stage A `v2` set; families 4–9 remain the frozen Stage B `v3` set; families 10–11 remain the frozen Stage C `v4` set. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
 
 All families below are deterministic, detector-blind, key-blind, and non-neural. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
 
@@ -226,4 +226,28 @@ Whitespace collapse: the edit is the word `of`, not spaces. Survives.
 False positives blocked: `all of them` / `both of us` / `half of it` (pronouns require `of`), `all of a sudden`, `some/most/each of the` (those quantifiers are not optional-`of` in the same way).
 
 EXTERNAL-VALIDATION-ONLY: Cambridge Grammar of English / English Grammar Today: `all`, `both`, and `half` may appear with or without `of` before articles, demonstratives, and possessives, with no meaning change. Pronoun objects keep obligatory `of`. That literature is not a local TinyDev density measurement.
+
+## Family 12 — word-boundary newline
+
+Construction: `word_boundary_newline`.
+
+This is the Stage D density primitive. It is not another closed lexical whitelist. It is the collapse-resistant analogue of Cycle 6 general word spacing: replace a single ASCII space between two alphabetic words with a single LF, or the reverse.
+
+Precondition: both sides are ASCII alphabetic runs of length at least 2. Single-letter words (`a`, `I`), digits, punctuation-adjacent spaces (`. `, `, `, `: `), and already-newline punctuation sites do not match. Protected spans still block overlapping edits.
+
+Rewrite: `The protocol` ↔ `The\nprotocol`.
+
+Inverse: the opposite direction.
+
+Tokenizer: GPT-2 `The protocol remains fixed` versus `The\nprotocol remains fixed` differs. VERIFIED on the frozen GPT-2 revision when transformers is present.
+
+Whitespace collapse: `whitespace-collapse-v1` preserves LF. The rewrite still differs after `ws_collapse` and `ws_collapse_nfkc_cf_strip`. VERIFIED on fixtures.
+
+Sanitizer note: this is a layout/formatting channel, denser than Families 4 and 10. HYPOTHESIS: a wrap/reflow sanitizer would erase it. It is admitted because Stages B and C showed punctuation-newline was the only durable family with repeated natural sites, and those sites were still too sparse (mean ~4–4.75) to replace Cycle 6 spacing after collapse.
+
+Conflict geometry: adjacent word-boundary spaces do not overlap (each candidate is the one-character separator). Cover-greedy v4 can spend the B14 budget on up to 14 wraps. Format punctuation newlines remain separate spans.
+
+Not admitted: extra U+0020 insertion, NBSP, ZWSP, wrapping after length-1 words, or converting punctuation spaces that Families 4 and 10 already own.
+
+Adjacent-sentence transposition remains a HYPOTHESIS for a later stage. It is not in catalog v5, so cover-greedy cannot spend the B14 budget on one long overlapping swap that would starve this dense channel.
 

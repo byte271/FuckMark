@@ -42,6 +42,7 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
     parenthetical_ids = _prefix_ids(rule_ids, ("cycle7-syntax-parenthetical-",))
     coord_comma_ids = _prefix_ids(rule_ids, ("cycle7-syntax-coord-comma-",))
     quantifier_ids = _prefix_ids(rule_ids, ("lexical-quantifier-",))
+    word_boundary_ids = _prefix_ids(rule_ids, ("cycle7-word-boundary-",))
     tokenish = max(1, len(text.split()))
     return {
         "sample_id": sample_id,
@@ -61,6 +62,7 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
         "parenthetical_candidate_count": len(parenthetical_ids),
         "coord_comma_candidate_count": len(coord_comma_ids),
         "quantifier_of_candidate_count": len(quantifier_ids),
+        "word_boundary_candidate_count": len(word_boundary_ids),
         "protected_blocked_count": sum(
             1 for rejection in enumeration.rejections if rejection.reason.value == "protected_overlap"
         ),
@@ -82,6 +84,7 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
         "parenthetical_rule_ids": parenthetical_ids,
         "coord_comma_rule_ids": coord_comma_ids,
         "quantifier_of_rule_ids": quantifier_ids,
+        "word_boundary_rule_ids": word_boundary_ids,
     }
 
 

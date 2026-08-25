@@ -62,17 +62,19 @@ Live GitHub still has `main` at `ddccd74a9e0e710085b385fed98959f2730b9d60`. Open
 
 Hygiene-only follow-up `6e587ea016cf5a2f4e7845a5550f97e0b5d92b34` made Release Readiness Baseline and CI succeed after `tests/test_repository_hygiene.py` rejected comments/docstrings in new Python. Cycle 6 sealed confirmation on that SHA succeeded. Codex review was usage-limited, not a code finding. CodeRabbit did not auto-review (repository star threshold).
 
-## Continuation (2026-08-25, after PR #95 squash-merge)
+## Continuation (2026-08-25, after PR #96 squash-merge)
 
-PR #95 squash-merged at 2026-08-25 21:23:21 UTC after all 41 head checks succeeded and `mergeStateStatus` was `CLEAN`. No unresolved review threads.
+PR #96 squash-merged at 2026-08-25 21:26:26 UTC. Title remained `Cycle 7 Stage B: high-density durable catalog v3`; the branch also contained Stage C catalog v4 and C1 evidence.
 
-Verified `main` HEAD: `af341884fff211caeb24649a6ce79305c3491c6c`
+Verified `main` HEAD: `d7eeb0f905b7046ddc4a4d8281354f06713d58b0`
 
-Subject: `Cycle 7 Stage A: collapse-resistant durable transforms (#95)`
+Subject: `Cycle 7 Stage B: high-density durable catalog v3 (#96)`
 
-Parent freeze commit remains `ddccd74a9e0e710085b385fed98959f2730b9d60`. Cycle 6 formal result is unchanged: `NONZERO_RESIDUAL` 7/192.
+Cycle 6 formal result is unchanged: `NONZERO_RESIDUAL` 7/192.
 
-Open PR after the merge: [#96](https://github.com/byte271/FuckMark/pull/96) on `cursor/cycle7-stage-b-density-3fb1`, rebased onto `main` and retargeted. Open issues: none.
+Open PR after the merge: [#97](https://github.com/byte271/FuckMark/pull/97) (`cursor/product-visible-invariance-2d93`, draft, Cycle 8 / user-visible invariance). That work is separate from Cycle 7 catalog development.
 
-Changing the PR base from `research/cycle7-durable-transforms` to `main` does not emit `pull_request` `synchronize`, so Actions on the rebase SHA must be retriggered by a follow-up push. Do not treat a CodeRabbit-only success as full CI.
+Stage C1 on seed `870000` was `INSUFFICIENT_EVIDENCE` (mean durable candidates 4.75; durable detector 3/4 after collapse). Seed `880000` was not inspected.
+
+Stage D continues on branch `cursor/cycle7-stage-d-wrap-3fb1` from this `main`, with exploratory seed `890000` and topic `document structure` frozen before generation.
 
