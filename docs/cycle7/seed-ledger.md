@@ -19,7 +19,7 @@ Seeds were assigned **before** Cycle 7 detector scoring. Seed `860000` and topic
 | --- | --- | --- |
 | Exploratory development (Stage A) | 810000 | yes, development only; do not keep expanding rules against it |
 | Exploratory development / rule construction (Stage B1) | 860000 | yes, development only; frozen topic `independent replication` |
-| Validation development | 820000 | only after a Stage B catalog freeze; unused at catalog-v3 construction |
+| Validation development | 820000 | used as Stage B3 disjoint validation; do not retune on it |
 | Confirmation reserved | 830000, 840000, 850000 | **no** until a later frozen confirmation protocol |
 
 Do not promote 810000, 820000, or 860000 into confirmation after seeing scores.
@@ -28,4 +28,4 @@ Stage A generation used 810000 with pair stride 32, matching TinyDev pairing, on
 
 Stage B1 generation uses 860000 with the same pairing rule and topic `independent replication`. Rule-construction generation must call `assert_rule_construction_seed(860000)`. Seed 810000 remains an exploratory seed for Stage A rescoring only.
 
-Validation generation, if run, uses 820000 with topic `held-out evaluation` and `assert_development_seed(820000, role=validation_development)`. That topic was frozen before validation generation.
+Validation generation used 820000 with topic `held-out evaluation`. That topic was frozen before validation generation. Do not retune catalog v3 on 820000.

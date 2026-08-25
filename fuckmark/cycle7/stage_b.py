@@ -96,7 +96,7 @@ def classify_stage_b_density(
         "collapsed_intact_fraction_of_root": collapsed_fraction,
         "notes": (
             "Stage B is development-only. Seeds 830000/840000/850000 were not inspected. "
-            "Seed 820000 remains unused validation until a catalog freeze."
+            "Do not promote exploratory or validation seeds into confirmation after seeing scores."
         ),
     }
     return payload

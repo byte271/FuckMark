@@ -78,9 +78,9 @@ Details: `docs/cycle7/stage-a-decision.md`.
 
 ## Stage B
 
-Stage B1 on seed `860000` is **`PROMISING_DEVELOPMENT`**, not formal confirmation. Catalog v3 durable edits reduced collapse-surviving watermarked detections to **2/4** on that tiny corpus (Cycle 6 spacing returned to 4/4 after collapse). Details: `docs/cycle7/stage-b-decision.md`.
+Stage B1 on seed `860000` looked **`PROMISING_DEVELOPMENT`** on a tiny detector snapshot (durable 2/4 after collapse). Disjoint validation seed `820000` reproduced density/geometry but **not** the detector reduction (durable 4/4 after collapse). Overall Stage B decision: **`INSUFFICIENT_EVIDENCE`**. Details: `docs/cycle7/stage-b-decision.md`.
 
-Seed `820000` remains disjoint validation with topic `held-out evaluation`. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
+Seed `820000` is spent as validation. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
 
 Not claimed:
 

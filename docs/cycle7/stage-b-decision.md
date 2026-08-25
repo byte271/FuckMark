@@ -75,13 +75,52 @@ Safe claim: under the frozen SynthID-Text/GPT-2 protocol, catalog v3 durable edi
 
 Do not claim: universal watermark removal; proprietary-detector transfer; formal confirmation; human-fidelity validation; that format newlines would survive a wrap/reflow sanitizer.
 
+## Stage B3 disjoint validation (seed 820000)
+
+Topic `held-out evaluation` was frozen in the ledger before generation. Catalog v3 and cover-greedy v4 were not modified after seeing 820000.
+
+Artifact hashes:
+
+- density `502f7e2ee9e4bd27b1582bdcbdfc2ae123050177abf3b225593bc91cddd298f3`
+- geometry `ee4942e8783710dae2410739932425a44c27e3d26d23c046d143aca08a249221`
+- detector-compare `3da3c015194f6062837db3eb6f0ef7a615909c81733d3bef5f9099c5d0f5e4d3`
+
+Density/geometry (VERIFIED, replicated):
+
+- mean durable candidates: **4.0** (B1 was 4.25)
+- mean format: 1.875; mean non-format: 2.125
+- collapsed intact / root: **0.735** (B1 was 0.716)
+
+Detector (VERIFIED; detector reduction did **not** replicate):
+
+| Arm | Pristine WM | Raw WM | Raw UW | ws_collapse WM | ws_collapse UW |
+| --- | --- | --- | --- | --- | --- |
+| Cycle 6 spacing B14 | 4/4 | **0/4** | 0/4 | **4/4** | 0/4 |
+| Cycle 7 durable v3 | 4/4 | **4/4** | 0/4 | **4/4** | 0/4 |
+| Combined | 4/4 | **0/4** | 0/4 | **4/4** | 0/4 |
+
+Unwatermarked transformed controls: 0 detections on every arm and sanitizer.
+
+The B1 durable 2/4 collapse-surviving reduction is therefore **not** a replicated detector result. It remains SOURCE-BOUND to seed `860000`.
+
+## Overall Stage B conclusion
+
+**`INSUFFICIENT_EVIDENCE`** as a Cycle 6 whitespace-collapse replacement.
+
+Replicated: catalog v3 raises natural durable-site density into a ~4 candidates/sample regime on TinyDev 64-token GPT-2 text; most of that density is sentence-boundary formatting; those edits survive `whitespace-collapse-v1`; intact root windows remain ~72–73% after collapse; Cycle 6 spacing still returns to 4/4 detections after collapse; transformed unwatermarked controls stay clean.
+
+Not replicated: collapse-surviving detector reduction.
+
+Do not retune catalog v3 on 820000. Do not inspect 830000/840000/850000. Do not open Cycle 7 formal confirmation.
+
 ## What remains the bottleneck
 
 Local semantically conservative English surface equivalence is still sparse on ordinary ~64-token TinyDev GPT-2 prose. Family 4 supplies most of the new sites. Complementizer, discourse, prenominal, and parenthetical families barely fired. TinyDev 64-token GPT-2 continuations are often list-like and truncated; that domain may inflate sentence-boundary density relative to ordinary paragraph prose.
 
 ## Next
 
-1. Do not retune catalog v3 on seed 860000.
-2. Disjoint validation, if run, uses seed `820000` with topic `held-out evaluation`, frozen before that generation.
+1. Do not retune catalog v3 on seeds 860000 or 820000.
+2. Seed 820000 is now spent as disjoint validation. A later revised mechanism needs a new unused validation split; do not recycle 820000.
 3. Do not inspect 830000/840000/850000.
-4. A detector-blind combined scheduler that prefers collapse-surviving families is a HYPOTHESIS supported by 810000 and 860000 geometry. It is not applied to those rows and is not required for a v3 validation split.
+4. A detector-blind combined scheduler that prefers collapse-surviving families remains a HYPOTHESIS. It was not applied after seeing 820000.
+5. If more rule-construction data is required, add a **new** exploratory seed to the ledger before inspecting it.

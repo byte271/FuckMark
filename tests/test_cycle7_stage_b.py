@@ -41,6 +41,7 @@ def test_stage_b_catalog_and_ledger_identities() -> None:
     assert payload["stage_b1_exploratory_seed_base"] == 860000
     assert payload["stage_b1_topic"] == "independent replication"
     assert payload["validation_topic"] == "held-out evaluation"
+    assert payload["used_validation_development_seed_bases"] == [820000]
 
 
 def test_rule_construction_admits_860000_and_blocks_spent_or_reserved_seeds() -> None:

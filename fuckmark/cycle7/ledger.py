@@ -30,6 +30,7 @@ CYCLE7_EXPLORATORY_SEED_BASES = (810_000, 860_000)
 CYCLE7_USED_EXPLORATORY_SEED_BASES = (810_000,)
 CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES = (860_000,)
 CYCLE7_VALIDATION_SEED_BASE = 820_000
+CYCLE7_USED_VALIDATION_SEED_BASES = (820_000,)
 CYCLE7_VALIDATION_TOPIC = "held-out evaluation"
 CYCLE7_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
 CYCLE7_STAGE_B1_TOPIC = "independent replication"
@@ -58,6 +59,7 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
         "stage_b1_exploratory_seed_base": CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
         "stage_b1_topic": CYCLE7_STAGE_B1_TOPIC,
         "validation_development_seed_base": CYCLE7_VALIDATION_SEED_BASE,
+        "used_validation_development_seed_bases": list(CYCLE7_USED_VALIDATION_SEED_BASES),
         "validation_topic": CYCLE7_VALIDATION_TOPIC,
         "confirmation_reserved_seed_bases": list(CYCLE7_CONFIRMATION_RESERVED_SEED_BASES),
         "selection_rule": (
