@@ -91,7 +91,7 @@ Seed `820000` is spent as validation. Seed `880000` is the next unused validatio
 
 ## Stage C
 
-Stage C starts from the Stage B negative: local semantically conservative English surface equivalence plus sentence newlines did not replace Cycle 6 spacing after whitespace collapse. Catalog v4 adds clause-punctuation newlines and optional quantifier `of`. This is still development. Details: `docs/cycle7/stage-c-decision.md` once C1 evidence exists.
+Stage C1 on seed `870000` (topic frozen as `measurement protocol`) added clause-punctuation newlines and optional quantifier `of`. Mean durable candidates: **4.75** (still the Stage B four-site regime). Quantifier `of` mean **0.00**. Collapse-surviving intact/root **0.715**. Detector: durable **3/4** after collapse; Cycle 6 spacing **4/4** after collapse. Overall: **`INSUFFICIENT_EVIDENCE`**. Seed `880000` was not inspected. Details: `docs/cycle7/stage-c-decision.md`.
 
 Not claimed:
 
