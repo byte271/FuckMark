@@ -29,13 +29,13 @@ CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE = 860_000
 CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE = 870_000
 CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE = 890_000
 CYCLE7_EXPLORATORY_SEED_BASES = (810_000, 860_000, 870_000, 890_000)
-CYCLE7_USED_EXPLORATORY_SEED_BASES = (810_000, 860_000, 870_000)
-CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES = (890_000,)
+CYCLE7_USED_EXPLORATORY_SEED_BASES = (810_000, 860_000, 870_000, 890_000)
+CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES = ()
 CYCLE7_VALIDATION_SEED_BASE = 820_000
 CYCLE7_STAGE_C_VALIDATION_SEED_BASE = 880_000
 CYCLE7_VALIDATION_SEED_BASES = (820_000, 880_000)
-CYCLE7_USED_VALIDATION_SEED_BASES = (820_000,)
-CYCLE7_ACTIVE_VALIDATION_SEED_BASES = (880_000,)
+CYCLE7_USED_VALIDATION_SEED_BASES = (820_000, 880_000)
+CYCLE7_ACTIVE_VALIDATION_SEED_BASES = ()
 CYCLE7_VALIDATION_TOPIC = "held-out evaluation"
 CYCLE7_STAGE_C_VALIDATION_TOPIC = "independent check"
 CYCLE7_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
@@ -91,7 +91,9 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
             "Seed 880000 and topic 'independent check' were frozen before "
             "any Stage C validation generation or detector look. "
             "Seed 890000 and topic 'document structure' were frozen before "
-            "any Stage D generation or detector look."
+            "any Stage D generation or detector look. "
+            "Seed 880000 was used as Stage D disjoint validation after catalog v5 "
+            "was frozen; do not retune on it."
         ),
         "spent_corpus_rule": (
             "Do not use 720000, 730000, 760000, 770000, or 780000 as "
@@ -99,6 +101,7 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
             "Do not keep expanding transform rules against 810000 or 860000. "
             "Do not retune on validation seed 820000. "
             "Do not retune on 870000. "
+            "Do not retune on 890000 or validation seed 880000. "
             "Do not inspect 830000, 840000, or 850000."
         ),
     }

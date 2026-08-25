@@ -65,8 +65,7 @@ def classify_stage_d_density(
         "collapsed_intact_fraction_of_root": collapsed_fraction,
         "notes": (
             "Stage D is development-only. Seeds 830000/840000/850000 were not inspected. "
-            "Seed 880000 remains unused validation until a catalog freeze. "
-            "Do not retune on 810000, 860000, 820000, or 870000."
+            "Do not retune on 810000, 860000, 820000, 870000, or 890000."
         ),
     }
     return payload

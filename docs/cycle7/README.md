@@ -32,9 +32,9 @@ See `docs/cycle7/seed-ledger.md` and `fuckmark/cycle7/ledger.py`.
 | Exploratory development (Stage A) | `810000` | used; do not keep expanding rules against it |
 | Exploratory development / rule construction (Stage B1) | `860000` | used; do not keep expanding rules against it |
 | Exploratory development / rule construction (Stage C1) | `870000` | used; do not keep expanding rules against it |
-| Exploratory development / rule construction (Stage D1) | `890000` | active; topic frozen as `document structure` |
+| Exploratory development / rule construction (Stage D1) | `890000` | used; do not keep expanding rules against it |
 | Validation development (Stage B3) | `820000` | used as Stage B3 disjoint validation; do not retune on it |
-| Validation development (Stage C/D, reserved) | `880000` | unseen until a catalog freeze |
+| Validation development (Stage D) | `880000` | used as Stage D disjoint validation of catalog v5; do not retune on it |
 | Confirmation reserved | `830000`, `840000`, `850000` | must not be inspected |
 
 Confirmation seeds were chosen as unused 10k blocks before any Cycle 7 detector look.
@@ -101,7 +101,9 @@ Stage C1 on seed `870000` (topic frozen as `measurement protocol`) added clause-
 
 ## Stage D
 
-Stage D1 on seed `890000` (topic frozen as `document structure`) added word-boundary newlines. Mean durable candidates: **38.0**. Collapse-surviving intact/root **0.164**. Detector: durable **0/4** after collapse; Cycle 6 spacing **3/4** after collapse. Overall: **`PROMISING_DEVELOPMENT`**. Seed `880000` was not inspected in D1. Details: `docs/cycle7/stage-d-decision.md`.
+Stage D1 on seed `890000` (topic frozen as `document structure`) added word-boundary newlines. Mean durable candidates: **38.0**. Collapse-surviving intact/root **0.164**. Detector: durable **0/4** after collapse; Cycle 6 spacing **3/4** after collapse.
+
+Disjoint validation seed `880000` (topic frozen as `independent check`) replicated: mean **44.875**, collapsed intact/root **0.080**, durable **0/4** after collapse, Cycle 6 spacing **4/4** after collapse. Overall: **`PROMISING_DEVELOPMENT`**. Not formal confirmation. Details: `docs/cycle7/stage-d-decision.md`.
 
 Not claimed:
 

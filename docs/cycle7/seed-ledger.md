@@ -20,9 +20,9 @@ Seeds were assigned **before** Cycle 7 detector scoring. Seed `860000` and topic
 | Exploratory development (Stage A) | 810000 | yes, development only; do not keep expanding rules against it |
 | Exploratory development / rule construction (Stage B1) | 860000 | used; do not keep expanding rules against it |
 | Exploratory development / rule construction (Stage C1) | 870000 | used; do not keep expanding rules against it |
-| Exploratory development / rule construction (Stage D1) | 890000 | yes, development only; frozen topic `document structure` |
+| Exploratory development / rule construction (Stage D1) | 890000 | used; do not keep expanding rules against it |
 | Validation development (Stage B3) | 820000 | used as Stage B3 disjoint validation; do not retune on it |
-| Validation development (Stage C/D, reserved) | 880000 | **not yet inspected**; reserved until a catalog freeze |
+| Validation development (Stage C/D) | 880000 | used as Stage D disjoint validation of catalog v5; do not retune on it |
 | Confirmation reserved | 830000, 840000, 850000 | **no** until a later frozen confirmation protocol |
 
 Do not promote 810000, 820000, 860000, 870000, 880000, or 890000 into confirmation after seeing scores.
@@ -35,5 +35,7 @@ Validation generation used 820000 with topic `held-out evaluation`. That topic w
 
 Stage C1 generation used 870000 with topic `measurement protocol`. That seed is now used. Do not retune catalog v4 on 870000.
 
-Stage D1 generation uses 890000 with topic `document structure`. Rule-construction generation must call `assert_rule_construction_seed(890000)`. Seed `880000` stays unseen until a catalog freeze.
+Stage D1 generation used 890000 with topic `document structure`. Rule-construction generation must call `assert_rule_construction_seed(890000)`. Do not retune catalog v5 on 890000.
+
+Stage D validation used 880000 with topic `independent check`. Do not retune catalog v5 on 880000. A later revised mechanism must reserve a new unused validation seed.
 

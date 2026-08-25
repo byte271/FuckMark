@@ -43,8 +43,8 @@ def test_stage_b_catalog_and_ledger_identities() -> None:
     assert CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE == 860000
     assert CYCLE7_STAGE_B1_TOPIC == "independent replication"
     assert CYCLE7_VALIDATION_TOPIC == "held-out evaluation"
-    assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000, 860000, 870000)
-    assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == (890000,)
+    assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000, 860000, 870000, 890000)
+    assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == ()
     payload = cycle7_seed_ledger_payload()
     assert payload["stage_b1_exploratory_seed_base"] == 860000
     assert payload["stage_b1_topic"] == "independent replication"
@@ -53,12 +53,11 @@ def test_stage_b_catalog_and_ledger_identities() -> None:
     assert payload["stage_d1_exploratory_seed_base"] == 890000
     assert payload["stage_d1_topic"] == "document structure"
     assert payload["validation_topic"] == "held-out evaluation"
-    assert payload["used_validation_development_seed_bases"] == [820000]
-    assert payload["active_validation_development_seed_bases"] == [880000]
+    assert payload["used_validation_development_seed_bases"] == [820000, 880000]
+    assert payload["active_validation_development_seed_bases"] == []
 
 
-def test_rule_construction_admits_890000_and_blocks_spent_or_reserved_seeds() -> None:
-    assert_rule_construction_seed(CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE)
+def test_rule_construction_blocks_spent_used_or_reserved_seeds() -> None:
     assert_development_seed(CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
     assert_development_seed(CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
     assert_development_seed(CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
@@ -69,6 +68,8 @@ def test_rule_construction_admits_890000_and_blocks_spent_or_reserved_seeds() ->
         assert_rule_construction_seed(CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE)
     with pytest.raises(ValueError, match="rule-construction"):
         assert_rule_construction_seed(CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE)
+    with pytest.raises(ValueError, match="rule-construction"):
+        assert_rule_construction_seed(CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE)
     with pytest.raises(ValueError, match="rule-construction"):
         assert_development_seed(CYCLE7_EXPLORATORY_SEED_BASE, role=CYCLE7_RULE_CONSTRUCTION_ROLE)
     with pytest.raises(ValueError, match="confirmation-reserved"):
