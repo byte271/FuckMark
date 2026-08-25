@@ -27,4 +27,4 @@ U+200C is the diagnostic baseline. It is not durable under Cf-strip.
 
 Early durable-track *hypothesis* (sanitizer and tokenizer screen, not a detector claim): U+034F COMBINING GRAPHEME JOINER and variation selectors U+FE00..U+FE0F. These are not product-authorized.
 
-Fixture compare `specs/cycle8/fixture-compare-v1.json` reports visible-projection pass `20/20` across identity, U+200C, U+034F x1, U+034F x8, and U+FE00 arms. Quote interiors remain protected spans. Detector scoring on seed `890000` is still outstanding.
+Fixture compare `specs/cycle8/fixture-compare-v1.json` reports visible-projection pass `20/20` across identity, U+200C, U+034F x1, U+034F x8, and U+FE00 arms. Quote interiors remain protected spans. Seed `890000` exploratory detector scoring is development-only (`PROMISING_DEVELOPMENT`, not confirmation). U+034F is not product-authorized.

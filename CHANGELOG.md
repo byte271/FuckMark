@@ -8,7 +8,9 @@
 - Added `specs/fuckmark-user-visible-invariance-v1.contract.json` and Cycle 8 invisible-carrier research. No product-authorized carrier is promoted yet.
 - Reclassified Cycle 6 formal `NONZERO_RESIDUAL` 7/192 and Cycle 7 visible-edit stages as scientific evidence that is product-disqualified.
 - GitHub CI installed-CLI end-to-end now expects unchanged visible text, matching `release-cli-v4`.
-- Cycle 8 fixture compare reports visible-projection pass `20/20` for space-carrier arms. Seed `890000` detector scoring is instrumented and not yet a promotion claim.
+- Cycle 8 fixture compare reports visible-projection pass `20/20` for space-carrier arms.
+- Chromium `pre` screenshots: U+034F / U+FE00 pixel-equal; U+200C PNG bytes differ.
+- Detector-blind GPT-2 / SynthID development scoring on seeds `890000`, `900000`, and `910000` reduced watermarked detections for U+034F space-carrier x1 without unwatermarked inflation on these tiny 4-pair corpora. This is not confirmation and is not a product promotion.
 
 ## v0.2.0 — Exact-survival confirmation and release hardening
 

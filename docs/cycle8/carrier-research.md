@@ -13,7 +13,7 @@ Labels: `VERIFIED`, `HYPOTHESIS`, `REJECTED`, `PRODUCT_DISQUALIFIED`, `HISTORICA
 
 GPT-2 tokenizer screen `VERIFIED` on the Cycle 8 fixture (tiktoken `gpt2`): inserting U+034F after ASCII word spaces changed token IDs (`ids_equal=false`, token-count delta +40) with suffix realignment of only one token. An 8-copy space run produced delta +208. U+200C also disrupts GPT-2 (delta +28) but remains Cf-fragile.
 
-Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for visible projection (`20/20`) and for U+034F / U+FE00 survival under Cf-strip, NFKC, and `whitespace-collapse-v1`. Chromium pixel rendering remains `UNKNOWN` until a successful headless capture. Detector development on seed `890000` has not been scored yet. The public CLI still authorizes zero carriers.
+Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for visible projection (`20/20`) and for U+034F / U+FE00 survival under Cf-strip, NFKC, and `whitespace-collapse-v1`. Chromium `pre` screenshots: U+034F and U+FE00 are `VERIFIED` pixel-equal to the original; U+200C is `REJECTED` (PNG bytes differ). Detector-blind GPT-2 / SynthID looks on seeds `890000`, `900000`, and `910000` are `PROMISING_DEVELOPMENT` / `HYPOTHESIS` only (four watermarked pairs per seed). Prefer U+034F x1: x8 overflowed GPT-2's 1024-token context on seed `900000`. The public CLI still authorizes zero carriers.
 
 ## H2. Carrier runs at space boundaries
 
@@ -21,7 +21,7 @@ Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for vi
 
 ## H3-H8
 
-Placement geometry, Cycle 6 scheduler reuse, and root-window correlation are `HYPOTHESIS` until Cycle 8 detector development on seed `890000`.
+Placement geometry, Cycle 6 scheduler reuse, and root-window correlation remain `HYPOTHESIS` for larger corpora. Tiny-corpus detector looks on seeds `890000`, `900000`, and `910000` are `PROMISING_DEVELOPMENT` only.
 
 ## H9. Feasibility boundary
 
@@ -38,4 +38,4 @@ Still `HYPOTHESIS`. If every tokenizer-disruptive invisible carrier is removed b
 
 ## Baseline
 
-U+200C after ASCII word spaces: visibility-aligned, Cf-fragile. Keep as the diagnostic control. Do not promote to release.
+U+200C after ASCII word spaces: visibility-aligned on the v1 projection, Cf-fragile, and Chromium-pixel-`REJECTED`. Keep as the diagnostic control. Do not promote to release.

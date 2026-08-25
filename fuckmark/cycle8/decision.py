@@ -89,19 +89,15 @@ def classify_fixture_compare(report: Mapping[str, object]) -> dict[str, object]:
     if ufe00 is not None and _sanitizer(ufe00, "cf_strip").get("equals_transformed") is True:
         reasons.append("U+FE00 survives Cf-strip on the GPT-2 fixture")
     product_gate = ProductGate.DISQUALIFIED if visible_failures else ProductGate.PASS
+    detector = report.get("detector")
+    detector_signal = None
     if visible_failures:
         decision = REJECTED
         label = EvidenceLabel.PRODUCT_DISQUALIFIED
     elif _sanitizer(u034f, "cf_strip")["equals_transformed"] is not True:
         decision = REJECTED
         label = EvidenceLabel.REJECTED
-    else:
-        decision = INSUFFICIENT_EVIDENCE
-        label = EvidenceLabel.HYPOTHESIS
-        reasons.append("no Cycle 8 detector scores on seed 890000 in this fixture artifact")
-    detector = report.get("detector")
-    detector_signal = None
-    if isinstance(detector, Mapping) and detector.get("available") is True:
+    elif isinstance(detector, Mapping) and detector.get("available") is True:
         u034f_summary = detector[CYCLE8_U034F_SPACE_ARM_ID]
         identity_summary = detector[CYCLE8_IDENTITY_ARM_ID]
         u200c_summary = detector[CYCLE8_U200C_SPACE_ARM_ID]
@@ -116,7 +112,7 @@ def classify_fixture_compare(report: Mapping[str, object]) -> dict[str, object]:
             "u034f_raw_unwatermarked_detected": int(u034f_summary["raw_unwatermarked_detected"]),
             "watermarked_row_count": int(u034f_summary["watermarked_row_count"]),
         }
-        reasons.append("detector scores on seed 890000 are development-only")
+        reasons.append("detector scores are development-only")
         if (
             product_gate is ProductGate.PASS
             and int(u034f_summary["raw_watermarked_detected"]) < int(identity_summary["raw_watermarked_detected"])
@@ -125,10 +121,14 @@ def classify_fixture_compare(report: Mapping[str, object]) -> dict[str, object]:
             decision = PROMISING_DEVELOPMENT
             label = EvidenceLabel.HYPOTHESIS
             reasons.append("U+034F reduced raw watermarked detections without raising unwatermarked detections")
-        elif product_gate is ProductGate.PASS:
+        else:
             decision = INSUFFICIENT_EVIDENCE
             label = EvidenceLabel.HYPOTHESIS
             reasons.append("U+034F did not beat identity on this tiny development corpus")
+    else:
+        decision = INSUFFICIENT_EVIDENCE
+        label = EvidenceLabel.HYPOTHESIS
+        reasons.append("no Cycle 8 detector scores on seed 890000 in this fixture artifact")
     payload = {
         "algorithm_version": CYCLE8_DECISION_VERSION,
         "decision": decision,

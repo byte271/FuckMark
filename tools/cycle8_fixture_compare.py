@@ -29,7 +29,12 @@ def main(argv: list[str] | None = None) -> int:
         for sample_id, text in cycle8_fixture_samples():
             if sample_id != "gpt2-screen":
                 continue
-            for arm_id, codepoint in (("u034f-space-x1", 0x034F), ("u200c-space-x1", 0x200C), ("ufe00-space-x1", 0xFE00)):
+            for arm_id, codepoint in (
+                ("u034f-space-x1", 0x034F),
+                ("u034f-space-x8", 0x034F),
+                ("u200c-space-x1", 0x200C),
+                ("ufe00-space-x1", 0xFE00),
+            ):
                 registry = arm_registry(arm_id)
                 transformed = apply_all_candidates(registry, text)
                 comparison = compare_chrome_pre_screenshots(text, transformed)

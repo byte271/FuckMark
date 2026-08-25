@@ -20,7 +20,12 @@ from .cycle8.ledger import (
     CYCLE8_EXPLORATORY_ROLE,
     CYCLE8_EXPLORATORY_SEED_BASE,
     CYCLE8_EXPLORATORY_TOPIC,
+    CYCLE8_REPLICATION_ROLE,
+    CYCLE8_REPLICATION_TOPIC,
+    CYCLE8_VALIDATION_ROLE,
+    CYCLE8_VALIDATION_TOPIC,
     assert_cycle8_development_seed,
+    role_for_seed_base,
 )
 from .durable_io import write_canonical_json_fsynced
 from .experiments.cycle6_confirmation import CYCLE6_THRESHOLD
@@ -82,11 +87,26 @@ def _detector_arm_summary(rows: tuple[dict[str, object], ...], arm_id: str) -> d
     }
 
 
+def _topic_for_seed(seed_base: int) -> str:
+    role = role_for_seed_base(seed_base)
+    if role == CYCLE8_EXPLORATORY_ROLE:
+        return CYCLE8_EXPLORATORY_TOPIC
+    if role == CYCLE8_REPLICATION_ROLE:
+        return CYCLE8_REPLICATION_TOPIC
+    if role == CYCLE8_VALIDATION_ROLE:
+        return CYCLE8_VALIDATION_TOPIC
+    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, or validation seeds")
+
+
 def _generate_cycle8_samples(backend: Any, seed_base: int, max_attempts: int) -> tuple[dict[str, object], ...]:
-    assert_cycle8_development_seed(seed_base, role=CYCLE8_EXPLORATORY_ROLE)
+    role = role_for_seed_base(seed_base)
+    if role is None:
+        raise ValueError("seed_base is not in the Cycle 8 ledger")
+    assert_cycle8_development_seed(seed_base, role=role)
+    topic = _topic_for_seed(seed_base)
     samples: list[dict[str, object]] = []
     for pair_index, domain in enumerate(CorpusDomain):
-        prompt = _CYCLE8_TEMPLATES[domain].format(topic=CYCLE8_EXPLORATORY_TOPIC)
+        prompt = _CYCLE8_TEMPLATES[domain].format(topic=topic)
         pair_seed_base = seed_base + pair_index * TINY_DEV_PAIR_SEED_STRIDE
         accepted = None
         for attempt in range(max_attempts):
@@ -118,7 +138,7 @@ def _generate_cycle8_samples(backend: Any, seed_base: int, max_attempts: int) ->
             (WatermarkLabel.UNWATERMARKED, control),
             (WatermarkLabel.WATERMARKED, watermarked),
         ):
-            sample_id = f"cycle8-890000-{domain.value}-{label.value}"
+            sample_id = f"cycle8-{seed_base}-{domain.value}-{label.value}"
             samples.append(
                 {
                     "sample_id": sample_id,
@@ -212,6 +232,8 @@ def _build_detector_artifact(
     geometry_rows: tuple[dict[str, object], ...],
     scored_rows: tuple[dict[str, object], ...],
     summaries: dict[str, object],
+    *,
+    seed_base: int,
 ) -> dict[str, object]:
     from .tiny_dev_context_survival_plan_hf import DEFAULT_MODEL_ID, DEFAULT_MODEL_REVISION
 
@@ -219,8 +241,8 @@ def _build_detector_artifact(
     visible_total = sum(int(summary["visible_total_count"]) for summary in summaries.values())
     artifact = {
         "algorithm_version": CYCLE8_DETECTOR_VERSION,
-        "seed_base": CYCLE8_EXPLORATORY_SEED_BASE,
-        "topic": CYCLE8_EXPLORATORY_TOPIC,
+        "seed_base": seed_base,
+        "topic": _topic_for_seed(seed_base),
         "model": DEFAULT_MODEL_ID,
         "model_revision": DEFAULT_MODEL_REVISION,
         "threshold": CYCLE6_THRESHOLD,
@@ -247,34 +269,47 @@ def _build_detector_artifact(
     return {**artifact, "artifact_hash": sha256_json({key: value for key, value in artifact.items() if key != "artifact_hash"})}
 
 
-def run_cycle8_detector_compare(*, device: str = "cpu", max_attempts: int = CYCLE8_MAX_ATTEMPTS) -> dict[str, object]:
+def run_cycle8_detector_compare(
+    *,
+    device: str = "cpu",
+    max_attempts: int = CYCLE8_MAX_ATTEMPTS,
+    seed_base: int = CYCLE8_EXPLORATORY_SEED_BASE,
+) -> dict[str, object]:
     from .cycle7_stage_a_hf import _adapter_and_tokenizer
 
-    assert_cycle8_development_seed(CYCLE8_EXPLORATORY_SEED_BASE, role=CYCLE8_EXPLORATORY_ROLE)
+    role = role_for_seed_base(seed_base)
+    if role is None:
+        raise ValueError("seed_base is not in the Cycle 8 ledger")
+    assert_cycle8_development_seed(seed_base, role=role)
     backend, tokenizer, adapter, _identity_hash, eos = _adapter_and_tokenizer(device)
-    samples = _generate_cycle8_samples(backend, CYCLE8_EXPLORATORY_SEED_BASE, max_attempts)
+    samples = _generate_cycle8_samples(backend, seed_base, max_attempts)
     geometry_rows, scored_rows, summaries = _evaluate_samples(samples, tokenizer, adapter, eos)
-    return _build_detector_artifact(samples, geometry_rows, scored_rows, summaries)
+    return _build_detector_artifact(samples, geometry_rows, scored_rows, summaries, seed_base=seed_base)
 
 
 def rescore_cycle8_detector_compare(previous: dict[str, object], *, device: str = "cpu") -> dict[str, object]:
     from .cycle7_stage_a_hf import _adapter_and_tokenizer
 
-    assert_cycle8_development_seed(CYCLE8_EXPLORATORY_SEED_BASE, role=CYCLE8_EXPLORATORY_ROLE)
+    seed_base = int(previous["seed_base"])
+    role = role_for_seed_base(seed_base)
+    if role is None:
+        raise ValueError("seed_base is not in the Cycle 8 ledger")
+    assert_cycle8_development_seed(seed_base, role=role)
     _backend, tokenizer, adapter, _identity_hash, eos = _adapter_and_tokenizer(device)
     samples = tuple(previous["samples"])
     geometry_rows, scored_rows, summaries = _evaluate_samples(samples, tokenizer, adapter, eos)
-    return _build_detector_artifact(samples, geometry_rows, scored_rows, summaries)
+    return _build_detector_artifact(samples, geometry_rows, scored_rows, summaries, seed_base=seed_base)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="fuckmark-cycle8-detector")
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    parser.add_argument("--seed-base", type=int, default=CYCLE8_EXPLORATORY_SEED_BASE)
     parser.add_argument("--max-attempts", type=int, default=CYCLE8_MAX_ATTEMPTS)
     parser.add_argument(
         "--detector-json",
         type=Path,
-        default=Path("evidence/cycle8-exploratory-890000-2026-08-25/detector-compare.json"),
+        default=None,
     )
     parser.add_argument("--skip-detector", action="store_true")
     parser.add_argument("--rescore-from", type=Path, default=None)
@@ -282,6 +317,8 @@ def main(argv: list[str] | None = None) -> int:
     from .cycle8.compare import run_fixture_compare
     from .cycle8.tokenizer_screen import load_gpt2_encoder
 
+    if args.detector_json is None:
+        args.detector_json = Path(f"evidence/cycle8-{args.seed_base}-2026-08-25/detector-compare.json")
     fixture = run_fixture_compare(encoder=load_gpt2_encoder())
     args.detector_json.parent.mkdir(parents=True, exist_ok=True)
     write_canonical_json_fsynced(args.detector_json.parent / "fixture-compare.json", fixture)
@@ -293,7 +330,11 @@ def main(argv: list[str] | None = None) -> int:
             previous = json.loads(args.rescore_from.read_text(encoding="utf-8"))
             detector = rescore_cycle8_detector_compare(previous, device=args.device)
         else:
-            detector = run_cycle8_detector_compare(device=args.device, max_attempts=args.max_attempts)
+            detector = run_cycle8_detector_compare(
+                device=args.device,
+                max_attempts=args.max_attempts,
+                seed_base=args.seed_base,
+            )
         write_canonical_json_fsynced(args.detector_json, detector)
         fixture = {
             **{key: value for key, value in fixture.items() if key != "artifact_hash"},

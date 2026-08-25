@@ -4,6 +4,7 @@ import json
 import shutil
 import subprocess
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -130,7 +131,7 @@ def _render_pre(executable: str, root: Path, name: str, text: str) -> bytes:
     html_path = root / f"{name}.html"
     png_path = root / f"{name}.png"
     html_path.write_text(_html_page(text), encoding="utf-8")
-    subprocess.run(
+    process = subprocess.Popen(
         [
             executable,
             "--headless=new",
@@ -138,14 +139,34 @@ def _render_pre(executable: str, root: Path, name: str, text: str) -> bytes:
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--hide-scrollbars",
+            "--no-first-run",
+            "--disable-background-networking",
             "--virtual-time-budget=5000",
             "--window-size=800,200",
             f"--screenshot={png_path}",
             html_path.as_uri(),
         ],
-        check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        timeout=90,
     )
-    return png_path.read_bytes()
+    try:
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            if png_path.exists() and png_path.stat().st_size > 0:
+                time.sleep(0.25)
+                break
+            if process.poll() is not None:
+                break
+            time.sleep(0.05)
+        else:
+            raise subprocess.TimeoutExpired(process.args, 30)
+        if not png_path.exists() or png_path.stat().st_size == 0:
+            raise OSError("chrome screenshot missing")
+        return png_path.read_bytes()
+    finally:
+        if process.poll() is None:
+            process.kill()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
