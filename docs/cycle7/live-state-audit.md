@@ -55,3 +55,10 @@ SHA256SUMS.txt verified for every listed file.
 | Original freeze artifacts 760/770/780 | IDs and digests match the recovery manifest |
 
 Do not describe Cycle 6 as `ZERO_RESIDUAL`.
+
+## Continuation (2026-08-25, after PR #95 opened)
+
+Live GitHub still has `main` at `ddccd74a9e0e710085b385fed98959f2730b9d60`. Open PR: [#95](https://github.com/byte271/FuckMark/pull/95) on `research/cycle7-durable-transforms`. Open issues: none.
+
+Hygiene-only follow-up `6e587ea016cf5a2f4e7845a5550f97e0b5d92b34` made Release Readiness Baseline and CI succeed after `tests/test_repository_hygiene.py` rejected comments/docstrings in new Python. Cycle 6 sealed confirmation on that SHA succeeded. Codex review was usage-limited, not a code finding. CodeRabbit did not auto-review (repository star threshold).
+

@@ -14,6 +14,8 @@ LEXICAL_TEMPLATE_RULE_ALGORITHM_VERSION = "lexical-template-rule-v1"
 
 class LexicalConstruction(str, Enum):
     SENTENCE_INITIAL_DISCOURSE_MARKER = "sentence_initial_discourse_marker"
+    ATTESTED_OPEN_HYPHEN_COMPOUND = "attested_open_hyphen_compound"
+    INWORD_TYPOGRAPHIC_APOSTROPHE = "inword_typographic_apostrophe"
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,17 +141,51 @@ class LexicalTemplateRule:
             raise ValueError("lexical precondition span is outside text")
         if text[start:end].casefold() != self.source.casefold():
             raise ValueError("lexical precondition span does not match rule source")
-        if end >= len(text) or not text[end].isspace():
-            return False
         if self.construction is LexicalConstruction.SENTENCE_INITIAL_DISCOURSE_MARKER:
+            if end >= len(text) or not text[end].isspace():
+                return False
             prefix = text[:start]
             stripped = prefix.rstrip()
             if stripped and stripped[-1] not in ".?!":
                 return False
+        elif self.construction is LexicalConstruction.ATTESTED_OPEN_HYPHEN_COMPOUND:
+            if not attested_open_hyphen_compound_span_admissible(text, start, end):
+                return False
+        elif self.construction is LexicalConstruction.INWORD_TYPOGRAPHIC_APOSTROPHE:
+            if not inword_typographic_apostrophe_span_admissible(text, start, end):
+                return False
+        else:
+            return False
         context = text[max(0, start - 96) : min(len(text), end + 96)].casefold()
         if any(value.casefold() in context for value in self.ambiguity_blacklist):
             return False
         return True
+
+
+def attested_open_hyphen_compound_span_admissible(text: str, start: int, end: int) -> bool:
+    if start > 0:
+        previous = text[start - 1]
+        if previous.isalnum() or previous in "_-/\\":
+            return False
+    if end < len(text):
+        nxt = text[end]
+        if nxt.isalnum() or nxt in "_-/\\":
+            return False
+    return "--" not in text[start:end]
+
+
+def inword_typographic_apostrophe_span_admissible(text: str, start: int, end: int) -> bool:
+    if start == 0 or end >= len(text):
+        return False
+    if end - start != 1:
+        return False
+    if text[start] not in {"'", "\u2019"}:
+        return False
+    if not text[start - 1].isalpha() or not text[end].isalpha():
+        return False
+    if text[start - 1].isupper() and text[end].isupper():
+        return False
+    return True
 
 
 def development_lexical_rules() -> tuple[LexicalTemplateRule, ...]:

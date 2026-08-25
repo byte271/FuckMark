@@ -1,5 +1,6 @@
 from fuckmark.cycle7.durable_rules import (
     cycle7_bounded_copula_rules,
+    cycle7_compound_rules,
     cycle7_new_contraction_rules,
     cycle7_orthography_rules,
     rejected_ambiguous_contraction_examples,
@@ -133,7 +134,11 @@ def test_punctuation_url_and_number_boundaries_do_not_fire_inside_tokens() -> No
 
 
 def test_durable_rules_are_not_spacing_family() -> None:
-    for rule in (*cycle7_new_contraction_rules(), *cycle7_orthography_rules()):
-        assert rule.family in {TransformFamily.CONTRACTION, TransformFamily.ORTHOGRAPHY}
+    for rule in (*cycle7_new_contraction_rules(), *cycle7_orthography_rules(), *cycle7_compound_rules()):
+        assert rule.family in {
+            TransformFamily.CONTRACTION,
+            TransformFamily.ORTHOGRAPHY,
+            TransformFamily.LEXICAL_TEMPLATE,
+        }
         assert not rule.source.endswith(" ")
         assert "  " not in rule.replacement

@@ -10,13 +10,13 @@ from ..transforms.contractions import (
     zrd_forward_contraction_extension_rules,
     zrd_reverse_contraction_extension_rules,
 )
-from ..transforms.lexical_rules import development_lexical_rules
+from ..transforms.lexical_rules import LexicalConstruction, LexicalTemplateRule, development_lexical_rules
 from ..transforms.rules import LiteralTransformRule
 from ..transforms.schema import TransformFamily, TransformTier
 from ..transforms.syntax_rules import development_syntax_rules
 
 
-CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v1"
+CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v2"
 
 
 @dataclass(frozen=True, slots=True)
@@ -310,6 +310,61 @@ def cycle7_orthography_rules() -> tuple[LiteralTransformRule, ...]:
     return _rules_from_metadata(cycle7_orthography_metadata())
 
 
+CYCLE7_ATTESTED_COMPOUND_PAIRS = (
+    ("proof of concept", "proof-of-concept"),
+    ("point of view", "point-of-view"),
+    ("step by step", "step-by-step"),
+    ("case by case", "case-by-case"),
+    ("end to end", "end-to-end"),
+    ("state of the art", "state-of-the-art"),
+    ("face to face", "face-to-face"),
+)
+
+
+def cycle7_compound_rules() -> tuple[LexicalTemplateRule, ...]:
+    rules: list[LexicalTemplateRule] = []
+    for open_form, hyphen_form in CYCLE7_ATTESTED_COMPOUND_PAIRS:
+        slug = hyphen_form
+        rules.append(
+            LexicalTemplateRule.create(
+                rule_id=f"lexical-compound-hyphenate-{slug}",
+                version="v1",
+                source=open_form,
+                replacement=hyphen_form,
+                construction=LexicalConstruction.ATTESTED_OPEN_HYPHEN_COMPOUND,
+            )
+        )
+        rules.append(
+            LexicalTemplateRule.create(
+                rule_id=f"lexical-compound-open-{slug}",
+                version="v1",
+                source=hyphen_form,
+                replacement=open_form,
+                construction=LexicalConstruction.ATTESTED_OPEN_HYPHEN_COMPOUND,
+            )
+        )
+    return tuple(rules)
+
+
+def cycle7_typographic_apostrophe_rules() -> tuple[LexicalTemplateRule, ...]:
+    return (
+        LexicalTemplateRule.create(
+            rule_id="lexical-apostrophe-ascii-to-typographic",
+            version="v1",
+            source="'",
+            replacement="\u2019",
+            construction=LexicalConstruction.INWORD_TYPOGRAPHIC_APOSTROPHE,
+        ),
+        LexicalTemplateRule.create(
+            rule_id="lexical-apostrophe-typographic-to-ascii",
+            version="v1",
+            source="\u2019",
+            replacement="'",
+            construction=LexicalConstruction.INWORD_TYPOGRAPHIC_APOSTROPHE,
+        ),
+    )
+
+
 def cycle7_durable_rules() -> tuple[object, ...]:
     return (
         *development_forward_contraction_rules(),
@@ -319,6 +374,8 @@ def cycle7_durable_rules() -> tuple[object, ...]:
         *cycle7_new_contraction_rules(),
         *cycle7_bounded_copula_rules(),
         *cycle7_orthography_rules(),
+        *cycle7_compound_rules(),
+        *cycle7_typographic_apostrophe_rules(),
         *development_lexical_rules(),
         *development_syntax_rules(),
     )

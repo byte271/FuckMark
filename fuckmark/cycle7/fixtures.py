@@ -20,6 +20,11 @@ CONTRACTION_SPARSE = (
     "same experimental apparatus. Calibration uses a held-out population."
 )
 
+COMPOUND_RICH = (
+    "A proof of concept and a point of view need step-by-step checks. "
+    "State of the art methods stay face to face with case-by-case review."
+)
+
 QUOTE_INTERIOR = 'He answered, "They are not finished and we do not agree."'
 
 AMBIGUOUS_NEGATIVES = (
@@ -46,6 +51,7 @@ def fixture_samples() -> tuple[tuple[str, str], ...]:
     return (
         ("contraction-rich", CONTRACTION_RICH),
         ("contraction-sparse", CONTRACTION_SPARSE),
+        ("compound-rich", COMPOUND_RICH),
         ("quote-interior", QUOTE_INTERIOR),
     )
 

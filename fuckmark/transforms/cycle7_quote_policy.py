@@ -40,6 +40,8 @@ _DURABLE_RULE_PREFIXES = (
     "cycle7-contract-",
     "cycle7-expand-",
     "cycle7-ortho-",
+    "lexical-compound-",
+    "lexical-apostrophe-",
     "lexical-",
     "syntax-",
 )

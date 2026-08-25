@@ -11,7 +11,7 @@ from ..transforms.registry import TransformRegistry
 from .durable_rules import cycle7_durable_rules
 
 
-CYCLE7_DURABLE_REGISTRY_ID = "cycle7-durable-contraction-orthography-v1"
+CYCLE7_DURABLE_REGISTRY_ID = "cycle7-durable-catalog-v2"
 CYCLE7_COMBINED_REGISTRY_ID = "cycle7-durable-plus-cycle6-spacing-v1"
 
 

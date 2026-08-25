@@ -44,27 +44,30 @@ Cycle 7 evaluation arms:
 
 The Cycle 6 frozen sanitizer module is unchanged.
 
-## Durable transform family (first attempt)
+## Durable transform families
 
-Unambiguous contractions (existing catalog + reversible have-forms) and UK/US `towards`/`toward`, `amongst`/`among`.
+See `docs/cycle7/durable-families.md`. Catalog `cycle7-durable-rule-catalog-v2`.
 
-These change tokens without relying on repeated U+0020. They survive ASCII whitespace collapse by construction.
+1. Unambiguous contractions and closed orthography (Family 1).
+2. Attested open ↔ hyphenated compounds (Family 2).
+3. In-word ASCII apostrophe ↔ U+2019 (Family 3).
+
+These change tokens without relying on repeated U+0020. They survive ASCII whitespace collapse by construction. Family 3 also survives NFKC and Cf-strip.
 
 Quote interiors may receive these durable edits under `quote-container-durable-v1` without changing quote delimiters. Cycle 6 `quote-container-surface-spacing-v1` still admits only spacing inside quotes.
 
 ## Stage A result
 
-**`INSUFFICIENT_EVIDENCE`** as a Cycle 6 replacement.
+Family 1 detector attachment on seed `810000` was **`INSUFFICIENT_EVIDENCE`**: Cycle 6 spacing 0/4 raw / 4/4 after collapse; durable 4/4 raw and 4/4 after collapse.
 
-Cycle 6 spacing: 0/4 raw detections, 4/4 after whitespace collapse (fresh seed `810000`).
-
-Cycle 7 durable family: 4/4 raw and 4/4 after collapse. Collapse-survival works on contraction-rich fixtures; natural density on GPT-2 TinyDev text is too low.
+Families 2–3 raise candidate density on the same frozen texts (see `evidence/cycle7-stage-a-2026-08-25/family2-density.json`). Detector rescore of those texts under catalog v2 remains **`INSUFFICIENT_EVIDENCE`**: durable 4/4 raw and 4/4 after collapse; Cycle 6 spacing 0/4 raw and 4/4 after collapse; combined 1/4 raw and 4/4 after collapse.
 
 Details: `docs/cycle7/stage-a-decision.md`.
 
+Not claimed:
 
-- Not a Cycle 7 formal confirmation
-- Not a ZERO_RESIDUAL claim
-- Not human-fidelity validation
-- Not threshold or FPR manipulation
-- Not neural rewriting
+- Cycle 7 formal confirmation
+- ZERO_RESIDUAL
+- Human-fidelity validation
+- Threshold or FPR manipulation
+- Neural rewriting
