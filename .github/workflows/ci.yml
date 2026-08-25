@@ -55,10 +55,10 @@ jobs:
             export FUCKMARK_CLIPBOARD_CAPTURE="$capture"
             output="$(printf 'I do not agree and I cannot stay.\n' | "$command" --stdin --copy)"
             printf '%s\n' "$output"
-            test "$output" = "I don't agree and I can't stay."
-            test "$(cat "$capture")" = "I don't agree and I can't stay."
+            test "$output" = "I do not agree and I cannot stay."
+            test "$(cat "$capture")" = "I do not agree and I cannot stay."
           done
-          test "$(printf 'I do not agree.\n' | FuckMark)" = "I don't agree."
+          test "$(printf 'I do not agree.\n' | FuckMark)" = "I do not agree."
 
   calibration-readiness:
     name: Frozen calibration readiness

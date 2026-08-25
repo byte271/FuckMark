@@ -1,0 +1,56 @@
+name: Cycle8 Carrier Detector
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: Torch device
+        required: true
+        default: cpu
+        type: string
+      max_attempts:
+        description: Deterministic retry budget for ASCII 64-token unique pairs
+        required: true
+        default: "64"
+        type: string
+  pull_request:
+    paths:
+      - ".github/workflows/cycle8-carrier-detector.yml"
+      - "fuckmark/cycle8/**"
+      - "fuckmark/cycle8_hf.py"
+      - "fuckmark/product/**"
+      - "tools/cycle8_fixture_compare.py"
+      - "tests/test_cycle8_fixture_compare.py"
+      - "requirements-smoke.txt"
+
+permissions:
+  contents: read
+
+jobs:
+  exploratory-890000:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FuckMark
+        run: python -m pip install -e .
+      - name: Install exact CPU Torch runtime
+        run: python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+      - name: Install maintained Transformers SynthID dependencies
+        run: python -m pip install -r requirements-smoke.txt
+      - name: Run Cycle 8 exploratory detector compare on seed 890000
+        run: >-
+          python -m fuckmark.cycle8_hf
+          --device "${{ inputs.device || 'cpu' }}"
+          --max-attempts "${{ inputs.max_attempts || '64' }}"
+          --detector-json artifacts/cycle8-exploratory-890000/detector-compare.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cycle8-exploratory-890000
+          path: artifacts/cycle8-exploratory-890000/
+          if-no-files-found: error

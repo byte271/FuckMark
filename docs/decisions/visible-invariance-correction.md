@@ -36,3 +36,4 @@ U+200C remains diagnostic: product-aligned on visibility, **REJECTED** as a dura
 - CLI `release-cli-v4` fail-closes to original text.
 - Historical contraction/lexical/syntax/spacing registries remain for replay under explicit names.
 - Cycle 8 starts invisible-carrier research. Combining grapheme joiner U+034F is a durable-track sanitizer candidate, not a release promotion.
+- The GitHub CI installed-CLI check still expected contraction output after the product path was emptied. That leftover assertion is now aligned with unchanged visible text.

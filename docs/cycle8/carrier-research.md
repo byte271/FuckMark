@@ -13,7 +13,7 @@ Labels: `VERIFIED`, `HYPOTHESIS`, `REJECTED`, `PRODUCT_DISQUALIFIED`, `HISTORICA
 
 GPT-2 tokenizer screen `VERIFIED` on the Cycle 8 fixture (tiktoken `gpt2`): inserting U+034F after ASCII word spaces changed token IDs (`ids_equal=false`, token-count delta +40) with suffix realignment of only one token. An 8-copy space run produced delta +208. U+200C also disrupts GPT-2 (delta +28) but remains Cf-fragile.
 
-Not product-authorized. Chromium pixel rendering on this host is `UNKNOWN` (headless timeout). Detector development on seed `890000` has not been scored yet.
+Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for visible projection (`20/20`) and for U+034F / U+FE00 survival under Cf-strip, NFKC, and `whitespace-collapse-v1`. Chromium pixel rendering remains `UNKNOWN` until a successful headless capture. Detector development on seed `890000` has not been scored yet. The public CLI still authorizes zero carriers.
 
 ## H2. Carrier runs at space boundaries
 

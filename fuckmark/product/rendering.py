@@ -11,7 +11,7 @@ from ..hashing import sha256_json, sha256_text
 
 
 RENDERING_HARNESS_VERSION = "product-reference-render-v1"
-_CHROME_NAMES = ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser")
+_CHROME_NAMES = ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome")
 
 
 @dataclass(frozen=True, slots=True)
@@ -138,6 +138,7 @@ def _render_pre(executable: str, root: Path, name: str, text: str) -> bytes:
             "--no-sandbox",
             "--disable-dev-shm-usage",
             "--hide-scrollbars",
+            "--virtual-time-budget=5000",
             "--window-size=800,200",
             f"--screenshot={png_path}",
             html_path.as_uri(),
@@ -145,6 +146,6 @@ def _render_pre(executable: str, root: Path, name: str, text: str) -> bytes:
         check=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-        timeout=8,
+        timeout=90,
     )
     return png_path.read_bytes()

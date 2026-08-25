@@ -36,11 +36,8 @@ def cycle8_combined_carrier_registry(codepoint: int, identifiers: Sequence[str] 
     )
 
 
-def apply_all_candidates(registry: ProductTransformRegistry, text: str) -> str:
-    enumeration = registry.enumerate(text)
-    if not enumeration.candidates:
-        return text
-    selected = []
+def select_nonoverlapping_candidate_ids(enumeration) -> tuple[str, ...]:
+    selected: list[str] = []
     occupied_until = 0
     for candidate in enumeration.candidates:
         if candidate.start < occupied_until:
@@ -49,6 +46,12 @@ def apply_all_candidates(registry: ProductTransformRegistry, text: str) -> str:
             continue
         selected.append(candidate.candidate_id)
         occupied_until = candidate.end
+    return tuple(selected)
+
+
+def apply_all_candidates(registry: ProductTransformRegistry, text: str) -> str:
+    enumeration = registry.enumerate(text)
+    selected = select_nonoverlapping_candidate_ids(enumeration)
     if not selected:
         return text
-    return registry.apply(enumeration, tuple(selected)).output_text
+    return registry.apply(enumeration, selected).output_text
