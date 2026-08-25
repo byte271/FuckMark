@@ -1,0 +1,321 @@
+name: Cycle6 Frozen Artifact Recovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation_authorized:
+        description: "Continue run 32873260399 from its exact frozen artifacts"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: cycle6-frozen-artifact-recovery
+  cancel-in-progress: false
+
+env:
+  ORCHESTRATION_SHA: ${{ github.sha }}
+  SOURCE_RUN_ID: "32873260399"
+  FROZEN_SOURCE_CODE_COMMIT: bfd9a4d81f0561a17f5ac4daa3858e97ebd811f1
+  ARTIFACT_760000_DIGEST: sha256:79ee80808758d2ee143b4a41dc7e0104d9261d4873e7af37cac8a6ba2e5925d3
+  ARTIFACT_770000_DIGEST: sha256:c75717dc3538abadbd33997b883c5f15e0bc15e155b2be5eab870ccb82aa5807
+  ARTIFACT_780000_DIGEST: sha256:2900ed5f61057b7fff5f1e42b855a11322441fb1e53fd48da39ad9fff1482821
+
+jobs:
+  preflight:
+    name: Verify recovery harness and authorization
+    if: inputs.confirmation_authorized
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ORCHESTRATION_SHA }}
+          path: orchestration
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install recovery test dependencies
+        run: python -m pip install -e "orchestration[dev]"
+      - name: Verify recovery-specific regressions and frozen v2 authorization
+        env:
+          PYTHONPATH: orchestration
+        run: >-
+          python -m pytest -q
+          orchestration/tests/test_cycle6_freeze_cross_check.py
+          orchestration/tests/test_cycle6_confirmation_contract.py
+          orchestration/tests/test_cycle6_effectiveness_protocol_v2.py
+          orchestration/tests/test_cycle6_confirmation_review_fixes.py
+          orchestration/tests/test_cycle6_recovery_workflow.py
+          orchestration/tests/test_cycle6_recovery_frozen_validation.py
+          orchestration/tests/test_cycle6_recovery_manifest.py
+          orchestration/tests/test_cycle6_recovery_manifest_seal.py
+          orchestration/tests/test_cycle6_recovery_workflow_seal.py
+
+  cross-check:
+    name: Cross-check exact run 32873260399 artifacts
+    needs: preflight
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ORCHESTRATION_SHA }}
+          path: orchestration
+          persist-credentials: false
+      - name: Checkout frozen scientific source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
+          path: scientific
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify immutable source artifact metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          test "$(gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/9573956498 --jq '[.name,.digest,(.workflow_run.id|tostring),(.expired|tostring)]|join("|")')" = "cycle6-freeze-760000|${ARTIFACT_760000_DIGEST}|${SOURCE_RUN_ID}|false"
+          test "$(gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/9573829301 --jq '[.name,.digest,(.workflow_run.id|tostring),(.expired|tostring)]|join("|")')" = "cycle6-freeze-770000|${ARTIFACT_770000_DIGEST}|${SOURCE_RUN_ID}|false"
+          test "$(gh api repos/${GITHUB_REPOSITORY}/actions/artifacts/9573952748 --jq '[.name,.digest,(.workflow_run.id|tostring),(.expired|tostring)]|join("|")')" = "cycle6-freeze-780000|${ARTIFACT_780000_DIGEST}|${SOURCE_RUN_ID}|false"
+      - name: Download frozen artifact 9573956498 (seed 760000)
+        uses: actions/download-artifact@v4
+        with:
+          name: cycle6-freeze-760000
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: frozen/cycle6-freeze-760000
+      - name: Download frozen artifact 9573829301 (seed 770000)
+        uses: actions/download-artifact@v4
+        with:
+          name: cycle6-freeze-770000
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: frozen/cycle6-freeze-770000
+      - name: Download frozen artifact 9573952748 (seed 780000)
+        uses: actions/download-artifact@v4
+        with:
+          name: cycle6-freeze-780000
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: frozen/cycle6-freeze-780000
+      - name: Stage the recovery wrapper with the frozen scientific package
+        run: cp orchestration/fuckmark/tiny_dev_cycle6_freeze_cross_check.py scientific/fuckmark/
+      - name: Validate frozen bytes, bindings, access attestations, and disjointness
+        env:
+          PYTHONPATH: scientific
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_freeze_cross_check
+          --frozen-root frozen
+          --repository-root scientific
+          --contract-json scientific/specs/fuckmark-cycle6-confirmation-v2.contract.json
+          --frozen-source-code-commit "${FROZEN_SOURCE_CODE_COMMIT}"
+          --orchestration-code-commit "${ORCHESTRATION_SHA}"
+          --json artifacts/cycle6-freeze-cross-check.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-recovery-freeze-cross-check
+          path: artifacts/cycle6-freeze-cross-check.json
+          if-no-files-found: error
+
+  score:
+    name: Score recovered seed ${{ matrix.seed_base }}
+    needs: cross-check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        seed_base: [760000, 770000, 780000]
+    steps:
+      - name: Checkout recovery orchestration
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ORCHESTRATION_SHA }}
+          path: orchestration
+          persist-credentials: false
+      - name: Checkout frozen scientific source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
+          path: scientific
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: scientific/requirements-smoke.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle6-freeze-760000
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: frozen/cycle6-freeze-760000
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle6-freeze-770000
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: frozen/cycle6-freeze-770000
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle6-freeze-780000
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: byte271/FuckMark
+          run-id: ${{ env.SOURCE_RUN_ID }}
+          path: frozen/cycle6-freeze-780000
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle6-recovery-freeze-cross-check
+          path: cross-check
+      - name: Stage the recovery wrapper with the frozen scientific package
+        run: cp orchestration/fuckmark/tiny_dev_cycle6_freeze_cross_check.py scientific/fuckmark/
+      - name: Reproduce the successful cross-check before scoring
+        env:
+          PYTHONPATH: scientific
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_freeze_cross_check
+          --frozen-root frozen
+          --repository-root scientific
+          --contract-json scientific/specs/fuckmark-cycle6-confirmation-v2.contract.json
+          --frozen-source-code-commit "${FROZEN_SOURCE_CODE_COMMIT}"
+          --orchestration-code-commit "${ORCHESTRATION_SHA}"
+          --expected-cross-check-json cross-check/cycle6-freeze-cross-check.json
+      - name: Install exact frozen scientific runtime
+        working-directory: scientific
+        run: |
+          python -m pip install -e .
+          python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r requirements-smoke.txt
+      - name: Score the exact frozen plan from the frozen scientific checkout
+        working-directory: scientific
+        env:
+          PYTHONPATH: .
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_confirmation_score_hf
+          --corpus-json ../frozen/cycle6-freeze-${{ matrix.seed_base }}/cycle6-corpus-${{ matrix.seed_base }}.json
+          --plan-json ../frozen/cycle6-freeze-${{ matrix.seed_base }}/cycle6-plan-${{ matrix.seed_base }}.json
+          --contract-json specs/fuckmark-cycle6-confirmation-v2.contract.json
+          --model openai-community/gpt2
+          --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
+          --device cpu
+          --confirmation-seed-base ${{ matrix.seed_base }}
+          --source-code-commit "${FROZEN_SOURCE_CODE_COMMIT}"
+          --json ../artifacts/cycle6-confirmation-evidence-${{ matrix.seed_base }}.json
+          --provenance-json ../artifacts/cycle6-confirmation-evidence-${{ matrix.seed_base }}-provenance.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-recovery-score-${{ matrix.seed_base }}
+          path: artifacts/
+          if-no-files-found: error
+
+  aggregate:
+    name: Aggregate recovered sealed confirmation
+    needs: score
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout frozen scientific source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
+          path: scientific
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cycle6-recovery-score-*
+          path: scored
+      - name: Aggregate with the frozen scientific implementation
+        working-directory: scientific
+        env:
+          PYTHONPATH: .
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_confirmation_aggregate
+          --contract-json specs/fuckmark-cycle6-confirmation-v2.contract.json
+          --evidence-json ../scored/cycle6-recovery-score-760000/cycle6-confirmation-evidence-760000.json
+          --evidence-json ../scored/cycle6-recovery-score-770000/cycle6-confirmation-evidence-770000.json
+          --evidence-json ../scored/cycle6-recovery-score-780000/cycle6-confirmation-evidence-780000.json
+          --json ../artifacts/cycle6-confirmation-aggregate.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-recovery-confirmation-aggregate
+          path: artifacts/cycle6-confirmation-aggregate.json
+          if-no-files-found: error
+  seal:
+    name: Seal recovery provenance and formal bundle
+    needs: aggregate
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.ORCHESTRATION_SHA }}
+          path: orchestration
+          persist-credentials: false
+      - name: Checkout frozen scientific source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
+          path: scientific
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle6-recovery-freeze-cross-check
+          path: cross-check
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cycle6-recovery-score-*
+          path: scored
+      - uses: actions/download-artifact@v4
+        with:
+          name: cycle6-recovery-confirmation-aggregate
+          path: aggregate
+      - name: Stage recovery wrappers with the frozen scientific package
+        run: >-
+          cp orchestration/fuckmark/tiny_dev_cycle6_freeze_cross_check.py
+          orchestration/fuckmark/tiny_dev_cycle6_recovery_manifest.py
+          scientific/fuckmark/
+      - name: Validate and bind the complete recovered evidence chain
+        env:
+          PYTHONPATH: scientific
+        run: >-
+          python -m fuckmark.tiny_dev_cycle6_recovery_manifest
+          --contract-json scientific/specs/fuckmark-cycle6-confirmation-v2.contract.json
+          --cross-check-json cross-check/cycle6-freeze-cross-check.json
+          --evidence-json scored/cycle6-recovery-score-760000/cycle6-confirmation-evidence-760000.json
+          --evidence-json scored/cycle6-recovery-score-770000/cycle6-confirmation-evidence-770000.json
+          --evidence-json scored/cycle6-recovery-score-780000/cycle6-confirmation-evidence-780000.json
+          --provenance-json scored/cycle6-recovery-score-760000/cycle6-confirmation-evidence-760000-provenance.json
+          --provenance-json scored/cycle6-recovery-score-770000/cycle6-confirmation-evidence-770000-provenance.json
+          --provenance-json scored/cycle6-recovery-score-780000/cycle6-confirmation-evidence-780000-provenance.json
+          --aggregate-json aggregate/cycle6-confirmation-aggregate.json
+          --source-workflow-run-id "${SOURCE_RUN_ID}"
+          --recovery-workflow-run-id "${GITHUB_RUN_ID}"
+          --source-artifact "760000:9573956498:${ARTIFACT_760000_DIGEST}"
+          --source-artifact "770000:9573829301:${ARTIFACT_770000_DIGEST}"
+          --source-artifact "780000:9573952748:${ARTIFACT_780000_DIGEST}"
+          --frozen-source-code-commit "${FROZEN_SOURCE_CODE_COMMIT}"
+          --orchestration-code-commit "${ORCHESTRATION_SHA}"
+          --json artifacts/cycle6-recovery-manifest.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cycle6-recovery-formal-bundle
+          path: |
+            artifacts/cycle6-recovery-manifest.json
+            cross-check/cycle6-freeze-cross-check.json
+            scored/
+            aggregate/cycle6-confirmation-aggregate.json
+          if-no-files-found: error
