@@ -10,13 +10,15 @@ from ..transforms.contractions import (
     zrd_forward_contraction_extension_rules,
     zrd_reverse_contraction_extension_rules,
 )
+from ..transforms.format_rules import FormatBoundaryRule
 from ..transforms.lexical_rules import LexicalConstruction, LexicalTemplateRule, development_lexical_rules
 from ..transforms.rules import LiteralTransformRule
 from ..transforms.schema import TransformFamily, TransformTier
-from ..transforms.syntax_rules import development_syntax_rules
+from ..transforms.syntax_rules import SyntaxConstruction, SyntaxTemplateRule, development_syntax_rules
 
 
-CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v2"
+CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v3"
+CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v4"
 
 
 @dataclass(frozen=True, slots=True)
@@ -365,6 +367,303 @@ def cycle7_typographic_apostrophe_rules() -> tuple[LexicalTemplateRule, ...]:
     )
 
 
+CYCLE7_PRENOMINAL_MODIFIER_PAIRS = (
+    ("well known", "well-known"),
+    ("long term", "long-term"),
+    ("short term", "short-term"),
+    ("real world", "real-world"),
+    ("high level", "high-level"),
+    ("low level", "low-level"),
+    ("large scale", "large-scale"),
+    ("small scale", "small-scale"),
+    ("open source", "open-source"),
+    ("full time", "full-time"),
+    ("part time", "part-time"),
+    ("high quality", "high-quality"),
+    ("low cost", "low-cost"),
+    ("third party", "third-party"),
+    ("first order", "first-order"),
+    ("second order", "second-order"),
+    ("so called", "so-called"),
+    ("decision making", "decision-making"),
+    ("problem solving", "problem-solving"),
+    ("data driven", "data-driven"),
+)
+
+CYCLE7_DISCOURSE_COMMA_MARKERS = (
+    "However",
+    "Therefore",
+    "Moreover",
+    "Furthermore",
+    "Thus",
+    "Indeed",
+    "Meanwhile",
+    "Instead",
+    "Finally",
+    "Additionally",
+    "Consequently",
+    "Nevertheless",
+    "Nonetheless",
+    "Similarly",
+    "Specifically",
+    "Notably",
+    "Importantly",
+    "Subsequently",
+    "Conversely",
+    "Accordingly",
+    "Otherwise",
+    "In fact",
+)
+
+CYCLE7_PARENTHETICAL_ADVERBS = (
+    "however",
+    "therefore",
+    "moreover",
+    "instead",
+    "meanwhile",
+    "nevertheless",
+    "nonetheless",
+    "consequently",
+    "accordingly",
+    "similarly",
+)
+
+CYCLE7_COORDINATING_CONJUNCTIONS = (
+    "and",
+    "but",
+    "or",
+)
+
+CYCLE7_CLAUSE_PUNCTUATION_MARKS = (
+    (",", "comma"),
+    (";", "semicolon"),
+    (":", "colon"),
+)
+
+CYCLE7_QUANTIFIER_DETERMINERS = (
+    ("all", ("the", "this", "that", "these", "those", "my", "our", "your", "their", "his", "her")),
+    ("both", ("the", "these", "those", "my", "our", "your", "their", "his", "her")),
+    ("half", ("the", "this", "that", "these", "those", "my", "our", "your", "their", "his", "her")),
+)
+
+
+def cycle7_prenominal_modifier_rules() -> tuple[LexicalTemplateRule, ...]:
+    rules: list[LexicalTemplateRule] = []
+    for open_form, hyphen_form in CYCLE7_PRENOMINAL_MODIFIER_PAIRS:
+        slug = hyphen_form
+        rules.append(
+            LexicalTemplateRule.create(
+                rule_id=f"lexical-prenominal-hyphenate-{slug}",
+                version="v1",
+                source=open_form,
+                replacement=hyphen_form,
+                construction=LexicalConstruction.ATTESTED_PRENOMINAL_HYPHEN_MODIFIER,
+            )
+        )
+        rules.append(
+            LexicalTemplateRule.create(
+                rule_id=f"lexical-prenominal-open-{slug}",
+                version="v1",
+                source=hyphen_form,
+                replacement=open_form,
+                construction=LexicalConstruction.ATTESTED_PRENOMINAL_HYPHEN_MODIFIER,
+            )
+        )
+    return tuple(rules)
+
+
+def cycle7_discourse_comma_rules() -> tuple[LexicalTemplateRule, ...]:
+    rules: list[LexicalTemplateRule] = []
+    for marker in CYCLE7_DISCOURSE_COMMA_MARKERS:
+        slug = marker.casefold().replace(" ", "-")
+        rules.append(
+            LexicalTemplateRule.create(
+                rule_id=f"lexical-discourse-drop-comma-{slug}",
+                version="v1",
+                source=f"{marker},",
+                replacement=marker,
+                construction=LexicalConstruction.SENTENCE_INITIAL_DISCOURSE_COMMA,
+            )
+        )
+        rules.append(
+            LexicalTemplateRule.create(
+                rule_id=f"lexical-discourse-insert-comma-{slug}",
+                version="v1",
+                source=marker,
+                replacement=f"{marker},",
+                construction=LexicalConstruction.SENTENCE_INITIAL_DISCOURSE_COMMA,
+            )
+        )
+    return tuple(rules)
+
+
+def cycle7_format_boundary_rules() -> tuple[FormatBoundaryRule, ...]:
+    rules: list[FormatBoundaryRule] = []
+    for mark, name in ((".", "period"), ("?", "question"), ("!", "exclamation")):
+        rules.append(
+            FormatBoundaryRule.create(
+                rule_id=f"cycle7-format-sentence-{name}-newline",
+                version="v1",
+                source=f"{mark} ",
+                replacement=f"{mark}\n",
+            )
+        )
+        rules.append(
+            FormatBoundaryRule.create(
+                rule_id=f"cycle7-format-sentence-{name}-space",
+                version="v1",
+                source=f"{mark}\n",
+                replacement=f"{mark} ",
+            )
+        )
+    return tuple(rules)
+
+
+def cycle7_clause_punctuation_rules() -> tuple[FormatBoundaryRule, ...]:
+    rules: list[FormatBoundaryRule] = []
+    for mark, name in CYCLE7_CLAUSE_PUNCTUATION_MARKS:
+        rules.append(
+            FormatBoundaryRule.create(
+                rule_id=f"cycle7-format-clause-{name}-newline",
+                version="v1",
+                source=f"{mark} ",
+                replacement=f"{mark}\n",
+            )
+        )
+        rules.append(
+            FormatBoundaryRule.create(
+                rule_id=f"cycle7-format-clause-{name}-space",
+                version="v1",
+                source=f"{mark}\n",
+                replacement=f"{mark} ",
+            )
+        )
+    return tuple(rules)
+
+
+def cycle7_quantifier_of_rules() -> tuple[LexicalTemplateRule, ...]:
+    rules: list[LexicalTemplateRule] = []
+    for quantifier, determiners in CYCLE7_QUANTIFIER_DETERMINERS:
+        for determiner in determiners:
+            slug = f"{quantifier}-of-{determiner}"
+            with_of = f"{quantifier} of {determiner}"
+            without_of = f"{quantifier} {determiner}"
+            rules.append(
+                LexicalTemplateRule.create(
+                    rule_id=f"lexical-quantifier-drop-{slug}",
+                    version="v1",
+                    source=with_of,
+                    replacement=without_of,
+                    construction=LexicalConstruction.QUANTIFIER_OF_DETERMINER,
+                )
+            )
+            rules.append(
+                LexicalTemplateRule.create(
+                    rule_id=f"lexical-quantifier-insert-{slug}",
+                    version="v1",
+                    source=without_of,
+                    replacement=with_of,
+                    construction=LexicalConstruction.QUANTIFIER_OF_DETERMINER,
+                )
+            )
+    return tuple(rules)
+
+
+def cycle7_complementizer_that_rules() -> tuple[SyntaxTemplateRule, ...]:
+    return (
+        SyntaxTemplateRule.create(
+            rule_id="cycle7-syntax-complementizer-that-drop",
+            version="v1",
+            source=" that ",
+            replacement=" ",
+            construction=SyntaxConstruction.BOUNDED_COMPLEMENTIZER_THAT_DROP,
+            whole_word=False,
+            preserve_simple_case=False,
+            block_all_caps=True,
+        ),
+        SyntaxTemplateRule.create(
+            rule_id="cycle7-syntax-complementizer-that-insert",
+            version="v1",
+            source="I think ",
+            replacement="I think that ",
+            construction=SyntaxConstruction.BOUNDED_COMPLEMENTIZER_THAT_INSERT,
+            whole_word=False,
+            preserve_simple_case=True,
+            block_all_caps=True,
+        ),
+        SyntaxTemplateRule.create(
+            rule_id="cycle7-syntax-relative-that-drop",
+            version="v1",
+            source=" that ",
+            replacement=" ",
+            construction=SyntaxConstruction.BOUNDED_OBJECT_RELATIVE_THAT_DROP,
+            whole_word=False,
+            preserve_simple_case=False,
+            block_all_caps=True,
+        ),
+    )
+
+
+def cycle7_parenthetical_adverb_rules() -> tuple[SyntaxTemplateRule, ...]:
+    rules: list[SyntaxTemplateRule] = []
+    for adverb in CYCLE7_PARENTHETICAL_ADVERBS:
+        rules.append(
+            SyntaxTemplateRule.create(
+                rule_id=f"cycle7-syntax-parenthetical-drop-{adverb}",
+                version="v1",
+                source=f", {adverb}, ",
+                replacement=f" {adverb} ",
+                construction=SyntaxConstruction.PARENTHETICAL_CONJUNCTIVE_ADVERB,
+                whole_word=False,
+                preserve_simple_case=True,
+                block_all_caps=True,
+            )
+        )
+        rules.append(
+            SyntaxTemplateRule.create(
+                rule_id=f"cycle7-syntax-parenthetical-insert-{adverb}",
+                version="v1",
+                source=f" {adverb} ",
+                replacement=f", {adverb}, ",
+                construction=SyntaxConstruction.PARENTHETICAL_CONJUNCTIVE_ADVERB,
+                whole_word=False,
+                preserve_simple_case=True,
+                block_all_caps=True,
+            )
+        )
+    return tuple(rules)
+
+
+def cycle7_coordinating_conjunction_comma_rules() -> tuple[SyntaxTemplateRule, ...]:
+    rules: list[SyntaxTemplateRule] = []
+    for conjunction in CYCLE7_COORDINATING_CONJUNCTIONS:
+        rules.append(
+            SyntaxTemplateRule.create(
+                rule_id=f"cycle7-syntax-coord-comma-drop-{conjunction}",
+                version="v1",
+                source=f", {conjunction} ",
+                replacement=f" {conjunction} ",
+                construction=SyntaxConstruction.COORDINATING_CONJUNCTION_COMMA,
+                whole_word=False,
+                preserve_simple_case=False,
+                block_all_caps=True,
+            )
+        )
+        rules.append(
+            SyntaxTemplateRule.create(
+                rule_id=f"cycle7-syntax-coord-comma-insert-{conjunction}",
+                version="v1",
+                source=f" {conjunction} ",
+                replacement=f", {conjunction} ",
+                construction=SyntaxConstruction.COORDINATING_CONJUNCTION_COMMA,
+                whole_word=False,
+                preserve_simple_case=False,
+                block_all_caps=True,
+            )
+        )
+    return tuple(rules)
+
+
 def cycle7_durable_rules() -> tuple[object, ...]:
     return (
         *development_forward_contraction_rules(),
@@ -375,7 +674,15 @@ def cycle7_durable_rules() -> tuple[object, ...]:
         *cycle7_bounded_copula_rules(),
         *cycle7_orthography_rules(),
         *cycle7_compound_rules(),
+        *cycle7_prenominal_modifier_rules(),
         *cycle7_typographic_apostrophe_rules(),
+        *cycle7_discourse_comma_rules(),
+        *cycle7_format_boundary_rules(),
+        *cycle7_clause_punctuation_rules(),
+        *cycle7_quantifier_of_rules(),
+        *cycle7_complementizer_that_rules(),
+        *cycle7_parenthetical_adverb_rules(),
+        *cycle7_coordinating_conjunction_comma_rules(),
         *development_lexical_rules(),
         *development_syntax_rules(),
     )

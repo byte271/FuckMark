@@ -16,6 +16,9 @@ class LexicalConstruction(str, Enum):
     SENTENCE_INITIAL_DISCOURSE_MARKER = "sentence_initial_discourse_marker"
     ATTESTED_OPEN_HYPHEN_COMPOUND = "attested_open_hyphen_compound"
     INWORD_TYPOGRAPHIC_APOSTROPHE = "inword_typographic_apostrophe"
+    SENTENCE_INITIAL_DISCOURSE_COMMA = "sentence_initial_discourse_comma"
+    ATTESTED_PRENOMINAL_HYPHEN_MODIFIER = "attested_prenominal_hyphen_modifier"
+    QUANTIFIER_OF_DETERMINER = "quantifier_of_determiner"
 
 
 @dataclass(frozen=True, slots=True)
@@ -148,11 +151,20 @@ class LexicalTemplateRule:
             stripped = prefix.rstrip()
             if stripped and stripped[-1] not in ".?!":
                 return False
+        elif self.construction is LexicalConstruction.SENTENCE_INITIAL_DISCOURSE_COMMA:
+            if not sentence_initial_discourse_comma_span_admissible(text, start, end, self.source, self.replacement):
+                return False
         elif self.construction is LexicalConstruction.ATTESTED_OPEN_HYPHEN_COMPOUND:
             if not attested_open_hyphen_compound_span_admissible(text, start, end):
                 return False
+        elif self.construction is LexicalConstruction.ATTESTED_PRENOMINAL_HYPHEN_MODIFIER:
+            if not attested_prenominal_hyphen_modifier_span_admissible(text, start, end):
+                return False
         elif self.construction is LexicalConstruction.INWORD_TYPOGRAPHIC_APOSTROPHE:
             if not inword_typographic_apostrophe_span_admissible(text, start, end):
+                return False
+        elif self.construction is LexicalConstruction.QUANTIFIER_OF_DETERMINER:
+            if not quantifier_of_determiner_span_admissible(text, start, end):
                 return False
         else:
             return False
@@ -174,6 +186,53 @@ def attested_open_hyphen_compound_span_admissible(text: str, start: int, end: in
     return "--" not in text[start:end]
 
 
+_DISCOURSE_DEGREE_FOLLOWERS = frozenset(
+    {"much", "many", "long", "far", "little", "few", "often", "hard", "briefly"}
+)
+
+
+def _next_alpha_word(text: str, index: int) -> str:
+    cursor = index
+    while cursor < len(text) and not text[cursor].isalpha():
+        cursor += 1
+    begin = cursor
+    while cursor < len(text) and text[cursor].isalpha():
+        cursor += 1
+    return text[begin:cursor]
+
+
+def sentence_initial_discourse_comma_span_admissible(
+    text: str,
+    start: int,
+    end: int,
+    source: str,
+    replacement: str,
+) -> bool:
+    if end >= len(text) or not text[end].isspace():
+        return False
+    prefix = text[:start]
+    stripped = prefix.rstrip()
+    if stripped and stripped[-1] not in ".?!":
+        return False
+    inserting_comma = "," not in source and "," in replacement
+    if inserting_comma:
+        follower = _next_alpha_word(text, end).casefold()
+        if follower in _DISCOURSE_DEGREE_FOLLOWERS:
+            return False
+    return True
+
+
+def attested_prenominal_hyphen_modifier_span_admissible(text: str, start: int, end: int) -> bool:
+    if not attested_open_hyphen_compound_span_admissible(text, start, end):
+        return False
+    matched = text[start:end]
+    hyphenating = " " in matched and "-" not in matched
+    if not hyphenating:
+        return True
+    rest = text[end:]
+    return bool(re.match(r" [a-z]{2,}\b", rest))
+
+
 def inword_typographic_apostrophe_span_admissible(text: str, start: int, end: int) -> bool:
     if start == 0 or end >= len(text):
         return False
@@ -185,6 +244,18 @@ def inword_typographic_apostrophe_span_admissible(text: str, start: int, end: in
         return False
     if text[start - 1].isupper() and text[end].isupper():
         return False
+    return True
+
+
+def quantifier_of_determiner_span_admissible(text: str, start: int, end: int) -> bool:
+    if start > 0:
+        previous = text[start - 1]
+        if previous.isalnum() or previous in "_-/\\":
+            return False
+    if end < len(text):
+        nxt = text[end]
+        if nxt.isalnum() or nxt in "_-/\\":
+            return False
     return True
 
 

@@ -11,8 +11,9 @@ from ..transforms.registry import TransformRegistry
 from .durable_rules import cycle7_durable_rules
 
 
-CYCLE7_DURABLE_REGISTRY_ID = "cycle7-durable-catalog-v2"
-CYCLE7_COMBINED_REGISTRY_ID = "cycle7-durable-plus-cycle6-spacing-v1"
+CYCLE7_DURABLE_REGISTRY_ID = "cycle7-durable-catalog-v4"
+CYCLE7_COMBINED_REGISTRY_ID = "cycle7-durable-plus-cycle6-spacing-v3"
+CYCLE7_STAGE_B_DURABLE_REGISTRY_ID = "cycle7-durable-catalog-v3"
 
 
 def cycle7_durable_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegistry:
