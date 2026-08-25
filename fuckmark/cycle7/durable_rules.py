@@ -17,7 +17,8 @@ from ..transforms.schema import TransformFamily, TransformTier
 from ..transforms.syntax_rules import SyntaxConstruction, SyntaxTemplateRule, development_syntax_rules
 
 
-CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v3"
+CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v3"
+CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v4"
 
 
 @dataclass(frozen=True, slots=True)
@@ -433,6 +434,18 @@ CYCLE7_COORDINATING_CONJUNCTIONS = (
     "or",
 )
 
+CYCLE7_CLAUSE_PUNCTUATION_MARKS = (
+    (",", "comma"),
+    (";", "semicolon"),
+    (":", "colon"),
+)
+
+CYCLE7_QUANTIFIER_DETERMINERS = (
+    ("all", ("the", "this", "that", "these", "those", "my", "our", "your", "their", "his", "her")),
+    ("both", ("the", "these", "those", "my", "our", "your", "their", "his", "her")),
+    ("half", ("the", "this", "that", "these", "those", "my", "our", "your", "their", "his", "her")),
+)
+
 
 def cycle7_prenominal_modifier_rules() -> tuple[LexicalTemplateRule, ...]:
     rules: list[LexicalTemplateRule] = []
@@ -503,6 +516,56 @@ def cycle7_format_boundary_rules() -> tuple[FormatBoundaryRule, ...]:
                 replacement=f"{mark} ",
             )
         )
+    return tuple(rules)
+
+
+def cycle7_clause_punctuation_rules() -> tuple[FormatBoundaryRule, ...]:
+    rules: list[FormatBoundaryRule] = []
+    for mark, name in CYCLE7_CLAUSE_PUNCTUATION_MARKS:
+        rules.append(
+            FormatBoundaryRule.create(
+                rule_id=f"cycle7-format-clause-{name}-newline",
+                version="v1",
+                source=f"{mark} ",
+                replacement=f"{mark}\n",
+            )
+        )
+        rules.append(
+            FormatBoundaryRule.create(
+                rule_id=f"cycle7-format-clause-{name}-space",
+                version="v1",
+                source=f"{mark}\n",
+                replacement=f"{mark} ",
+            )
+        )
+    return tuple(rules)
+
+
+def cycle7_quantifier_of_rules() -> tuple[LexicalTemplateRule, ...]:
+    rules: list[LexicalTemplateRule] = []
+    for quantifier, determiners in CYCLE7_QUANTIFIER_DETERMINERS:
+        for determiner in determiners:
+            slug = f"{quantifier}-of-{determiner}"
+            with_of = f"{quantifier} of {determiner}"
+            without_of = f"{quantifier} {determiner}"
+            rules.append(
+                LexicalTemplateRule.create(
+                    rule_id=f"lexical-quantifier-drop-{slug}",
+                    version="v1",
+                    source=with_of,
+                    replacement=without_of,
+                    construction=LexicalConstruction.QUANTIFIER_OF_DETERMINER,
+                )
+            )
+            rules.append(
+                LexicalTemplateRule.create(
+                    rule_id=f"lexical-quantifier-insert-{slug}",
+                    version="v1",
+                    source=without_of,
+                    replacement=with_of,
+                    construction=LexicalConstruction.QUANTIFIER_OF_DETERMINER,
+                )
+            )
     return tuple(rules)
 
 
@@ -615,6 +678,8 @@ def cycle7_durable_rules() -> tuple[object, ...]:
         *cycle7_typographic_apostrophe_rules(),
         *cycle7_discourse_comma_rules(),
         *cycle7_format_boundary_rules(),
+        *cycle7_clause_punctuation_rules(),
+        *cycle7_quantifier_of_rules(),
         *cycle7_complementizer_that_rules(),
         *cycle7_parenthetical_adverb_rules(),
         *cycle7_coordinating_conjunction_comma_rules(),

@@ -31,6 +31,8 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
     )
     apostrophe_ids = _prefix_ids(rule_ids, ("lexical-apostrophe-",))
     format_ids = _prefix_ids(rule_ids, ("cycle7-format-",))
+    format_sentence_ids = _prefix_ids(rule_ids, ("cycle7-format-sentence-",))
+    format_clause_ids = _prefix_ids(rule_ids, ("cycle7-format-clause-",))
     discourse_ids = _prefix_ids(rule_ids, ("lexical-discourse-",))
     prenominal_ids = _prefix_ids(rule_ids, ("lexical-prenominal-",))
     complementizer_ids = _prefix_ids(
@@ -39,6 +41,7 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
     )
     parenthetical_ids = _prefix_ids(rule_ids, ("cycle7-syntax-parenthetical-",))
     coord_comma_ids = _prefix_ids(rule_ids, ("cycle7-syntax-coord-comma-",))
+    quantifier_ids = _prefix_ids(rule_ids, ("lexical-quantifier-",))
     tokenish = max(1, len(text.split()))
     return {
         "sample_id": sample_id,
@@ -50,11 +53,14 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
         "contraction_candidate_count": len(contraction_ids),
         "apostrophe_candidate_count": len(apostrophe_ids),
         "format_candidate_count": len(format_ids),
+        "format_sentence_candidate_count": len(format_sentence_ids),
+        "format_clause_candidate_count": len(format_clause_ids),
         "discourse_comma_candidate_count": len(discourse_ids),
         "prenominal_candidate_count": len(prenominal_ids),
         "complementizer_candidate_count": len(complementizer_ids),
         "parenthetical_candidate_count": len(parenthetical_ids),
         "coord_comma_candidate_count": len(coord_comma_ids),
+        "quantifier_of_candidate_count": len(quantifier_ids),
         "protected_blocked_count": sum(
             1 for rejection in enumeration.rejections if rejection.reason.value == "protected_overlap"
         ),
@@ -68,11 +74,14 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
         "compound_rule_ids": compound_ids,
         "apostrophe_rule_ids": apostrophe_ids,
         "format_rule_ids": format_ids,
+        "format_sentence_rule_ids": format_sentence_ids,
+        "format_clause_rule_ids": format_clause_ids,
         "discourse_rule_ids": discourse_ids,
         "prenominal_rule_ids": prenominal_ids,
         "complementizer_rule_ids": complementizer_ids,
         "parenthetical_rule_ids": parenthetical_ids,
         "coord_comma_rule_ids": coord_comma_ids,
+        "quantifier_of_rule_ids": quantifier_ids,
     }
 
 

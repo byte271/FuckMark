@@ -18,6 +18,7 @@ class LexicalConstruction(str, Enum):
     INWORD_TYPOGRAPHIC_APOSTROPHE = "inword_typographic_apostrophe"
     SENTENCE_INITIAL_DISCOURSE_COMMA = "sentence_initial_discourse_comma"
     ATTESTED_PRENOMINAL_HYPHEN_MODIFIER = "attested_prenominal_hyphen_modifier"
+    QUANTIFIER_OF_DETERMINER = "quantifier_of_determiner"
 
 
 @dataclass(frozen=True, slots=True)
@@ -162,6 +163,9 @@ class LexicalTemplateRule:
         elif self.construction is LexicalConstruction.INWORD_TYPOGRAPHIC_APOSTROPHE:
             if not inword_typographic_apostrophe_span_admissible(text, start, end):
                 return False
+        elif self.construction is LexicalConstruction.QUANTIFIER_OF_DETERMINER:
+            if not quantifier_of_determiner_span_admissible(text, start, end):
+                return False
         else:
             return False
         context = text[max(0, start - 96) : min(len(text), end + 96)].casefold()
@@ -240,6 +244,18 @@ def inword_typographic_apostrophe_span_admissible(text: str, start: int, end: in
         return False
     if text[start - 1].isupper() and text[end].isupper():
         return False
+    return True
+
+
+def quantifier_of_determiner_span_admissible(text: str, start: int, end: int) -> bool:
+    if start > 0:
+        previous = text[start - 1]
+        if previous.isalnum() or previous in "_-/\\":
+            return False
+    if end < len(text):
+        nxt = text[end]
+        if nxt.isalnum() or nxt in "_-/\\":
+            return False
     return True
 
 

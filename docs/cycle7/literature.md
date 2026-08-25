@@ -48,3 +48,8 @@ HYPOTHESIS. Sentence-boundary newline survives `whitespace-collapse-v1` because 
 REJECTED as a Cycle 7 direction: adding more U+0020 spaces to chase 7/192 → 0/192 on spent confirmation rows.
 
 REJECTED: running-text `and` to `&` (not prose-equivalent under CMOS/AP). U+2026 ellipsis NFKC-maps to `...`. U+2009 / U+202F NFKC-map to space.
+
+EXTERNAL-VALIDATION-ONLY. Cambridge English Grammar Today: `all`, `both`, and `half` allow optional `of` before articles, demonstratives, and possessives (`all the` / `all of the`) with no meaning change; `of` is obligatory before personal pronouns (`all of them`). Family 11 encodes that bound. That literature is not a local density measurement.
+
+HYPOTHESIS. Clause commas are much more common than sentence terminals on ordinary prose, so Family 10 should raise layout-channel density relative to Family 4 alone. Whether that is enough to replace Cycle 6 spacing after `whitespace-collapse-v1` is a Stage C measurement, not a theorem.
+

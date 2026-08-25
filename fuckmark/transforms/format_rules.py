@@ -72,6 +72,7 @@ _SENTENCE_ABBREVIATIONS = frozenset(
 
 class FormatConstruction(str, Enum):
     SENTENCE_BOUNDARY_NEWLINE = "sentence_boundary_newline"
+    CLAUSE_PUNCTUATION_NEWLINE = "clause_punctuation_newline"
 
 
 def _word_before_punct(text: str, punct_index: int) -> str:
@@ -105,6 +106,33 @@ def sentence_boundary_span_admissible(text: str, start: int, end: int) -> bool:
     return True
 
 
+def _follower_alpha_word(text: str, index: int) -> str:
+    cursor = index
+    while cursor < len(text) and text[cursor].isalpha():
+        cursor += 1
+    return text[index:cursor]
+
+
+def clause_punctuation_span_admissible(text: str, start: int, end: int) -> bool:
+    if start < 0 or end <= start or end > len(text):
+        return False
+    if end < len(text) and text[end] == "\n":
+        return False
+    if end >= len(text) or not text[end].isalpha():
+        return False
+    if start == 0:
+        return False
+    previous = text[start - 1]
+    if previous.isdigit() or previous in ",.;:?!":
+        return False
+    if not (previous.isalpha() or previous in "\"')]" ):
+        return False
+    follower = _follower_alpha_word(text, end)
+    if len(follower) < 2:
+        return False
+    return True
+
+
 @dataclass(frozen=True, slots=True)
 class FormatBoundaryRule(LiteralTransformRule):
     def __post_init__(self) -> None:
@@ -119,8 +147,8 @@ class FormatBoundaryRule(LiteralTransformRule):
         if not isinstance(self.replacement, str) or not self.replacement or "\r" in self.replacement:
             raise ValueError("replacement must be a non-empty string without carriage returns")
         mark = self.source[:1]
-        if mark not in ".?!":
-            raise ValueError("format boundary source must start with sentence punctuation")
+        if mark not in ".?!,;:":
+            raise ValueError("format boundary source must start with sentence or clause punctuation")
         forward = self.source == f"{mark} " and self.replacement == f"{mark}\n"
         inverse = self.source == f"{mark}\n" and self.replacement == f"{mark} "
         if not forward and not inverse:
@@ -145,7 +173,11 @@ class FormatBoundaryRule(LiteralTransformRule):
             "tier": self.tier.value,
             "source": self.source,
             "replacement": self.replacement,
-            "construction": FormatConstruction.SENTENCE_BOUNDARY_NEWLINE.value,
+            "construction": (
+                FormatConstruction.SENTENCE_BOUNDARY_NEWLINE.value
+                if self.source[:1] in ".?!"
+                else FormatConstruction.CLAUSE_PUNCTUATION_NEWLINE.value
+            ),
             "whole_word": self.whole_word,
             "preserve_simple_case": self.preserve_simple_case,
             "block_all_caps": self.block_all_caps,
@@ -161,7 +193,11 @@ class FormatBoundaryRule(LiteralTransformRule):
             "tier": TransformTier.SURFACE.value,
             "source": source,
             "replacement": replacement,
-            "construction": FormatConstruction.SENTENCE_BOUNDARY_NEWLINE.value,
+            "construction": (
+                FormatConstruction.SENTENCE_BOUNDARY_NEWLINE.value
+                if source[:1] in ".?!"
+                else FormatConstruction.CLAUSE_PUNCTUATION_NEWLINE.value
+            ),
             "whole_word": False,
             "preserve_simple_case": False,
             "block_all_caps": False,
@@ -198,4 +234,6 @@ class FormatBoundaryRule(LiteralTransformRule):
             raise ValueError("format precondition span is outside text")
         if text[start:end] != self.source:
             raise ValueError("format precondition span does not match rule source")
-        return sentence_boundary_span_admissible(text, start, end)
+        if self.source[:1] in ".?!":
+            return sentence_boundary_span_admissible(text, start, end)
+        return clause_punctuation_span_admissible(text, start, end)

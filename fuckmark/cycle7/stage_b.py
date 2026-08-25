@@ -19,22 +19,26 @@ def summarize_density_rows(rows: Sequence[Mapping[str, object]]) -> dict[str, ob
         raise ValueError("density rows must not be empty")
     counts = tuple(int(row["candidate_count"]) for row in rows)
     format_counts = tuple(int(row["format_candidate_count"]) for row in rows)
+    format_clause_counts = tuple(int(row.get("format_clause_candidate_count", 0)) for row in rows)
     complementizer_counts = tuple(int(row["complementizer_candidate_count"]) for row in rows)
     discourse_counts = tuple(int(row["discourse_comma_candidate_count"]) for row in rows)
     prenominal_counts = tuple(int(row["prenominal_candidate_count"]) for row in rows)
     parenthetical_counts = tuple(int(row["parenthetical_candidate_count"]) for row in rows)
     coord_comma_counts = tuple(int(row["coord_comma_candidate_count"]) for row in rows)
+    quantifier_counts = tuple(int(row.get("quantifier_of_candidate_count", 0)) for row in rows)
     return {
         "sample_count": len(rows),
         "mean_candidate_count": sum(counts) / len(counts),
         "min_candidate_count": min(counts),
         "max_candidate_count": max(counts),
         "mean_format_candidate_count": sum(format_counts) / len(format_counts),
+        "mean_format_clause_candidate_count": sum(format_clause_counts) / len(format_clause_counts),
         "mean_complementizer_candidate_count": sum(complementizer_counts) / len(complementizer_counts),
         "mean_discourse_comma_candidate_count": sum(discourse_counts) / len(discourse_counts),
         "mean_prenominal_candidate_count": sum(prenominal_counts) / len(prenominal_counts),
         "mean_parenthetical_candidate_count": sum(parenthetical_counts) / len(parenthetical_counts),
         "mean_coord_comma_candidate_count": sum(coord_comma_counts) / len(coord_comma_counts),
+        "mean_quantifier_of_candidate_count": sum(quantifier_counts) / len(quantifier_counts),
         "zero_candidate_rows": sum(count == 0 for count in counts),
     }
 

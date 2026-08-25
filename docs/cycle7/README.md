@@ -29,8 +29,10 @@ See `docs/cycle7/seed-ledger.md` and `fuckmark/cycle7/ledger.py`.
 | Role | Seed base | Status |
 | --- | --- | --- |
 | Exploratory development (Stage A) | `810000` | used; do not keep expanding rules against it |
-| Exploratory development / rule construction (Stage B1) | `860000` | active; topic frozen as `independent replication` |
-| Validation development | `820000` | reserved, unused until a catalog freeze |
+| Exploratory development / rule construction (Stage B1) | `860000` | used; do not keep expanding rules against it |
+| Exploratory development / rule construction (Stage C1) | `870000` | active; topic frozen as `measurement protocol` |
+| Validation development (Stage B3) | `820000` | used as Stage B3 disjoint validation; do not retune on it |
+| Validation development (Stage C, reserved) | `880000` | unseen until a v4 freeze |
 | Confirmation reserved | `830000`, `840000`, `850000` | must not be inspected |
 
 Confirmation seeds were chosen as unused 10k blocks before any Cycle 7 detector look.
@@ -47,7 +49,7 @@ The Cycle 6 frozen sanitizer module is unchanged.
 
 ## Durable transform families
 
-See `docs/cycle7/durable-families.md`. Catalog `cycle7-durable-rule-catalog-v3`.
+See `docs/cycle7/durable-families.md`. Catalog `cycle7-durable-rule-catalog-v4`.
 
 Stage A (`v2`) families:
 
@@ -63,6 +65,11 @@ Stage B (`v3`) additions, aimed at natural site density:
 7. Attested prenominal hyphen modifiers.
 8. Parenthetical conjunctive adverb.
 9. Coordinating-conjunction comma (`and`/`but`/`or`), with determiner-gated insert.
+
+Stage C (`v4`) additions, aimed at higher natural site density after Stage B showed families 5–9 were sparse:
+
+10. Clause punctuation newline (`,` / `;` / `:` + space ↔ mark + LF).
+11. Optional `of` after `all` / `both` / `half` before a closed determiner/possessive.
 
 These change tokens without relying on repeated U+0020. They survive ASCII whitespace collapse by construction. Family 3 also survives NFKC and Cf-strip. Family 4 is a formatting channel: VERIFIED against the six Cycle 7 sanitizer variants, not against an unlisted reflow sanitizer.
 
@@ -80,7 +87,11 @@ Details: `docs/cycle7/stage-a-decision.md`.
 
 Stage B1 on seed `860000` looked **`PROMISING_DEVELOPMENT`** on a tiny detector snapshot (durable 2/4 after collapse). Disjoint validation seed `820000` reproduced density/geometry but **not** the detector reduction (durable 4/4 after collapse). Overall Stage B decision: **`INSUFFICIENT_EVIDENCE`**. Details: `docs/cycle7/stage-b-decision.md`.
 
-Seed `820000` is spent as validation. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
+Seed `820000` is spent as validation. Seed `880000` is the next unused validation split and has not been inspected. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
+
+## Stage C
+
+Stage C starts from the Stage B negative: local semantically conservative English surface equivalence plus sentence newlines did not replace Cycle 6 spacing after whitespace collapse. Catalog v4 adds clause-punctuation newlines and optional quantifier `of`. This is still development. Details: `docs/cycle7/stage-c-decision.md` once C1 evidence exists.
 
 Not claimed:
 

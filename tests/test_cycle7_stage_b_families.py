@@ -71,7 +71,7 @@ def test_format_boundary_blocks_abbreviations_initials_digits_and_ellipsis() -> 
     for text in blocked:
         enumeration = registry.enumerate(text)
         assert not any(
-            candidate.rule_id.startswith("cycle7-format-") for candidate in enumeration.candidates
+            candidate.rule_id.startswith("cycle7-format-sentence-") for candidate in enumeration.candidates
         ), text
 
 

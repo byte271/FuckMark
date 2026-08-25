@@ -1,6 +1,6 @@
 # Cycle 7 durable families
 
-Catalog identity: `cycle7-durable-rule-catalog-v3` (Stage B development). Families 1–3 remain the frozen Stage A `v2` set; v3 adds higher-density collapse-resistant families. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
+Catalog identity: `cycle7-durable-rule-catalog-v4` (Stage C development). Families 1–3 remain the frozen Stage A `v2` set; families 4–9 remain the frozen Stage B `v3` set. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
 
 All families below are deterministic, detector-blind, key-blind, and non-neural. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
 
@@ -186,3 +186,44 @@ Whitespace collapse: comma is not space. Survives.
 Safety: insert is a style comma before a determiner, not a full independent-clause parser. NP coordinations of the form `X and the Y` can still receive a comma. That is semantically conservative and style-marked. Stage B treats density as the first metric and may reject the insert direction if natural prose over-fires.
 
 Not admitted: `nor` / `yet` / `so` (adverb/conjunction ambiguity). Running-text `and` to `&` remains REJECTED (CMOS/AP: ampersand is not prose-equivalent).
+
+## Family 10 — clause punctuation newline
+
+Construction: `clause_punctuation_newline`.
+
+Precondition: `, ` / `; ` / `: ` immediately before an alphabetic word of length at least 2. Exclusions: start of string, digits immediately before the mark (thousands separators, `v2, and`), other punctuation immediately before the mark, already-newline after the mark, and single-letter followers (`Hello, X` / `a, b`).
+
+Rewrite: swap the single ASCII space after the clause mark for a single LF, or the reverse.
+
+Inverse: the opposite direction.
+
+Tokenizer: GPT-2 `Hello, World` versus `Hello,\nWorld` differs. VERIFIED on frozen revision `607a30d783dfa663caf39e06633721c8d4cfcd7e` when transformers is present.
+
+Whitespace collapse: same as Family 4. `whitespace-collapse-v1` preserves LF. VERIFIED on fixtures against all six Cycle 7 sanitizer variants.
+
+Sanitizer note: this is still a layout/formatting channel. HYPOTHESIS: a wrap/reflow sanitizer would erase it. It is admitted because Stage B showed sentence-boundary newlines were the only family that raised natural site density, and clause commas are much more common than sentence terminals on ordinary prose.
+
+Conflict geometry: `, and ` overlaps Family 9 coordinating-comma drop. Cover-greedy v4 remains detector-blind.
+
+Not admitted: generic extra spaces, NBSP, ZWSP, or converting commas to other Unicode spaces.
+
+## Family 11 — quantifier `of` before a determiner
+
+Construction: `quantifier_of_determiner`.
+
+Closed quantifiers: `all`, `both`, `half`. Closed followers: `the`, `this`, `that`, `these`, `those`, and the possessives `my` / `our` / `your` / `their` / `his` / `her`. `both` does not pair with singular `this` / `that`.
+
+Precondition: whole-word match plus the same hyphen/slash/alnum adjacency guard as Family 2. All-caps blocked.
+
+Rewrite: `all of the` ↔ `all the` (and the other closed pairs).
+
+Inverse: the opposite direction in the same closed list.
+
+Tokenizer: GPT-2 `All of the replicas failed` versus `All the replicas failed` differs. VERIFIED on the frozen GPT-2 revision when transformers is present.
+
+Whitespace collapse: the edit is the word `of`, not spaces. Survives.
+
+False positives blocked: `all of them` / `both of us` / `half of it` (pronouns require `of`), `all of a sudden`, `some/most/each of the` (those quantifiers are not optional-`of` in the same way).
+
+EXTERNAL-VALIDATION-ONLY: Cambridge Grammar of English / English Grammar Today: `all`, `both`, and `half` may appear with or without `of` before articles, demonstratives, and possessives, with no meaning change. Pronoun objects keep obligatory `of`. That literature is not a local TinyDev density measurement.
+

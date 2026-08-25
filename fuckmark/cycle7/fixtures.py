@@ -52,6 +52,16 @@ COORD_COMMA_RICH = (
     "The logs were short but the notes were complete or the run stopped."
 )
 
+CLAUSE_PUNCT_RICH = (
+    "The first replica failed, and the second replica passed; the notes stayed. "
+    "Protocol: The threshold stayed fixed, so the decision remained."
+)
+
+QUANTIFIER_RICH = (
+    "All of the replicas failed and both of these logs were empty. "
+    "Half the notes stayed and all my checks passed."
+)
+
 QUOTE_INTERIOR = 'He answered, "They are not finished and we do not agree."'
 
 AMBIGUOUS_NEGATIVES = (
@@ -92,6 +102,14 @@ def stage_b_fixture_samples() -> tuple[tuple[str, str], ...]:
         ("coord-comma-rich", COORD_COMMA_RICH),
         ("contraction-rich", CONTRACTION_RICH),
         ("contraction-sparse", CONTRACTION_SPARSE),
+    )
+
+
+def stage_c_fixture_samples() -> tuple[tuple[str, str], ...]:
+    return (
+        *stage_b_fixture_samples(),
+        ("clause-punct-rich", CLAUSE_PUNCT_RICH),
+        ("quantifier-rich", QUANTIFIER_RICH),
     )
 
 
