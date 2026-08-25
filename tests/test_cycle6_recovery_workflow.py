@@ -34,6 +34,7 @@ def test_cycle6_recovery_separates_orchestration_and_scientific_checkouts() -> N
     assert "--expected-cross-check-json" in score
     assert "--source-code-commit \"${FROZEN_SOURCE_CODE_COMMIT}\"" in score
     assert "git rev-parse HEAD" not in workflow
+    assert workflow.count("persist-credentials: false") == workflow.count("actions/checkout@v4")
     assert "needs: score" in aggregate
     assert "ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}" in aggregate
     assert "tiny_dev_corpus_hf" not in workflow

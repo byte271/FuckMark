@@ -12,11 +12,17 @@ from fuckmark.experiments.cycle6_confirmation import (
     aggregate_cycle6_confirmation,
     validate_cycle6_confirmation_contract,
 )
+from fuckmark.config import canonical_json_text
+from fuckmark.durable_io import write_canonical_json_fsynced
 from fuckmark.hashing import sha256_json
 from fuckmark.tiny_dev_cycle6_freeze_cross_check import (
     build_cycle6_freeze_cross_check,
 )
-from fuckmark.tiny_dev_cycle6_recovery_manifest import seal_cycle6_recovery_manifest
+from fuckmark.tiny_dev_cycle6_recovery_manifest import (
+    _load_canonical_mapping,
+    main as seal_main,
+    seal_cycle6_recovery_manifest,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -118,3 +124,61 @@ def test_seal_rejects_rehashed_provenance_from_another_orchestration_commit() ->
 
     with pytest.raises(ValueError, match="orchestration provenance drifted"):
         _seal(tuple(tampered))
+
+
+def test_pretty_printed_v2_contract_is_rejected_as_canonical_artifact() -> None:
+    with pytest.raises(ValueError, match="is not canonical JSON"):
+        _load_canonical_mapping(CONTRACT_PATH, name="Cycle 6 contract")
+
+
+def test_seal_cli_accepts_the_pretty_printed_v2_contract(tmp_path: Path) -> None:
+    contract, cross_check, evidence, provenance, aggregate = _chain()
+    assert canonical_json_text(contract) != CONTRACT_PATH.read_text(encoding="utf-8").rstrip("\n")
+
+    cross_check_path = tmp_path / "cross-check.json"
+    aggregate_path = tmp_path / "aggregate.json"
+    output = tmp_path / "recovery-manifest.json"
+    write_canonical_json_fsynced(cross_check_path, cross_check)
+    write_canonical_json_fsynced(aggregate_path, aggregate)
+    evidence_args: list[str] = []
+    provenance_args: list[str] = []
+    source_args: list[str] = []
+    for seed, item, provenance_item in zip(
+        CYCLE6_CONFIRMATION_SEED_BASES, evidence, provenance, strict=True
+    ):
+        evidence_path = tmp_path / f"evidence-{seed}.json"
+        provenance_path = tmp_path / f"provenance-{seed}.json"
+        write_canonical_json_fsynced(evidence_path, item)
+        write_canonical_json_fsynced(provenance_path, provenance_item)
+        evidence_args.extend(["--evidence-json", str(evidence_path)])
+        provenance_args.extend(["--provenance-json", str(provenance_path)])
+        source_args.extend(
+            ["--source-artifact", f"{seed}:{seed}:{sha256_json({'seed': seed})}"]
+        )
+
+    argv = [
+        "--contract-json",
+        str(CONTRACT_PATH),
+        "--cross-check-json",
+        str(cross_check_path),
+        *evidence_args,
+        *provenance_args,
+        "--aggregate-json",
+        str(aggregate_path),
+        "--source-workflow-run-id",
+        "32873260399",
+        "--recovery-workflow-run-id",
+        str(RECOVERY_RUN_ID),
+        *source_args,
+        "--frozen-source-code-commit",
+        FROZEN_COMMIT,
+        "--orchestration-code-commit",
+        ORCHESTRATION_COMMIT,
+        "--json",
+        str(output),
+    ]
+
+    assert seal_main(argv) == 0
+    manifest = json.loads(output.read_text(encoding="utf-8"))
+    assert manifest["formal_outcome"] == "ZERO_RESIDUAL"
+    assert manifest["scientific_source_code_commit"] == FROZEN_COMMIT

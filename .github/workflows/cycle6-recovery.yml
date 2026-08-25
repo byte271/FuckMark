@@ -35,6 +35,7 @@ jobs:
         with:
           ref: ${{ env.ORCHESTRATION_SHA }}
           path: orchestration
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -64,11 +65,13 @@ jobs:
         with:
           ref: ${{ env.ORCHESTRATION_SHA }}
           path: orchestration
+          persist-credentials: false
       - name: Checkout frozen scientific source
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
           path: scientific
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -137,11 +140,13 @@ jobs:
         with:
           ref: ${{ env.ORCHESTRATION_SHA }}
           path: orchestration
+          persist-credentials: false
       - name: Checkout frozen scientific source
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
           path: scientific
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -223,6 +228,7 @@ jobs:
         with:
           ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
           path: scientific
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -255,11 +261,13 @@ jobs:
         with:
           ref: ${{ env.ORCHESTRATION_SHA }}
           path: orchestration
+          persist-credentials: false
       - name: Checkout frozen scientific source
         uses: actions/checkout@v4
         with:
           ref: ${{ env.FROZEN_SOURCE_CODE_COMMIT }}
           path: scientific
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

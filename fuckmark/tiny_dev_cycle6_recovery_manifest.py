@@ -30,6 +30,13 @@ def _require_lower_hex(name: str, value: object, *, length: int) -> str:
     return value
 
 
+def _load_json_mapping(path: Path, *, name: str) -> Mapping[str, object]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, Mapping) or any(not isinstance(key, str) for key in value):
+        raise TypeError(f"{name} must be a string-keyed mapping")
+    return value
+
+
 def _load_canonical_mapping(path: Path, *, name: str) -> Mapping[str, object]:
     text = path.read_text(encoding="utf-8")
     value = json.loads(text)
@@ -254,7 +261,7 @@ def _parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     manifest = seal_cycle6_recovery_manifest(
-        contract=_load_canonical_mapping(args.contract_json, name="Cycle 6 contract"),
+        contract=_load_json_mapping(args.contract_json, name="Cycle 6 contract"),
         cross_check=_load_canonical_mapping(args.cross_check_json, name="cross-check artifact"),
         evidence=tuple(
             _load_canonical_mapping(path, name=f"score evidence {path}")
