@@ -23,10 +23,25 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _validate_output_isolation(
+    public_out: Path,
+    private_out: Path,
+    mechanical_out: Path,
+) -> None:
+    public_parent = public_out.resolve().parent
+    private_parent = private_out.resolve().parent
+    mechanical_parent = mechanical_out.resolve().parent
+    if private_parent in (public_parent, mechanical_parent):
+        raise ValueError(
+            "Cycle 6 private orientation output must use a directory separate from public artifacts"
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     if args.budget != 14:
         raise ValueError("Cycle 6 full fidelity review is frozen at B14")
+    _validate_output_isolation(args.public_out, args.private_out, args.mechanical_out)
 
     from transformers import AutoTokenizer
 
