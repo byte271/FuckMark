@@ -199,8 +199,8 @@ def test_full_fidelity_mechanical_gate_preserves_text_and_exposes_space_collapse
     )
     assert row["mechanical_gate_passed"] is True
     assert row["non_whitespace_text_preserved"] is True
-    assert row["quote_delimiter_sequence_preserved"] is True
-    assert row["repeated_ascii_space_collapse_restores_source"] is True
+    assert row["quote_container_delimiters_untouched"] is True
+    assert row["repeated_ascii_space_collapse_removes_spacing_edits"] is True
 
     rows = []
     for index in range(16):
@@ -216,5 +216,47 @@ def test_full_fidelity_mechanical_gate_preserves_text_and_exposes_space_collapse
         packet_hash=sha256_text("packet"),
     )
     assert report["all_mechanical_gates_passed"] is True
-    assert report["all_outputs_restored_by_repeated_ascii_space_collapse"] is True
+    assert report["all_spacing_edits_removed_by_repeated_ascii_space_collapse"] is True
     assert report["human_review_status"] == "PENDING_INDEPENDENT_HUMAN_REVIEW"
+
+
+def test_full_fidelity_gate_allows_hard_invariant_safe_nonspacing_edits_outside_quotes() -> None:
+    source = 'I do not agree. "It is fine."'
+    contraction_start = source.index("do not")
+    quote_spacing_start = source.index("is", source.index('"'))
+    operations = (
+        SimpleNamespace(
+            source_start=contraction_start,
+            source_end=contraction_start + len("do not"),
+            before_text="do not",
+            after_text="don't",
+            rule_id="contraction-do-not",
+        ),
+        SimpleNamespace(
+            source_start=quote_spacing_start,
+            source_end=quote_spacing_start + len("is"),
+            before_text="is",
+            after_text="is ",
+            rule_id="surface-space-after-is",
+        ),
+    )
+    transformed = 'I don\'t agree. "It is  fine."'
+    row = build_cycle6_fidelity_mechanical_row(
+        sample_index=0,
+        source_text=source,
+        transformed_text=transformed,
+        operations=operations,
+        geometry={
+            "root_window_count": 8,
+            "intact_window_count": 2,
+            "tuple_leak_window_count": 2,
+            "closure_free": False,
+            "budget_exhausted": True,
+        },
+    )
+    assert row["mechanical_gate_passed"] is True
+    assert row["non_whitespace_text_preserved"] is False
+    assert row["spacing_operation_count"] == 1
+    assert row["nonspacing_operation_count"] == 1
+    assert row["quote_operation_count"] == 1
+    assert row["repeated_ascii_space_collapse_removes_spacing_edits"] is True

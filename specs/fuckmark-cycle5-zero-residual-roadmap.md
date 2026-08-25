@@ -303,5 +303,5 @@ the two original residuals. A new workflow now constructs a detector-blind packe
 all sixteen B14 development outputs plus mechanical checks for exact protected content,
 non-whitespace text, quote delimiters, invisible characters, and trace-level one-space
 edits. Independent human review remains mandatory. The adverse repeated-space-collapse
-finding is a gate input, not hidden: canonicalizing repeated ASCII spaces restores every
-Cycle 6 output to its source spacing form.
+finding is a gate input, not hidden: canonicalizing repeated ASCII spaces removes every
+admitted spacing edit, while separately admitted non-spacing operations can remain.
