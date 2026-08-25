@@ -15,16 +15,22 @@ Packet hash:
 Mechanical artifact hash:
 `761aefcc26da4ecb4323b9ef7d0bfd87e6d5730cde95637111849e12f8a66384`
 
+Reviewer-safe GitHub Actions artifact:
+- run: `32868236285`
+- artifact: `9571107294`
+- ZIP digest: `sha256:dab28e09fa6389b90620af547e2b0fcae4b6dccb265a9ea6fb9003aaf82f1a41`
+- source commit: `c7545a8037570c181bc59d26e5262f86232a5ec0`
+
+The safe ZIP contains exactly the public packet and mechanical report. Its public packet
+and mechanical artifact hashes reproduce the frozen values above. The private orientation
+manifest is written outside the public artifact directory and is intentionally not
+published by GitHub Actions. A trusted adjudicator can regenerate it from the frozen packet
+construction inputs after independent reviewer decisions have been collected.
+
 Historical Actions artifact `9552122154` must not be used for independent blinded review:
 it unintentionally bundled the private orientation manifest with the public packet. That
 packaging error does not change the committed public/mechanical payload hashes, but it
-makes that ZIP unsuitable as a blinded distribution artifact.
-
-The corrected workflow writes the private orientation manifest outside the public artifact
-directory and uploads only the public packet plus mechanical report. The private manifest
-is intentionally not published by GitHub Actions. A trusted adjudicator can regenerate it
-from the frozen packet construction inputs after independent reviewer decisions have been
-collected.
+makes that historical ZIP unsuitable as a blinded distribution artifact.
 
 Independent two-reviewer adjudication is pending. Formal detector scoring is not
 authorized until the resulting audit hash is bound into the confirmation contract.
