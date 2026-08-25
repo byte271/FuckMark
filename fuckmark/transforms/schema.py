@@ -41,6 +41,7 @@ class TransformFamily(str, Enum):
 
 class CandidateRejectionReason(str, Enum):
     PROTECTED_OVERLAP = "protected_overlap"
+    QUOTE_POLICY_BLOCKED = "quote_policy_blocked"
     ALL_CAPS_BLOCKED = "all_caps_blocked"
     UNSUPPORTED_CASE = "unsupported_case"
     PRECONDITION_FAILED = "precondition_failed"

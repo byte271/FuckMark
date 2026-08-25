@@ -11,6 +11,13 @@ from .lexical_audit import LexicalRuleAudit, LexicalRulePromotionError
 from .lexical_rules import LexicalTemplateRule, development_lexical_rules
 from .protected import ProtectedSpanExtractor
 from .protected_artifacts import ProtectedSpan, UserProtectedRange
+from .quote_policy import (
+    BLANKET_QUOTE_PROTECTION_POLICY_ID,
+    QUOTE_SAFE_SURFACE_POLICY_ID,
+    is_surface_editable_quotation,
+    is_quote_safe_surface_rule,
+    quotation_spans,
+)
 from .rules import TransformRule, default_contraction_rules, validate_rules
 from .schema import CandidateRejectionReason, InvariantStatus
 from .surface_rules import development_surface_rules
@@ -59,11 +66,29 @@ def _overlapping_spans(spans: tuple[ProtectedSpan, ...], ends: tuple[int, ...], 
 
 
 class TransformRegistry:
-    __slots__ = ("_rules", "_ruleset_hash", "_extractor")
+    __slots__ = ("_rules", "_ruleset_hash", "_extractor", "_quote_policy_id")
 
-    def __init__(self, rules: Sequence[TransformRule], identifiers: Sequence[str] = ()) -> None:
+    def __init__(
+        self,
+        rules: Sequence[TransformRule],
+        identifiers: Sequence[str] = (),
+        *,
+        quote_policy_id: str = BLANKET_QUOTE_PROTECTION_POLICY_ID,
+    ) -> None:
         self._rules = validate_rules(rules)
-        self._ruleset_hash = sha256_json({"algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "rules": self._rules})
+        if quote_policy_id not in (
+            BLANKET_QUOTE_PROTECTION_POLICY_ID,
+            QUOTE_SAFE_SURFACE_POLICY_ID,
+        ):
+            raise ValueError("unsupported quotation protection policy")
+        self._quote_policy_id = quote_policy_id
+        ruleset_payload = {
+            "algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION,
+            "rules": self._rules,
+        }
+        if quote_policy_id != BLANKET_QUOTE_PROTECTION_POLICY_ID:
+            ruleset_payload["quote_policy_id"] = quote_policy_id
+        self._ruleset_hash = sha256_json(ruleset_payload)
         self._extractor = ProtectedSpanExtractor(identifiers)
 
     @property
@@ -78,12 +103,23 @@ class TransformRegistry:
     def identifiers(self) -> tuple[str, ...]:
         return self._extractor.identifiers
 
+    @property
+    def quote_policy_id(self) -> str:
+        return self._quote_policy_id
+
     def enumerate(self, text: str, user_ranges: Sequence[UserProtectedRange] = ()) -> CandidateEnumeration:
         if not isinstance(text, str):
             raise TypeError("text must be a string")
         if len(self._rules) * len(text) > _MAX_RULE_SCAN_WORK:
             raise ValueError("transform rule scanning exceeded work limit")
-        protected = self._extractor.extract(text, user_ranges)
+        quote_safe = self._quote_policy_id == QUOTE_SAFE_SURFACE_POLICY_ID
+        protected = self._extractor.extract(
+            text,
+            user_ranges,
+            include_quotations=not quote_safe,
+        )
+        quotation_manifest = self._extractor.extract(text, include_quotations=True)
+        quotes = quotation_spans(quotation_manifest.spans)
         input_hash = sha256_text(text)
         spans = protected.spans
         span_ends = tuple(span.end for span in spans)
@@ -98,6 +134,28 @@ class TransformRegistry:
                 overlaps = _overlapping_spans(spans, span_ends, start, end)
                 if overlaps:
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.PROTECTED_OVERLAP, tuple(span.span_hash for span in overlaps)))
+                    continue
+                quote_overlaps = tuple(
+                    span for span in quotes if start < span.end and span.start < end
+                )
+                if quote_overlaps and not (
+                    quote_safe
+                    and is_quote_safe_surface_rule(rule)
+                    and len(quote_overlaps) == 1
+                    and is_surface_editable_quotation(quote_overlaps[0])
+                    and start > quote_overlaps[0].start
+                    and end < quote_overlaps[0].end
+                ):
+                    rejections.append(
+                        _make_rejection(
+                            input_hash,
+                            rule,
+                            start,
+                            end,
+                            source_text,
+                            CandidateRejectionReason.QUOTE_POLICY_BLOCKED,
+                        )
+                    )
                     continue
                 letters = "".join(character for character in source_text if character.isalpha())
                 if rule.block_all_caps and letters and letters.isupper():
@@ -176,13 +234,25 @@ class TransformRegistry:
         output_hash = sha256_text(output_text)
         if selected and output_hash == input_hash:
             raise ValueError("non-empty candidate selection produced no net text change")
-        invariant_report = validate_hard_invariants(enumeration.input_text, output_text, self.identifiers, enumeration.protected_manifest.user_ranges)
+        quote_safe = self._quote_policy_id == QUOTE_SAFE_SURFACE_POLICY_ID
+        invariant_report = validate_hard_invariants(
+            enumeration.input_text,
+            output_text,
+            self.identifiers,
+            enumeration.protected_manifest.user_ranges,
+            include_quotations=not quote_safe,
+        )
         if invariant_report.status is not InvariantStatus.PASS:
             raise ValueError("transformation violated hard content invariants")
         selected_tuple = tuple(selected_ids)
         operation_tuple = tuple(operations)
-        trace_payload = {"algorithm_version": TRANSFORM_APPLY_ALGORITHM_VERSION, "registry_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "selection_policy_id": "explicit-candidate-ids-v4", "seed": seed, "input_hash": input_hash, "output_hash": output_hash, "ruleset_hash": self._ruleset_hash, "enumeration_hash": enumeration.enumeration_hash, "selected_candidate_ids": selected_tuple, "operations": operation_tuple, "precondition_failures": enumeration.rejections, "protected_span_violation_count": 0, "invariant_report": invariant_report}
-        trace = TransformationTrace(TRANSFORM_APPLY_ALGORITHM_VERSION, TRANSFORM_REGISTRY_ALGORITHM_VERSION, "explicit-candidate-ids-v4", seed, input_hash, output_hash, self._ruleset_hash, enumeration.enumeration_hash, selected_tuple, operation_tuple, enumeration.rejections, 0, invariant_report, sha256_json(trace_payload))
+        selection_policy_id = (
+            "explicit-candidate-ids-v4"
+            if not quote_safe
+            else "explicit-candidate-ids-v4:quote-container-surface-spacing-v1"
+        )
+        trace_payload = {"algorithm_version": TRANSFORM_APPLY_ALGORITHM_VERSION, "registry_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "selection_policy_id": selection_policy_id, "seed": seed, "input_hash": input_hash, "output_hash": output_hash, "ruleset_hash": self._ruleset_hash, "enumeration_hash": enumeration.enumeration_hash, "selected_candidate_ids": selected_tuple, "operations": operation_tuple, "precondition_failures": enumeration.rejections, "protected_span_violation_count": 0, "invariant_report": invariant_report}
+        trace = TransformationTrace(TRANSFORM_APPLY_ALGORITHM_VERSION, TRANSFORM_REGISTRY_ALGORITHM_VERSION, selection_policy_id, seed, input_hash, output_hash, self._ruleset_hash, enumeration.enumeration_hash, selected_tuple, operation_tuple, enumeration.rejections, 0, invariant_report, sha256_json(trace_payload))
         return TransformResult(output_text, trace, sha256_json({"output_text": output_text, "trace": trace}))
 
 

@@ -132,7 +132,13 @@ class ProtectedSpanExtractor:
     def identifiers(self) -> tuple[str, ...]:
         return self._identifiers
 
-    def extract(self, text: str, user_ranges: Sequence[UserProtectedRange] = ()) -> ProtectedSpanManifest:
+    def extract(
+        self,
+        text: str,
+        user_ranges: Sequence[UserProtectedRange] = (),
+        *,
+        include_quotations: bool = True,
+    ) -> ProtectedSpanManifest:
         if not isinstance(text, str):
             raise TypeError("text must be a string")
         if not isinstance(user_ranges, Sequence) or isinstance(user_ranges, (str, bytes, bytearray)):
@@ -161,9 +167,10 @@ class ProtectedSpanExtractor:
         _add_regex(raw, text, _CURRENCY_RE, ProtectedSpanKind.CURRENCY)
         _add_regex(raw, text, _PERCENT_RE, ProtectedSpanKind.PERCENTAGE)
         _add_regex(raw, text, _NUMBER_RE, ProtectedSpanKind.NUMBER)
-        _add_double_quotations(raw, text)
-        _add_regex(raw, text, _CURLY_SINGLE_QUOTE_RE, ProtectedSpanKind.QUOTATION)
-        _add_regex(raw, text, _STRAIGHT_SINGLE_QUOTE_RE, ProtectedSpanKind.QUOTATION)
+        if include_quotations:
+            _add_double_quotations(raw, text)
+            _add_regex(raw, text, _CURLY_SINGLE_QUOTE_RE, ProtectedSpanKind.QUOTATION)
+            _add_regex(raw, text, _STRAIGHT_SINGLE_QUOTE_RE, ProtectedSpanKind.QUOTATION)
         _add_posix_paths(raw, text)
         _add_extended_posix_paths(raw, text)
         _add_windows_paths(raw, text)
@@ -180,5 +187,10 @@ class ProtectedSpanExtractor:
             _append(raw, value.start, value.end, ProtectedSpanKind.USER_MARKED_ENTITY)
         spans = _merge_spans(text, raw)
         input_hash = sha256_text(text)
-        payload = {"algorithm_version": PROTECTED_SPAN_ALGORITHM_VERSION, "input_hash": input_hash, "identifiers": self._identifiers, "user_ranges": ranges, "spans": spans}
-        return ProtectedSpanManifest(PROTECTED_SPAN_ALGORITHM_VERSION, input_hash, self._identifiers, ranges, spans, sha256_json(payload))
+        algorithm_version = (
+            PROTECTED_SPAN_ALGORITHM_VERSION
+            if include_quotations
+            else PROTECTED_SPAN_ALGORITHM_VERSION + "-exact-content-without-quote-containers"
+        )
+        payload = {"algorithm_version": algorithm_version, "input_hash": input_hash, "identifiers": self._identifiers, "user_ranges": ranges, "spans": spans}
+        return ProtectedSpanManifest(algorithm_version, input_hash, self._identifiers, ranges, spans, sha256_json(payload))

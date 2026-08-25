@@ -7,6 +7,7 @@ from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateRejection
 from .hard_invariants import HardInvariantReport, hard_invariant_signature
 from .invariants import validate_protected_invariants
+from .quote_policy import validate_quote_safe_surface_operations
 from .schema import InvariantStatus
 
 @dataclass(frozen=True, slots=True)
@@ -187,7 +188,16 @@ class TransformResult:
             raise ValueError("trace original hard-invariant signature does not match reconstructed input")
         if hard_invariant_signature(self.output_text) != self.trace.invariant_report.transformed_signature:
             raise ValueError("trace transformed hard-invariant signature does not match output_text")
-        if validate_protected_invariants(reconstructed_input, self.output_text).status is not InvariantStatus.PASS:
+        quote_safe = self.trace.selection_policy_id.endswith(
+            ":quote-container-surface-spacing-v1"
+        )
+        if quote_safe:
+            validate_quote_safe_surface_operations(reconstructed_input, self.trace.operations)
+        if validate_protected_invariants(
+            reconstructed_input,
+            self.output_text,
+            include_quotations=not quote_safe,
+        ).status is not InvariantStatus.PASS:
             raise ValueError("transform result violates default protected-content invariants")
         require_sha256("result_hash", self.result_hash)
         if self.result_hash != sha256_json({"output_text": self.output_text, "trace": self.trace}):

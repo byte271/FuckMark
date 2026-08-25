@@ -150,10 +150,23 @@ def hard_invariant_signature(text: str) -> HardInvariantSignature:
     return HardInvariantSignature(negation_tuple, modality_tuple, sha256_json({"algorithm_version": HARD_INVARIANT_ALGORITHM_VERSION, "negations": negation_tuple, "modalities": modality_tuple}))
 
 
-def validate_hard_invariants(original: str, transformed: str, identifiers: Sequence[str] = (), user_ranges: Sequence[UserProtectedRange] = ()) -> HardInvariantReport:
+def validate_hard_invariants(
+    original: str,
+    transformed: str,
+    identifiers: Sequence[str] = (),
+    user_ranges: Sequence[UserProtectedRange] = (),
+    *,
+    include_quotations: bool = True,
+) -> HardInvariantReport:
     if not isinstance(original, str) or not isinstance(transformed, str):
         raise TypeError("original and transformed must be strings")
-    protected_report = validate_protected_invariants(original, transformed, identifiers, user_ranges)
+    protected_report = validate_protected_invariants(
+        original,
+        transformed,
+        identifiers,
+        user_ranges,
+        include_quotations=include_quotations,
+    )
     original_signature = hard_invariant_signature(original)
     transformed_signature = hard_invariant_signature(transformed)
     reasons = []
