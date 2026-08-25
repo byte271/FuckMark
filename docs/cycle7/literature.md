@@ -53,5 +53,5 @@ EXTERNAL-VALIDATION-ONLY. Cambridge English Grammar Today: `all`, `both`, and `h
 
 HYPOTHESIS. Clause commas are much more common than sentence terminals on ordinary prose, so Family 10 should raise layout-channel density relative to Family 4 alone. Stage C on seed `870000` measured mean 1.50 clause sites and did not escape the four-site regime. VERIFIED on that seed only.
 
-HYPOTHESIS. Replacing ordinary word-boundary U+0020 with LF is the collapse-resistant analogue of Cycle 6 general word spacing. `whitespace-collapse-v1` preserves LF, so the token change should remain after that sanitizer. Whether 14 such wraps destroy enough GPT-2 n-gram windows on TinyDev 64-token text is a Stage D measurement, not a theorem. HYPOTHESIS: a wrap/reflow sanitizer would erase it.
+HYPOTHESIS. Replacing ordinary word-boundary U+0020 with LF is the collapse-resistant analogue of Cycle 6 general word spacing. `whitespace-collapse-v1` preserves LF, so the token change remains after that sanitizer. VERIFIED on seeds `890000` and `880000` under catalog v5: mean wrap-site density 33.375 and 37.875, collapsed intact/root 0.164 and 0.080, durable detections 0/4 after collapse on both n=4 snapshots, Cycle 6 spacing 3/4 and 4/4 after collapse. That is development evidence, not 192-row confirmation. HYPOTHESIS: a wrap/reflow sanitizer would erase it.
 

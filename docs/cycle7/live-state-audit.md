@@ -76,5 +76,5 @@ Open PR after the merge: [#97](https://github.com/byte271/FuckMark/pull/97) (`cu
 
 Stage C1 on seed `870000` was `INSUFFICIENT_EVIDENCE` (mean durable candidates 4.75; durable detector 3/4 after collapse). Seed `880000` was not inspected.
 
-Stage D continues on branch `cursor/cycle7-stage-d-wrap-3fb1` from this `main`, with exploratory seed `890000` and topic `document structure` frozen before generation.
+Stage D continues on branch `cursor/cycle7-stage-d-wrap-3fb1` from this `main`, with exploratory seed `890000` and topic `document structure` frozen before generation. Disjoint validation seed `880000` / topic `independent check` was scored after catalog v5 was frozen and is now used. Confirmation seeds `830000` / `840000` / `850000` were not inspected.
 

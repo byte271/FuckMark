@@ -7,6 +7,7 @@ from fuckmark.cycle7.durable_rules import (
 )
 from fuckmark.cycle7.fixtures import WORD_BOUNDARY_RICH, stage_d_fixture_samples
 from fuckmark.cycle7.ledger import (
+    CYCLE7_EXPLORATORY_ROLE,
     CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE,
     CYCLE7_STAGE_D1_TOPIC,
     CYCLE7_STAGE_C_VALIDATION_SEED_BASE,
@@ -41,7 +42,9 @@ def test_stage_d_ledger_identities_are_frozen_before_inspection() -> None:
     assert CYCLE7_STAGE_D1_TOPIC == "document structure"
     assert CYCLE7_STAGE_C_VALIDATION_SEED_BASE == 880000
     assert CYCLE7_STAGE_C_VALIDATION_TOPIC == "independent check"
-    assert_rule_construction_seed(890000)
+    with pytest.raises(ValueError, match="rule-construction"):
+        assert_rule_construction_seed(890000)
+    assert_development_seed(CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
     assert_development_seed(CYCLE7_STAGE_C_VALIDATION_SEED_BASE, role=CYCLE7_VALIDATION_ROLE)
 
 
