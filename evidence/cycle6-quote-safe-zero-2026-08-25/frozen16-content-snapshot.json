@@ -1,0 +1,126 @@
+{
+ "algorithm_version": "cycle6-frozen-content-snapshot-v1",
+ "source_container_hash": "2cbb8483fcfcc1be55c7f0a436aa3664fa3b6c50654ddaa63fd615964434d1dd",
+ "content_hash": "b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3",
+ "model": "openai-community/gpt2",
+ "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+ "seed_base": 720000,
+ "prompt_count": 16,
+ "sample_count": 16,
+ "generation_note": "single-process generation; cross-process byte-reproducibility is NOT claimed",
+ "samples": [
+  {
+   "index": 0,
+   "domain": "general_explanatory",
+   "seed": 720001,
+   "text": " You can find more information about the circadian clock and how it affects your sleep schedules on the site.\n\nSleep schedule, sleep deprivation and sleep apnea\n\nSleep deprivation may cause fatigue and insomnia, as well as other symptoms of sleep apnea. The exact causes of sleep apnea can vary by individual person.",
+   "text_sha256": "52239c3fed1e912e10281abf01bacb40c1bbe8a91e651f7bbfbb3bdf37c5a073"
+  },
+  {
+   "index": 1,
+   "domain": "technical_explanation",
+   "seed": 720002,
+   "text": " (Photo: The Tennessean)\n\nThe refrigerator in question is a compressor that uses a liquid-cooled gas to cool down a large freezer.\n\nWhen the compressor is running, the liquid is pushed through a valve on the back of the refrigerator's main cooling system, then pulled out through a sliding",
+   "text_sha256": "bcddb49bc2cef7187f083af98ab5ca68c11bd76eadc58c85deee7488279e0b6e"
+  },
+  {
+   "index": 2,
+   "domain": "conversational_prose",
+   "seed": 720003,
+   "text": " What do you do every day?\n\nMy favorite way to spend a rainy afternoon is sitting in the shower with my hands over my head. I usually start with a light shower and then finish with a warm bath. But after I've sat in the shower for a while, I like to switch to a warm bath",
+   "text_sha256": "055a0fb09ad5d1ec9b913f57f746be09859faec56bc801721d83628b79db8660"
+  },
+  {
+   "index": 3,
+   "domain": "structured_instructional",
+   "seed": 720004,
+   "text": "\n\nSell your orchid for a reduced charge.\n\nRinse the orchid thoroughly.\n\nMake sure that the soil is moist.\n\nSpray the orchid with a low pH solution (3.0 for most plants).\n\nCheck that all the roots are healthy.\n\nTry",
+   "text_sha256": "ff9af770baeedb01ec8406d7fa5d6be8fc2756188780f4ba4a591ed7f66f8baf"
+  },
+  {
+   "index": 4,
+   "domain": "general_explanatory",
+   "seed": 720005,
+   "text": " In this episode we look at some of the best booksellers on the market, what is their library policy, and how to get on the list. Free View in iTunes\n\n4 Clean Ep. 10 \u2013 How to get on the list? What are libraries doing to help you with your library membership? This week",
+   "text_sha256": "494261a4a10647ff9a1d68c0a18ba7874a809e14d0c733cdfde2cdf2d0199dd2"
+  },
+  {
+   "index": 5,
+   "domain": "technical_explanation",
+   "seed": 720006,
+   "text": " What happens when it runs.\n\nWhat happens when you're wearing a microwave oven and a piece of your skin is being subjected to heat and light.\n\nWhat happens when you're wearing a microwave oven with a piece of your body exposed to microwaves (e.g., your arm, your head, your",
+   "text_sha256": "9f8cc192e41b6783bc68c393cc424d4a138d91d7257a2c63aac0a75b31f20f3d"
+  },
+  {
+   "index": 6,
+   "domain": "conversational_prose",
+   "seed": 720007,
+   "text": "\n\nThis is a good question, because it tells us that we need to be able to talk about how we can improve our lives. The question, however, is: how do we start to talk about this stuff in a real way, instead of using the word \"experience\"?\n\nMy answer is that",
+   "text_sha256": "6624d6e7996c3a2a40b5ccc2776ac5e809714dadb8acd31d72d09bc4e0f0637d"
+  },
+  {
+   "index": 7,
+   "domain": "structured_instructional",
+   "seed": 720008,
+   "text": " For starters, make sure you have a safe place to store and move your furniture.\n\nBe careful not to take too much furniture out in your home, as that could lead to mold. But consider building a safe space if you can.\n\nConsider adding a couch or bed to your living room if you can",
+   "text_sha256": "8c800ddf06f056df15a8351cbe668b1d2762ba23354e20c9878dbfb44b08e155"
+  },
+  {
+   "index": 8,
+   "domain": "general_explanatory",
+   "seed": 720009,
+   "text": " For instance, there is an increase in the frequency of migrations from sub-Saharan Africa to Europe, and from Asia to Europe.\n\n\"If you take the migration from sub-Saharan Africa to Europe and the sub-Saharan migration from Asia to Europe, then it is very different from the migration from Asia to",
+   "text_sha256": "ca2eced35472396610be467ed4f952a00c4ea6cbf0f75dfd83b5308a1f553023"
+  },
+  {
+   "index": 9,
+   "domain": "technical_explanation",
+   "seed": 720010,
+   "text": "\n\nUse a water tower to hold a liquid while it's falling off of a hill.\n\nUse a water tower to hold water on top of a waterfall.\n\nUse a water tower to hold water on top of a tower of trees.\n\nUse water towers to hold water on top of a waterfall",
+   "text_sha256": "5d30ecbc13519196c39be2df4189d9dc54b8e933886946b6ebc061e455e26ab6"
+  },
+  {
+   "index": 10,
+   "domain": "conversational_prose",
+   "seed": 720011,
+   "text": "\n\n\"Being a bike enthusiast is like being a kid and learning to ride a bicycle is like learning how to ride a car,\" said Lacey. \"It is a lot of fun and it is a lot of fun to learn to ride a bike. It was an experience that really came to me when I was",
+   "text_sha256": "8fe9d828a4298a092e8ca6cccc6e1d18ed367afb75d83cfa7f8ab8845ff3215b"
+  },
+  {
+   "index": 11,
+   "domain": "structured_instructional",
+   "seed": 720012,
+   "text": "\n\n(Visited 2,543 times, 1 visits today)\n\nQ: What happens if the photo is not safe?\n\nA: The safety standards are the same for hanging pictures on the wall. A good rule of thumb is to hang a picture in front of your face on a flat surface",
+   "text_sha256": "f0d6d9a847025ffdc141cf90c951919996eef2891ecab5cb0b5faea4c51eb961"
+  },
+  {
+   "index": 12,
+   "domain": "general_explanatory",
+   "seed": 720013,
+   "text": "\n\nSustainable farming is becoming increasingly popular across the country. In some states, the only viable alternative is to produce crops that are grown at higher temperatures and under more direct management.\n\nSustainable farming has become increasingly popular across the country. In some states, the only viable alternative is to produce crops that are",
+   "text_sha256": "7f3fd8a22ad0946c7800c6bcbddcee532644802aafb78598ff9ef7d104f3b72c"
+  },
+  {
+   "index": 13,
+   "domain": "technical_explanation",
+   "seed": 720014,
+   "text": " (It is necessary to understand that if you are standing in a corner, your floor is in the middle of the corridor, and you are not supposed to stand in the middle of the corridor, you cannot have stairs.)\n\nNote:\n\nAs the example above shows, elevators can be used with elevators",
+   "text_sha256": "dcba92cd1c48d8b52b9b3ed316ecda54d91c93e1a61199ea345d4c67ef2b0e7c"
+  },
+  {
+   "index": 14,
+   "domain": "conversational_prose",
+   "seed": 720015,
+   "text": " You'll also notice that you'll get the occasional call from a friend who's living in the same time zone.\n\nYou can also find yourself on the front line of a new project when your friends are out and about. Find out if your friends are on your phone and take a look at what they're saying",
+   "text_sha256": "d30bf8ad0954993e2ba21604c1586e5279703eae65baaf4e59daeb7010eb30d8"
+  },
+  {
+   "index": 15,
+   "domain": "structured_instructional",
+   "seed": 720016,
+   "text": " This ensures they are always clean and sanitary.\n\nWhen installing new boots on winter boots you can use a few methods:\n\nUse a spring lock or a zip ties.\n\nUse a spring lock or a zip ties. Use a zipper or a lanyard.\n\nUse a spring lock or",
+   "text_sha256": "27437e3ea5d1e571f3b25f131f66a3e844dd24b0ec0d74e332d1cdc85e1a667f"
+  }
+ ],
+ "snapshot_hash": "cb3ae6f7c8473459fdf86f056d4386f0fe861b92a03c87c20a1c62528ed7b781"
+}

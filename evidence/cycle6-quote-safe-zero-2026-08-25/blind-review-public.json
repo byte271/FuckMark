@@ -1,0 +1,22 @@
+{
+ "algorithm_version": "blind-fidelity-review-packet-v1",
+ "review_policy_id": "blind-two-reviewer-tiebreak-v1",
+ "packet_hash": "4b135e8b6906b018b80a6b57a7a3b5b1adf9ff34c57f15847a2338edebb8301e",
+ "items": [
+  {
+   "item_id": "d33c9d3ddea7a81eb20657078320bb07dce074100c2813d04e9354d97f9f529c",
+   "text_a": "\n\n\"Being  a bike enthusiast is like  being a kid and learning to  ride a bicycle  is like learning how  to ride a car,\" said  Lacey.  \"It is a  lot of fun and  it is a lot  of fun to learn  to ride a bike.  It was an  experience that really came  to me when I was",
+   "text_b": "\n\n\"Being a bike enthusiast is like being a kid and learning to ride a bicycle is like learning how to ride a car,\" said Lacey. \"It is a lot of fun and it is a lot of fun to learn to ride a bike. It was an experience that really came to me when I was",
+   "item_hash": "c79d8677ecf102bed76791175b733b7fc3ec27b6b4a24f55e1a7e63d6f48ae14"
+  },
+  {
+   "item_id": "0922c0c0684beecec9608b0becd42b76432d57f69d725460e36178168279399c",
+   "text_a": " For instance,  there is an  increase in the  frequency of migrations  from sub-Saharan Africa to  Europe,  and from Asia  to Europe.\n\n\"If  you take the  migration from sub-Saharan Africa to Europe and the  sub-Saharan migration  from Asia to Europe,  then it  is very different from  the migration from Asia to",
+   "text_b": " For instance, there is an increase in the frequency of migrations from sub-Saharan Africa to Europe, and from Asia to Europe.\n\n\"If you take the migration from sub-Saharan Africa to Europe and the sub-Saharan migration from Asia to Europe, then it is very different from the migration from Asia to",
+   "item_hash": "8299b5992067746370ea0b30022c579915c07c508713a04f2b3bb4b8f485c062"
+  }
+ ],
+ "status": "PENDING_INDEPENDENT_HUMAN_REVIEW",
+ "scope": "quote-interior surface-spacing residuals only",
+ "detector_results_disclosed": false
+}

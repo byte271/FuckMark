@@ -1,0 +1,18 @@
+{
+  "algorithm_version": "cycle6-fixed-budget-ablation-v1",
+  "source_corpus_content_hash": "b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3",
+  "threshold": 0.5570987654320988,
+  "registry": "quote-safe-zrd",
+  "scheduler": "cover-greedy-key-blind-v4",
+  "candidate_ranking_detector_blind": true,
+  "rows": [
+    {"budget": 10, "detected": 3, "mean_score": 0.533662, "result_hash": "783cff60f3738811e74dcba6abf91a17323dcb7a497aaa93ede3b84bd7771637"},
+    {"budget": 12, "detected": 1, "mean_score": 0.521833, "result_hash": "963deeb61503e49c7e830f41c0ad0eba8d27712af4ad983f5778bd1b6c1583f3"},
+    {"budget": 13, "detected": 1, "mean_score": 0.517511, "result_hash": "275bcb3887f15a9e656d44491f4228e3931f5c9649ee22f36ad4b61aa60a9bb6"},
+    {"budget": 14, "detected": 0, "mean_score": 0.512508, "result_hash": "73f44b173d7ec55ea80e7d2e9a46b7ea70d8b32682f465dc66643387d99aa8b6"},
+    {"budget": 15, "detected": 0, "mean_score": 0.511756, "result_hash": "4e26fb6f96c905c87d0883b8a1e42c3c1127ffe9ae3b76caff7ab4c3f892ed3f"},
+    {"budget": 16, "detected": 0, "mean_score": 0.510771, "result_hash": "2e1bcf862bfa0d24423ac5f2d8bca6374e3d72020fc9f092e91f5d4f7d66152c"}
+  ],
+  "selected_budget": 14,
+  "selection_note": "Minimum tested integer budget reaching 0/16 on frozen development data; the disjoint corpus was scored only after this budget was frozen."
+}

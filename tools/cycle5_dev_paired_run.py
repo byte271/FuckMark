@@ -10,6 +10,8 @@ from pathlib import Path
 
 sys.path.insert(0, ".")
 
+from fuckmark.hashing import sha256_json
+
 PROMPTS = (
     ("general_explanatory", "Explain why regular sleep schedules matter for concentration."),
     ("technical_explanation", "Describe how a refrigerator keeps food cold using a compressor."),
@@ -50,8 +52,35 @@ def sanitizer_variants(text: str) -> dict[str, str]:
     }
 
 
+def corpus_content_payload(corpus: dict[str, object]) -> dict[str, object]:
+    return {
+        key: value
+        for key, value in corpus.items()
+        if key not in ("recorded_at_utc", "corpus_hash", "content_hash")
+    }
+
+
+def scored_result_payload(artifact: dict[str, object]) -> dict[str, object]:
+    return {
+        key: value
+        for key, value in artifact.items()
+        if key not in ("recorded_at_utc", "artifact_hash", "result_hash")
+    }
+
+
 def _load_texts(args, tokenizer) -> list[dict[str, object]]:
     corpus = json.loads(Path(args.corpus).read_text(encoding="utf-8"))
+    legacy_payload = {
+        key: value
+        for key, value in corpus.items()
+        if key not in ("corpus_hash", "content_hash")
+    }
+    if corpus.get("corpus_hash") != sha256_json(legacy_payload):
+        raise ValueError("frozen corpus hash does not match its payload")
+    if "content_hash" in corpus and corpus["content_hash"] != sha256_json(
+        corpus_content_payload(corpus)
+    ):
+        raise ValueError("frozen corpus content hash does not match its scientific payload")
     if corpus.get("prompt_count") != len(PROMPTS[: args.samples]):
         raise ValueError("corpus does not bind this prompt set")
     if corpus.get("seed_base") != args.seed_base:
@@ -75,7 +104,12 @@ def main() -> int:
     parser.add_argument("--budget", type=int, default=16)
     parser.add_argument("--seed-base", type=int, default=710_000)
     parser.add_argument("--threshold", type=float, default=0.5570987654320988)
-    parser.add_argument("--registry", type=str, choices=("coverage", "zrd"), default="coverage")
+    parser.add_argument(
+        "--registry",
+        type=str,
+        choices=("coverage", "zrd", "quote-safe-zrd"),
+        default="coverage",
+    )
     parser.add_argument("--corpus", type=str, default=None)
     parser.add_argument("--generate-only", action="store_true")
     parser.add_argument("--out", type=str, default="artifacts/cycle5-dev-paired-run.json")
@@ -95,7 +129,10 @@ def main() -> int:
     from fuckmark.native_observations import build_native_observations
     from fuckmark.tiny_dev_context_survival_plan_hf import runtime_tokenizer_identity_public
     from fuckmark.transforms import content_region_coverage_transform_registry
-    from fuckmark.transforms.effectiveness_profile import zrd_destruction_transform_registry
+    from fuckmark.transforms.effectiveness_profile import (
+        quote_safe_zrd_transform_registry,
+        zrd_destruction_transform_registry,
+    )
 
     model_id = "openai-community/gpt2"
     model_revision = "607a30d783dfa663caf39e06633721c8d4cfcd7e"
@@ -151,6 +188,7 @@ def main() -> int:
             "samples": samples,
         }
         artifact["corpus_hash"] = sha256_json({k: v for k, v in artifact.items() if k != "corpus_hash"})
+        artifact["content_hash"] = sha256_json(corpus_content_payload(artifact))
         out_path = Path(args.out)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(json.dumps(artifact, indent=1) + "\n", encoding="utf-8")
@@ -178,7 +216,12 @@ def main() -> int:
         config=geometry_config,
         eligibility_policy=repetition.eligibility_policy,
     )
-    registry = zrd_destruction_transform_registry() if args.registry == "zrd" else content_region_coverage_transform_registry()
+    if args.registry == "quote-safe-zrd":
+        registry = quote_safe_zrd_transform_registry()
+    elif args.registry == "zrd":
+        registry = zrd_destruction_transform_registry()
+    else:
+        registry = content_region_coverage_transform_registry()
 
     def score_text(sample_id: str, text: str) -> float:
         tokens = encode(tokenizer, text)
@@ -288,6 +331,7 @@ def main() -> int:
         "rows": rows,
     }
     artifact["artifact_hash"] = sha256_json({k: v for k, v in artifact.items() if k != "artifact_hash"})
+    artifact["result_hash"] = sha256_json(scored_result_payload(artifact))
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(artifact, indent=1) + "\n", encoding="utf-8")

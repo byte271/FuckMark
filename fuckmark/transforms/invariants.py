@@ -18,13 +18,27 @@ def _invariant_counter(manifest: ProtectedSpanManifest) -> Counter[tuple[str, st
     return counter
 
 
-def validate_protected_invariants(original: str, transformed: str, identifiers: Sequence[str] = (), user_ranges: Sequence[UserProtectedRange] = ()) -> ProtectedInvariantReport:
+def validate_protected_invariants(
+    original: str,
+    transformed: str,
+    identifiers: Sequence[str] = (),
+    user_ranges: Sequence[UserProtectedRange] = (),
+    *,
+    include_quotations: bool = True,
+) -> ProtectedInvariantReport:
     if not isinstance(original, str) or not isinstance(transformed, str):
         raise TypeError("original and transformed must be strings")
     materialized_ranges = tuple(user_ranges)
     extractor = ProtectedSpanExtractor(identifiers)
-    original_manifest = extractor.extract(original, materialized_ranges)
-    transformed_manifest = extractor.extract(transformed)
+    original_manifest = extractor.extract(
+        original,
+        materialized_ranges,
+        include_quotations=include_quotations,
+    )
+    transformed_manifest = extractor.extract(
+        transformed,
+        include_quotations=include_quotations,
+    )
     original_counter = _invariant_counter(original_manifest)
     transformed_counter = _invariant_counter(transformed_manifest)
     user_texts = tuple(original[value.start:value.end] for value in original_manifest.user_ranges)

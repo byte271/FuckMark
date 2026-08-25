@@ -483,6 +483,25 @@ def zrd_destruction_transform_registry(
     )
 
 
+def quote_safe_zrd_transform_registry(
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    from .contractions import zrd_forward_contraction_extension_rules
+    from .quote_policy import QUOTE_SAFE_SURFACE_POLICY_ID
+
+    return TransformRegistry(
+        (
+            *development_forward_contraction_rules(),
+            *zrd_forward_contraction_extension_rules(),
+            *content_region_destruction_surface_rules(),
+            *development_lexical_rules(),
+            *development_syntax_rules(),
+        ),
+        identifiers,
+        quote_policy_id=QUOTE_SAFE_SURFACE_POLICY_ID,
+    )
+
+
 def zrd_destruction_profile(budgets: tuple[int, ...]) -> EffectivenessTransformProfile:
     if not isinstance(budgets, tuple):
         raise TypeError("budgets must be a tuple")

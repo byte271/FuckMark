@@ -1,0 +1,1020 @@
+{
+ "algorithm_version": "cycle5-dev-paired-scored-v2",
+ "recorded_at_utc": "2026-08-25T02:07:35.955017+00:00",
+ "model": "openai-community/gpt2",
+ "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",
+ "frozen_corpus": "cycle5-fresh16-corpus.json",
+ "registry": "quote-safe-zrd",
+ "budget": 14,
+ "threshold": 0.5570987654320988,
+ "threshold_note": "frozen confirmation measurement identity; unchanged",
+ "row_count": 16,
+ "summary": {
+  "v3": {
+   "detected": 0,
+   "mean_score": 0.515395,
+   "mean_drop": 0.114199,
+   "mean_selected": 13.94,
+   "closure_free_rate": 0.0,
+   "sanitizer_detection_counts": {
+    "raw": 0,
+    "nfkc": 0,
+    "cf_strip": 0,
+    "combined": 0
+   }
+  },
+  "v4": {
+   "detected": 0,
+   "mean_score": 0.512508,
+   "mean_drop": 0.117086,
+   "mean_selected": 14,
+   "closure_free_rate": 0.0,
+   "sanitizer_detection_counts": {
+    "raw": 0,
+    "nfkc": 0,
+    "cf_strip": 0,
+    "combined": 0
+   }
+  }
+ },
+ "rows": [
+  {
+   "index": 0,
+   "domain": "general_explanatory",
+   "seed": 720001,
+   "text_sha256": "52239c3fed1e912e",
+   "pristine_score": 0.619286,
+   "v3": {
+    "score": 0.515868,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 10,
+    "closure_leaks": 10,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.515868,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 10,
+    "closure_leaks": 10,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.515868,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.515868,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.515868,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.515868,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.515868,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.515868,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.515868,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.515868,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 1,
+   "domain": "technical_explanation",
+   "seed": 720002,
+   "text_sha256": "bcddb49bc2cef718",
+   "pristine_score": 0.625758,
+   "v3": {
+    "score": 0.536719,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 11,
+    "closure_leaks": 11,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.536719,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 11,
+    "closure_leaks": 11,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.536719,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.536719,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.536719,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.536719,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.536719,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.536719,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.536719,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.536719,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 2,
+   "domain": "conversational_prose",
+   "seed": 720003,
+   "text_sha256": "055a0fb09ad5d1ec",
+   "pristine_score": 0.59335,
+   "v3": {
+    "score": 0.527675,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 9,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.527675,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 9,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.527675,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.527675,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.527675,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.527675,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.527675,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.527675,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.527675,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.527675,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 3,
+   "domain": "structured_instructional",
+   "seed": 720004,
+   "text_sha256": "ff9af770baeedb01",
+   "pristine_score": 0.597348,
+   "v3": {
+    "score": 0.50819,
+    "selected": 14,
+    "repair_used": 2,
+    "intact_windows": 17,
+    "closure_leaks": 17,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.50819,
+    "selected": 14,
+    "repair_used": 2,
+    "intact_windows": 17,
+    "closure_leaks": 17,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.50819,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.50819,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.50819,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.50819,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.50819,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.50819,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.50819,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.50819,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 4,
+   "domain": "general_explanatory",
+   "seed": 720005,
+   "text_sha256": "494261a4a10647ff",
+   "pristine_score": 0.621212,
+   "v3": {
+    "score": 0.495021,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 8,
+    "closure_leaks": 8,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.495021,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 8,
+    "closure_leaks": 8,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.495021,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.495021,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.495021,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.495021,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.495021,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.495021,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.495021,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.495021,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 5,
+   "domain": "technical_explanation",
+   "seed": 720006,
+   "text_sha256": "9f8cc192e41b6783",
+   "pristine_score": 0.628333,
+   "v3": {
+    "score": 0.483831,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 6,
+    "closure_leaks": 14,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.486953,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 8,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.483831,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.483831,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.483831,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.483831,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.486953,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.486953,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.486953,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.486953,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 6,
+   "domain": "conversational_prose",
+   "seed": 720007,
+   "text_sha256": "6624d6e7996c3a2a",
+   "pristine_score": 0.648906,
+   "v3": {
+    "score": 0.544363,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 9,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.544363,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 9,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.544363,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.544363,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.544363,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.544363,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.544363,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.544363,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.544363,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.544363,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 7,
+   "domain": "structured_instructional",
+   "seed": 720008,
+   "text_sha256": "8c800ddf06f056df",
+   "pristine_score": 0.654756,
+   "v3": {
+    "score": 0.519076,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 10,
+    "closure_leaks": 10,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.519076,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 10,
+    "closure_leaks": 10,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.519076,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.519076,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.519076,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.519076,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.519076,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.519076,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.519076,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.519076,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 8,
+   "domain": "general_explanatory",
+   "seed": 720009,
+   "text_sha256": "ca2eced354723966",
+   "pristine_score": 0.629982,
+   "v3": {
+    "score": 0.510883,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 8,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.510883,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 8,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.510883,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.510883,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.510883,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.510883,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.510883,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.510883,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.510883,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.510883,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 9,
+   "domain": "technical_explanation",
+   "seed": 720010,
+   "text_sha256": "5d30ecbc13519196",
+   "pristine_score": 0.590909,
+   "v3": {
+    "score": 0.527462,
+    "selected": 14,
+    "repair_used": 6,
+    "intact_windows": 4,
+    "closure_leaks": 14,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.518434,
+    "selected": 14,
+    "repair_used": 6,
+    "intact_windows": 6,
+    "closure_leaks": 10,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.527462,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.527462,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.527462,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.527462,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.518434,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.518434,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.518434,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.518434,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 10,
+   "domain": "conversational_prose",
+   "seed": 720011,
+   "text_sha256": "8fe9d828a4298a09",
+   "pristine_score": 0.639455,
+   "v3": {
+    "score": 0.490902,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 7,
+    "closure_leaks": 7,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.490902,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 7,
+    "closure_leaks": 7,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.490902,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.490902,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.490902,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.490902,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.490902,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.490902,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.490902,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.490902,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 11,
+   "domain": "structured_instructional",
+   "seed": 720012,
+   "text_sha256": "f0d6d9a847025ffd",
+   "pristine_score": 0.619907,
+   "v3": {
+    "score": 0.494403,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 11,
+    "closure_leaks": 11,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.494403,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 11,
+    "closure_leaks": 11,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.494403,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.494403,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.494403,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.494403,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.494403,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.494403,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.494403,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.494403,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 12,
+   "domain": "general_explanatory",
+   "seed": 720013,
+   "text_sha256": "7f3fd8a22ad0946c",
+   "pristine_score": 0.653139,
+   "v3": {
+    "score": 0.515265,
+    "selected": 13,
+    "repair_used": 5,
+    "intact_windows": 2,
+    "closure_leaks": 17,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.497312,
+    "selected": 14,
+    "repair_used": 6,
+    "intact_windows": 5,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.515265,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.515265,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.515265,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.515265,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.497312,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.497312,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.497312,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.497312,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 13,
+   "domain": "technical_explanation",
+   "seed": 720014,
+   "text_sha256": "dcba92cd1c48d8b5",
+   "pristine_score": 0.643534,
+   "v3": {
+    "score": 0.511559,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 6,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.509329,
+    "selected": 14,
+    "repair_used": 4,
+    "intact_windows": 7,
+    "closure_leaks": 8,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.511559,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.511559,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.511559,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.511559,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.509329,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.509329,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.509329,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.509329,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 14,
+   "domain": "conversational_prose",
+   "seed": 720015,
+   "text_sha256": "d30bf8ad0954993e",
+   "pristine_score": 0.677062,
+   "v3": {
+    "score": 0.542827,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 9,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.542827,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 9,
+    "closure_leaks": 9,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.542827,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.542827,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.542827,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.542827,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.542827,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.542827,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.542827,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.542827,
+      "detected": false
+     }
+    }
+   }
+  },
+  {
+   "index": 15,
+   "domain": "structured_instructional",
+   "seed": 720016,
+   "text_sha256": "27437e3ea5d1e571",
+   "pristine_score": 0.630577,
+   "v3": {
+    "score": 0.522282,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 10,
+    "closure_leaks": 14,
+    "detected": false
+   },
+   "v4": {
+    "score": 0.502176,
+    "selected": 14,
+    "repair_used": 3,
+    "intact_windows": 12,
+    "closure_leaks": 12,
+    "detected": false
+   },
+   "sanitizers": {
+    "v3": {
+     "raw": {
+      "score": 0.522282,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.522282,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.522282,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.522282,
+      "detected": false
+     }
+    },
+    "v4": {
+     "raw": {
+      "score": 0.502176,
+      "detected": false
+     },
+     "nfkc": {
+      "score": 0.502176,
+      "detected": false
+     },
+     "cf_strip": {
+      "score": 0.502176,
+      "detected": false
+     },
+     "combined": {
+      "score": 0.502176,
+      "detected": false
+     }
+    }
+   }
+  }
+ ],
+ "artifact_hash": "c8ace3c4412729aab8e2d14f1cf54f66686683556fb40fce546fe6f596307335",
+ "result_hash": "73f44b173d7ec55ea80e7d2e9a46b7ea70d8b32682f465dc66643387d99aa8b6"
+}
