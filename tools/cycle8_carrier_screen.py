@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from fuckmark.config import canonical_json_text
-from fuckmark.cycle8.tokenizer_screen import GPT2_FIXTURE, load_gpt2_encoder, screen_carrier_tokenizer
+from fuckmark.cycle8.tokenizer_screen import GPT2_FIXTURE, require_gpt2_encoder, screen_carrier_tokenizer
 from fuckmark.cycle8.unicode_meta import audit_codepoints, iter_default_ignorable_codepoints_v1
 from fuckmark.hashing import sha256_json
 from fuckmark.product.rendering import compare_chrome_pre_screenshots
@@ -35,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     rows = audit_codepoints(iter_default_ignorable_codepoints_v1())
     focus = audit_codepoints(FOCUS_CODEPOINTS)
-    encoder = load_gpt2_encoder()
+    encoder = require_gpt2_encoder()
     tokenizer_rows = [screen_carrier_tokenizer(codepoint, encoder=encoder) for codepoint in FOCUS_CODEPOINTS]
     rendering = []
     fixture = GPT2_FIXTURE

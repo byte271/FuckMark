@@ -27,6 +27,26 @@ def test_product_contract_file_matches_embedded_payload() -> None:
     assert disk == contract
 
 
+def test_load_product_contract_uses_embedded_payload_without_checkout_file(monkeypatch, tmp_path: Path) -> None:
+    from fuckmark.product import contract as contract_module
+
+    monkeypatch.setattr(contract_module, "PRODUCT_CONTRACT_PATH", tmp_path / "missing-contract.json")
+    contract = contract_module.load_product_contract()
+    payload = {key: value for key, value in contract.items() if key != "contract_hash"}
+    assert payload == product_contract_payload()
+    assert contract["contract_hash"] == product_contract_hash()
+
+
+def test_load_product_contract_rejects_mismatched_checkout_file(monkeypatch, tmp_path: Path) -> None:
+    from fuckmark.product import contract as contract_module
+
+    path = tmp_path / "fuckmark-user-visible-invariance-v1.contract.json"
+    path.write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(contract_module, "PRODUCT_CONTRACT_PATH", path)
+    with pytest.raises(ValueError, match="does not match embedded v1 payload"):
+        contract_module.load_product_contract()
+
+
 def test_visible_projection_rejects_contractions_spaces_and_punctuation() -> None:
     cases = (
         ("I do not agree.", "I don't agree."),

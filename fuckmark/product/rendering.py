@@ -116,7 +116,7 @@ def compare_chrome_pre_screenshots(original: str, transformed: str) -> Reference
 
 
 def _html_page(text: str) -> str:
-    payload = json.dumps(text, ensure_ascii=False)
+    payload = json.dumps(text, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e")
     return (
         "<!doctype html><html><head><meta charset='utf-8'></head>"
         "<body style='margin:0;background:#fff'>"

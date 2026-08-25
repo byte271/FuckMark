@@ -7,7 +7,7 @@ from fuckmark.config import canonical_json_text
 from fuckmark.cycle8.compare import arm_registry, cycle8_fixture_samples, run_fixture_compare
 from fuckmark.cycle8.decision import classify_fixture_compare
 from fuckmark.cycle8.registry import apply_all_candidates
-from fuckmark.cycle8.tokenizer_screen import GPT2_FIXTURE, load_gpt2_encoder
+from fuckmark.cycle8.tokenizer_screen import GPT2_FIXTURE, require_gpt2_encoder
 from fuckmark.durable_io import write_canonical_json_fsynced
 from fuckmark.hashing import sha256_json
 from fuckmark.product.rendering import compare_chrome_pre_screenshots
@@ -18,7 +18,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--render", action="store_true")
     args = parser.parse_args(argv)
-    encoder = load_gpt2_encoder()
+    encoder = require_gpt2_encoder()
     fixture = run_fixture_compare(encoder=encoder)
     destination = Path("specs/cycle8/fixture-compare-v1.json")
     write_canonical_json_fsynced(destination, fixture)

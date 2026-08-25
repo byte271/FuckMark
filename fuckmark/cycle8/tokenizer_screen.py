@@ -25,6 +25,13 @@ def load_gpt2_encoder() -> Callable[[str], tuple[int, ...]] | None:
     return encode
 
 
+def require_gpt2_encoder() -> Callable[[str], tuple[int, ...]]:
+    encoder = load_gpt2_encoder()
+    if encoder is None:
+        raise RuntimeError("gpt2 encoder is required to write Cycle 8 tokenizer artifacts")
+    return encoder
+
+
 def resynchronization_metrics(original_ids: Sequence[int], transformed_ids: Sequence[int]) -> dict[str, object]:
     original = tuple(original_ids)
     transformed = tuple(transformed_ids)

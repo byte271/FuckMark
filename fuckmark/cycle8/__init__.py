@@ -22,7 +22,7 @@ from .registry import (
     cycle8_space_carrier_registry,
 )
 from .scoreboard import CYCLE8_SCOREBOARD_VERSION, EvidenceLabel, ProductGate, product_scoreboard_payload
-from .tokenizer_screen import GPT2_FIXTURE, load_gpt2_encoder, screen_carrier_tokenizer
+from .tokenizer_screen import GPT2_FIXTURE, load_gpt2_encoder, require_gpt2_encoder, screen_carrier_tokenizer
 from .unicode_meta import (
     UNICODE_PROPERTY_SCAN_VERSION,
     audit_codepoints,
@@ -58,6 +58,7 @@ __all__ = [
     "cycle8_space_carrier_registry",
     "iter_default_ignorable_codepoints_v1",
     "load_gpt2_encoder",
+    "require_gpt2_encoder",
     "measure_carrier_arm",
     "product_scoreboard_payload",
     "run_fixture_compare",

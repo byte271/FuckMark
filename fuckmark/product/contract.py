@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 
@@ -155,10 +156,10 @@ def product_contract_hash() -> str:
 
 
 def load_product_contract() -> dict[str, object]:
-    contract = __import__("json").loads(PRODUCT_CONTRACT_PATH.read_text(encoding="utf-8"))
-    payload = {key: value for key, value in contract.items() if key != "contract_hash"}
-    if contract.get("contract_hash") != sha256_json(payload):
-        raise ValueError("product contract hash does not match payload")
-    if payload != product_contract_payload():
-        raise ValueError("product contract file does not match embedded v1 payload")
+    payload = product_contract_payload()
+    contract = {**payload, "contract_hash": sha256_json(payload)}
+    if PRODUCT_CONTRACT_PATH.is_file():
+        disk = json.loads(PRODUCT_CONTRACT_PATH.read_text(encoding="utf-8"))
+        if disk != contract:
+            raise ValueError("product contract file does not match embedded v1 payload")
     return contract

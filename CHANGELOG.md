@@ -11,6 +11,7 @@
 - Cycle 8 fixture compare reports visible-projection pass `20/20` for space-carrier arms.
 - Chromium `pre` screenshots: U+034F / U+FE00 pixel-equal; U+200C PNG bytes differ.
 - Detector-blind GPT-2 / SynthID development scoring on seeds `890000`, `900000`, and `910000` reduced watermarked detections for U+034F space-carrier x1 without unwatermarked inflation on these tiny 4-pair corpora. This is not confirmation and is not a product promotion.
+- Product contract loading uses the embedded v1 payload in installed wheels. Cycle 8 artifact writers refuse to overwrite verified tokenizer JSON without a GPT-2 encoder. Chromium HTML evidence encodes less-than and greater-than as JSON unicode escapes so an ASCII script terminator cannot close the inline script.
 
 ## v0.2.0 — Exact-survival confirmation and release hardening
 
