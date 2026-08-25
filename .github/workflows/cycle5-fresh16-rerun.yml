@@ -65,6 +65,16 @@ jobs:
           --registry zrd
           --corpus artifacts/cycle5-fresh16-corpus.json
           --out artifacts/cycle5-fresh16-zrd.json
+      - name: Score quote-safe ZRD registry
+        run: >-
+          python tools/cycle5_dev_paired_run.py
+          --samples 16
+          --budget 16
+          --seed-base 720000
+          --threshold 0.5570987654320988
+          --registry quote-safe-zrd
+          --corpus artifacts/cycle5-fresh16-corpus.json
+          --out artifacts/cycle6-fresh16-quote-safe-zrd.json
       - name: Print sealed summaries
         shell: bash
         run: |
@@ -74,8 +84,16 @@ jobs:
           corpus = json.loads(Path('artifacts/cycle5-fresh16-corpus.json').read_text())
           print('corpus_hash=' + corpus['corpus_hash'])
           print('corpus_content_hash=' + corpus['content_hash'])
-          for name in ('coverage', 'zrd'):
-              payload = json.loads(Path(f'artifacts/cycle5-fresh16-{name}.json').read_text())
+          expected_content_hash = 'b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3'
+          if corpus['content_hash'] != expected_content_hash:
+              raise SystemExit('fresh16 content hash does not match the frozen Cycle 6 corpus')
+          paths = {
+              'coverage': 'artifacts/cycle5-fresh16-coverage.json',
+              'zrd': 'artifacts/cycle5-fresh16-zrd.json',
+              'quote_safe_zrd': 'artifacts/cycle6-fresh16-quote-safe-zrd.json',
+          }
+          for name, path in paths.items():
+              payload = json.loads(Path(path).read_text())
               print(name + '_artifact_hash=' + payload['artifact_hash'])
               print(name + '_result_hash=' + payload['result_hash'])
               print(name + '_v3_detected=' + str(payload['summary']['v3']['detected']) + '/' + str(payload['row_count']))
@@ -89,4 +107,5 @@ jobs:
             artifacts/cycle5-fresh16-corpus.json
             artifacts/cycle5-fresh16-coverage.json
             artifacts/cycle5-fresh16-zrd.json
+            artifacts/cycle6-fresh16-quote-safe-zrd.json
           if-no-files-found: error
