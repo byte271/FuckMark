@@ -14,6 +14,40 @@ SYNTAX_TEMPLATE_RULE_ALGORITHM_VERSION = "syntax-template-rule-v1"
 
 class SyntaxConstruction(str, Enum):
     SEMICOLON_CONJUNCTIVE_ADVERB_SPLIT = "semicolon_conjunctive_adverb_split"
+    BOUNDED_COMPLEMENTIZER_THAT_DROP = "bounded_complementizer_that_drop"
+    BOUNDED_COMPLEMENTIZER_THAT_INSERT = "bounded_complementizer_that_insert"
+    BOUNDED_OBJECT_RELATIVE_THAT_DROP = "bounded_object_relative_that_drop"
+    PARENTHETICAL_CONJUNCTIVE_ADVERB = "parenthetical_conjunctive_adverb"
+    COORDINATING_CONJUNCTION_COMMA = "coordinating_conjunction_comma"
+
+
+_COMPLEMENTIZER_PRONOUNS = r"(?:I|you|we|they|he|she|it)"
+_COMPLEMENTIZER_VERBS = (
+    r"(?:think|thinks|thought|believe|believes|believed|say|says|said|know|knows|knew|"
+    r"hope|hopes|hoped|guess|guesses|guessed|suppose|supposes|supposed|claim|claims|claimed|"
+    r"argue|argues|argued|suggest|suggests|suggested|mean|means|meant|feel|feels|felt|"
+    r"expect|expects|expected|admit|admits|admitted|agree|agrees|agreed|"
+    r"conclude|concludes|concluded|note|notes|noted|mention|mentions|mentioned|"
+    r"explain|explains|explained|remember|remembers|remembered|decide|decides|decided|"
+    r"doubt|doubts|doubted|wish|wishes|wished|confirm|confirms|confirmed|"
+    r"suspect|suspects|suspected|predict|predicts|predicted|warn|warns|warned|"
+    r"promise|promises|promised|announce|announces|announced|declare|declares|declared|"
+    r"show|shows|showed|find|finds|found|realize|realizes|realized|"
+    r"understand|understands|understood|insist|insists|insisted)"
+)
+_COMPLEMENTIZER_STARTERS = (
+    r"(?:the|a|an|this|these|those|it|they|we|I|you|he|she|there|my|our|their|his|her|not)"
+)
+_COMPLEMENTIZER_PREFIX = re.compile(rf"(?i:{_COMPLEMENTIZER_PRONOUNS}\s+{_COMPLEMENTIZER_VERBS})$")
+_COMPLEMENTIZER_STARTER = re.compile(rf"(?i:{_COMPLEMENTIZER_STARTERS}\b)")
+_COMPLEMENTIZER_INSERT_PATTERN = re.compile(
+    rf"(?i:(?<!\w){_COMPLEMENTIZER_PRONOUNS}\s+{_COMPLEMENTIZER_VERBS} )(?={_COMPLEMENTIZER_STARTERS}\b)"
+)
+_RELATIVE_PREFIX = re.compile(
+    r"(?i:(?:the|a|an|this|these|those|my|our|their|his|her)\s+[A-Za-z]{3,})$"
+)
+_RELATIVE_FOLLOWER = re.compile(r"(?i:(?:I|we|you|they|he|she)\s+[a-z]{2,}\b)")
+_COORD_INSERT_FOLLOWER = re.compile(r"(?i:(?:the|a|an|this|these|those)\b)")
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,6 +149,8 @@ class SyntaxTemplateRule:
         )
 
     def pattern(self) -> re.Pattern[str]:
+        if self.construction is SyntaxConstruction.BOUNDED_COMPLEMENTIZER_THAT_INSERT:
+            return _COMPLEMENTIZER_INSERT_PATTERN
         literal = rf"(?ai:{re.escape(self.source)})"
         pattern = literal
         if self.whole_word:
@@ -124,30 +160,67 @@ class SyntaxTemplateRule:
                 pattern = rf"{pattern}(?!\w)"
         return re.compile(pattern)
 
+    def replacement_for(self, source_text: str) -> str:
+        if self.construction is SyntaxConstruction.BOUNDED_COMPLEMENTIZER_THAT_INSERT:
+            return f"{source_text}that "
+        return self.replacement
+
     def precondition(self, text: str, start: int, end: int) -> bool:
         if not isinstance(text, str):
             raise TypeError("text must be a string")
         if start < 0 or end <= start or end > len(text):
             raise ValueError("syntax precondition span is outside text")
+        if self.construction is SyntaxConstruction.BOUNDED_COMPLEMENTIZER_THAT_INSERT:
+            matched = text[start:end]
+            if not matched.endswith(" "):
+                return False
+            return _COMPLEMENTIZER_PREFIX.search(matched.rstrip()) is not None
         if text[start:end].casefold() != self.source.casefold():
             raise ValueError("syntax precondition span does not match rule source")
-        if self.construction is not SyntaxConstruction.SEMICOLON_CONJUNCTIVE_ADVERB_SPLIT:
-            return False
-        prefix = text[:start]
-        line = prefix[prefix.rfind("\n") + 1 :].lstrip()
-        if re.match(r"(?:[-*+]\s|\d+[.)]\s)", line):
-            return False
-        boundary = max(prefix.rfind("."), prefix.rfind("?"), prefix.rfind("!"), prefix.rfind("\n"))
-        left_clause = prefix[boundary + 1 :].strip()
-        right = text[end:]
-        next_boundaries = tuple(index for mark in ".?!\n" if (index := right.find(mark)) >= 0)
-        right_clause = right[: min(next_boundaries)] if next_boundaries else right
-        words = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)?")
-        if len(words.findall(left_clause)) < self.minimum_clause_word_count:
-            return False
-        if len(words.findall(right_clause)) < self.minimum_clause_word_count:
-            return False
-        return True
+        if self.construction is SyntaxConstruction.SEMICOLON_CONJUNCTIVE_ADVERB_SPLIT:
+            prefix = text[:start]
+            line = prefix[prefix.rfind("\n") + 1 :].lstrip()
+            if re.match(r"(?:[-*+]\s|\d+[.)]\s)", line):
+                return False
+            boundary = max(prefix.rfind("."), prefix.rfind("?"), prefix.rfind("!"), prefix.rfind("\n"))
+            left_clause = prefix[boundary + 1 :].strip()
+            right = text[end:]
+            next_boundaries = tuple(index for mark in ".?!\n" if (index := right.find(mark)) >= 0)
+            right_clause = right[: min(next_boundaries)] if next_boundaries else right
+            words = re.compile(r"[A-Za-z]+(?:'[A-Za-z]+)?")
+            if len(words.findall(left_clause)) < self.minimum_clause_word_count:
+                return False
+            if len(words.findall(right_clause)) < self.minimum_clause_word_count:
+                return False
+            return True
+        if self.construction is SyntaxConstruction.BOUNDED_COMPLEMENTIZER_THAT_DROP:
+            prefix = text[:start].rstrip()
+            if _COMPLEMENTIZER_PREFIX.search(prefix) is None:
+                return False
+            return _COMPLEMENTIZER_STARTER.match(text[end:]) is not None
+        if self.construction is SyntaxConstruction.BOUNDED_OBJECT_RELATIVE_THAT_DROP:
+            prefix = text[:start].rstrip()
+            if _RELATIVE_PREFIX.search(prefix) is None:
+                return False
+            return _RELATIVE_FOLLOWER.match(text[end:]) is not None
+        if self.construction is SyntaxConstruction.PARENTHETICAL_CONJUNCTIVE_ADVERB:
+            if start == 0 or not text[start - 1].isalpha():
+                return False
+            if end >= len(text):
+                return False
+            if "," in self.source:
+                return text[end].isalpha() or text[end].isspace()
+            return text[end].isalpha()
+        if self.construction is SyntaxConstruction.COORDINATING_CONJUNCTION_COMMA:
+            if start == 0 or not text[start - 1].isalpha():
+                return False
+            if end >= len(text) or not text[end].isalpha():
+                return False
+            inserting = "," not in self.source
+            if inserting:
+                return _COORD_INSERT_FOLLOWER.match(text[end:]) is not None
+            return True
+        return False
 
 
 def development_syntax_rules() -> tuple[SyntaxTemplateRule, ...]:

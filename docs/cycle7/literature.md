@@ -33,4 +33,18 @@ VERIFIED sanitizer fate:
 
 HYPOTHESIS. Unambiguous contractions, attested hyphenation, and typographic apostrophes can destroy some observation windows. Whether they destroy enough windows on 64-token TinyDev GPT-2 text is a Cycle 7 measurement. Family 1 detector attachment on seed `810000` was INSUFFICIENT_EVIDENCE because natural site density was too low.
 
+EXTERNAL-VALIDATION-ONLY. Optional complementizer *that* is a high-frequency English reduction (Jaeger, *Cognitive Psychology* 2010, UID/information-density accounts). Cycle 7 admits only a closed pronoun+verb list plus object-relative `DET+N that PRON`. That literature is not a local density measurement.
+
+EXTERNAL-VALIDATION-ONLY. CMOS hyphenates compound modifiers before a noun (`well-known method`) and leaves predicative forms open. Family 7 encodes that bound, not a generic hyphenation whitelist.
+
+VERIFIED tokenizer effects added in catalog v3 on the same frozen GPT-2 revision:
+
+- `Hello. World` → `[15496, 13, 2159]`; `Hello.\nWorld` → `[15496, 13, 198, 10603]`.
+- `I think that the protocol works` versus `I think the protocol works` differs by the `that` piece.
+- `failed and the replica` versus `failed, and the replica` differs by the comma piece.
+
+HYPOTHESIS. Sentence-boundary newline survives `whitespace-collapse-v1` because that sanitizer preserves LF. A wrap/reflow sanitizer is not in the frozen Cycle 7 suite.
+
 REJECTED as a Cycle 7 direction: adding more U+0020 spaces to chase 7/192 → 0/192 on spent confirmation rows.
+
+REJECTED: running-text `and` to `&` (not prose-equivalent under CMOS/AP). U+2026 ellipsis NFKC-maps to `...`. U+2009 / U+202F NFKC-map to space.

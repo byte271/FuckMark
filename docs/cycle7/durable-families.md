@@ -1,6 +1,6 @@
 # Cycle 7 durable families
 
-Catalog identity: `cycle7-durable-rule-catalog-v2`.
+Catalog identity: `cycle7-durable-rule-catalog-v3` (Stage B development). Families 1–3 remain the frozen Stage A `v2` set; v3 adds higher-density collapse-resistant families. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
 
 All families below are deterministic, detector-blind, key-blind, and non-neural. Cycle 6 `quote_safe_zrd` ruleset hash is unchanged.
 
@@ -88,3 +88,101 @@ Conflict geometry: an apostrophe edit overlaps contraction expansion of the same
 text change → tokenization change → n-gram/context change → observation replacement → g-value drift → score drop.
 
 Byte change or a one-off score drop is not enough. Family 1–3 have VERIFIED tokenization change and collapse survival on fixtures. Detector attachment on TinyDev 64-token text is a separate density question.
+
+## Family 4 — sentence-boundary newline
+
+Construction: `sentence_boundary_newline`.
+
+Precondition: `. ` / `? ` / `! ` immediately before an uppercase letter. Exclusions: digits before the mark, single-letter initials, a closed abbreviation list (`Dr.`, `Fig.`, `U.S.`, months, `etc.`), already-newline after the mark, and ellipsis/multi-punctuation (`... Next`).
+
+Rewrite: swap the single ASCII space after sentence punctuation for a single LF, or the reverse.
+
+Inverse: the opposite direction.
+
+Tokenizer: GPT-2 `Hello. World` vs `Hello.\nWorld` is `[15496, 13, 2159]` vs `[15496, 13, 198, 10603]`. VERIFIED on frozen revision `607a30d783dfa663caf39e06633721c8d4cfcd7e`.
+
+Whitespace collapse: `whitespace-collapse-v1` preserves newlines. The rewrite still differs after `ws_collapse` and `ws_collapse_nfkc_cf_strip`. VERIFIED on fixtures. LF is category Cc, not Cf.
+
+Sanitizer note: this is a layout/formatting channel. A wrap/reflow sanitizer is not in the Cycle 7 frozen sanitizer suite. Survival is VERIFIED only against the six listed Cycle 7 variants. HYPOTHESIS: a paragraph-reflow sanitizer would erase it.
+
+Conflict geometry: adjacent sentence boundaries do not overlap. Format edits can still compete with spacing for the B14 budget in the combined arm.
+
+## Family 5 — bounded optional complementizer / object-relative `that`
+
+Construction: `bounded_complementizer_that_drop`, `bounded_complementizer_that_insert`, `bounded_object_relative_that_drop`.
+
+Precondition (drop): pronoun + closed attitude/report verb immediately before ` that `, and a closed clause-starter after it. Object-relative drop: determiner + noun of length at least 3 before ` that `, then a subject pronoun + lowercase word.
+
+Precondition (insert): the same pronoun+verb pattern with a clause-starter and no `that` already present. The stored source `I think ` is a sentinel; matching uses the shared complementizer pattern.
+
+Rewrite: delete or insert optional `that`.
+
+Inverse: insert vs drop on the complementizer pair. Object-relative drop is one-way in v3.
+
+Tokenizer: GPT-2 `I think that the protocol works` versus `I think the protocol works` differs by the `that` token. VERIFIED on the frozen GPT-2 revision.
+
+Whitespace collapse: the edit is a word, not spaces. Survives.
+
+False positives blocked: `I found that book`, `so that the logs`, all-caps.
+
+EXTERNAL-VALIDATION-ONLY: optional complementizer *that* is a high-frequency English alternation in the UID/Jaeger literature. Local admission still requires the closed verb list.
+
+## Family 6 — sentence-initial discourse comma
+
+Construction: `sentence_initial_discourse_comma`.
+
+Closed markers include `However`, `Therefore`, `Moreover`, `In fact`, and other listed conjunctive adverbs.
+
+Precondition: sentence-initial (start or after `.?!`). Insert is blocked before degree-adverb followers (`much`, `many`, `long`, and the listed set) so `However much evidence` is not rewritten as `However, much evidence`.
+
+Rewrite: drop or insert the comma after the marker.
+
+Tokenizer: comma token appears or disappears. HYPOTHESIS on TinyDev density: sparse unless the sample uses discourse markers.
+
+Whitespace collapse: comma is not space. Survives.
+
+## Family 7 — attested prenominal hyphen modifiers
+
+Construction: `attested_prenominal_hyphen_modifier`.
+
+Closed list includes `well known` / `well-known`, `long term` / `long-term`, `open source` / `open-source`, and other listed prenominal compounds.
+
+Precondition: same hyphen-chain/path guards as Family 2. Hyphenation additionally requires a following lowercase noun so predicative `The method is well known.` does not fire.
+
+Rewrite: open / hyphenated.
+
+Tokenizer: hyphenation splits GPT-2 pieces. VERIFIED locally for `well known` / `well-known`.
+
+Whitespace collapse: hyphens are not spaces. Survives.
+
+EXTERNAL-VALIDATION-ONLY: CMOS hyphenates compound modifiers before a noun. Predicative forms stay open.
+
+## Family 8 — parenthetical conjunctive adverb
+
+Construction: `parenthetical_conjunctive_adverb`.
+
+Closed adverbs: `however`, `therefore`, `moreover`, and the listed set.
+
+Precondition: previous character alphabetic; drop matches `, however, `; insert matches ` however ` and does not fire on already-comma forms.
+
+Rewrite: `, however, ` / ` however `.
+
+Whitespace collapse: commas remain. Survives.
+
+## Family 9 — coordinating-conjunction comma
+
+Construction: `coordinating_conjunction_comma`.
+
+Closed conjunctions: `and`, `but`, `or`.
+
+Precondition: previous character alphabetic and next character alphabetic. Insert additionally requires a determiner follower (`the|a|an|this|these|those`) so `you and I` and `cats and dogs` do not gain a comma. Digit-comma lists such as `1, and 2` are blocked.
+
+Rewrite: `, and ` / ` and ` (same for `but` / `or`).
+
+Tokenizer: GPT-2 `failed and the replica` versus `failed, and the replica` differs by the comma token. VERIFIED on the frozen GPT-2 revision.
+
+Whitespace collapse: comma is not space. Survives.
+
+Safety: insert is a style comma before a determiner, not a full independent-clause parser. NP coordinations of the form `X and the Y` can still receive a comma. That is semantically conservative and style-marked. Stage B treats density as the first metric and may reject the insert direction if natural prose over-fires.
+
+Not admitted: `nor` / `yet` / `so` (adverb/conjunction ambiguity). Running-text `and` to `&` remains REJECTED (CMOS/AP: ampersand is not prose-equivalent).

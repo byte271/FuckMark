@@ -28,8 +28,9 @@ See `docs/cycle7/seed-ledger.md` and `fuckmark/cycle7/ledger.py`.
 
 | Role | Seed base | Status |
 | --- | --- | --- |
-| Exploratory development (Stage A) | `810000` | in use |
-| Validation development (Stage B) | `820000` | reserved, unused |
+| Exploratory development (Stage A) | `810000` | used; do not keep expanding rules against it |
+| Exploratory development / rule construction (Stage B1) | `860000` | active; topic frozen as `independent replication` |
+| Validation development | `820000` | reserved, unused until a catalog freeze |
 | Confirmation reserved | `830000`, `840000`, `850000` | must not be inspected |
 
 Confirmation seeds were chosen as unused 10k blocks before any Cycle 7 detector look.
@@ -46,13 +47,24 @@ The Cycle 6 frozen sanitizer module is unchanged.
 
 ## Durable transform families
 
-See `docs/cycle7/durable-families.md`. Catalog `cycle7-durable-rule-catalog-v2`.
+See `docs/cycle7/durable-families.md`. Catalog `cycle7-durable-rule-catalog-v3`.
+
+Stage A (`v2`) families:
 
 1. Unambiguous contractions and closed orthography (Family 1).
 2. Attested open ↔ hyphenated compounds (Family 2).
 3. In-word ASCII apostrophe ↔ U+2019 (Family 3).
 
-These change tokens without relying on repeated U+0020. They survive ASCII whitespace collapse by construction. Family 3 also survives NFKC and Cf-strip.
+Stage B (`v3`) additions, aimed at natural site density:
+
+4. Sentence-boundary newline (layout; survives `whitespace-collapse-v1` because that sanitizer keeps LF).
+5. Bounded optional complementizer / object-relative `that`.
+6. Sentence-initial discourse comma.
+7. Attested prenominal hyphen modifiers.
+8. Parenthetical conjunctive adverb.
+9. Coordinating-conjunction comma (`and`/`but`/`or`), with determiner-gated insert.
+
+These change tokens without relying on repeated U+0020. They survive ASCII whitespace collapse by construction. Family 3 also survives NFKC and Cf-strip. Family 4 is a formatting channel: VERIFIED against the six Cycle 7 sanitizer variants, not against an unlisted reflow sanitizer.
 
 Quote interiors may receive these durable edits under `quote-container-durable-v1` without changing quote delimiters. Cycle 6 `quote-container-surface-spacing-v1` still admits only spacing inside quotes.
 
@@ -63,6 +75,12 @@ Family 1 detector attachment on seed `810000` was **`INSUFFICIENT_EVIDENCE`**: C
 Families 2–3 raise candidate density on the same frozen texts (see `evidence/cycle7-stage-a-2026-08-25/family2-density.json`). Detector rescore of those texts under catalog v2 remains **`INSUFFICIENT_EVIDENCE`**: durable 4/4 raw and 4/4 after collapse; Cycle 6 spacing 0/4 raw and 4/4 after collapse; combined 1/4 raw and 4/4 after collapse.
 
 Details: `docs/cycle7/stage-a-decision.md`.
+
+## Stage B
+
+Stage B is still development. Catalog `cycle7-durable-rule-catalog-v3` is measured first on density and geometry, then on detector scores, using new exploratory seed `860000`. Seed `820000` remains unseen validation. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
+
+This is not Cycle 7 formal confirmation.
 
 Not claimed:
 

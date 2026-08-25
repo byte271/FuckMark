@@ -1,0 +1,89 @@
+from fuckmark.cycle7.density import durable_density_table
+from fuckmark.cycle7.durable_rules import CYCLE7_DURABLE_RULE_CATALOG_VERSION
+from fuckmark.cycle7.fixtures import stage_b_fixture_samples
+from fuckmark.cycle7.ledger import (
+    CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES,
+    CYCLE7_EXPLORATORY_ROLE,
+    CYCLE7_EXPLORATORY_SEED_BASE,
+    CYCLE7_LEDGER_VERSION,
+    CYCLE7_RULE_CONSTRUCTION_ROLE,
+    CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
+    CYCLE7_STAGE_B1_TOPIC,
+    CYCLE7_USED_EXPLORATORY_SEED_BASES,
+    CYCLE7_VALIDATION_SEED_BASE,
+    assert_development_seed,
+    assert_rule_construction_seed,
+    cycle7_seed_ledger_payload,
+)
+from fuckmark.cycle7.registry import CYCLE7_COMBINED_REGISTRY_ID, CYCLE7_DURABLE_REGISTRY_ID
+from fuckmark.cycle7.stage_b import (
+    INSUFFICIENT_EVIDENCE,
+    PROMISING_DEVELOPMENT,
+    classify_stage_b_density,
+    density_artifact,
+    summarize_density_rows,
+)
+import pytest
+
+
+def test_stage_b_catalog_and_ledger_identities() -> None:
+    assert CYCLE7_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v3"
+    assert CYCLE7_DURABLE_REGISTRY_ID == "cycle7-durable-catalog-v3"
+    assert CYCLE7_COMBINED_REGISTRY_ID == "cycle7-durable-plus-cycle6-spacing-v2"
+    assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v2"
+    assert CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE == 860000
+    assert CYCLE7_STAGE_B1_TOPIC == "independent replication"
+    assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000,)
+    assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == (860000,)
+    payload = cycle7_seed_ledger_payload()
+    assert payload["stage_b1_exploratory_seed_base"] == 860000
+    assert payload["stage_b1_topic"] == "independent replication"
+
+
+def test_rule_construction_admits_860000_and_blocks_spent_or_reserved_seeds() -> None:
+    assert_rule_construction_seed(CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE)
+    assert_development_seed(CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
+    assert_development_seed(CYCLE7_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
+    with pytest.raises(ValueError, match="rule-construction"):
+        assert_rule_construction_seed(CYCLE7_EXPLORATORY_SEED_BASE)
+    with pytest.raises(ValueError, match="rule-construction"):
+        assert_development_seed(CYCLE7_EXPLORATORY_SEED_BASE, role=CYCLE7_RULE_CONSTRUCTION_ROLE)
+    with pytest.raises(ValueError, match="confirmation-reserved"):
+        assert_rule_construction_seed(830000)
+    with pytest.raises(ValueError, match="confirmation-reserved"):
+        assert_rule_construction_seed(840000)
+    with pytest.raises(ValueError, match="confirmation-reserved"):
+        assert_rule_construction_seed(850000)
+    with pytest.raises(ValueError, match="exploratory"):
+        assert_development_seed(CYCLE7_VALIDATION_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
+    with pytest.raises(ValueError, match="spent"):
+        assert_rule_construction_seed(760000)
+
+
+def test_stage_b_density_classifier_on_construction_fixtures() -> None:
+    samples = tuple(
+        {"sample_id": sample_id, "text": text} for sample_id, text in stage_b_fixture_samples()
+    )
+    rows = durable_density_table(samples)
+    summary = summarize_density_rows(rows)
+    assert summary["mean_candidate_count"] >= 4
+    decision = classify_stage_b_density(density_summary=summary)
+    assert decision["decision"] in {PROMISING_DEVELOPMENT, INSUFFICIENT_EVIDENCE}
+    artifact = density_artifact(
+        samples,
+        seed_base=CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
+        catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+    )
+    assert artifact["detector_access_used_for_selection"] is False
+    assert artifact["seed_base"] == 860000
+    assert artifact["artifact_hash"]
+
+
+def test_stage_b_classifier_keeps_low_density_as_insufficient() -> None:
+    summary = {
+        "mean_candidate_count": 1.5,
+        "mean_format_candidate_count": 0.5,
+        "mean_coord_comma_candidate_count": 0.0,
+    }
+    decision = classify_stage_b_density(density_summary=summary)
+    assert decision["decision"] == INSUFFICIENT_EVIDENCE

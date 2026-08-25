@@ -25,6 +25,33 @@ COMPOUND_RICH = (
     "State of the art methods stay face to face with case-by-case review."
 )
 
+FORMAT_RICH = (
+    "Careful testing matters before any claim becomes knowledge. "
+    "Independent replication remains required after the first success. "
+    "Does this protocol still hold? Next measurements decide. "
+    "Stop! Further edits stay local."
+)
+
+COMPLEMENTIZER_RICH = (
+    "I think that the protocol works, and we believe that a replica will fail. "
+    "They know that this check is required. I think the second copy is weaker."
+)
+
+PRENOMINAL_RICH = (
+    "A well known method needs long term logs and high quality checks. "
+    "Open source tools help large scale runs."
+)
+
+PARENTHETICAL_RICH = (
+    "The first replica failed, however, the second replica passed. "
+    "The threshold stayed fixed, therefore, the decision remained."
+)
+
+COORD_COMMA_RICH = (
+    "The first replica failed, and the second replica passed. "
+    "The logs were short but the notes were complete or the run stopped."
+)
+
 QUOTE_INTERIOR = 'He answered, "They are not finished and we do not agree."'
 
 AMBIGUOUS_NEGATIVES = (
@@ -53,6 +80,18 @@ def fixture_samples() -> tuple[tuple[str, str], ...]:
         ("contraction-sparse", CONTRACTION_SPARSE),
         ("compound-rich", COMPOUND_RICH),
         ("quote-interior", QUOTE_INTERIOR),
+    )
+
+
+def stage_b_fixture_samples() -> tuple[tuple[str, str], ...]:
+    return (
+        ("format-rich", FORMAT_RICH),
+        ("complementizer-rich", COMPLEMENTIZER_RICH),
+        ("prenominal-rich", PRENOMINAL_RICH),
+        ("parenthetical-rich", PARENTHETICAL_RICH),
+        ("coord-comma-rich", COORD_COMMA_RICH),
+        ("contraction-rich", CONTRACTION_RICH),
+        ("contraction-sparse", CONTRACTION_SPARSE),
     )
 
 
