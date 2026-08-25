@@ -196,7 +196,7 @@ def verify_lexical_promotion_evidence(
     return summary
 
 
-def source_verified_release_transform_registry(
+def source_verified_historical_visible_edit_transform_registry(
     promotions: Sequence[LexicalPromotionEvidence],
     tokenizers: Mapping[str, Callable[[str], Sequence[int]]],
     identifiers: Sequence[str] = (),
@@ -223,3 +223,38 @@ def source_verified_release_transform_registry(
         approved.append(promotion.rule)
     ordered = tuple(sorted(approved, key=lambda value: (value.rule_id, value.version, value.rule_hash)))
     return TransformRegistry((*default_contraction_rules(), *ordered), identifiers)
+
+
+def source_verified_release_transform_registry(
+    promotions: Sequence[LexicalPromotionEvidence],
+    tokenizers: Mapping[str, Callable[[str], Sequence[int]]],
+    identifiers: Sequence[str] = (),
+) -> TransformRegistry:
+    if not isinstance(promotions, Sequence) or isinstance(promotions, (str, bytes, bytearray)):
+        raise TypeError("promotions must be a sequence")
+    if not isinstance(tokenizers, Mapping):
+        raise TypeError("tokenizers must be a mapping")
+    promotion_tuple = tuple(promotions)
+    from ..product.carriers import rule_preserves_visible_projection
+    from ..product.registry import product_transform_registry
+    from ..product.visible_projection import product_approved_carriers_v1
+
+    if not promotion_tuple:
+        return product_transform_registry(identifiers)
+    if any(not isinstance(value, LexicalPromotionEvidence) for value in promotion_tuple):
+        raise TypeError("promotions must contain LexicalPromotionEvidence values")
+    if len({value.rule.rule_hash for value in promotion_tuple}) != len(promotion_tuple):
+        raise FidelityEvidenceVerificationError("lexical promotion rules must be unique")
+    approved_carriers = product_approved_carriers_v1()
+    for promotion in promotion_tuple:
+        identity_hash = promotion.model_tokenizer_identity.identity_hash
+        try:
+            tokenizer = tokenizers[identity_hash]
+        except KeyError as error:
+            raise FidelityEvidenceVerificationError("missing tokenizer callable for promotion identity") from error
+        verify_lexical_promotion_evidence(promotion, tokenizer)
+        if not rule_preserves_visible_projection(promotion.rule, approved_carriers):
+            raise FidelityEvidenceVerificationError(
+                "lexical promotion changes user-visible text and cannot enter the product release registry"
+            )
+    return product_transform_registry(identifiers)

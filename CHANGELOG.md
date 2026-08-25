@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — exact user-visible invariance
+
+- Restored Priority Zero: product output must keep the exact user-visible projection of the input.
+- Public CLI `release-cli-v4` fail-closes instead of applying contractions or other visible edits.
+- `release_transform_registry()` is the empty product-visible-invariance registry. Historical contraction/lexical/syntax/spacing catalogs remain replayable under explicit historical names.
+- Added `specs/fuckmark-user-visible-invariance-v1.contract.json` and Cycle 8 invisible-carrier research. No product-authorized carrier is promoted yet.
+- Reclassified Cycle 6 formal `NONZERO_RESIDUAL` 7/192 and Cycle 7 visible-edit stages as scientific evidence that is product-disqualified.
+
 ## v0.2.0 — Exact-survival confirmation and release hardening
 
 ### Research

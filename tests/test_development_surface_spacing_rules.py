@@ -152,7 +152,8 @@ def test_surface_rules_remain_development_only() -> None:
     default_hashes = {rule.rule_hash for rule in default_transform_registry().rules}
     release_hashes = {rule.rule_hash for rule in release_transform_registry().rules}
     contraction_hashes = {rule.rule_hash for rule in default_contraction_rules()}
-    assert default_hashes == release_hashes == contraction_hashes
+    assert default_hashes == contraction_hashes
+    assert release_hashes == set()
     assert surface_hashes.isdisjoint(default_hashes)
     assert surface_hashes <= {rule.rule_hash for rule in development_transform_registry().rules}
 

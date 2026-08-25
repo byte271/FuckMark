@@ -66,6 +66,7 @@ from .fidelity_verification import (
     LEXICAL_PROMOTION_EVIDENCE_ALGORITHM_VERSION,
     FidelityEvidenceVerificationError,
     LexicalPromotionEvidence,
+    source_verified_historical_visible_edit_transform_registry,
     source_verified_release_transform_registry,
     verify_fidelity_review_sample,
     verify_grammar_fixture,
@@ -112,6 +113,7 @@ from .registry import (
     TransformRegistry,
     default_transform_registry,
     development_transform_registry,
+    historical_visible_edit_transform_registry,
     release_transform_registry,
 )
 from .rules import (
@@ -209,6 +211,7 @@ __all__ = [
     "bind_blind_review_judgment",
     "bind_blind_review_judgments",
     "build_blind_review_packet",
+    "source_verified_historical_visible_edit_transform_registry",
     "source_verified_release_transform_registry",
     "verify_fidelity_review_sample",
     "verify_blind_review_packet",
@@ -322,6 +325,7 @@ __all__ = [
     "development_lexical_rules",
     "development_syntax_rules",
     "development_transform_registry",
+    "historical_visible_edit_transform_registry",
     "release_transform_registry",
     "require_complete_lexical_audit_summaries",
     "validate_effectiveness_profile_registry",

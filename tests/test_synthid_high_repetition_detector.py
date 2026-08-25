@@ -18,7 +18,7 @@ from fuckmark.synthid_high_repetition_detector_hf import (
     _build_source_manifest,
     _validate_plan_against_source_manifest,
 )
-from fuckmark.transforms import release_transform_registry
+from fuckmark.transforms import historical_visible_edit_transform_registry
 
 
 class _PlanBackend:
@@ -85,7 +85,7 @@ def test_high_repetition_plan_is_frozen_before_detector_scoring() -> None:
     plan = build_high_repetition_detector_plan(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         schedule_seed=41,
     )
@@ -104,7 +104,7 @@ def test_high_repetition_pilot_scores_only_after_every_selection_is_frozen() -> 
     plan, report = run_synthid_high_repetition_detector_pilot(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         schedule_seed=42,
     )
@@ -122,7 +122,7 @@ def test_high_repetition_plan_and_report_fail_closed_on_tamper() -> None:
     plan, report = run_synthid_high_repetition_detector_pilot(
         _prompts(),
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
     )
     with pytest.raises(ValueError, match="plan_hash"):
@@ -138,7 +138,7 @@ def test_high_repetition_scoring_rejects_backend_identity_drift() -> None:
     plan = build_high_repetition_detector_plan(
         _prompts(),
         _PlanBackend(expected_generate_calls=8),
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
     )
     backend = _ScoringBackend(expected_generate_calls=0)
@@ -155,7 +155,7 @@ def test_source_manifest_retains_all_sources_and_reconstructs_the_same_q4() -> N
     plan = build_high_repetition_detector_plan(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         schedule_seed=43,
     )

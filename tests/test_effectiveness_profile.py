@@ -44,14 +44,7 @@ def test_effectiveness_registry_is_isolated_from_development_and_release() -> No
     assert added_ids <= effectiveness_ids
     assert added_ids.isdisjoint(development_ids)
     assert added_ids.isdisjoint(release_ids)
-    assert release_ids == {
-        "contract-cannot",
-        "contract-did-not",
-        "contract-do-not",
-        "contract-does-not",
-        "contract-should-not",
-        "contract-will-not",
-    }
+    assert release_ids == set()
 
 
 def test_effectiveness_registry_applies_copula_contraction_without_losing_negation() -> None:

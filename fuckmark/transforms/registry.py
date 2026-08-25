@@ -78,8 +78,9 @@ class TransformRegistry:
         identifiers: Sequence[str] = (),
         *,
         quote_policy_id: str = BLANKET_QUOTE_PROTECTION_POLICY_ID,
+        allow_empty: bool = False,
     ) -> None:
-        self._rules = validate_rules(rules)
+        self._rules = validate_rules(rules, allow_empty=allow_empty)
         if quote_policy_id not in (
             BLANKET_QUOTE_PROTECTION_POLICY_ID,
             QUOTE_SAFE_SURFACE_POLICY_ID,
@@ -264,6 +265,10 @@ def default_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegi
     return TransformRegistry(default_contraction_rules(), identifiers)
 
 
+def historical_visible_edit_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegistry:
+    return default_transform_registry(identifiers)
+
+
 def development_transform_registry(identifiers: Sequence[str] = ()) -> TransformRegistry:
     return TransformRegistry((*default_contraction_rules(), *development_surface_rules(), *development_lexical_rules(), *development_syntax_rules()), identifiers)
 
@@ -275,6 +280,8 @@ def release_transform_registry(
 ) -> TransformRegistry:
     if lexical_rules or lexical_audits:
         raise LexicalRulePromotionError(
-            "release promotion requires source-grounded verified fidelity evidence; summary audit artifacts cannot authorize release"
+            "release promotion requires product-visible-invariance authorization and source-grounded verified fidelity evidence; summary audit artifacts cannot authorize release"
         )
-    return TransformRegistry(default_contraction_rules(), identifiers)
+    from ..product.registry import product_transform_registry
+
+    return product_transform_registry(identifiers)

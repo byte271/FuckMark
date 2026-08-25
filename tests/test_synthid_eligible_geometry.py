@@ -16,7 +16,7 @@ from fuckmark.experiments.synthid_eligible_geometry import (
 from fuckmark.experiments.synthid_smoke import SynthIDSmokePrompt
 from fuckmark.hashing import sha256_text
 from fuckmark.public_eligibility import build_huggingface_public_eligibility
-from fuckmark.transforms import release_transform_registry
+from fuckmark.transforms import historical_visible_edit_transform_registry
 
 
 class _FakeBackend:
@@ -86,7 +86,7 @@ def test_eligible_geometry_pilot_builds_both_bases_before_scoring() -> None:
     report = run_synthid_eligible_geometry_pilot(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1, 2),
         schedule_seed=100,
     )
@@ -112,7 +112,7 @@ def test_eligible_geometry_report_fails_closed_on_tamper() -> None:
     report = run_synthid_eligible_geometry_pilot(
         (prompt,),
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
     )
     with pytest.raises(ValueError, match="variant_hash"):
@@ -128,5 +128,5 @@ def test_eligible_geometry_rejects_duplicate_prompt_ids() -> None:
         run_synthid_eligible_geometry_pilot(
             (prompt, replace(prompt, seed=2)),
             backend,
-            release_transform_registry(),
+            historical_visible_edit_transform_registry(),
         )

@@ -9,9 +9,15 @@
 
 # FuckMark
 
-FuckMark is a deterministic, detector-blind research harness for studying how small text transformations change statistical watermark observations while preserving the source text as much as possible.
+FuckMark is a deterministic, detector-blind research harness and CLI for disrupting statistical text watermarks.
 
-**Current release: v0.2.0**  
+**Product contract (Priority Zero):** the user-visible text must not change. Product-safe transforms may modify only rigorously validated non-rendering Unicode representation while preserving exact visible projection. Semantic equivalence, "minor" punctuation edits, and extra visible spaces are not product success.
+
+The public CLI currently fail-closes: no product-authorized invisible carrier has been promoted yet, so `FuckMark` returns the original text unchanged rather than applying contractions or other visible edits. That is intentional. Historical visible-edit research remains replayable through explicitly named historical registries.
+
+See [`docs/product-contract.md`](docs/product-contract.md) and `specs/fuckmark-user-visible-invariance-v1.contract.json`.
+
+**Current tagged release: v0.2.0**  
 Website: [mark.q1z.org](https://mark.q1z.org)  
 License: MIT
 
@@ -36,11 +42,11 @@ The expanded `content-region-destruction-v1` pool and pairwise-completion schedu
 
 ## Claim boundary
 
-The 97.40% result is narrow research evidence, not a universal watermark-removal guarantee.
+The 97.40% Cycle 4 result is narrow research evidence, not a universal watermark-removal guarantee, and it is not a product-contract success: those schedulers selected visible-edit candidates.
 
-It applies to the repository's frozen open GPT-2 / Hugging Face SynthID Weighted Mean confirmation configuration, fixed threshold, exact source protocol, and measured corpus. It does not establish proprietary-detector transfer, arbitrary-model transfer, unknown future watermark transfer, perfect removal, or semantic equivalence under every input.
+It applies to the repository's frozen open GPT-2 / Hugging Face SynthID Weighted Mean confirmation configuration, fixed threshold, exact source protocol, and measured corpus. It does not establish proprietary-detector transfer, arbitrary-model transfer, unknown future watermark transfer, or perfect removal.
 
-The public CLI also remains deliberately conservative. It uses only the release transform registry. Development schedulers, detector code, experimental search, and the quarantined U+200C diagnostic registry are not automatically selected by the command-line product path.
+The public CLI uses only `release_transform_registry()`, which is now the product-visible-invariance registry. That registry currently contains zero authorized carriers. Development schedulers, detector code, experimental search, historical contraction/lexical/syntax rules, Cycle 6 spacing, Cycle 7 durable visible edits, and the quarantined U+200C diagnostic registry are not automatically selected by the command-line product path.
 
 ## Install
 
@@ -99,6 +105,8 @@ Stream mode:
 printf 'I do not agree.\n' | FuckMark
 ```
 
+The current product CLI prints the same visible text. It does not emit `I don't agree.`
+
 File mode:
 
 ```text
@@ -136,11 +144,17 @@ The U+200C mechanism is not promoted into release behavior. It can strongly pert
 
 ## Cycle 6 development status
 
-Cycle 6 reached **0 of 16 detected** on the frozen seed-720000 development corpus with the unchanged `0.5570987654320988` threshold and the raw, NFKC, Cf-strip, and combined sanitizer arms. The timestamp-independent corpus content hash is `b114cf4d869c5a5d78ac52855a1a480b1f0e605137aee2cb269062880fcc22d3`; the stable scored-result hash is `73f44b173d7ec55ea80e7d2e9a46b7ea70d8b32682f465dc66643387d99aa8b6`.
+Cycle 6 reached **0 of 16 detected** on the frozen seed-720000 development corpus with the unchanged `0.5570987654320988` threshold and the raw, NFKC, Cf-strip, and combined sanitizer arms. Formal confirmation froze **NONZERO_RESIDUAL 7/192** transformed-WM detections (2/64 + 2/64 + 3/64) with 0/192 matched transformed-UW detections.
 
-This is detector-endpoint development evidence, not geometry zero and not a release claim. Surviving original observations remain in every output. The attack also relies on visible repeated ASCII spaces: NFKC and Cf stripping preserve them, but repeated-space canonicalization removes the mechanism and human fidelity review is still pending.
+This is detector-endpoint scientific evidence, **PRODUCT_DISQUALIFIED**. The Cycle 6 workhorse inserted repeated ordinary ASCII U+0020 spaces, which are visible spacing changes. Do not treat 7/192, 0/16, or the older 96%+ Cycle 4 figure as proof that FuckMark currently meets the product goal.
 
-The Cycle 6 formal-confirmation harness is preregistered for three new 64-sample corpora with matched transformed-unwatermarked controls. Sealed detector scoring remains blocked until the full all-16 blind B14 fidelity packet receives independent human adjudication and its audit hash is bound into the confirmation contract.
+## Cycle 7 status
+
+Cycle 7 Stage A/B/C researched collapse-resistant *visible* edits (contractions, hyphenation, punctuation, newlines). Those results remain historically valid as **INSUFFICIENT_EVIDENCE** and are **PRODUCT_DISQUALIFIED**. They must not enter `release_transform_registry()`.
+
+## Cycle 8 status
+
+Cycle 8 is the exact-visible-projection generation. See [`docs/cycle8/README.md`](docs/cycle8/README.md). U+200C remains a diagnostic baseline (stripped by Cf). Combining grapheme joiner U+034F is an early durable-track *hypothesis* under frozen sanitizers; it is not a release mechanism.
 
 ## Reproduce the research environment
 

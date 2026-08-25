@@ -80,9 +80,10 @@ def test_release_policy_has_no_summary_based_syntax_promotion_path() -> None:
         release_transform_registry((syntax_rule,), ())
 
 
-def test_release_policy_without_promotions_remains_contractions_only() -> None:
+def test_release_policy_without_promotions_is_an_empty_product_registry() -> None:
     registry = release_transform_registry()
     enumeration = registry.enumerate(
         "Do not wait. For example, retry once. The build passed; however, the deploy failed."
     )
-    assert tuple(candidate.rule_id for candidate in enumeration.candidates) == ("contract-do-not",)
+    assert registry.rules == ()
+    assert enumeration.candidates == ()

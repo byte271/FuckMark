@@ -9,6 +9,22 @@ from fuckmark.experiments.synthid_smoke import (
     run_synthid_smoke,
 )
 from fuckmark.hashing import sha256_text
+from fuckmark.transforms.registry import historical_visible_edit_transform_registry
+
+
+def _historical_visible_edit(text: str) -> str:
+    registry = historical_visible_edit_transform_registry()
+    enumeration = registry.enumerate(text)
+    selected = []
+    occupied_until = 0
+    for candidate in enumeration.candidates:
+        if candidate.start < occupied_until:
+            continue
+        selected.append(candidate.candidate_id)
+        occupied_until = candidate.end
+    if not selected:
+        return text
+    return registry.apply(enumeration, tuple(selected)).output_text
 
 
 class _FakeBackend:
@@ -50,15 +66,23 @@ def test_synthid_smoke_measures_paired_watermark_degradation_and_control_shift()
     assert report.summary.pristine_control_detection_rate == 0.0
     assert report.summary.transformed_control_detection_rate == 0.0
     assert report.summary.pristine_watermark_detection_rate == 1.0
+    assert report.summary.transformed_watermark_detection_rate == 1.0
+    assert report.summary.watermark_detection_rate_drop == 0.0
+    assert report.summary.mean_watermark_score_drop == pytest.approx(0.0)
+    assert report.summary.median_watermark_score_drop == pytest.approx(0.0)
+    assert report.summary.mean_control_score_shift == pytest.approx(0.0)
+    assert report.summary.control_transform_rate == 0.0
+    assert report.summary.watermark_transform_rate == 0.0
+    assert not any(value.watermark_changed for value in report.results)
+    assert not any(value.control_changed for value in report.results)
+
+
+def test_historical_visible_edit_smoke_still_contracts_when_requested_explicitly() -> None:
+    report = run_synthid_smoke(_prompts(), _FakeBackend(), transform=_historical_visible_edit)
     assert report.summary.transformed_watermark_detection_rate == 0.0
-    assert report.summary.watermark_detection_rate_drop == 1.0
-    assert report.summary.mean_watermark_score_drop == pytest.approx(0.75)
-    assert report.summary.median_watermark_score_drop == pytest.approx(0.75)
-    assert report.summary.mean_control_score_shift == pytest.approx(-0.02)
-    assert report.summary.control_transform_rate == 1.0
     assert report.summary.watermark_transform_rate == 1.0
-    assert all(value.watermark_changed for value in report.results)
-    assert all(value.control_changed for value in report.results)
+    assert report.summary.control_transform_rate == 1.0
+    assert report.summary.mean_watermark_score_drop == pytest.approx(0.75)
 
 
 def test_synthid_smoke_finishes_all_key_blind_transforms_before_detector_scoring() -> None:
@@ -102,7 +126,7 @@ def test_synthid_smoke_threshold_is_descriptive_and_uses_pristine_controls_only(
                 return 0.30 if transformed else 0.80
             return 0.95 if transformed else 0.20
 
-    report = run_synthid_smoke(_prompts(), Backend(), target_fpr=0.05)
+    report = run_synthid_smoke(_prompts(), Backend(), target_fpr=0.05, transform=_historical_visible_edit)
 
     assert report.summary.threshold == pytest.approx(0.20)
     assert report.summary.pristine_control_detection_rate == 0.0

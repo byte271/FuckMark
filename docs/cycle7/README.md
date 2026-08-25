@@ -1,8 +1,10 @@
-# Cycle 7 — durable transform development
+# Cycle 7 — durable visible-edit research (PRODUCT_DISQUALIFIED)
 
-Cycle 6 is **frozen**. Formal outcome: `NONZERO_RESIDUAL` **7/192**, not 0/192.
+Cycle 6 is **frozen**. Formal outcome: `NONZERO_RESIDUAL` **7/192**, not 0/192. That detector result remains historically valid and is **not** product-compliant FuckMark removal: Cycle 6 inserted visible ASCII spaces.
 
-This directory starts Cycle 7 development. It does not retune Cycle 6 and does not authorize a new formal confirmation.
+Cycle 7 researched collapse-resistant *visible* transforms. Those edits may preserve meaning. They still change user-visible text, so they are **PRODUCT_DISQUALIFIED** for the CLI/product path restored under `fuckmark-user-visible-invariance-v1`.
+
+Cycle 8 (`docs/cycle8/`) is the exact-visible-projection generation. Do not promote Cycle 7 catalogs into `release_transform_registry()`.
 
 ## Live state (verified 2026-08-25)
 

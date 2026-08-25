@@ -11,7 +11,7 @@ from fuckmark.experiments.synthid_repetition_strata import (
     run_synthid_repetition_strata,
 )
 from fuckmark.experiments.synthid_smoke import SynthIDSmokePrompt
-from fuckmark.transforms import release_transform_registry
+from fuckmark.transforms import historical_visible_edit_transform_registry
 
 
 class _FakeBackend:
@@ -59,7 +59,7 @@ def test_repetition_strata_retains_every_generated_source_and_balances_rank_quar
     report = run_synthid_repetition_strata(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         schedule_seed=12,
     )
@@ -89,7 +89,7 @@ def test_repetition_strata_high_quartile_has_no_less_repetition_than_low_quartil
     report = run_synthid_repetition_strata(
         _prompts(),
         _FakeBackend(expected_generate_calls=8),
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
     )
     for label in (GeometryLabel.CONTROL, GeometryLabel.WATERMARKED):
@@ -104,7 +104,7 @@ def test_repetition_strata_report_fails_closed_on_tamper() -> None:
     report = run_synthid_repetition_strata(
         _prompts(),
         _FakeBackend(expected_generate_calls=8),
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
     )
     with pytest.raises(ValueError, match="report_hash"):
@@ -119,5 +119,5 @@ def test_repetition_strata_rejects_duplicate_prompt_ids() -> None:
         run_synthid_repetition_strata(
             (prompt, replace(prompt, seed=2)),
             _FakeBackend(expected_generate_calls=0),
-            release_transform_registry(),
+            historical_visible_edit_transform_registry(),
         )
