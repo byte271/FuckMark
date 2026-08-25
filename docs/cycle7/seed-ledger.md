@@ -27,3 +27,5 @@ Do not promote 810000, 820000, or 860000 into confirmation after seeing scores.
 Stage A generation used 810000 with pair stride 32, matching TinyDev pairing, one pair per domain, topic `reproducibility` chosen without a detector look.
 
 Stage B1 generation uses 860000 with the same pairing rule and topic `independent replication`. Rule-construction generation must call `assert_rule_construction_seed(860000)`. Seed 810000 remains an exploratory seed for Stage A rescoring only.
+
+Validation generation, if run, uses 820000 with topic `held-out evaluation` and `assert_development_seed(820000, role=validation_development)`. That topic was frozen before validation generation.

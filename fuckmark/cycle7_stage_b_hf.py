@@ -20,6 +20,10 @@ from .cycle7.durable_rules import CYCLE7_DURABLE_RULE_CATALOG_VERSION
 from .cycle7.ledger import (
     CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
     CYCLE7_STAGE_B1_TOPIC,
+    CYCLE7_VALIDATION_ROLE,
+    CYCLE7_VALIDATION_SEED_BASE,
+    CYCLE7_VALIDATION_TOPIC,
+    assert_development_seed,
     assert_rule_construction_seed,
 )
 from .cycle7.stage_b import classify_stage_b_density, density_artifact, geometry_intact_means
@@ -37,17 +41,27 @@ from .tiny_dev_corpus_hf import HuggingFaceTinyDevBackend
 CYCLE7_STAGE_B_DETECTOR_VERSION = "cycle7-stage-b-detector-compare-v1"
 
 
-def _generate_stage_b1_samples(backend: HuggingFaceTinyDevBackend, seed_base: int) -> tuple[dict[str, object], ...]:
-    assert_rule_construction_seed(seed_base)
+def _generate_stage_b_samples(
+    backend: HuggingFaceTinyDevBackend,
+    seed_base: int,
+    topic: str,
+    sample_prefix: str,
+) -> tuple[dict[str, object], ...]:
     samples: list[dict[str, object]] = []
     for pair_index, domain in enumerate(CorpusDomain):
-        prompt = _STAGE_A_TEMPLATES[domain].format(topic=CYCLE7_STAGE_B1_TOPIC)
+        prompt = _STAGE_A_TEMPLATES[domain].format(topic=topic)
         pair_seed_base = seed_base + pair_index * TINY_DEV_PAIR_SEED_STRIDE
         accepted = None
         for attempt in range(TINY_DEV_DEFAULT_MAX_ATTEMPTS):
             seed = pair_seed_base + attempt
-            control = backend.generate(prompt, seed, watermarked=False)
-            watermarked = backend.generate(prompt, seed, watermarked=True)
+            try:
+                control = backend.generate(prompt, seed, watermarked=False)
+                watermarked = backend.generate(prompt, seed, watermarked=True)
+            except RuntimeError as error:
+                message = str(error)
+                if "empty decoded continuation" not in message and "text-only re-encoding" not in message:
+                    raise
+                continue
             if len(control.continuation_token_ids) != TINY_DEV_TARGET_LENGTH:
                 continue
             if len(watermarked.continuation_token_ids) != TINY_DEV_TARGET_LENGTH:
@@ -57,13 +71,13 @@ def _generate_stage_b1_samples(backend: HuggingFaceTinyDevBackend, seed_base: in
             accepted = (seed, control, watermarked)
             break
         if accepted is None:
-            raise RuntimeError(f"Cycle 7 Stage B1 failed to generate a pair for {domain.value}")
+            raise RuntimeError(f"Cycle 7 Stage B failed to generate a pair for {domain.value}")
         seed, control, watermarked = accepted
         for label, generated in (
             (WatermarkLabel.UNWATERMARKED, control),
             (WatermarkLabel.WATERMARKED, watermarked),
         ):
-            sample_id = f"cycle7-stage-b1-{domain.value}-{label.value}"
+            sample_id = f"{sample_prefix}-{domain.value}-{label.value}"
             samples.append(
                 {
                     "sample_id": sample_id,
@@ -79,10 +93,21 @@ def _generate_stage_b1_samples(backend: HuggingFaceTinyDevBackend, seed_base: in
     return tuple(samples)
 
 
+def _generate_stage_b1_samples(backend: HuggingFaceTinyDevBackend, seed_base: int) -> tuple[dict[str, object], ...]:
+    assert_rule_construction_seed(seed_base)
+    return _generate_stage_b_samples(
+        backend,
+        seed_base,
+        CYCLE7_STAGE_B1_TOPIC,
+        "cycle7-stage-b1",
+    )
+
+
 def _geometry_artifact(
     samples: tuple[dict[str, object], ...],
     tokenizer: Any,
     identity_hash: str,
+    seed_base: int,
 ) -> dict[str, object]:
     rows = []
     for sample in samples:
@@ -106,7 +131,7 @@ def _geometry_artifact(
     intact = geometry_intact_means(durable_samples, tokenizer, identity_hash)
     payload = {
         "algorithm_version": "cycle7-stage-b-geometry-v1",
-        "seed_base": CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
+        "seed_base": seed_base,
         "durable_catalog_version": CYCLE7_DURABLE_RULE_CATALOG_VERSION,
         "detector_access_used_for_selection": False,
         "rows": tuple(rows),
@@ -116,34 +141,39 @@ def _geometry_artifact(
     return {**payload, "artifact_hash": sha256_json({k: v for k, v in payload.items() if k != "artifact_hash"})}
 
 
-def run_stage_b1(
+def run_stage_b(
     *,
+    seed_base: int,
+    topic: str,
+    stage: str,
+    sample_prefix: str,
+    admit,
     device: str = "cpu",
     skip_detector: bool = True,
     samples_from: Path | None = None,
 ) -> dict[str, object]:
-    assert_rule_construction_seed(CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE)
+    admit(seed_base)
     backend, tokenizer, adapter, identity_hash, eos = _adapter_and_tokenizer(device)
     if samples_from is not None:
         previous = json.loads(samples_from.read_text(encoding="utf-8"))
         samples = tuple(previous["samples"])
-        if int(previous["seed_base"]) != CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE:
-            raise ValueError("Stage B1 sample file seed_base does not match the frozen ledger")
+        if int(previous["seed_base"]) != seed_base:
+            raise ValueError("Stage B sample file seed_base does not match the requested ledger seed")
     else:
-        samples = _generate_stage_b1_samples(backend, CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE)
+        samples = _generate_stage_b_samples(backend, seed_base, topic, sample_prefix)
     density_samples = tuple(
         {"sample_id": sample["sample_id"], "text": sample["text"]} for sample in samples
     )
     density = density_artifact(
         density_samples,
-        seed_base=CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
+        seed_base=seed_base,
         catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
     )
-    geometry = _geometry_artifact(samples, tokenizer, identity_hash)
+    geometry = _geometry_artifact(samples, tokenizer, identity_hash, seed_base)
     density_decision = classify_stage_b_density(
         density_summary=density["summary"],
         collapsed_intact_mean=float(geometry["durable_intact_means"]["mean_collapsed_intact_window_count"]),
-        source_intact_mean=float(geometry["durable_intact_means"]["mean_intact_window_count"]),
+        source_root_mean=float(geometry["durable_intact_means"]["mean_root_window_count"]),
     )
     detector = None
     if not skip_detector:
@@ -160,9 +190,9 @@ def run_stage_b1(
         detector = {
             **{k: v for k, v in detector.items() if k != "artifact_hash"},
             "algorithm_version": CYCLE7_STAGE_B_DETECTOR_VERSION,
-            "seed_base": CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
-            "stage": "B1",
-            "topic": CYCLE7_STAGE_B1_TOPIC,
+            "seed_base": seed_base,
+            "stage": stage,
+            "topic": topic,
         }
         detector = {
             **detector,
@@ -174,7 +204,49 @@ def run_stage_b1(
         "geometry": geometry,
         "decision": density_decision,
         "detector": detector,
+        "seed_base": seed_base,
+        "topic": topic,
+        "stage": stage,
     }
+
+
+def run_stage_b1(
+    *,
+    device: str = "cpu",
+    skip_detector: bool = True,
+    samples_from: Path | None = None,
+) -> dict[str, object]:
+    return run_stage_b(
+        seed_base=CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
+        topic=CYCLE7_STAGE_B1_TOPIC,
+        stage="B1",
+        sample_prefix="cycle7-stage-b1",
+        admit=assert_rule_construction_seed,
+        device=device,
+        skip_detector=skip_detector,
+        samples_from=samples_from,
+    )
+
+
+def run_stage_b_validation(
+    *,
+    device: str = "cpu",
+    skip_detector: bool = True,
+    samples_from: Path | None = None,
+) -> dict[str, object]:
+    def _admit(seed_base: int) -> None:
+        assert_development_seed(seed_base, role=CYCLE7_VALIDATION_ROLE)
+
+    return run_stage_b(
+        seed_base=CYCLE7_VALIDATION_SEED_BASE,
+        topic=CYCLE7_VALIDATION_TOPIC,
+        stage="B3",
+        sample_prefix="cycle7-stage-b3",
+        admit=_admit,
+        device=device,
+        skip_detector=skip_detector,
+        samples_from=samples_from,
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -188,18 +260,29 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--skip-detector", action="store_true", default=True)
     parser.add_argument("--with-detector", action="store_true")
     parser.add_argument("--samples-from", type=Path, default=None)
+    parser.add_argument("--validation", action="store_true")
     args = parser.parse_args(argv)
     skip_detector = not args.with_detector
-    bundle = run_stage_b1(
-        device=args.device,
-        skip_detector=skip_detector,
-        samples_from=args.samples_from,
-    )
+    if args.validation:
+        if args.output_dir == Path("evidence/cycle7-stage-b-2026-08-25"):
+            args.output_dir = Path("evidence/cycle7-stage-b-validation-820000-2026-08-25")
+        bundle = run_stage_b_validation(
+            device=args.device,
+            skip_detector=skip_detector,
+            samples_from=args.samples_from,
+        )
+    else:
+        bundle = run_stage_b1(
+            device=args.device,
+            skip_detector=skip_detector,
+            samples_from=args.samples_from,
+        )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     sample_payload = {
-        "algorithm_version": "cycle7-stage-b1-samples-v1",
-        "seed_base": CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
-        "topic": CYCLE7_STAGE_B1_TOPIC,
+        "algorithm_version": "cycle7-stage-b-samples-v1",
+        "seed_base": bundle["seed_base"],
+        "topic": bundle["topic"],
+        "stage": bundle["stage"],
         "durable_catalog_version": CYCLE7_DURABLE_RULE_CATALOG_VERSION,
         "samples": tuple(
             {

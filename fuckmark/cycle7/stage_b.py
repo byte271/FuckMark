@@ -43,7 +43,7 @@ def classify_stage_b_density(
     *,
     density_summary: Mapping[str, object],
     collapsed_intact_mean: float | None = None,
-    source_intact_mean: float | None = None,
+    source_root_mean: float | None = None,
 ) -> dict[str, object]:
     mean_candidates = float(density_summary["mean_candidate_count"])
     mean_format = float(density_summary["mean_format_candidate_count"])
@@ -65,14 +65,20 @@ def classify_stage_b_density(
         reasons.append(
             "coordinating-conjunction commas supply a large share of non-format density"
         )
-    if collapsed_intact_mean is not None and source_intact_mean is not None:
-        if collapsed_intact_mean <= source_intact_mean * 0.5:
-            reasons.append("collapsed intact root windows dropped by at least half versus the source")
+    collapsed_fraction = None
+    if collapsed_intact_mean is not None and source_root_mean is not None:
+        if source_root_mean <= 0:
+            raise ValueError("source_root_mean must be positive")
+        collapsed_fraction = collapsed_intact_mean / source_root_mean
+        if collapsed_fraction <= 0.5:
+            reasons.append("collapsed intact root windows dropped by at least half versus the source root")
+        elif collapsed_fraction <= 0.75:
+            reasons.append("collapsed intact root windows dropped, but more than half of the source windows remain")
         else:
-            reasons.append("collapsed intact root windows remain high relative to the source")
+            reasons.append("collapsed intact root windows remain high relative to the source root")
     if mean_candidates < 4:
         decision = INSUFFICIENT_EVIDENCE
-    elif collapsed_intact_mean is not None and source_intact_mean is not None and collapsed_intact_mean > source_intact_mean * 0.75:
+    elif collapsed_fraction is not None and collapsed_fraction > 0.75:
         decision = INSUFFICIENT_EVIDENCE
         reasons.append("density rose but collapse-surviving geometry still leaves most windows intact")
     else:
@@ -87,6 +93,7 @@ def classify_stage_b_density(
         "mean_coord_comma_candidate_count": mean_coord,
         "mean_nonformat_candidate_count": residual_mean,
         "mean_punctuation_candidate_count": punctuation_mean,
+        "collapsed_intact_fraction_of_root": collapsed_fraction,
         "notes": (
             "Stage B is development-only. Seeds 830000/840000/850000 were not inspected. "
             "Seed 820000 remains unused validation until a catalog freeze."
@@ -124,6 +131,7 @@ def geometry_intact_means(
     intact = []
     collapsed_intact = []
     selected = []
+    roots = []
     for sample in samples:
         measurement = measure_arm(
             arm_id="cycle7_durable",
@@ -136,9 +144,14 @@ def geometry_intact_means(
         intact.append(measurement.intact_window_count)
         collapsed_intact.append(measurement.collapsed_intact_window_count)
         selected.append(measurement.selected_count)
+        roots.append(measurement.root_window_count)
     n = len(samples)
+    root_mean = sum(roots) / n
+    collapsed_mean = sum(collapsed_intact) / n
     return {
         "mean_selected_count": sum(selected) / n,
+        "mean_root_window_count": root_mean,
         "mean_intact_window_count": sum(intact) / n,
-        "mean_collapsed_intact_window_count": sum(collapsed_intact) / n,
+        "mean_collapsed_intact_window_count": collapsed_mean,
+        "collapsed_intact_fraction_of_root": collapsed_mean / root_mean if root_mean else 1.0,
     }

@@ -78,9 +78,9 @@ Details: `docs/cycle7/stage-a-decision.md`.
 
 ## Stage B
 
-Stage B is still development. Catalog `cycle7-durable-rule-catalog-v3` is measured first on density and geometry, then on detector scores, using new exploratory seed `860000`. Seed `820000` remains unseen validation. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
+Stage B1 on seed `860000` is **`PROMISING_DEVELOPMENT`**, not formal confirmation. Catalog v3 durable edits reduced collapse-surviving watermarked detections to **2/4** on that tiny corpus (Cycle 6 spacing returned to 4/4 after collapse). Details: `docs/cycle7/stage-b-decision.md`.
 
-This is not Cycle 7 formal confirmation.
+Seed `820000` remains disjoint validation with topic `held-out evaluation`. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
 
 Not claimed:
 

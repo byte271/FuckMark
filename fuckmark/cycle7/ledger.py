@@ -30,6 +30,7 @@ CYCLE7_EXPLORATORY_SEED_BASES = (810_000, 860_000)
 CYCLE7_USED_EXPLORATORY_SEED_BASES = (810_000,)
 CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES = (860_000,)
 CYCLE7_VALIDATION_SEED_BASE = 820_000
+CYCLE7_VALIDATION_TOPIC = "held-out evaluation"
 CYCLE7_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
 CYCLE7_STAGE_B1_TOPIC = "independent replication"
 
@@ -57,13 +58,16 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
         "stage_b1_exploratory_seed_base": CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
         "stage_b1_topic": CYCLE7_STAGE_B1_TOPIC,
         "validation_development_seed_base": CYCLE7_VALIDATION_SEED_BASE,
+        "validation_topic": CYCLE7_VALIDATION_TOPIC,
         "confirmation_reserved_seed_bases": list(CYCLE7_CONFIRMATION_RESERVED_SEED_BASES),
         "selection_rule": (
             "Confirmation-reserved seeds were chosen as unused 10k blocks "
             "without inspecting detector outcomes. Do not promote exploratory "
             "or validation seeds into confirmation after seeing scores. "
             "Seed 860000 and topic 'independent replication' were frozen before "
-            "any Stage B generation or detector look."
+            "any Stage B generation or detector look. "
+            "Seed 820000 and topic 'held-out evaluation' were frozen before "
+            "any validation generation or detector look."
         ),
         "spent_corpus_rule": (
             "Do not use 720000, 730000, 760000, 770000, or 780000 as "

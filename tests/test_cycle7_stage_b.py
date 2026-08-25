@@ -11,6 +11,7 @@ from fuckmark.cycle7.ledger import (
     CYCLE7_STAGE_B1_TOPIC,
     CYCLE7_USED_EXPLORATORY_SEED_BASES,
     CYCLE7_VALIDATION_SEED_BASE,
+    CYCLE7_VALIDATION_TOPIC,
     assert_development_seed,
     assert_rule_construction_seed,
     cycle7_seed_ledger_payload,
@@ -33,11 +34,13 @@ def test_stage_b_catalog_and_ledger_identities() -> None:
     assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v2"
     assert CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE == 860000
     assert CYCLE7_STAGE_B1_TOPIC == "independent replication"
+    assert CYCLE7_VALIDATION_TOPIC == "held-out evaluation"
     assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000,)
     assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == (860000,)
     payload = cycle7_seed_ledger_payload()
     assert payload["stage_b1_exploratory_seed_base"] == 860000
     assert payload["stage_b1_topic"] == "independent replication"
+    assert payload["validation_topic"] == "held-out evaluation"
 
 
 def test_rule_construction_admits_860000_and_blocks_spent_or_reserved_seeds() -> None:
@@ -77,6 +80,27 @@ def test_stage_b_density_classifier_on_construction_fixtures() -> None:
     assert artifact["detector_access_used_for_selection"] is False
     assert artifact["seed_base"] == 860000
     assert artifact["artifact_hash"]
+
+
+def test_stage_b_classifier_uses_root_windows_not_post_edit_intact() -> None:
+    summary = {
+        "mean_candidate_count": 4.25,
+        "mean_format_candidate_count": 2.5,
+        "mean_coord_comma_candidate_count": 0.75,
+    }
+    equal_to_post_edit = classify_stage_b_density(
+        density_summary=summary,
+        collapsed_intact_mean=35.625,
+        source_root_mean=35.625,
+    )
+    assert equal_to_post_edit["decision"] == INSUFFICIENT_EVIDENCE
+    versus_root = classify_stage_b_density(
+        density_summary=summary,
+        collapsed_intact_mean=35.625,
+        source_root_mean=49.75,
+    )
+    assert versus_root["decision"] == PROMISING_DEVELOPMENT
+    assert versus_root["collapsed_intact_fraction_of_root"] == 35.625 / 49.75
 
 
 def test_stage_b_classifier_keeps_low_density_as_insufficient() -> None:
