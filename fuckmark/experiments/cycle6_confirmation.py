@@ -134,6 +134,14 @@ def validate_cycle6_confirmation_contract(contract: Mapping[str, object]) -> str
             raise ValueError("Cycle 6 scoring must remain blocked while fidelity is pending")
         if fidelity.get("independent_audit_hash") is not None:
             raise ValueError("pending Cycle 6 fidelity cannot bind a completed audit hash")
+        for name in ("full_packet_hash", "mechanical_artifact_hash"):
+            value = fidelity.get(name)
+            if value is not None and (
+                not isinstance(value, str)
+                or len(value) != 64
+                or any(character not in "0123456789abcdef" for character in value)
+            ):
+                raise ValueError(f"pending Cycle 6 fidelity has an invalid {name}")
     elif fidelity_status == "ACCEPTED_INDEPENDENT_HUMAN_REVIEW":
         if scoring_authorized is not True:
             raise ValueError("accepted Cycle 6 fidelity must explicitly authorize scoring")

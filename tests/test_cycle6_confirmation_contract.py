@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -117,6 +118,24 @@ def test_cycle6_contract_freezes_source_and_confirmation_identities() -> None:
     assert contract["attack"]["budget"] == 14
     assert contract["measurement"]["threshold"] == CYCLE6_THRESHOLD
     assert validate_cycle6_frozen_source_blobs(ROOT, contract)
+
+    evidence_root = ROOT / "evidence" / "cycle6-formal-confirmation-2026-08-25"
+    public_path = evidence_root / "full-fidelity-public.json"
+    mechanical_path = evidence_root / "full-fidelity-mechanical.json"
+    public = json.loads(public_path.read_text(encoding="utf-8"))
+    mechanical = json.loads(mechanical_path.read_text(encoding="utf-8"))
+    fidelity = contract["fidelity_gate"]
+    assert fidelity["full_packet_hash"] == public["packet_hash"]
+    assert fidelity["mechanical_artifact_hash"] == mechanical["artifact_hash"]
+    assert fidelity["full_packet_public_file_sha256"] == hashlib.sha256(
+        public_path.read_bytes()
+    ).hexdigest()
+    assert fidelity["mechanical_file_sha256"] == hashlib.sha256(
+        mechanical_path.read_bytes()
+    ).hexdigest()
+    assert public["detector_results_disclosed"] is False
+    assert len(public["items"]) == 16
+    assert mechanical["all_mechanical_gates_passed"] is True
 
 
 @pytest.mark.parametrize("field", ("threshold", "comparison", "target_fpr"))
