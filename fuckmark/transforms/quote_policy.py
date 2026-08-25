@@ -35,7 +35,7 @@ def is_quote_safe_surface_rule(rule: object) -> bool:
     return isinstance(
         rule,
         (GeneralWordLeadingSpacingRule, GeneralWordSpacingRule, SurfaceSpacingRule),
-    )
+    ) and getattr(rule, "rule_id", "").startswith("surface-space-")
 
 
 def validate_quote_safe_surface_operations(

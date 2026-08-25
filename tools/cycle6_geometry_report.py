@@ -15,7 +15,7 @@ def _intersects(start: int, end: int, spans) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--corpus", required=True)
-    parser.add_argument("--budget", type=int, default=16)
+    parser.add_argument("--budget", type=int, default=14)
     parser.add_argument("--source-container-hash", required=True)
     parser.add_argument("--source-content-hash", required=True)
     parser.add_argument("--out", required=True)

@@ -15,7 +15,7 @@ def main() -> int:
     parser.add_argument("--public-out", required=True)
     parser.add_argument("--private-out", required=True)
     parser.add_argument("--indices", type=int, nargs="+", default=(8, 10))
-    parser.add_argument("--budget", type=int, default=16)
+    parser.add_argument("--budget", type=int, default=14)
     parser.add_argument("--seed", type=int, default=6_720_000)
     args = parser.parse_args()
 

@@ -7,6 +7,9 @@ from fuckmark.transforms import (
     quote_safe_zrd_transform_registry,
     zrd_destruction_transform_registry,
 )
+from fuckmark.transforms.quote_policy import QUOTE_SAFE_SURFACE_POLICY_ID
+from fuckmark.transforms.registry import TransformRegistry
+from fuckmark.transforms.rules import SurfaceSpacingRule
 
 
 def _general_candidates(enumeration):
@@ -43,6 +46,27 @@ def test_quote_safe_policy_admits_only_surface_spacing_inside_closed_quote() -> 
     assert any(
         rejection.rule_id == "lexical-for-example-for-instance"
         for rejection in blocked
+    )
+
+
+def test_quote_safe_policy_rejects_unrecognized_surface_rule_identity_during_enumeration() -> None:
+    registry = TransformRegistry(
+        (
+            SurfaceSpacingRule.create(
+                rule_id="custom-spacing",
+                version="v1",
+                source="hello",
+                replacement="hello ",
+            ),
+        ),
+        quote_policy_id=QUOTE_SAFE_SURFACE_POLICY_ID,
+    )
+    enumeration = registry.enumerate('"hello world"')
+    assert not enumeration.candidates
+    assert any(
+        rejection.rule_id == "custom-spacing"
+        and rejection.reason is CandidateRejectionReason.QUOTE_POLICY_BLOCKED
+        for rejection in enumeration.rejections
     )
 
 
