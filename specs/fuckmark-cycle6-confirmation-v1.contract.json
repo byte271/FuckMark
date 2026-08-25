@@ -19,7 +19,7 @@
     "deterministic": true,
     "source_blobs": {
       "fuckmark/transforms/quote_policy.py": "73ac1115e055d978889d6e4a720cd5db39de0dbe",
-      "fuckmark/transforms/effectiveness_profile.py": "3bbf15fcbee17d8a8a699821d62d9b521483eb1a",
+      "fuckmark/transforms/effectiveness_profile.py": "3bbf15fcbee17c8a8a699821d62d9b521483eb1a",
       "fuckmark/experiments/cover_greedy_v4.py": "d8ea171092e854242cc88f6f0ebfa704e88f9006"
     }
   },
