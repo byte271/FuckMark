@@ -2,6 +2,7 @@ from fuckmark.cycle7.density import durable_density_table
 from fuckmark.cycle7.durable_rules import (
     CYCLE7_DURABLE_RULE_CATALOG_VERSION,
     CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
+    CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
 )
 from fuckmark.cycle7.fixtures import stage_b_fixture_samples
 from fuckmark.cycle7.ledger import (
@@ -13,6 +14,7 @@ from fuckmark.cycle7.ledger import (
     CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
     CYCLE7_STAGE_B1_TOPIC,
     CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE,
+    CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE,
     CYCLE7_USED_EXPLORATORY_SEED_BASES,
     CYCLE7_VALIDATION_SEED_BASE,
     CYCLE7_VALIDATION_TOPIC,
@@ -33,27 +35,31 @@ import pytest
 
 def test_stage_b_catalog_and_ledger_identities() -> None:
     assert CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v3"
-    assert CYCLE7_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v4"
-    assert CYCLE7_DURABLE_REGISTRY_ID == "cycle7-durable-catalog-v4"
-    assert CYCLE7_COMBINED_REGISTRY_ID == "cycle7-durable-plus-cycle6-spacing-v3"
-    assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v3"
+    assert CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v4"
+    assert CYCLE7_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v5"
+    assert CYCLE7_DURABLE_REGISTRY_ID == "cycle7-durable-catalog-v5"
+    assert CYCLE7_COMBINED_REGISTRY_ID == "cycle7-durable-plus-cycle6-spacing-v4"
+    assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v4"
     assert CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE == 860000
     assert CYCLE7_STAGE_B1_TOPIC == "independent replication"
     assert CYCLE7_VALIDATION_TOPIC == "held-out evaluation"
-    assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000, 860000)
-    assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == (870000,)
+    assert CYCLE7_USED_EXPLORATORY_SEED_BASES == (810000, 860000, 870000)
+    assert CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES == (890000,)
     payload = cycle7_seed_ledger_payload()
     assert payload["stage_b1_exploratory_seed_base"] == 860000
     assert payload["stage_b1_topic"] == "independent replication"
     assert payload["stage_c1_exploratory_seed_base"] == 870000
     assert payload["stage_c1_topic"] == "measurement protocol"
+    assert payload["stage_d1_exploratory_seed_base"] == 890000
+    assert payload["stage_d1_topic"] == "document structure"
     assert payload["validation_topic"] == "held-out evaluation"
     assert payload["used_validation_development_seed_bases"] == [820000]
     assert payload["active_validation_development_seed_bases"] == [880000]
 
 
-def test_rule_construction_admits_870000_and_blocks_spent_or_reserved_seeds() -> None:
-    assert_rule_construction_seed(CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE)
+def test_rule_construction_admits_890000_and_blocks_spent_or_reserved_seeds() -> None:
+    assert_rule_construction_seed(CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE)
+    assert_development_seed(CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
     assert_development_seed(CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
     assert_development_seed(CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
     assert_development_seed(CYCLE7_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
@@ -61,6 +67,8 @@ def test_rule_construction_admits_870000_and_blocks_spent_or_reserved_seeds() ->
         assert_rule_construction_seed(CYCLE7_EXPLORATORY_SEED_BASE)
     with pytest.raises(ValueError, match="rule-construction"):
         assert_rule_construction_seed(CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE)
+    with pytest.raises(ValueError, match="rule-construction"):
+        assert_rule_construction_seed(CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE)
     with pytest.raises(ValueError, match="rule-construction"):
         assert_development_seed(CYCLE7_EXPLORATORY_SEED_BASE, role=CYCLE7_RULE_CONSTRUCTION_ROLE)
     with pytest.raises(ValueError, match="confirmation-reserved"):

@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from .._validation import require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
-from .format_rules import FormatBoundaryRule
+from .format_rules import FormatBoundaryRule, WordBoundaryNewlineRule
 from .hard_invariants import validate_hard_invariants
 from .lexical_audit import LexicalRuleAudit, LexicalRulePromotionError
 from .lexical_rules import LexicalTemplateRule, development_lexical_rules
@@ -166,7 +166,9 @@ class TransformRegistry:
                 if rule.block_all_caps and letters and letters.isupper():
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.ALL_CAPS_BLOCKED))
                     continue
-                if isinstance(rule, (LexicalTemplateRule, SyntaxTemplateRule, FormatBoundaryRule)) and not rule.precondition(text, start, end):
+                if isinstance(
+                    rule, (LexicalTemplateRule, SyntaxTemplateRule, FormatBoundaryRule, WordBoundaryNewlineRule)
+                ) and not rule.precondition(text, start, end):
                     rejections.append(_make_rejection(input_hash, rule, start, end, source_text, CandidateRejectionReason.PRECONDITION_FAILED))
                     continue
                 replacement_getter = getattr(rule, "replacement_for", None)

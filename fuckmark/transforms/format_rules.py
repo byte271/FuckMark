@@ -73,6 +73,10 @@ _SENTENCE_ABBREVIATIONS = frozenset(
 class FormatConstruction(str, Enum):
     SENTENCE_BOUNDARY_NEWLINE = "sentence_boundary_newline"
     CLAUSE_PUNCTUATION_NEWLINE = "clause_punctuation_newline"
+    WORD_BOUNDARY_NEWLINE = "word_boundary_newline"
+
+
+WORD_BOUNDARY_NEWLINE_RULE_ALGORITHM_VERSION = "word-boundary-newline-rule-v1"
 
 
 def _word_before_punct(text: str, punct_index: int) -> str:
@@ -131,6 +135,32 @@ def clause_punctuation_span_admissible(text: str, start: int, end: int) -> bool:
     if len(follower) < 2:
         return False
     return True
+
+
+def _is_ascii_alpha(character: str) -> bool:
+    return "A" <= character <= "Z" or "a" <= character <= "z"
+
+
+def _ascii_alpha_run(text: str, index: int, *, reverse: bool) -> str:
+    if reverse:
+        cursor = index
+        while cursor > 0 and _is_ascii_alpha(text[cursor - 1]):
+            cursor -= 1
+        return text[cursor:index]
+    cursor = index
+    while cursor < len(text) and _is_ascii_alpha(text[cursor]):
+        cursor += 1
+    return text[index:cursor]
+
+
+def word_boundary_span_admissible(text: str, start: int, end: int) -> bool:
+    if start < 2 or end != start + 1 or end + 2 > len(text):
+        return False
+    if text[start] not in " \n":
+        return False
+    left = _ascii_alpha_run(text, start, reverse=True)
+    right = _ascii_alpha_run(text, end, reverse=False)
+    return len(left) >= 2 and len(right) >= 2
 
 
 @dataclass(frozen=True, slots=True)
@@ -237,3 +267,90 @@ class FormatBoundaryRule(LiteralTransformRule):
         if self.source[:1] in ".?!":
             return sentence_boundary_span_admissible(text, start, end)
         return clause_punctuation_span_admissible(text, start, end)
+
+
+@dataclass(frozen=True, slots=True)
+class WordBoundaryNewlineRule(LiteralTransformRule):
+    def __post_init__(self) -> None:
+        require_clean_string("rule_id", self.rule_id)
+        require_clean_string("version", self.version)
+        if self.family is not TransformFamily.ORTHOGRAPHY:
+            raise ValueError("word-boundary newline rules must use the orthography family")
+        if self.tier is not TransformTier.SURFACE:
+            raise ValueError("word-boundary newline rules must use tier 1 surface")
+        if self.source not in (" ", "\n") or self.replacement not in (" ", "\n"):
+            raise ValueError("word-boundary newline rules must swap a single space with a single newline")
+        if self.source == self.replacement:
+            raise ValueError("source and replacement must differ")
+        if "\r" in self.source or "\r" in self.replacement:
+            raise ValueError("word-boundary newline rules must not contain carriage returns")
+        require_bool("whole_word", self.whole_word)
+        require_bool("preserve_simple_case", self.preserve_simple_case)
+        require_bool("block_all_caps", self.block_all_caps)
+        if self.whole_word or self.preserve_simple_case or self.block_all_caps:
+            raise ValueError("word-boundary newline rules use an exact space/newline contract")
+        require_sha256("rule_hash", self.rule_hash)
+        if self.rule_hash != sha256_json(self._payload()):
+            raise ValueError("rule_hash does not match word-boundary newline rule")
+
+    def _payload(self) -> dict[str, object]:
+        return {
+            "algorithm_version": WORD_BOUNDARY_NEWLINE_RULE_ALGORITHM_VERSION,
+            "rule_id": self.rule_id,
+            "version": self.version,
+            "family": self.family.value,
+            "tier": self.tier.value,
+            "source": self.source,
+            "replacement": self.replacement,
+            "construction": FormatConstruction.WORD_BOUNDARY_NEWLINE.value,
+            "whole_word": self.whole_word,
+            "preserve_simple_case": self.preserve_simple_case,
+            "block_all_caps": self.block_all_caps,
+        }
+
+    @classmethod
+    def create(cls, rule_id: str, version: str, source: str, replacement: str) -> WordBoundaryNewlineRule:
+        payload = {
+            "algorithm_version": WORD_BOUNDARY_NEWLINE_RULE_ALGORITHM_VERSION,
+            "rule_id": rule_id,
+            "version": version,
+            "family": TransformFamily.ORTHOGRAPHY.value,
+            "tier": TransformTier.SURFACE.value,
+            "source": source,
+            "replacement": replacement,
+            "construction": FormatConstruction.WORD_BOUNDARY_NEWLINE.value,
+            "whole_word": False,
+            "preserve_simple_case": False,
+            "block_all_caps": False,
+        }
+        return cls(
+            rule_id=rule_id,
+            version=version,
+            family=TransformFamily.ORTHOGRAPHY,
+            tier=TransformTier.SURFACE,
+            source=source,
+            replacement=replacement,
+            whole_word=False,
+            preserve_simple_case=False,
+            block_all_caps=False,
+            rule_hash=sha256_json(payload),
+        )
+
+    def pattern(self) -> re.Pattern[str]:
+        if self.source == "\n":
+            return re.compile(r"(?<=[A-Za-z]{2})\n(?=[A-Za-z]{2})")
+        return re.compile(r"(?<=[A-Za-z]{2}) (?=[A-Za-z]{2})")
+
+    def replacement_for(self, source_text: str) -> str:
+        if source_text not in (" ", "\n"):
+            raise ValueError("word-boundary newline replacement expects a single space or newline")
+        return self.replacement
+
+    def precondition(self, text: str, start: int, end: int) -> bool:
+        if not isinstance(text, str):
+            raise TypeError("text must be a string")
+        if start < 0 or end <= start or end > len(text):
+            raise ValueError("word-boundary precondition span is outside text")
+        if text[start:end] != self.source:
+            raise ValueError("word-boundary precondition span does not match rule source")
+        return word_boundary_span_admissible(text, start, end)

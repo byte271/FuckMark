@@ -2,7 +2,7 @@ import pytest
 
 from fuckmark.cycle7.density import durable_density_row, durable_density_table
 from fuckmark.cycle7.durable_rules import (
-    CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+    CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
     cycle7_clause_punctuation_rules,
     cycle7_quantifier_of_rules,
 )
@@ -12,7 +12,6 @@ from fuckmark.cycle7.ledger import (
     CYCLE7_STAGE_C1_TOPIC,
     CYCLE7_STAGE_C_VALIDATION_SEED_BASE,
     CYCLE7_STAGE_C_VALIDATION_TOPIC,
-    assert_rule_construction_seed,
 )
 from fuckmark.cycle7.registry import cycle7_durable_transform_registry
 from fuckmark.cycle7.stage_b import INSUFFICIENT_EVIDENCE, PROMISING_DEVELOPMENT, summarize_density_rows
@@ -36,12 +35,11 @@ def _apply_rule(text: str, rule_id: str) -> str:
 
 
 def test_stage_c_ledger_identities_are_frozen_before_inspection() -> None:
-    assert CYCLE7_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v4"
+    assert CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v4"
     assert CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE == 870000
     assert CYCLE7_STAGE_C1_TOPIC == "measurement protocol"
     assert CYCLE7_STAGE_C_VALIDATION_SEED_BASE == 880000
     assert CYCLE7_STAGE_C_VALIDATION_TOPIC == "independent check"
-    assert_rule_construction_seed(870000)
 
 
 def test_clause_punctuation_swaps_space_and_newline() -> None:
@@ -143,7 +141,7 @@ def test_stage_c_fixtures_have_clause_and_quantifier_density() -> None:
     artifact = density_artifact_stage_c(
         samples,
         seed_base=CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE,
-        catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+        catalog_version=CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
     )
     assert artifact["detector_access_used_for_selection"] is False
     assert artifact["seed_base"] == 870000

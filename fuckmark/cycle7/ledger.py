@@ -6,7 +6,7 @@ from .._validation import require_int
 from ..hashing import sha256_json
 
 
-CYCLE7_LEDGER_VERSION = "cycle7-seed-ledger-v3"
+CYCLE7_LEDGER_VERSION = "cycle7-seed-ledger-v4"
 CYCLE7_EXPLORATORY_ROLE = "exploratory_development"
 CYCLE7_VALIDATION_ROLE = "validation_development"
 CYCLE7_CONFIRMATION_RESERVED_ROLE = "confirmation_reserved"
@@ -27,9 +27,10 @@ CYCLE7_EXPLORATORY_SEED_BASE = 810_000
 CYCLE7_STAGE_A_EXPLORATORY_SEED_BASE = 810_000
 CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE = 860_000
 CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE = 870_000
-CYCLE7_EXPLORATORY_SEED_BASES = (810_000, 860_000, 870_000)
-CYCLE7_USED_EXPLORATORY_SEED_BASES = (810_000, 860_000)
-CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES = (870_000,)
+CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE = 890_000
+CYCLE7_EXPLORATORY_SEED_BASES = (810_000, 860_000, 870_000, 890_000)
+CYCLE7_USED_EXPLORATORY_SEED_BASES = (810_000, 860_000, 870_000)
+CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES = (890_000,)
 CYCLE7_VALIDATION_SEED_BASE = 820_000
 CYCLE7_STAGE_C_VALIDATION_SEED_BASE = 880_000
 CYCLE7_VALIDATION_SEED_BASES = (820_000, 880_000)
@@ -40,6 +41,7 @@ CYCLE7_STAGE_C_VALIDATION_TOPIC = "independent check"
 CYCLE7_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
 CYCLE7_STAGE_B1_TOPIC = "independent replication"
 CYCLE7_STAGE_C1_TOPIC = "measurement protocol"
+CYCLE7_STAGE_D1_TOPIC = "document structure"
 
 _ALL_BLOCKED = frozenset(
     (
@@ -66,6 +68,8 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
         "stage_b1_topic": CYCLE7_STAGE_B1_TOPIC,
         "stage_c1_exploratory_seed_base": CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE,
         "stage_c1_topic": CYCLE7_STAGE_C1_TOPIC,
+        "stage_d1_exploratory_seed_base": CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE,
+        "stage_d1_topic": CYCLE7_STAGE_D1_TOPIC,
         "validation_development_seed_base": CYCLE7_VALIDATION_SEED_BASE,
         "validation_development_seed_bases": list(CYCLE7_VALIDATION_SEED_BASES),
         "used_validation_development_seed_bases": list(CYCLE7_USED_VALIDATION_SEED_BASES),
@@ -85,13 +89,16 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
             "Seed 870000 and topic 'measurement protocol' were frozen before "
             "any Stage C generation or detector look. "
             "Seed 880000 and topic 'independent check' were frozen before "
-            "any Stage C validation generation or detector look."
+            "any Stage C validation generation or detector look. "
+            "Seed 890000 and topic 'document structure' were frozen before "
+            "any Stage D generation or detector look."
         ),
         "spent_corpus_rule": (
             "Do not use 720000, 730000, 760000, 770000, or 780000 as "
             "Cycle 7 development, tuning, or confirmation data. "
             "Do not keep expanding transform rules against 810000 or 860000. "
             "Do not retune on validation seed 820000. "
+            "Do not retune on 870000. "
             "Do not inspect 830000, 840000, or 850000."
         ),
     }

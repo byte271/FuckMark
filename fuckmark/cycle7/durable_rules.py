@@ -10,7 +10,7 @@ from ..transforms.contractions import (
     zrd_forward_contraction_extension_rules,
     zrd_reverse_contraction_extension_rules,
 )
-from ..transforms.format_rules import FormatBoundaryRule
+from ..transforms.format_rules import FormatBoundaryRule, WordBoundaryNewlineRule
 from ..transforms.lexical_rules import LexicalConstruction, LexicalTemplateRule, development_lexical_rules
 from ..transforms.rules import LiteralTransformRule
 from ..transforms.schema import TransformFamily, TransformTier
@@ -18,7 +18,8 @@ from ..transforms.syntax_rules import SyntaxConstruction, SyntaxTemplateRule, de
 
 
 CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v3"
-CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v4"
+CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v4"
+CYCLE7_DURABLE_RULE_CATALOG_VERSION = "cycle7-durable-rule-catalog-v5"
 
 
 @dataclass(frozen=True, slots=True)
@@ -541,6 +542,23 @@ def cycle7_clause_punctuation_rules() -> tuple[FormatBoundaryRule, ...]:
     return tuple(rules)
 
 
+def cycle7_word_boundary_rules() -> tuple[WordBoundaryNewlineRule, ...]:
+    return (
+        WordBoundaryNewlineRule.create(
+            rule_id="cycle7-word-boundary-newline",
+            version="v1",
+            source=" ",
+            replacement="\n",
+        ),
+        WordBoundaryNewlineRule.create(
+            rule_id="cycle7-word-boundary-space",
+            version="v1",
+            source="\n",
+            replacement=" ",
+        ),
+    )
+
+
 def cycle7_quantifier_of_rules() -> tuple[LexicalTemplateRule, ...]:
     rules: list[LexicalTemplateRule] = []
     for quantifier, determiners in CYCLE7_QUANTIFIER_DETERMINERS:
@@ -679,6 +697,7 @@ def cycle7_durable_rules() -> tuple[object, ...]:
         *cycle7_discourse_comma_rules(),
         *cycle7_format_boundary_rules(),
         *cycle7_clause_punctuation_rules(),
+        *cycle7_word_boundary_rules(),
         *cycle7_quantifier_of_rules(),
         *cycle7_complementizer_that_rules(),
         *cycle7_parenthetical_adverb_rules(),
