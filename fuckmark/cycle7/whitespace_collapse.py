@@ -27,17 +27,6 @@ def normalize_newlines(text: str) -> str:
 
 
 def collapse_horizontal_ascii_whitespace(text: str) -> str:
-    """Collapse runs of U+0020 and U+0009 to a single U+0020 per line.
-
-    Specification (whitespace-collapse-v1):
-    - Convert CR LF and CR to LF first.
-    - Preserve LF as line structure. Do not join lines.
-    - On each line, replace every maximal run of SPACE (U+0020) and HT (U+0009)
-      with exactly one SPACE.
-    - Do not trim leftover single leading or trailing spaces.
-    - Do not collapse other Unicode whitespace (including NBSP U+00A0).
-    - Do not collapse vertical whitespace other than the CR/LF normalization above.
-    """
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     lines: list[str] = []

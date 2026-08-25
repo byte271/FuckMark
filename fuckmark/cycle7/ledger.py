@@ -11,11 +11,8 @@ CYCLE7_EXPLORATORY_ROLE = "exploratory_development"
 CYCLE7_VALIDATION_ROLE = "validation_development"
 CYCLE7_CONFIRMATION_RESERVED_ROLE = "confirmation_reserved"
 
-# Frozen Cycle 6 confirmation rows. Spent. Not development data.
 SPENT_CONFIRMATION_SEED_BASES = (760_000, 770_000, 780_000)
-# Earlier Cycle 6 development 0/16 work. Spent. Not Cycle 7 development data.
 SPENT_DEVELOPMENT_SEED_BASES = (720_000, 730_000)
-# Other bound profile schedule seeds that must not be reused as Cycle 7 corpora.
 BLOCKED_PROFILE_SEED_BASES = (
     1_120_000,
     1_130_000,
@@ -23,11 +20,8 @@ BLOCKED_PROFILE_SEED_BASES = (
     1_150_000,
     1_160_000,
 )
-# Historic TinyDev / calibration generators. Not Cycle 7 corpora.
 BLOCKED_HISTORIC_SEED_BASES = (401_000, 402_000, 500_000, 61000)
 
-# Chosen as a fresh 10k block after Cycle 6 confirmation (780000) with a gap.
-# Selected before any Cycle 7 detector look. Do not reassign after scoring.
 CYCLE7_EXPLORATORY_SEED_BASE = 810_000
 CYCLE7_VALIDATION_SEED_BASE = 820_000
 CYCLE7_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)

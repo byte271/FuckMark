@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .lexical_rules import LexicalTemplateRule
 from .quote_policy import (
@@ -76,13 +76,13 @@ def quote_interior_rule_allowed(quote_policy_id: str, rule: object) -> bool:
 
 
 def _quote_overlaps_for_operation(
-    quotes: Sequence[object],
+    quotes: Sequence[Any],
     operation: TransformOperation,
-) -> tuple[object, ...]:
+) -> tuple[Any, ...]:
     return tuple(
         span
         for span in quotes
-        if operation.source_start < span.end and span.start < operation.source_end  # type: ignore[attr-defined]
+        if operation.source_start < span.end and span.start < operation.source_end
     )
 
 
