@@ -47,4 +47,6 @@ Letter-x1 on those same confirmation corpora is also 0/192 (worst max 0.524425).
 
 Mn-strip and default-ignorable-strip remove the carriers. Latin-1 cannot encode them. Low-site rows remain closer to the threshold than high-site rows. Token expansion remains large.
 
+The five publishability gates in `docs/cycle8/mix-publishability.md` fail-close product promotion: mix is not product-publishable.
+
 Do not generate `950000`. The public CLI remains empty.

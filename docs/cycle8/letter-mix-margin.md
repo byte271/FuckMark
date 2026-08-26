@@ -1,6 +1,6 @@
 # Cycle 8 letter-mix margin
 
-Status: frozen as `cycle8-mix-freeze-v1`. One-shot confirmation is `VERIFIED` **0/192**. Not product-authorized.
+Status: frozen as `cycle8-mix-freeze-v1`. One-shot confirmation is `VERIFIED` **0/192**. Publishability gates: not product-publishable. Not product-authorized.
 
 Development evidence: [`evidence/cycle8-mix-margin-2026-08-26/`](../../evidence/cycle8-mix-margin-2026-08-26/). Confirmation evidence: [`evidence/cycle8-mix-confirmation-2026-08-26/`](../../evidence/cycle8-mix-confirmation-2026-08-26/). See `docs/cycle8/mix-freeze.md`.
 

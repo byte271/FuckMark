@@ -32,6 +32,7 @@
 - Cycle 8 letter-mix scale reserved seeds `1040000` and `1050000` before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix score 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale, not confirmation.
 - Froze development mechanism `u034f-ufe00-letter-alt-v1` as `cycle8-mix-freeze-v1`. Public CLI remains empty.
 - Cycle 8 mix freeze one-shot confirmation on preregistered seeds `830000` / `840000` / `850000`: mix **0/192** raw transformed WM, mix UW **0/192**, visible **192/192**, frozen sanitizers matching raw zeros, worst mix score 0.524300 versus threshold 0.557099 (gap 0.032798). Those seeds are spent. Do not rerun looking for zero. Mix is not product-authorized. Do not generate `950000`.
+- Recorded `cycle8-mix-publishability-v1` after merging that freeze onto `main`. Five product gates: reproducibility PASS, visibility invariance PASS, software compatibility FAIL (Latin-1 and literal search), sanitizer weaknesses FAIL (Mn-strip and default-ignorable-strip), cross-detector generalization FAIL (one open SynthID Weighted Mean detector). Mix is not product-publishable. Tag `v0.3.0` is not retagged.
 
 ## v0.2.0 — Exact-survival confirmation and release hardening
 

@@ -47,6 +47,16 @@ The public CLI (`release-cli-v4`) therefore returns the original text unchanged.
 5. protected machine-span safety;
 6. later, replicated detector reduction.
 
+Cycle 8 mix freeze confirmation is not enough. A carrier is product-publishable only after these additional gates all PASS:
+
+1. reproducibility of frozen hashes and deterministic apply;
+2. cross-environment visibility invariance on Unicode-capable surfaces;
+3. real-world software compatibility, including Latin-1 and literal search;
+4. known sanitizer weaknesses no longer kill the carriers, or an explicit product decision to accept those sanitizers as out of scope;
+5. cross-detector generalization beyond one open GPT-2 SynthID Weighted Mean detector.
+
+`cycle8-mix-publishability-v1` currently fail-closes. See `docs/cycle8/mix-publishability.md`.
+
 U+200C is not authorized. It is a diagnostic baseline and is removed by Cf stripping.
 
 ## Historical research
