@@ -72,6 +72,38 @@ def test_cycle8_scale_n16_and_n32_are_zero_raw_on_frozen_u034f_x1() -> None:
     assert n32_decision["u034f_raw_watermarked_detected"] == 0
 
 
+def test_cycle8_scale_n64_records_one_raw_residual() -> None:
+    from pathlib import Path
+
+    from fuckmark.hashing import sha256_json
+
+    n64 = json.loads(
+        (
+            Path(__file__).resolve().parents[1] / "evidence" / "cycle8-scale-930000-n64-2026-08-26" / "detector-compare.json"
+        ).read_text(encoding="utf-8")
+    )
+    body = {key: value for key, value in n64.items() if key != "artifact_hash"}
+    assert n64["artifact_hash"] == sha256_json(body)
+    assert n64["pair_count"] == 64
+    assert n64["detector_access_used_for_selection"] is False
+    identity = n64["summaries"][CYCLE8_IDENTITY_ARM_ID]
+    u034f = n64["summaries"][CYCLE8_U034F_SPACE_ARM_ID]
+    assert identity["raw_watermarked_detected"] == 63
+    assert u034f["raw_watermarked_detected"] == 1
+    assert u034f["raw_unwatermarked_detected"] == 0
+    assert u034f["cf_strip_watermarked_detected"] == 1
+    assert u034f["visible_pass_count"] == 128
+    assert u034f["fail_closed_identity_count"] == 0
+    decision = json.loads(
+        (Path(__file__).resolve().parents[1] / "evidence" / "cycle8-scale-930000-n64-2026-08-26" / "decision.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert decision["decision"] == PROMISING_DEVELOPMENT
+    assert decision["u034f_raw_watermarked_detected"] == 1
+    assert decision["product_gate"] == "VISIBLE_INVARIANT_PASS"
+
+
 def test_classify_scale_detector_compare_marks_zero_raw_as_promising() -> None:
     artifact = {
         "summaries": {
