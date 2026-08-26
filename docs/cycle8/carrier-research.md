@@ -35,11 +35,11 @@ Intra-word insertion is no longer treated as tokenizer-diagnostic-only. Letter-x
 
 ## H11. Alternating U+034F / U+FE00 letter mix
 
-`HYPOTHESIS` / `PROMISING_DEVELOPMENT`. Uniform CGJ repeats are masked by SynthID `valid_mask` on repeated 5-gram contexts. The mix arm places U+034F on even selected-site indexes and U+FE00 on odd indexes after ASCII letters, using raw unmerged hard machine spans instead of merged MATH+NUMBER protection. Quote interiors are allowed. URLs, numbers, code, and paths stay blocked.
+`VERIFIED` for one-shot mix confirmation 0/192 on the frozen GPT-2 / SynthID protocol. Still not product-authorized. Uniform CGJ repeats are masked by SynthID `valid_mask` on repeated 5-gram contexts. The mix arm places U+034F on even selected-site indexes and U+FE00 on odd indexes after ASCII letters, using raw unmerged hard machine spans instead of merged MATH+NUMBER protection. Quote interiors are allowed. URLs, numbers, code, and paths stay blocked.
 
 Seeds `1020000` and `1030000` were reserved before generation. Fresh mix is **0/128** raw transformed WM, mix UW **0/128**, visible 256/256 on the detector rows, frozen sanitizers matching raw zeros. Worst fresh mix score is 0.513691 versus threshold 0.557099 (gap 0.043407). Letter-x1 on the same corpora is also 0/128 with worst max 0.527389. Letter-space on `1000000`+`1010000` remains **1/128**. Chromium `pre`/textarea/contenteditable were pixel-equal on the measured mix fixtures.
 
-Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. It is not product-authorized. Confirmation seeds are preregistered and not yet generated. See `docs/cycle8/mix-freeze.md`.
+Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. One-shot confirmation on seeds `830000` / `840000` / `850000` is **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those confirmation seeds are spent. It is not product-authorized. See `docs/cycle8/mix-freeze.md`.
 
 ## H3-H8
 

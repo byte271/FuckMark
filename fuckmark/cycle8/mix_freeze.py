@@ -170,9 +170,9 @@ def assert_cycle8_mix_confirmation_generation_seed(seed_base: int) -> None:
     if seed_base not in CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES:
         raise ValueError("seed_base is not a Cycle 8 mix confirmation seed")
     row = row_for_seed_base(seed_base)
-    if row["eligible_for_confirmation"] is not True:
-        raise ValueError("seed is not eligible for confirmation")
     if row["generated"] is True:
         raise ValueError("confirmation seed already generated")
     if row["scored"] is True:
         raise ValueError("confirmation seed already scored")
+    if row["eligible_for_confirmation"] is not True:
+        raise ValueError("seed is not eligible for confirmation")

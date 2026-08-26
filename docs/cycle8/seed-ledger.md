@@ -17,7 +17,7 @@ See also `docs/seeds.md`.
 | 810000, 860000, 870000 | Cycle 7 exploratory. Spent for new rule construction. |
 | 820000 | Cycle 7 Stage B3 validation. Spent. |
 | 880000 | Cycle 7 Stage C reserved validation. **PUBLICLY_EXPOSED** by closed unmerged PR #98. Not eligible as unseen validation. |
-| 830000, 840000, 850000 | Confirmation reserved. Preregistered for `cycle8-mix-freeze-v1`. Not yet generated. Generate once. |
+| 830000, 840000, 850000 | Cycle 8 mix freeze confirmation. Generated once. Spent. Mix 0/192. Do not retune. Do not rerun looking for zero. |
 | 890000, 900000, 910000 | Cycle 8 tiny n=4 already generated and scored. Spent as unseen validation. |
 
 ## Cycle 8 roles
@@ -41,5 +41,8 @@ See also `docs/seeds.md`.
 | Mix replication | 1030000 | letter mix margin replication | reserved before generation; letter-alt n=64 0/64, max 0.513071; combined mix 0/128 gap 0.043407; not confirmation |
 | Mix scale primary | 1040000 | letter mix scale development | reserved before generation; letter-alt n=64 0/64, max 0.519522; not confirmation |
 | Mix scale replication | 1050000 | letter mix scale replication | reserved before generation; letter-alt n=64 0/64, max 0.510505; combined mix 0/256; not confirmation |
+| Mix freeze confirmation primary | 830000 | mix formal confirmation primary | generated once under cycle8-mix-freeze-v1; mix 0/64; combined 0/192; spent |
+| Mix freeze confirmation replication | 840000 | mix formal confirmation replication | generated once; mix 0/64, max 0.524300; combined 0/192; spent |
+| Mix freeze confirmation holdout | 850000 | mix formal confirmation holdout | generated once; mix 0/64; combined 0/192; spent |
 
 Do not promote any of these seeds into confirmation after seeing scores.

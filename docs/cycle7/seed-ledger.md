@@ -24,7 +24,7 @@ Seeds were assigned **before** Cycle 7 detector scoring. Seed `860000` and topic
 | Exploratory development / rule construction (Stage C1) | 870000 | yes, development only; frozen topic `measurement protocol` |
 | Validation development (Stage B3) | 820000 | used as Stage B3 disjoint validation; do not retune on it |
 | Validation development (Stage C, reserved) | 880000 | **PUBLICLY_EXPOSED** by closed unmerged PR #98; not eligible as unseen validation |
-| Confirmation reserved | 830000, 840000, 850000 | **no** until a later frozen confirmation protocol |
+| Confirmation reserved | 830000, 840000, 850000 | spent by Cycle 8 mix freeze confirmation; do not retune |
 
 Do not promote 810000, 820000, 860000, 870000, or 880000 into confirmation after seeing scores.
 

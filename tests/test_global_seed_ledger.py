@@ -57,7 +57,7 @@ def test_global_seed_ledger_file_matches_embedded_payload() -> None:
     assert payload["algorithm_version"] == GLOBAL_SEED_LEDGER_VERSION
 
 
-def test_global_ledger_marks_880000_exposed_and_keeps_confirmation_unseen() -> None:
+def test_global_ledger_marks_880000_exposed_and_mix_confirmation_spent() -> None:
     exposed = row_for_seed_base(880000)
     assert exposed["publicly_exposed"] is True
     assert exposed["spent"] is True
@@ -66,9 +66,10 @@ def test_global_ledger_marks_880000_exposed_and_keeps_confirmation_unseen() -> N
     assert PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES == (880000,)
     for seed_base in CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES:
         row = row_for_seed_base(seed_base)
-        assert row["generated"] is False
-        assert row["scored"] is False
-        assert row["eligible_for_confirmation"] is True
+        assert row["generated"] is True
+        assert row["scored"] is True
+        assert row["spent"] is True
+        assert row["eligible_for_confirmation"] is False
         assert row["generation_topic"] in {
             CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
             CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,

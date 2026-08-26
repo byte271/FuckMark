@@ -16,7 +16,7 @@ Closest mix watermarked row geometry only: `cycle8-1050000-44-general_explanator
 
 Identity unwatermarked detections are 2/64 on this corpus. Mix unwatermarked detections are 0/64. Identity unwatermarked noise is control noise, not mix leakage.
 
-Combined with independent mix seeds `1020000`, `1030000`, and `1040000`: mix **0/256** raw WM, mix UW **0/256**, worst mix max 0.519522 from `1040000` (gap 0.037577). This 0/256 is development-scale evidence on four reserved-before-generation corpora. It is not formal confirmation and does not consume `830000` / `840000` / `850000`. The two-corpus 0/128 scorecard on `1020000`+`1030000` is not rewritten.
+Combined with independent mix seeds `1020000`, `1030000`, and `1040000`: mix **0/256** raw WM, mix UW **0/256**, worst mix max 0.519522 from `1040000` (gap 0.037577). This 0/256 is development-scale evidence on four reserved-before-generation corpora. It is not the later mix freeze confirmation result. The two-corpus 0/128 scorecard on `1020000`+`1030000` is not rewritten.
 
 Per-domain mix raw WM is 0/16 on all four domains. Fail-closed identity count is 0. Maximum transformed GPT-2 token count on scored mix watermarked rows is 614/1024.
 

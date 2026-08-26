@@ -159,7 +159,9 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
             "replication', and 'clean scale validation' were reserved in "
             "global-seed-ledger-v1 before any scale generation. Seed 880000 is "
             "PUBLICLY_EXPOSED by PR #98 and is not eligible as unseen validation. "
-            "Do not inspect 830000, 840000, or 850000. Do not generate 950000 until "
+            "Seeds 830000, 840000, and 850000 were generated once as "
+            "cycle8-mix-freeze-v1 confirmation and are spent. Do not inspect residual "
+            "text to write rules. Do not generate 950000 until "
             "the U+034F x1 mechanism is frozen. Density seed 960000 and topic "
             "'carrier density follow-up' were reserved in global-seed-ledger-v1 "
             "before density generation. Letter seed 970000 and topic "
@@ -175,9 +177,9 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
             "before mix generation. Mix scale seeds 1040000 and 1050000 and topics "
             "'letter mix scale development' and 'letter mix scale replication' were "
             "reserved in global-seed-ledger-v1 before mix scale generation. "
-            "cycle8-mix-freeze-v1 preregisters 830000, 840000, and 850000 for one-shot "
-            "mix confirmation; do not generate them until that freeze is committed, "
-            "and do not retune on Cycle 6 formal residuals."
+            "cycle8-mix-freeze-v1 confirmation of 830000, 840000, and 850000 was "
+            "generated once under the freeze; those bases are spent. Do not rerun "
+            "looking for zero, and do not retune on Cycle 6 formal residuals."
         ),
     }
 

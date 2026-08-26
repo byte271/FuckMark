@@ -14,7 +14,7 @@ Detector-blind comparison on the frozen GPT-2 / SynthID protocol: identity versu
 
 Closest mix watermarked row geometry only: `cycle8-1040000-29-technical_explanation-watermarked`, 31 insertions, score 0.519522, gap 0.037577 below threshold 0.557099. Residual text was not inspected to write lexical rules.
 
-Combined with independent mix seeds `1020000` and `1030000`: mix **0/192** raw WM, mix UW **0/192**, worst mix max 0.519522 (gap 0.037577). This 0/192 is development evidence on three reserved-before-generation corpora. It is not formal confirmation and does not consume `830000` / `840000` / `850000`.
+Combined with independent mix seeds `1020000` and `1030000`: mix **0/192** raw WM, mix UW **0/192**, worst mix max 0.519522 (gap 0.037577). This 0/192 is development evidence on three reserved-before-generation corpora. It is not the later mix freeze confirmation result. The two-corpus 0/128 scorecard on `1020000`+`1030000` is not rewritten.
 
 Per-domain mix raw WM is 0/16 on all four domains. Fail-closed identity count is 0.
 

@@ -90,7 +90,7 @@ Details: `docs/cycle7/stage-a-decision.md`.
 
 Stage B1 on seed `860000` looked **`PROMISING_DEVELOPMENT`** on a tiny detector snapshot (durable 2/4 after collapse). Disjoint validation seed `820000` reproduced density/geometry but **not** the detector reduction (durable 4/4 after collapse). Overall Stage B decision: **`INSUFFICIENT_EVIDENCE`**. Details: `docs/cycle7/stage-b-decision.md`.
 
-Seed `820000` is spent as validation. Seed `880000` is **PUBLICLY_EXPOSED** by closed unmerged PR #98 and is not eligible as unseen validation. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
+Seed `820000` is spent as validation. Seed `880000` is **PUBLICLY_EXPOSED** by closed unmerged PR #98 and is not eligible as unseen validation. Seeds `830000` / `840000` / `850000` were unseen during Cycle 7 and were later spent once as Cycle 8 `cycle8-mix-freeze-v1` confirmation.
 
 ## Stage C
 

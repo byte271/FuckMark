@@ -6,7 +6,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 
 ## Hard rules
 
-- Do not generate, tokenize, score, or inspect content of confirmation reserves `830000`, `840000`, `850000` until `cycle8-mix-freeze-v1` confirmation is executed once.
+- Seeds `830000`, `840000`, and `850000` were generated once under `cycle8-mix-freeze-v1` and are spent. Do not retune on those confirmation corpora. Do not rerun looking for zero. Do not inspect residual text to write lexical rules.
 - Seed `880000` is **PUBLICLY_EXPOSED**. Closed unmerged [PR #98](https://github.com/byte271/FuckMark/pull/98) generated and scored it as Cycle 7 Stage D validation. It is **not** eligible as unseen validation.
 - Seed `890000` is Cycle 8 tiny exploratory on `main`. The same identifier was also used on unmerged PR #98 for Cycle 7 Stage D. Do not treat it as unseen.
 - Do not generate `950000` until the U+034F x1 mechanism is frozen.
@@ -34,6 +34,9 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 1030000 | mix replication | `letter mix margin replication` | reserved before generation; letter-alt n=64 0/64, max 0.513071; combined mix 0/128; not confirmation |
 | 1040000 | mix scale primary | `letter mix scale development` | reserved before generation; letter-alt n=64 0/64, max 0.519522, gap 0.037577; not confirmation |
 | 1050000 | mix scale replication | `letter mix scale replication` | reserved before generation; letter-alt n=64 0/64, max 0.510505; combined mix 0/256; not confirmation |
+| 830000 | mix freeze confirmation primary | `mix formal confirmation primary` | generated once under cycle8-mix-freeze-v1; mix 0/64; combined 0/192; spent |
+| 840000 | mix freeze confirmation replication | `mix formal confirmation replication` | generated once; mix 0/64, max 0.524300; combined 0/192; spent |
+| 850000 | mix freeze confirmation holdout | `mix formal confirmation holdout` | generated once; mix 0/64; combined 0/192; spent |
 
 ## Historical v1 Cycle 8 ledger
 

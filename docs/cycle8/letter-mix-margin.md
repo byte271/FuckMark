@@ -1,10 +1,10 @@
 # Cycle 8 letter-mix margin
 
-Status: frozen as `cycle8-mix-freeze-v1`. Not product-authorized. Confirmation not yet generated.
+Status: frozen as `cycle8-mix-freeze-v1`. One-shot confirmation is `VERIFIED` **0/192**. Not product-authorized.
 
-Evidence: [`evidence/cycle8-mix-margin-2026-08-26/`](../../evidence/cycle8-mix-margin-2026-08-26/).
+Development evidence: [`evidence/cycle8-mix-margin-2026-08-26/`](../../evidence/cycle8-mix-margin-2026-08-26/). Confirmation evidence: [`evidence/cycle8-mix-confirmation-2026-08-26/`](../../evidence/cycle8-mix-confirmation-2026-08-26/). See `docs/cycle8/mix-freeze.md`.
 
-The current development mechanism `u034f-ufe00-letter-alt-v1` was measured as-is. It is not in `release_transform_registry()`. `process_text("I do not agree.")` is unchanged.
+The development mechanism `u034f-ufe00-letter-alt-v1` was measured as-is, then frozen. It is not in `release_transform_registry()`. `process_text("I do not agree.")` is unchanged.
 
 ## Headline numbers
 
@@ -27,4 +27,4 @@ Additional independent scale seeds `1040000` n=64 plus `1050000` n=64, reserved 
 
 Letter-x1 system benchmark seeds `980000` and `990000` remain a separate 0/128 with gap 0.003032. Letter-space seeds `1000000` and `1010000` remain **1/128**. Do not rewrite that 1/128 as zero.
 
-Formal confirmation readiness: freeze recorded as `cycle8-mix-freeze-v1`. Confirmation seeds `830000` / `840000` / `850000` are preregistered and not yet generated. This 0/256 is development evidence, not the confirmation result.
+One-shot confirmation on preregistered seeds `830000` / `840000` / `850000`: mix **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those seeds are spent. Do not rerun looking for zero. The 0/256 development tally is not the confirmation result.

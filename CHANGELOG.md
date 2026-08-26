@@ -21,7 +21,8 @@
 - Cycle 8 letter-space margin seeds `1000000` and `1010000` were reserved before generation. Combined fresh letter-space is **1/128** on the same residual geometry; do not rewrite that as zero.
 - Cycle 8 letter-mix margin reserved seeds `1020000` and `1030000` before generation. Detector-blind U+034F/U+FE00 alternating letter mix is fresh **0/128** raw transformed WM, mix UW **0/128**, worst mix score 0.513691 versus threshold 0.557099 (gap 0.043407). Letter-x1 on those same corpora is 0/128 with max 0.527389. Chromium mix fixtures were pixel-equal on the measured `pre`/textarea/contenteditable surfaces. Mix is not product-authorized and is not confirmation. Formal confirmation readiness remains `NOT_READY`.
 - Cycle 8 letter-mix scale reserved seeds `1040000` and `1050000` before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix score 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale, not confirmation.
-- Froze development mechanism `u034f-ufe00-letter-alt-v1` as `cycle8-mix-freeze-v1`. Public CLI remains empty. Confirmation seeds `830000` / `840000` / `850000` are preregistered and not yet generated.
+- Froze development mechanism `u034f-ufe00-letter-alt-v1` as `cycle8-mix-freeze-v1`. Public CLI remains empty.
+- Cycle 8 mix freeze one-shot confirmation on preregistered seeds `830000` / `840000` / `850000`: mix **0/192** raw transformed WM, mix UW **0/192**, visible **192/192**, frozen sanitizers matching raw zeros, worst mix score 0.524300 versus threshold 0.557099 (gap 0.032798). Those seeds are spent. Do not rerun looking for zero. Mix is not product-authorized. Do not generate `950000`.
 
 ## v0.2.0 — Exact-survival confirmation and release hardening
 
