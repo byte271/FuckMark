@@ -35,7 +35,7 @@ Validation generation used 820000 with topic `held-out evaluation`. That topic w
 
 Stage C1 generation used 870000 with topic `measurement protocol`. That seed is now used. Do not retune catalog v4 on 870000.
 
-Stage D1 generation used 890000 with topic `document structure`. Rule-construction generation must call `assert_rule_construction_seed(890000)`. Do not retune catalog v5 on 890000.
+Stage D1 generation used 890000 with topic `document structure`. Fresh rule-construction generation must call `assert_rule_construction_seed(890000)` and is now locked. Replay of the frozen D1 evidence via `--samples-from` uses exploratory-development admission so 890000 can be rescored. Do not retune catalog v5 on 890000.
 
 Stage D validation used 880000 with topic `independent check`. Do not retune catalog v5 on 880000. A later revised mechanism must reserve a new unused validation seed.
 

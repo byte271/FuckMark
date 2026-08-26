@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from fuckmark.cycle7.density import durable_density_row, durable_density_table
@@ -20,6 +22,7 @@ from fuckmark.cycle7.registry import cycle7_durable_transform_registry
 from fuckmark.cycle7.stage_b import INSUFFICIENT_EVIDENCE, PROMISING_DEVELOPMENT, summarize_density_rows
 from fuckmark.cycle7.stage_d import classify_stage_d_density, density_artifact_stage_d
 from fuckmark.cycle7.whitespace_collapse import collapse_horizontal_ascii_whitespace, sanitize_cycle7_variant
+from fuckmark.cycle7_stage_d_hf import admit_stage_d1_seed
 from fuckmark.transforms.format_rules import FormatConstruction
 from fuckmark.transforms.hard_invariants import validate_hard_invariants
 from fuckmark.transforms.schema import InvariantStatus
@@ -46,6 +49,19 @@ def test_stage_d_ledger_identities_are_frozen_before_inspection() -> None:
         assert_rule_construction_seed(890000)
     assert_development_seed(CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
     assert_development_seed(CYCLE7_STAGE_C_VALIDATION_SEED_BASE, role=CYCLE7_VALIDATION_ROLE)
+    with pytest.raises(ValueError, match="rule-construction"):
+        admit_stage_d1_seed(890000, samples_from=None)
+    admit_stage_d1_seed(
+        890000,
+        samples_from=Path("evidence/cycle7-stage-d-2026-08-25/samples.json"),
+    )
+    with pytest.raises(ValueError, match="exploratory"):
+        admit_stage_d1_seed(
+            880000,
+            samples_from=Path("evidence/cycle7-stage-d-validation-880000-2026-08-25/samples.json"),
+        )
+    with pytest.raises(ValueError, match="confirmation-reserved"):
+        admit_stage_d1_seed(830000, samples_from=Path("evidence/cycle7-stage-d-2026-08-25/samples.json"))
 
 
 def test_word_boundary_swaps_space_and_newline() -> None:
