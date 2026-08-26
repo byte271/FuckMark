@@ -1,20 +1,16 @@
 # Installation
 
-Python 3.11 or newer is required. The public CLI currently returns input text unchanged: v0.2.0 has no product-authorized invisible carrier.
+Python 3.11 or newer is required. The public CLI currently returns input text unchanged: v0.3.0 has no product-authorized invisible carrier.
 
 Install only a GitHub Release wheel and check `SHA256SUMS.txt` from that same release. Do not pipe `https://d.q1z.org/mark` into a shell. That endpoint still installs live `main` without a checksum.
 
 ## Tagged wheel (recommended)
 
-v0.2.0 wheel SHA-256:
-
-```text
-3478f46511120d37e319aae3226eab07da0440927d1f117894539c1d181be8f2  fuckmark-0.2.0-py3-none-any.whl
-```
+After the `v0.3.0` GitHub Release is published:
 
 ```text
 python3 -m venv .venv
-.venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.2.0/fuckmark-0.2.0-py3-none-any.whl
+.venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.3.0/fuckmark-0.3.0-py3-none-any.whl
 ```
 
 On Windows, create the venv with `py -3.12 -m venv .venv` and use `.venv\Scripts\python.exe`.
@@ -22,12 +18,14 @@ On Windows, create the venv with `py -3.12 -m venv .venv` and use `.venv\Scripts
 Download `SHA256SUMS.txt` from the same release and confirm the installed wheel digest before trusting the environment:
 
 ```text
-https://github.com/byte271/FuckMark/releases/download/v0.2.0/SHA256SUMS.txt
+https://github.com/byte271/FuckMark/releases/download/v0.3.0/SHA256SUMS.txt
 ```
+
+Until that release exists, install from a local clone as below.
 
 ## In-repo installer (tagged wheel + checksum)
 
-These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python.
+These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.3.0`.
 
 Linux / macOS, from a clone:
 
@@ -41,7 +39,7 @@ Windows PowerShell, from a clone:
 powershell -ExecutionPolicy Bypass -File tools/install/windows.ps1
 ```
 
-Optional override: `FUCKMARK_RELEASE_TAG=v0.2.0`.
+Optional override: `FUCKMARK_RELEASE_TAG=v0.3.0`.
 
 ## Verify
 
@@ -49,10 +47,10 @@ Optional override: `FUCKMARK_RELEASE_TAG=v0.2.0`.
 fuckmark --version
 ```
 
-For v0.2.0 the command must begin with:
+For v0.3.0 the command must begin with:
 
 ```text
-FuckMark 0.2.0
+FuckMark 0.3.0
 ```
 
 It also reports `release-cli-v4`. Transforming text currently prints the same visible input.

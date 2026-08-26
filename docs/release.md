@@ -1,12 +1,12 @@
-# v0.2.0 Release Process
+# v0.3.0 Release Process
 
-FuckMark v0.2.0 is a deterministic CLI and research-infrastructure release. The published tag remains historically valid. Current `main` after the visible-invariance repair still reports package version `0.2.0`, but the public CLI algorithm identity is `release-cli-v4` and the release registry is the empty product-visible-invariance registry. Do not treat the v0.2.0 tag's contraction behavior as the current product contract.
+FuckMark v0.3.0 is the visible-invariance product release. The public CLI algorithm identity is `release-cli-v4` and the release registry is the empty product-visible-invariance registry. The historical `v0.2.0` tag still exists and still applies contractions; do not treat that tag as the current product contract.
 
 The public CLI is restricted to product-authorized invisible transforms. None are authorized yet, so the CLI fail-closes to unchanged text. Cycle 4 exact-survival machinery remains in the research path.
 
 ## Release invariants
 
-1. `pyproject.toml`, `fuckmark.__version__`, `uv.lock`, installed CLI output, and the Git tag must agree on `0.2.0` / `v0.2.0`.
+1. `pyproject.toml`, `fuckmark.__version__`, `uv.lock`, installed CLI output, and the Git tag must agree on `0.3.0` / `v0.3.0`.
 2. The release registry is not broadened merely because a development experiment succeeds. Product authorization additionally requires exact visible-projection equality.
 3. U+200C remains diagnostic-only and is never promoted into automatic CLI behavior.
 4. Visible-edit historical catalogs (contractions, Cycle 6 spacing, Cycle 7 durable families) remain replayable and must not silently become release defaults.
@@ -16,18 +16,10 @@ The public CLI is restricted to product-authorized invisible transforms. None ar
 
 ## Required release sequence
 
-1. Start from the latest green `main`.
-2. Update the package version, lock metadata, tests, current documentation, and release notes on a dedicated release branch.
-3. Run the complete test suite and `uv lock --check` through CI.
-4. Build one wheel and one source distribution.
-5. Run `twine check` on both distributions.
-6. Clean-install and execute both distributions on Linux, macOS, and Windows.
-7. Verify every installed console alias, `--version`, deterministic stream output, wheel metadata, and source-distribution metadata.
-8. Generate `SHA256SUMS.txt` from the exact verified wheel and source distribution.
-9. Merge the release branch only after required GitHub Actions are green.
-10. On the resulting `main` push, rerun the cross-platform package matrix. That push must **not** create tags, publish a GitHub Release, or delete branches.
-11. Create and push the immutable `v<project-version>` tag yourself after the package matrix is green. The workflow never runs `git tag`.
-12. Publish with `workflow_dispatch` and `publish_github_release=true` on that same commit. The job refuses to run unless the tag already exists and points at the dispatch SHA. If the GitHub Release is missing, it uploads the verified wheel and sdist. It does not delete merged branches.
+1. Merge this v0.3.0 branch to green `main`.
+2. On the resulting `main` push, rerun the cross-platform package matrix. That push must **not** create tags, publish a GitHub Release, or delete branches.
+3. Create and push the immutable `v0.3.0` tag on that merge commit yourself. The workflow never runs `git tag`. Do not tag a pull-request SHA if `main` will be a squash merge.
+4. Publish with `workflow_dispatch` and `publish_github_release=true` on that same commit. The job refuses to run unless `v0.3.0` already exists and points at the dispatch SHA. If the GitHub Release is missing, it uploads the verified wheel and sdist. It does not delete merged branches.
 
 ## Publication workflow
 
@@ -53,10 +45,12 @@ The expanded pool plus scheduler v2 achieved 0/12 detected in its fresh developm
 
 ## Historical boundary
 
-`specs/fuckmark-v0.1.0-release-readiness-baseline.json` remains an immutable historical artifact. v0.2.0 does not rewrite the old baseline's gate statuses or reinterpret the repository state it captured.
+`specs/fuckmark-v0.1.0-release-readiness-baseline.json` remains an immutable historical artifact. v0.3.0 does not rewrite the old baseline's gate statuses or reinterpret the repository state it captured.
 
 Likewise, rejected experiments remain rejected records. The U+200C visible-projection mechanism stays quarantined because Unicode format-character stripping restores the evaluated detection behavior. Cycle 6 `NONZERO_RESIDUAL` 7/192 remains the frozen formal detector result and is product-disqualified because it used visible ASCII spaces.
 
+The `v0.2.0` GitHub Release remains the historical contraction CLI. Current product behavior is v0.3.0 identity.
+
 ## Distribution scope
 
-The GitHub Release is the authoritative v0.2.0 publication produced by this repository workflow. Publishing to another package index is a separate action and must not be implied unless that publication actually occurs and its credentials/workflow are configured.
+The GitHub Release is the authoritative v0.3.0 publication produced by this repository workflow. Publishing to another package index is a separate action and must not be implied unless that publication actually occurs and its credentials/workflow are configured.

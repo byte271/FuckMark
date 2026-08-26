@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased — exact user-visible invariance
+## v0.3.0 — Visible invariance, install and release hardening
 
+- Advanced the project version to 0.3.0 so the identity CLI is not published under the v0.2.0 contraction tag.
 - Restored Priority Zero: product output must keep the exact user-visible projection of the input.
 - Public CLI `release-cli-v4` fail-closes instead of applying contractions or other visible edits.
 - `release_transform_registry()` is the empty product-visible-invariance registry. Historical contraction/lexical/syntax/spacing catalogs remain replayable under explicit historical names.

@@ -1,6 +1,6 @@
 # FuckMark CLI
 
-FuckMark v0.2.0 still exposes the same command under `FuckMark`, `Fuckmark`, and `fuckmark`. Current `main` uses `release-cli-v4` and the product visible-invariance registry.
+FuckMark v0.3.0 exposes the same command under `FuckMark`, `Fuckmark`, and `fuckmark`. The public CLI uses `release-cli-v4` and the product visible-invariance registry.
 
 The public CLI is intentionally smaller than the research harness. It does not load detector code, watermark keys, model weights, network services, Cycle 4/6/7 visible-edit schedulers, or quarantined U+200C diagnostics. It also does not apply contractions.
 

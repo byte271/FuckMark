@@ -68,6 +68,7 @@ def test_unix_installer_uses_tagged_release_checksum_and_does_not_start_cli() ->
     assert UNIX_INSTALLER.stat().st_mode & 0o111
     assert "releases/download" in text
     assert "SHA256SUMS" in text
+    assert "v0.3.0" in text
     assert "main.zip" not in text
     assert "force-reinstall" not in text
     assert not any(line.strip().startswith("sudo") for line in text.splitlines())
@@ -81,6 +82,7 @@ def test_windows_installer_uses_tagged_release_checksum_and_does_not_start_cli()
     text = WINDOWS_INSTALLER.read_text(encoding="utf-8")
     assert "releases/download" in text
     assert "SHA256SUMS" in text
+    assert "v0.3.0" in text
     assert "main.zip" not in text
     assert "force-reinstall" not in text
     assert "winget install" not in text
@@ -97,6 +99,6 @@ def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
         assert "|sh" not in text
         assert "| iex" not in text
         assert "irm https" not in text
-        assert "releases/download/v0.2.0" in text
+        assert "releases/download/v0.3.0" in text
+        assert "fuckmark-0.3.0-py3-none-any.whl" in text
         assert "SHA256SUMS" in text
-        assert "3478f46511120d37e319aae3226eab07da0440927d1f117894539c1d181be8f2" in text

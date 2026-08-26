@@ -5,6 +5,7 @@ import tomllib
 
 import pytest
 
+from fuckmark import __version__
 from fuckmark.cli import RELEASE_CLI_ALGORITHM_VERSION, main, process_text, read_pasted_text, transform_text
 from fuckmark.product.invariants import validate_user_visible_invariants
 from fuckmark.product.visible_projection import is_carrier_insertion_v1
@@ -75,7 +76,7 @@ def test_cli_main_processes_unchanged_visible_text_without_copying() -> None:
     assert status == 0
     assert copied == []
     rendered = output.getvalue()
-    assert "FuckMark 0.2.0" in rendered
+    assert f"FuckMark {__version__}" in rendered
     assert "Processing..." in rendered
     assert "visible text left unchanged" in rendered
     assert "Copied to clipboard." not in rendered
@@ -129,7 +130,7 @@ def test_cli_version_reports_project_and_algorithm_identity(capsys) -> None:
         main(argv=("--version",))
     assert result.value.code == 0
     rendered = capsys.readouterr().out
-    assert "FuckMark 0.2.0" in rendered
+    assert f"FuckMark {__version__}" in rendered
     assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v4"
     assert "release-cli-v4" in rendered
     assert "transform-registry-v6" in rendered
