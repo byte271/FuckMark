@@ -12,6 +12,7 @@ from .carriers import (
     space_carrier_rule,
 )
 from .contract import (
+    FROZEN_PRODUCT_CONTRACT_HASH,
     PRODUCT_CONTRACT_PATH,
     load_product_contract,
     product_contract_hash,
@@ -37,6 +38,7 @@ from .visible_projection import (
 __all__ = [
     "InvisibleCarrierAfterAsciiLetterRule",
     "InvisibleCarrierAfterWordFinalAsciiLetterRule",
+    "FROZEN_PRODUCT_CONTRACT_HASH",
     "PRODUCT_CARRIER_INVARIANT_ALGORITHM_VERSION",
     "PRODUCT_CONTRACT_ID",
     "PRODUCT_CONTRACT_PATH",

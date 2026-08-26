@@ -24,9 +24,9 @@ def test_gitignore_excludes_generated_artifacts_and_local_secrets() -> None:
         ".venv/",
         ".env",
         ".env.*",
-        "spec.md",
     }
     assert required <= rules
+    assert "spec.md" not in rules
 
 
 def test_internal_release_metadata_is_absent() -> None:

@@ -44,6 +44,8 @@ def test_bayesian_evidence_replays_posterior_and_stays_explicitly_unverified() -
     assert evidence.checkpoint_hash == checkpoint.checkpoint_hash
     assert evidence.observation_batch_hash == sha256_json(batch)
     verify_bayesian_evidence(evidence, batch, checkpoint)
+    with pytest.raises(ValueError, match="cannot be used as confirmatory score"):
+        evidence.confirmatory_score()
 
 
 def test_bayesian_evidence_replay_rejects_rehashed_wrong_posterior() -> None:

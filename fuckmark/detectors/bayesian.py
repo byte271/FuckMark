@@ -13,6 +13,7 @@ from .types import ZeroValidObservationsError
 
 
 BAYESIAN_CHECKPOINT_ALGORITHM_VERSION = "deepmind-bayesian-checkpoint-v1"
+BAYESIAN_CHECKPOINT_JSON_MAX_BYTES = 64 * 1024 * 1024
 BAYESIAN_SCORER_ALGORITHM_VERSION = "deepmind-bayesian-posterior-v1"
 
 
@@ -139,7 +140,11 @@ def _finite_float(name: str, value: object) -> float:
 def load_bayesian_checkpoint(path: str | Path) -> BayesianCheckpoint:
     if not isinstance(path, (str, Path)):
         raise TypeError("path must be a string or Path")
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    file_path = Path(path)
+    size = file_path.stat().st_size
+    if size > BAYESIAN_CHECKPOINT_JSON_MAX_BYTES:
+        raise ValueError("Bayesian checkpoint JSON exceeds the size limit")
+    data = json.loads(file_path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError("Bayesian checkpoint JSON must contain an object")
     return BayesianCheckpoint.from_mapping(data)

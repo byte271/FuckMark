@@ -14,4 +14,3 @@ venv/
 .env.*
 .DS_Store
 artifacts/
-spec.md

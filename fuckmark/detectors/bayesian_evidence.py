@@ -107,6 +107,11 @@ class BayesianDetectorEvidence:
         if self.evidence_hash != sha256_json(self._payload()):
             raise ValueError("evidence_hash does not match Bayesian detector evidence")
 
+    def confirmatory_score(self) -> float:
+        if self.compatibility_status is CompatibilityStatus.UNVERIFIED:
+            raise ValueError("UNVERIFIED Bayesian evidence cannot be used as confirmatory score")
+        return self.raw_score
+
     def _payload(self) -> dict[str, object]:
         return {
             "algorithm_version": self.algorithm_version,

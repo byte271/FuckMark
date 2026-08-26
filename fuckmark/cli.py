@@ -293,7 +293,7 @@ def main(
     except (KeyError, TypeError, ValueError) as error:
         return _error(errors, f"transformation failed: {error}")
 
-    should_copy = arguments.copy or (interactive and arguments.output is None)
+    should_copy = arguments.copy
     copy_failed: Exception | None = None
     if should_copy:
         writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
@@ -303,7 +303,7 @@ def main(
             copy_failed = error
 
     try:
-        if batch_mode or arguments.output is not None or copy_failed is not None:
+        if batch_mode or arguments.output is not None or copy_failed is not None or (interactive and not should_copy):
             _write_result(result.output_text, arguments.output, output)
             if interactive and (arguments.output is None or arguments.output == "-"):
                 output.write("\n")

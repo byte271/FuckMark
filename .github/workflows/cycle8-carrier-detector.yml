@@ -43,10 +43,13 @@ jobs:
       - name: Install maintained Transformers SynthID dependencies
         run: python -m pip install -r requirements-smoke.txt
       - name: Run Cycle 8 exploratory detector compare on seed 890000
+        env:
+          INPUT_DEVICE: ${{ inputs.device || 'cpu' }}
+          INPUT_MAX_ATTEMPTS: ${{ inputs.max_attempts || '64' }}
         run: >-
           python -m fuckmark.cycle8_hf
-          --device "${{ inputs.device || 'cpu' }}"
-          --max-attempts "${{ inputs.max_attempts || '64' }}"
+          --device "$INPUT_DEVICE"
+          --max-attempts "$INPUT_MAX_ATTEMPTS"
           --detector-json artifacts/cycle8-exploratory-890000/detector-compare.json
       - uses: actions/upload-artifact@v4
         if: always()

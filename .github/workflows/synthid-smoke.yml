@@ -39,7 +39,11 @@ jobs:
       - name: Install smoke dependencies
         run: python -m pip install -r requirements-smoke.txt
       - name: Run open SynthID smoke
-        run: python -m fuckmark.synthid_smoke_hf --model "${{ inputs.model }}" --device cpu --prompt-limit "${{ inputs.prompt_limit }}" --max-new-tokens "${{ inputs.max_new_tokens }}"
+        env:
+          INPUT_MODEL: ${{ inputs.model }}
+          INPUT_PROMPT_LIMIT: ${{ inputs.prompt_limit }}
+          INPUT_MAX_NEW_TOKENS: ${{ inputs.max_new_tokens }}
+        run: python -m fuckmark.synthid_smoke_hf --model "$INPUT_MODEL" --device cpu --prompt-limit "$INPUT_PROMPT_LIMIT" --max-new-tokens "$INPUT_MAX_NEW_TOKENS"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

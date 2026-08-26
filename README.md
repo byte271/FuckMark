@@ -27,9 +27,15 @@ Letter-mix margin seeds `1020000` and `1030000` were reserved before generation.
 
 See [`docs/product-contract.md`](docs/product-contract.md) and `specs/fuckmark-user-visible-invariance-v1.contract.json`.
 
-**Current tagged release: v0.2.0**  
+**Current release: v0.3.0**  
 Website: [mark.q1z.org](https://mark.q1z.org)  
 License: MIT
+
+## What changed in v0.3.0
+
+v0.3.0 is the visible-invariance product release. The public CLI is `release-cli-v4` and returns input text unchanged. Official install uses a tagged GitHub Release wheel plus `SHA256SUMS.txt`. Release Engineering no longer auto-tags, auto-publishes, or deletes merged branches.
+
+The historical `v0.2.0` tag still applies contractions. Do not treat that tag as the current product contract.
 
 ## What changed in v0.2.0
 
@@ -60,42 +66,16 @@ The public CLI uses only `release_transform_registry()`, which is now the produc
 
 ## Install
 
-Python 3.11 or newer is required.
-
-### Linux
-
-```sh
-curl -fsSL https://d.q1z.org/mark | sh
-```
-
-### macOS
-
-```sh
-curl -fsSL https://d.q1z.org/mark | sh
-```
-
-### Windows
-
-Run PowerShell:
-
-```powershell
-irm https://d.q1z.org/mark | iex
-```
-
-Verify the installation:
+Python 3.11 or newer is required. Install a **tagged GitHub Release wheel** and check `SHA256SUMS.txt`. Do not pipe `https://d.q1z.org/mark` into a shell.
 
 ```text
-FuckMark --version
+python3 -m venv .venv
+.venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.3.0/fuckmark-0.3.0-py3-none-any.whl
 ```
 
-For a manual tagged install:
+v0.3.0 wheel SHA-256: `cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325`
 
-```text
-python -m venv .venv
-python -m pip install https://github.com/byte271/FuckMark/archive/refs/tags/v0.2.0.zip
-```
-
-See [`docs/install.md`](docs/install.md) for platform details and update behavior.
+The installed CLI currently returns input text unchanged. See [`docs/install.md`](docs/install.md) for checksum verification, the in-repo installer, and Windows notes.
 
 ## CLI
 
@@ -185,7 +165,7 @@ The repository's GitHub Actions additionally run package installation checks, fr
 
 ## Release engineering
 
-v0.2.0 builds one wheel and one source distribution and verifies both on Linux, macOS, and Windows before publication. The release workflow also runs `twine check`, verifies the installed console commands, generates SHA-256 checksums for the built artifacts, and refuses to publish a tag whose name does not match the package version.
+v0.3.0 builds one wheel and one source distribution and verifies both on Linux, macOS, and Windows before publication. The release workflow also runs `twine check`, verifies the installed console commands, generates SHA-256 checksums for the built artifacts, and refuses to publish unless an existing `v*` tag already matches the package version and commit.
 
 GitHub Release publication happens only from an immutable `v*` tag after the package matrix succeeds.
 

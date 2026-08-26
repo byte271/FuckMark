@@ -6,7 +6,12 @@ import pytest
 from fuckmark.cycle7.whitespace_collapse import collapse_horizontal_ascii_whitespace
 from fuckmark.hashing import sha256_json
 from fuckmark.product.carriers import rule_preserves_visible_projection, space_carrier_rule
-from fuckmark.product.contract import load_product_contract, product_contract_hash, product_contract_payload
+from fuckmark.product.contract import (
+    FROZEN_PRODUCT_CONTRACT_HASH,
+    load_product_contract,
+    product_contract_hash,
+    product_contract_payload,
+)
 from fuckmark.product.domain import is_supported_product_domain_v1
 from fuckmark.product.invariants import UserVisibleInvariantReason, validate_user_visible_invariants
 from fuckmark.product.registry import ProductTransformRegistry, product_transform_registry
@@ -21,7 +26,7 @@ def test_product_contract_file_matches_embedded_payload() -> None:
     contract = load_product_contract()
     payload = {key: value for key, value in contract.items() if key != "contract_hash"}
     assert payload == product_contract_payload()
-    assert contract["contract_hash"] == product_contract_hash() == sha256_json(payload)
+    assert contract["contract_hash"] == product_contract_hash() == sha256_json(payload) == FROZEN_PRODUCT_CONTRACT_HASH
     path = Path(__file__).resolve().parents[1] / "specs" / "fuckmark-user-visible-invariance-v1.contract.json"
     disk = json.loads(path.read_text(encoding="utf-8"))
     assert disk == contract
@@ -34,7 +39,7 @@ def test_load_product_contract_uses_embedded_payload_without_checkout_file(monke
     contract = contract_module.load_product_contract()
     payload = {key: value for key, value in contract.items() if key != "contract_hash"}
     assert payload == product_contract_payload()
-    assert contract["contract_hash"] == product_contract_hash()
+    assert contract["contract_hash"] == product_contract_hash() == FROZEN_PRODUCT_CONTRACT_HASH
 
 
 def test_load_product_contract_rejects_mismatched_checkout_file(monkeypatch, tmp_path: Path) -> None:
@@ -44,6 +49,14 @@ def test_load_product_contract_rejects_mismatched_checkout_file(monkeypatch, tmp
     path.write_text("{}", encoding="utf-8")
     monkeypatch.setattr(contract_module, "PRODUCT_CONTRACT_PATH", path)
     with pytest.raises(ValueError, match="does not match embedded v1 payload"):
+        contract_module.load_product_contract()
+
+
+def test_load_product_contract_rejects_unfrozen_embedded_hash(monkeypatch) -> None:
+    from fuckmark.product import contract as contract_module
+
+    monkeypatch.setattr(contract_module, "FROZEN_PRODUCT_CONTRACT_HASH", "0" * 64)
+    with pytest.raises(ValueError, match="frozen v1 digest"):
         contract_module.load_product_contract()
 
 

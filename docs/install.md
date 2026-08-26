@@ -1,59 +1,63 @@
 # Installation
 
-FuckMark v0.2.0 supports Windows, macOS, and Linux with Python 3.11 or newer. The official installer endpoint is `https://d.q1z.org/mark`.
+Python 3.11 or newer is required. The public CLI currently returns input text unchanged: v0.3.0 has no product-authorized invisible carrier.
 
-## Linux
+Install only a GitHub Release wheel and check `SHA256SUMS.txt` from that same release. Do not pipe `https://d.q1z.org/mark` into a shell. That endpoint still installs live `main` without a checksum.
 
-```sh
-curl -fsSL https://d.q1z.org/mark | sh
+## Tagged wheel (recommended)
+
+v0.3.0 wheel SHA-256:
+
+```text
+cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325  fuckmark-0.3.0-py3-none-any.whl
 ```
 
-## macOS
-
-```sh
-curl -fsSL https://d.q1z.org/mark | sh
+```text
+python3 -m venv .venv
+.venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.3.0/fuckmark-0.3.0-py3-none-any.whl
 ```
 
-## Windows
+On Windows, create the venv with `py -3.12 -m venv .venv` and use `.venv\Scripts\python.exe`.
 
-Run PowerShell:
+Download `SHA256SUMS.txt` from the same release and confirm the installed wheel digest before trusting the environment:
+
+```text
+https://github.com/byte271/FuckMark/releases/download/v0.3.0/SHA256SUMS.txt
+```
+
+## In-repo installer (tagged wheel + checksum)
+
+These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.3.0`.
+
+Linux / macOS, from a clone:
+
+```sh
+sh tools/install/unix.sh
+```
+
+Windows PowerShell, from a clone:
 
 ```powershell
-irm https://d.q1z.org/mark | iex
+powershell -ExecutionPolicy Bypass -File tools/install/windows.ps1
 ```
 
-The endpoint selects PowerShell for Windows clients and a Unix dispatcher for Linux/macOS clients. The installer creates an isolated user-level virtual environment and exposes FuckMark without requiring an administrator installation.
+Optional override: `FUCKMARK_RELEASE_TAG=v0.3.0`.
 
 ## Verify
 
-Open a new terminal after installation and run:
-
 ```text
-FuckMark --version
+fuckmark --version
 ```
 
-For v0.2.0, the command must begin with:
+For v0.3.0 the command must begin with:
 
 ```text
-FuckMark 0.2.0
+FuckMark 0.3.0
 ```
 
-It also reports the release CLI and transform-registry algorithm identities.
-
-## Manual tagged installation
-
-Users who do not want to pipe a remote installer into a shell can install the immutable tagged source explicitly:
-
-```text
-python -m venv .venv
-python -m pip install https://github.com/byte271/FuckMark/archive/refs/tags/v0.2.0.zip
-```
-
-Activate the virtual environment using the platform's normal command, then run `FuckMark --version`.
+It also reports `release-cli-v4`. Transforming text currently prints the same visible input.
 
 ## Install from a local clone
-
-From the repository root:
 
 ```text
 python -m pip install .
@@ -65,18 +69,16 @@ For development and tests:
 python -m pip install -e ".[dev]"
 ```
 
-The core package has no runtime dependencies. Research workflows that reproduce open SynthID experiments install their pinned model/runtime dependencies separately through `requirements-smoke.txt` and the workflow definitions.
+The core package has no runtime dependencies. Research workflows that reproduce open SynthID experiments install pinned model/runtime dependencies through `requirements-smoke.txt`.
 
 ## Update
 
-Run the same one-command installer again. It replaces the package inside the managed virtual environment while preserving the command location.
-
-After any update, verify the installed version with `FuckMark --version`.
+Install a newer tagged wheel the same way and verify `FuckMark --version` against that tag. Do not follow a moving `main.zip`.
 
 ## Troubleshooting
 
-If the command is not found immediately after installation, open a new terminal so the updated user PATH is loaded.
+If the command is not found, open a new terminal so PATH updates load.
 
-On Linux, clipboard copying requires one of `wl-copy`, `xclip`, `xsel`, or `clip.exe`. The CLI still produces transformed output if clipboard transfer is unavailable.
+On Linux, clipboard copying with `--copy` requires one of `wl-copy`, `xclip`, `xsel`, or `clip.exe`. The CLI still prints output if clipboard transfer is unavailable.
 
-Website: [mark.q1z.org](https://mark.q1z.org)
+Website: [mark.q1z.org](https://mark.q1z.org). The website one-click installer is not the source of truth for this repository.
