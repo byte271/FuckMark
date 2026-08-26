@@ -127,3 +127,21 @@ def test_protected_url_and_number_and_path_are_not_carrier_sites() -> None:
     assert "42" in applied.replace("\u034f", "")
     assert "/tmp/foo.txt" in applied.replace("\u034f", "")
     assert is_carrier_insertion_v1(text, applied, (0x034F,))
+
+
+def test_u034f_space_carrier_fail_closes_sites_that_create_extended_paths() -> None:
+    from fuckmark.cycle8.registry import apply_all_candidates, cycle8_space_carrier_registry
+    from fuckmark.transforms.hard_invariants import validate_hard_invariants
+    from fuckmark.transforms.schema import CandidateRejectionReason, InvariantStatus
+
+    registry = cycle8_space_carrier_registry(0x034F)
+    text = "Use / tmp / nested / file.txt after the check."
+    enumeration = registry.enumerate(text)
+    assert any(
+        rejection.reason is CandidateRejectionReason.HARD_INVARIANT_FAILED for rejection in enumeration.rejections
+    )
+    applied = apply_all_candidates(registry, text)
+    assert is_carrier_insertion_v1(text, applied, (0x034F,))
+    assert project_visible_v1(applied, (0x034F,)) == text
+    assert validate_hard_invariants(text, applied).status is InvariantStatus.PASS
+    assert "file.txt" in applied.replace("\u034f", "")

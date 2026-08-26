@@ -4,6 +4,8 @@ from collections.abc import Sequence
 
 from ..hashing import sha256_json
 from ..transforms.candidate_artifacts import CandidateEnumeration, _build_conflicts
+from ..transforms.cycle7_quote_policy import QUOTE_INTERIOR_POLICY_IDS
+from ..transforms.hard_invariants import validate_hard_invariants
 from ..transforms.quote_policy import BLANKET_QUOTE_PROTECTION_POLICY_ID
 from ..transforms.registry import (
     TRANSFORM_REGISTRY_ALGORITHM_VERSION,
@@ -18,7 +20,7 @@ from .invariants import validate_user_visible_invariants
 from .visible_projection import is_carrier_insertion_v1, normalize_approved_carriers, product_approved_carriers_v1, project_visible_v1
 
 
-PRODUCT_REGISTRY_ALGORITHM_VERSION = "product-transform-registry-v1"
+PRODUCT_REGISTRY_ALGORITHM_VERSION = "product-transform-registry-v2"
 
 
 class ProductTransformRegistry(TransformRegistry):
@@ -79,12 +81,13 @@ class ProductTransformRegistry(TransformRegistry):
             )
         approved = frozenset(self._approved_carriers)
         by_identity = {(rule.rule_id, rule.version, rule.rule_hash): rule for rule in self.rules}
+        quote_interior = self._quote_policy_id in QUOTE_INTERIOR_POLICY_IDS
         candidates = []
         extra_rejections = list(original.rejections)
         for candidate in original.candidates:
             trial = text[: candidate.start] + candidate.replacement_text + text[candidate.end :]
+            rule = by_identity[(candidate.rule_id, candidate.rule_version, candidate.rule_hash)]
             if not is_carrier_insertion_v1(text, trial, approved):
-                rule = by_identity[(candidate.rule_id, candidate.rule_version, candidate.rule_hash)]
                 extra_rejections.append(
                     _make_rejection(
                         original.input_hash,
@@ -93,6 +96,25 @@ class ProductTransformRegistry(TransformRegistry):
                         candidate.end,
                         candidate.source_text,
                         CandidateRejectionReason.USER_VISIBLE_TEXT_CHANGED,
+                    )
+                )
+                continue
+            invariant_report = validate_hard_invariants(
+                text,
+                trial,
+                self.identifiers,
+                original.protected_manifest.user_ranges,
+                include_quotations=not quote_interior,
+            )
+            if invariant_report.status is not InvariantStatus.PASS:
+                extra_rejections.append(
+                    _make_rejection(
+                        original.input_hash,
+                        rule,
+                        candidate.start,
+                        candidate.end,
+                        candidate.source_text,
+                        CandidateRejectionReason.HARD_INVARIANT_FAILED,
                     )
                 )
                 continue

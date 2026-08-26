@@ -123,6 +123,15 @@ def _detector_arm_summary(rows: tuple[dict[str, object], ...], arm_id: str) -> d
             if watermarked or unwatermarked
             else 0
         ),
+        "hard_invariant_blocked_mean": (
+            sum(int(row["geometry"].get("hard_invariant_blocked_count") or 0) for row in (*watermarked, *unwatermarked))
+            / (len(watermarked) + len(unwatermarked))
+            if watermarked or unwatermarked
+            else 0
+        ),
+        "fail_closed_identity_count": sum(
+            bool(row["geometry"].get("fail_closed_identity")) for row in (*watermarked, *unwatermarked)
+        ),
     }
 
 

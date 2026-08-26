@@ -15,7 +15,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 
 | Seed | Role | Topic | Status |
 | --- | --- | --- | --- |
-| 930000 | scale exploratory | `carrier scaling` | reserved; not generated at reservation time |
+| 930000 | scale exploratory | `carrier scaling` | generated and scored: 0/16 then 0/32 U+034F x1 raw WM; not confirmation |
 | 940000 | scale replication | `independent scale replication` | reserved; not generated |
 | 950000 | scale validation | `clean scale validation` | reserved; do not generate until freeze |
 

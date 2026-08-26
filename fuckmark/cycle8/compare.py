@@ -82,8 +82,16 @@ def measure_carrier_arm(
     registry = arm_registry(arm_id)
     approved = arm_approved_carriers(arm_id)
     enumeration = registry.enumerate(source_text)
-    selected = select_nonoverlapping_candidate_ids(enumeration)
-    transformed = source_text if not selected else registry.apply(enumeration, selected).output_text
+    selected = select_nonoverlapping_candidate_ids(enumeration, registry=registry)
+    fail_closed_identity = False
+    transformed = source_text
+    if selected:
+        try:
+            transformed = registry.apply(enumeration, selected).output_text
+        except ValueError:
+            transformed = source_text
+            selected = ()
+            fail_closed_identity = True
     visible_ok = is_carrier_insertion_v1(source_text, transformed, approved)
     carrier = chr(approved[0]) if approved else ""
     inserted = transformed.count(carrier) - source_text.count(carrier) if carrier else 0
@@ -105,6 +113,9 @@ def measure_carrier_arm(
     protected_blocked = sum(
         1 for rejection in enumeration.rejections if rejection.reason is CandidateRejectionReason.PROTECTED_OVERLAP
     )
+    invariant_blocked = sum(
+        1 for rejection in enumeration.rejections if rejection.reason is CandidateRejectionReason.HARD_INVARIANT_FAILED
+    )
     return {
         "arm_id": arm_id,
         "source_sample_id": source_sample_id,
@@ -119,6 +130,8 @@ def measure_carrier_arm(
         "projected_equals_source": project_visible_v1(transformed, approved) == source_text,
         "quote_blocked_count": quote_blocked,
         "protected_blocked_count": protected_blocked,
+        "hard_invariant_blocked_count": invariant_blocked,
+        "fail_closed_identity": fail_closed_identity,
         "sanitizers": sanitizers,
         "tokenizer": tokenizer,
     }

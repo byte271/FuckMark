@@ -49,8 +49,9 @@ def test_global_ledger_marks_880000_exposed_and_keeps_confirmation_unseen() -> N
 def test_scale_seeds_are_reserved_before_generation() -> None:
     exploratory = row_for_seed_base(CYCLE8_SCALE_EXPLORATORY_SEED_BASE)
     assert exploratory["generation_topic"] == CYCLE8_SCALE_EXPLORATORY_TOPIC == "carrier scaling"
-    assert exploratory["generated"] is False
-    assert exploratory["scored"] is False
+    assert exploratory["generated"] is True
+    assert exploratory["scored"] is True
+    assert exploratory["eligible_as_unseen_validation"] is False
     assert_new_cycle8_scale_generation_seed(CYCLE8_SCALE_EXPLORATORY_SEED_BASE)
     assert_new_cycle8_scale_generation_seed(CYCLE8_SCALE_REPLICATION_SEED_BASE)
     with pytest.raises(ValueError, match="frozen"):

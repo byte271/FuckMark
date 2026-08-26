@@ -66,4 +66,4 @@ Output is ordinary Unicode plain text. HTML overlays, custom fonts, canvas, clip
 
 ## Failure behavior
 
-If a candidate would change visible projection, if the input is outside ordinary English ASCII v1, if carrier safety is uncertain, or if a protected machine span would be broken, the product path leaves that region unchanged. It never falls back to a visible edit.
+If a candidate would change visible projection, if the input is outside ordinary English ASCII v1, if carrier safety is uncertain, or if a protected machine span would be broken, the product path leaves that region unchanged. It never falls back to a visible edit. Product carrier enumeration also skip-closes any insertion whose trial output would fail the frozen hard-invariant validator.

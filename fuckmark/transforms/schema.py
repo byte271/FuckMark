@@ -46,6 +46,7 @@ class CandidateRejectionReason(str, Enum):
     UNSUPPORTED_CASE = "unsupported_case"
     PRECONDITION_FAILED = "precondition_failed"
     USER_VISIBLE_TEXT_CHANGED = "user_visible_text_changed"
+    HARD_INVARIANT_FAILED = "hard_invariant_failed"
 
 
 class InvariantStatus(str, Enum):
