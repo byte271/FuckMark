@@ -6,7 +6,11 @@ Install only a GitHub Release wheel and check `SHA256SUMS.txt` from that same re
 
 ## Tagged wheel (recommended)
 
-After the `v0.3.0` GitHub Release is published:
+v0.3.0 wheel SHA-256:
+
+```text
+cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325  fuckmark-0.3.0-py3-none-any.whl
+```
 
 ```text
 python3 -m venv .venv
@@ -20,8 +24,6 @@ Download `SHA256SUMS.txt` from the same release and confirm the installed wheel 
 ```text
 https://github.com/byte271/FuckMark/releases/download/v0.3.0/SHA256SUMS.txt
 ```
-
-Until that release exists, install from a local clone as below.
 
 ## In-repo installer (tagged wheel + checksum)
 

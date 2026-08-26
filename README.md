@@ -63,7 +63,7 @@ python3 -m venv .venv
 .venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.3.0/fuckmark-0.3.0-py3-none-any.whl
 ```
 
-Download `SHA256SUMS.txt` from the same release and confirm the wheel digest before trusting the environment.
+v0.3.0 wheel SHA-256: `cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325`
 
 The installed CLI currently returns input text unchanged. See [`docs/install.md`](docs/install.md) for checksum verification, the in-repo installer, and Windows notes.
 
