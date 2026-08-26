@@ -15,7 +15,7 @@
 - Seed `880000` is `PUBLICLY_EXPOSED` by closed unmerged PR #98 and is not eligible as unseen validation. Added `global-seed-ledger-v1` and reserved Cycle 8 scale seeds `930000` / `940000` / `950000` before scale generation.
 - Cycle 8 scale exploratory seed `930000` U+034F x1: 0/16 then 0/32 raw transformed WM, then **1/64** on the 64-pair expansion (matched UW 0, visible projection pass, sanitizer matrix matches raw). Do not rewrite 1/64 as zero. Independent replication seed `940000` n=64 is **0/64** raw transformed WM (max score 0.557052 versus threshold 0.557099). Combined 64-pair corpora: **1/128**. Product registry fail-closes carrier sites that would violate frozen hard invariants.
 - U+034F is still not product-authorized. Do not generate `950000`. Do not inspect `830000` / `840000` / `850000`.
-- Reserved Cycle 8 density exploratory seed `960000` (`carrier density follow-up`) before generation for a detector-blind U+034F space x1 versus space plus word-final letter x1 comparison. Not product-authorized.
+- Reserved Cycle 8 density exploratory seed `960000` (`carrier density follow-up`) before generation, then scored a detector-blind U+034F space x1 versus space plus word-final letter x1 comparison. Both arms are **1/16** raw transformed WM on the same residual row. Density did not beat space x1. Not product-authorized.
 
 ## v0.2.0 — Exact-survival confirmation and release hardening
 

@@ -31,6 +31,6 @@ See also `docs/seeds.md`.
 | Scale exploratory | 930000 | carrier scaling | yes, development only, after reservation |
 | Scale replication | 940000 | independent scale replication | yes, after 930000, development only |
 | Scale validation | 950000 | clean scale validation | only after a U+034F x1 freeze; do not generate yet |
-| Density exploratory | 960000 | carrier density follow-up | yes, development only, after reservation; do not retune on 930000 residual text |
+| Density exploratory | 960000 | carrier density follow-up | scored n=16; both arms 1/16; density did not beat space x1; do not retune on residual text |
 
 Do not promote any of these seeds into confirmation after seeing scores.

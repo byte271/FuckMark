@@ -70,8 +70,8 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
     assert len(bases) == len(set(bases))
     assert 930000 in bases and 940000 in bases and 950000 in bases and 960000 in bases
     density = row_for_seed_base(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
-    assert density["generated"] is False
-    assert density["scored"] is False
+    assert density["generated"] is True
+    assert density["scored"] is True
     assert density["generation_topic"] == "carrier density follow-up"
     assert_new_cycle8_density_generation_seed(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
     with pytest.raises(ValueError, match="density"):
