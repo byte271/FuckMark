@@ -52,6 +52,10 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
     assert exploratory["generated"] is True
     assert exploratory["scored"] is True
     assert exploratory["eligible_as_unseen_validation"] is False
+    replication = row_for_seed_base(CYCLE8_SCALE_REPLICATION_SEED_BASE)
+    assert replication["generated"] is True
+    assert replication["scored"] is True
+    assert replication["eligible_as_unseen_validation"] is False
     assert_new_cycle8_scale_generation_seed(CYCLE8_SCALE_EXPLORATORY_SEED_BASE)
     assert_new_cycle8_scale_generation_seed(CYCLE8_SCALE_REPLICATION_SEED_BASE)
     with pytest.raises(ValueError, match="frozen"):
