@@ -4,7 +4,7 @@ Current ledger identity: `cycle8-seed-ledger-v2` (`fuckmark/cycle8/ledger.py`).
 
 The PR #97 snapshot `cycle8-seed-ledger-v1` remains frozen under `specs/cycle8/fuckmark-cycle8-seed-ledger-v1.json`. Do not rewrite it.
 
-Seeds `890000`, `900000`, `910000`, and `920000` were assigned **before** any Cycle 8 text generation or detector look. Scale seeds `930000`, `940000`, and `950000` and their topics were reserved in `global-seed-ledger-v1` **before** any scale generation. Density seed `960000` and topic `carrier density follow-up` were reserved in `global-seed-ledger-v1` **before** density generation. Letter seed `970000` and topic `intra-word carrier follow-up` were reserved in `global-seed-ledger-v1` **before** letter generation.
+Seeds `890000`, `900000`, `910000`, and `920000` were assigned **before** any Cycle 8 text generation or detector look. Scale seeds `930000`, `940000`, and `950000` and their topics were reserved in `global-seed-ledger-v1` **before** any scale generation. Density seed `960000` and topic `carrier density follow-up` were reserved in `global-seed-ledger-v1` **before** density generation. Letter seed `970000` and topic `intra-word carrier follow-up` were reserved in `global-seed-ledger-v1` **before** letter generation. Benchmark seeds `980000` and `990000` and topics `letter carrier system benchmark` and `letter carrier benchmark replication` were reserved in `global-seed-ledger-v1` **before** benchmark generation.
 
 See also `docs/seeds.md`.
 
@@ -33,5 +33,7 @@ See also `docs/seeds.md`.
 | Scale validation | 950000 | clean scale validation | only after a U+034F x1 freeze; do not generate yet |
 | Density exploratory | 960000 | carrier density follow-up | scored n=16; both arms 1/16; density did not beat space x1; letter-x1 diagnostic rescore 0/16; do not retune on residual text |
 | Letter exploratory | 970000 | intra-word carrier follow-up | reserved before generation; independent letter-x1 n=16 is 0/16 then n=64 is 0/64; experimental 0/192 is 128 seen plus 64 independent; not confirmation |
+| Letter benchmark primary | 980000 | letter carrier system benchmark | reserved before generation; n=64 letter-x1 0/64, space-x1 0/64; not confirmation |
+| Letter benchmark replication | 990000 | letter carrier benchmark replication | reserved before generation; n=64 letter-x1 0/64, space-x1 1/64; combined letter 0/128; not confirmation |
 
 Do not promote any of these seeds into confirmation after seeing scores.

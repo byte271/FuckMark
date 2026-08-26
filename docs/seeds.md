@@ -12,6 +12,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 - Do not generate `950000` until the U+034F x1 mechanism is frozen.
 - Seed `960000` is reserved for detector-blind U+034F space plus word-final letter density follow-up. Do not inspect `930000` residual text to write lexical rules.
 - Seed `970000` is reserved for detector-blind intra-word letter-carrier follow-up. It was reserved in `global-seed-ledger-v1` before generation.
+- Seeds `980000` and `990000` are reserved for the letter-x1 system benchmark. They were reserved in `global-seed-ledger-v1` before generation.
 
 ## Cycle 8 scale reservation (before generation)
 
@@ -22,6 +23,8 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 950000 | scale validation | `clean scale validation` | reserved; do not generate until freeze |
 | 960000 | density exploratory | `carrier density follow-up` | generated and scored n=16: space-x1 1/16 and space-wordfinal 1/16 on the same residual row; density did not beat space x1; letter-x1 diagnostic rescore of this seen corpus is 0/16; do not rewrite space 1/16 as zero |
 | 970000 | letter exploratory | `intra-word carrier follow-up` | reserved before generation; independent letter-x1 n=16 is 0/16 then n=64 is 0/64; experimental 0/192 is 128 seen plus 64 independent; not confirmation |
+| 980000 | letter benchmark primary | `letter carrier system benchmark` | reserved before generation; system-benchmark n=64: letter-x1 0/64, space-x1 0/64, identity 62/64; letter max 0.554066; not confirmation |
+| 990000 | letter benchmark replication | `letter carrier benchmark replication` | reserved before generation; independent system-benchmark n=64: letter-x1 0/64, space-x1 1/64, identity 64/64; combined with 980000 letter 0/128 and space 1/128; not confirmation |
 
 ## Historical v1 Cycle 8 ledger
 

@@ -17,7 +17,9 @@ The public CLI currently fail-closes: no product-authorized invisible carrier ha
 
 Cycle 8 U+034F space-carrier x1 is a `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Tiny 4-pair corpora are 0/12 transformed WM. Scale exploratory seed `930000` is 0/16, 0/32, then **1/64** raw transformed WM. Independent replication seed `940000` is **0/64**. Combined large-N on those two 64-pair corpora is **1/128**. Density seed `960000` n=16 compared space x1 with space plus word-final letter x1: both **1/16** on the same residual row. Do not rewrite those space-x1 residuals as zero.
 
-Cycle 8 U+034F letter-x1 (after ASCII letters, visible-word invariants, quote-interior carriers, detector-blind cap 192) is a stronger `PROMISING_DEVELOPMENT` / `HYPOTHESIS` on the same visible contract. Diagnostic rescore of seen corpora: `930000` n=64 **0/64**, `940000` n=64 **0/64**, `960000` n=16 **0/16**. Independent reserved seed `970000` is **0/16** then **0/64**. Experimental letter-x1 **0/192** = those two seen 64-pair diagnostics plus independent `970000` n=64 (**128/192 seen**, **64/192 independent**). Visible projection passed. Unwatermarked controls stayed clean. This is not product-authorized, not confirmation, not a freeze, and not a substitute for generating `950000`. Seed `880000` is publicly exposed by closed unmerged PR #98 and is not eligible as unseen validation. See [`docs/seeds.md`](docs/seeds.md).
+Cycle 8 U+034F letter-x1 (after ASCII letters, visible-word invariants, quote-interior carriers, detector-blind cap 192) is a stronger `PROMISING_DEVELOPMENT` / `HYPOTHESIS` on the same visible contract. Diagnostic rescore of seen corpora: `930000` n=64 **0/64**, `940000` n=64 **0/64**, `960000` n=16 **0/16**. Independent reserved seed `970000` is **0/16** then **0/64**. Experimental letter-x1 **0/192** = those two seen 64-pair diagnostics plus independent `970000` n=64 (**128/192 seen**, **64/192 independent**).
+
+A later system benchmark reserved seeds `980000` and `990000` before generation and scored letter-x1 versus space-x1 on two new independent 64-pair corpora: letter-x1 **0/128** raw transformed WM (max 0.554066, gap 0.003032 below threshold 0.557099) and space-x1 **1/128** on the same corpora. Visible projection passed on every scored letter row and on 21/21 local fixtures. This is still not product-authorized, not confirmation, not a freeze, and not a substitute for generating `950000`. Formal confirmation readiness is `NOT_READY` because the fresh 0/128 margin is thin and the experimental 0/192 is not a preregistered confirmation protocol. Seed `880000` is publicly exposed by closed unmerged PR #98 and is not eligible as unseen validation. See [`docs/cycle8/letter-system-benchmark.md`](docs/cycle8/letter-system-benchmark.md) and [`docs/seeds.md`](docs/seeds.md).
 
 See [`docs/product-contract.md`](docs/product-contract.md) and `specs/fuckmark-user-visible-invariance-v1.contract.json`.
 
@@ -158,7 +160,7 @@ Cycle 7 Stage A/B/C researched collapse-resistant *visible* edits (contractions,
 
 ## Cycle 8 status
 
-Cycle 8 is the exact-visible-projection generation. See [`docs/cycle8/README.md`](docs/cycle8/README.md). U+200C remains a diagnostic baseline (stripped by Cf). Combining grapheme joiner U+034F is an early durable-track *hypothesis* under frozen sanitizers; it is not a release mechanism.
+Cycle 8 is the exact-visible-projection generation. See [`docs/cycle8/README.md`](docs/cycle8/README.md). U+200C remains a diagnostic baseline (stripped by Cf). Combining grapheme joiner U+034F letter-x1 is the current strongest visible-invariant development arm (`HYPOTHESIS`): fresh reserved-before-generation **0/128** on seeds `980000`+`990000`, plus a separate experimental **0/192** (128 seen + 64 independent). It is not a release mechanism and is not formal confirmation.
 
 ## Reproduce the research environment
 

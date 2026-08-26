@@ -1,0 +1,3 @@
+d40ef95fe7d21b7699736a6aee5d3c34d7a4f21a724aa9ecfd47304c16952417  README.md
+47c53855d83ef954010fe955ad06c2bb61a20854e3deab8a63ed1231e86b6c9d  decision.json
+800c5cc4e7b75ddf26d915d655e8cdb6acbddd7bae58be07d131e68e7f5e1181  detector-compare.json

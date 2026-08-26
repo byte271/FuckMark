@@ -25,7 +25,11 @@ Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for vi
 
 Letter-x1 is **not** in `release_transform_registry()`. Space-x1 still uses blanket quotes and raw word signatures.
 
-Diagnostic rescore of seen corpora (not unseen): `960000` n=16 **0/16**, `930000` n=64 **0/64**, `940000` n=64 **0/64**. Independent reserved seed `970000` is **0/16** then **0/64**. Experimental letter-x1 **0/192** = seen `930000` n=64 plus seen `940000` n=64 plus independent `970000` n=64 (**128/192 seen**, **64/192 independent**). Matched unwatermarked controls stayed clean. Visible projection passed on every scored letter row. Still `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Not confirmation. Not a freeze. Public CLI remains empty. Do not generate `950000`.
+Diagnostic rescore of seen corpora (not unseen): `960000` n=16 **0/16**, `930000` n=64 **0/64**, `940000` n=64 **0/64**. Independent reserved seed `970000` is **0/16** then **0/64**. Experimental letter-x1 **0/192** = seen `930000` n=64 plus seen `940000` n=64 plus independent `970000` n=64 (**128/192 seen**, **64/192 independent**). Matched unwatermarked controls stayed clean. Visible projection passed on every scored letter row.
+
+A later system benchmark reserved seeds `980000` and `990000` before generation. Fresh letter-x1 is **0/128** raw transformed WM on those two independent 64-pair corpora, with space-x1 **1/128** on the same texts. Maximum fresh letter score is 0.554066 versus threshold 0.557099. That 0/128 is measurement, not confirmation, and must not be collapsed into the experimental 0/192. Formal confirmation readiness is `NOT_READY`. See `docs/cycle8/letter-system-benchmark.md`.
+
+Still `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Not confirmation. Not a freeze. Public CLI remains empty. Do not generate `950000`.
 
 Intra-word insertion is no longer treated as tokenizer-diagnostic-only. It is the current strongest visible-invariant U+034F arm.
 
