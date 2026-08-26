@@ -1,20 +1,41 @@
 from fuckmark.cli import process_text
 from fuckmark.cycle8.compare import (
     CYCLE8_LETTER_ARM_IDS,
+    CYCLE8_MARGIN_ARM_IDS,
     CYCLE8_U034F_LETTER_ARM_ID,
+    CYCLE8_U034F_LETTER_BOOST_ARM_ID,
+    CYCLE8_U034F_LETTER_SCHEDULE_SPACE_ARM_ID,
+    CYCLE8_U034F_LETTER_SPACE_ARM_ID,
+    CYCLE8_U034F_LETTER_X2_ARM_ID,
     CYCLE8_U034F_SPACE_ARM_ID,
     measure_carrier_arm,
 )
-from fuckmark.cycle8.ledger import CYCLE8_LETTER_EXPLORATORY_ROLE, assert_cycle8_development_seed
+from fuckmark.cycle8.ledger import (
+    CYCLE8_LETTER_EXPLORATORY_ROLE,
+    CYCLE8_MARGIN_PRIMARY_ROLE,
+    CYCLE8_MARGIN_REPLICATION_ROLE,
+    assert_cycle8_development_seed,
+)
 from fuckmark.cycle8.registry import (
     LETTER_CARRIER_MAX_SELECTED,
     apply_all_candidates,
+    apply_letter_payload_boost,
+    apply_letter_space_scheduled,
     cycle8_letter_carrier_registry,
+    cycle8_letter_space_carrier_registry,
     cycle8_space_carrier_registry,
+    letter_payload_repeats,
 )
-from fuckmark.seeds.ledger import CYCLE8_LETTER_EXPLORATORY_SEED_BASE, assert_new_cycle8_letter_generation_seed
 from fuckmark.product.carrier_invariants import validate_product_carrier_invariants
+from fuckmark.product.carriers import InvisibleCarrierAfterAsciiLetterRule
 from fuckmark.product.visible_projection import is_carrier_insertion_v1, project_visible_v1
+from fuckmark.seeds.ledger import (
+    CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
+    CYCLE8_MARGIN_PRIMARY_SEED_BASE,
+    CYCLE8_MARGIN_REPLICATION_SEED_BASE,
+    assert_new_cycle8_letter_generation_seed,
+    assert_new_cycle8_margin_generation_seed,
+)
 from fuckmark.transforms.cycle7_quote_policy import PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID
 from fuckmark.transforms.hard_invariants import HARD_INVARIANT_ALGORITHM_VERSION, validate_hard_invariants
 from fuckmark.transforms.registry import release_transform_registry
@@ -117,5 +138,94 @@ def test_letter_seed_is_reserved_and_release_registry_stays_empty() -> None:
     assert CYCLE8_LETTER_ARM_IDS == ("identity", CYCLE8_U034F_LETTER_ARM_ID)
     assert_new_cycle8_letter_generation_seed(CYCLE8_LETTER_EXPLORATORY_SEED_BASE)
     assert_cycle8_development_seed(CYCLE8_LETTER_EXPLORATORY_SEED_BASE, role=CYCLE8_LETTER_EXPLORATORY_ROLE)
+    assert CYCLE8_MARGIN_ARM_IDS == ("identity", CYCLE8_U034F_LETTER_ARM_ID, CYCLE8_U034F_LETTER_SPACE_ARM_ID)
+    assert_new_cycle8_margin_generation_seed(CYCLE8_MARGIN_PRIMARY_SEED_BASE)
+    assert_new_cycle8_margin_generation_seed(CYCLE8_MARGIN_REPLICATION_SEED_BASE)
+    assert_cycle8_development_seed(CYCLE8_MARGIN_PRIMARY_SEED_BASE, role=CYCLE8_MARGIN_PRIMARY_ROLE)
+    assert_cycle8_development_seed(CYCLE8_MARGIN_REPLICATION_SEED_BASE, role=CYCLE8_MARGIN_REPLICATION_ROLE)
+    assert process_text("I do not agree.") == "I do not agree."
+    assert release_transform_registry().rules == ()
+
+
+def test_letter_x1_rule_hash_stays_frozen() -> None:
+    rule = InvisibleCarrierAfterAsciiLetterRule.create(0x034F)
+    assert rule.rule_id == "product-carrier-letter-034F"
+    assert rule.rule_hash == "ce3c3d703724216d1b8a6155a3b4bc63c7c1b2a8adad6975dd29ef07b0289585"
+    x2 = InvisibleCarrierAfterAsciiLetterRule.create(0x034F, repeats=2)
+    assert x2.rule_id == "product-carrier-letter-034F-x2"
+    assert x2.rule_hash != rule.rule_hash
+
+
+def test_letter_x2_doubles_payload_and_stays_visible_invariant() -> None:
+    source = "We never wait and I don't agree."
+    x1 = apply_all_candidates(cycle8_letter_carrier_registry(0x034F, repeats=1), source)
+    x2 = apply_all_candidates(cycle8_letter_carrier_registry(0x034F, repeats=2), source)
+    assert x2.count("\u034f") == 2 * x1.count("\u034f")
+    assert is_carrier_insertion_v1(source, x2, (0x034F,))
+    assert project_visible_v1(x2, (0x034F,)) == source
+    measured = measure_carrier_arm(
+        arm_id=CYCLE8_U034F_LETTER_X2_ARM_ID,
+        source_sample_id="letter-x2",
+        source_text=source,
+    )
+    assert measured["visible_ok"] is True
+    assert int(measured["inserted_count"]) == x2.count("\u034f")
+    assert process_text(source) == source
+    assert release_transform_registry().rules == ()
+
+
+def test_letter_payload_boost_uses_x1_at_cap_and_more_repeats_when_sparse() -> None:
+    assert letter_payload_repeats(0) == 1
+    assert letter_payload_repeats(192) == 1
+    assert letter_payload_repeats(193) == 1
+    assert letter_payload_repeats(159) == 2
+    assert letter_payload_repeats(80) == 2
+    assert letter_payload_repeats(40) == 4
+    assert letter_payload_repeats(39) == 8
+    assert letter_payload_repeats(34) == 8
+    dense = "abcdefghijklmnopqrstuvwxyz" * 12
+    boosted_dense = apply_letter_payload_boost(dense)
+    capped_x1 = apply_all_candidates(cycle8_letter_carrier_registry(0x034F, repeats=1), dense)
+    assert boosted_dense == capped_x1
+    sparse = "Ab cd."
+    boosted_sparse = apply_letter_payload_boost(sparse)
+    x1_sparse = apply_all_candidates(cycle8_letter_carrier_registry(0x034F, repeats=1), sparse)
+    assert boosted_sparse.count("\u034f") > x1_sparse.count("\u034f")
+    assert project_visible_v1(boosted_sparse, (0x034F,)) == sparse
+    measured = measure_carrier_arm(
+        arm_id=CYCLE8_U034F_LETTER_BOOST_ARM_ID,
+        source_sample_id="letter-boost",
+        source_text=sparse,
+    )
+    assert measured["visible_ok"] is True
+    assert int(measured["inserted_count"]) == boosted_sparse.count("\u034f")
+    scheduled = apply_letter_space_scheduled(sparse)
+    assert scheduled.count("\u034f") >= boosted_sparse.count("\u034f")
+    assert project_visible_v1(scheduled, (0x034F,)) == sparse
+    measured_scheduled = measure_carrier_arm(
+        arm_id=CYCLE8_U034F_LETTER_SCHEDULE_SPACE_ARM_ID,
+        source_sample_id="letter-schedule-space",
+        source_text=sparse,
+    )
+    assert measured_scheduled["visible_ok"] is True
+    assert int(measured_scheduled["inserted_count"]) == scheduled.count("\u034f")
+
+
+def test_letter_space_combined_keeps_visible_words_and_quote_interior() -> None:
+    source = 'Keep "do not change this" but I do not agree.'
+    registry = cycle8_letter_space_carrier_registry(0x034F)
+    applied = apply_all_candidates(registry, source)
+    assert is_carrier_insertion_v1(source, applied, (0x034F,))
+    assert project_visible_v1(applied, (0x034F,)) == source
+    letter_only = apply_all_candidates(cycle8_letter_carrier_registry(0x034F), source)
+    assert applied.count("\u034f") >= letter_only.count("\u034f")
+    interior = applied[applied.index('"') + 1 : applied.rindex('"')]
+    assert "\u034f" in interior
+    measured = measure_carrier_arm(
+        arm_id=CYCLE8_U034F_LETTER_SPACE_ARM_ID,
+        source_sample_id="letter-space",
+        source_text=source,
+    )
+    assert measured["visible_ok"] is True
     assert process_text("I do not agree.") == "I do not agree."
     assert release_transform_registry().rules == ()

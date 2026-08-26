@@ -36,6 +36,14 @@ from .cycle8.ledger import (
     CYCLE8_LETTER_BENCHMARK_PRIMARY_TOPIC,
     CYCLE8_LETTER_BENCHMARK_REPLICATION_ROLE,
     CYCLE8_LETTER_BENCHMARK_REPLICATION_TOPIC,
+    CYCLE8_MARGIN_PRIMARY_ROLE,
+    CYCLE8_MARGIN_PRIMARY_TOPIC,
+    CYCLE8_MARGIN_REPLICATION_ROLE,
+    CYCLE8_MARGIN_REPLICATION_TOPIC,
+    CYCLE8_MIX_PRIMARY_ROLE,
+    CYCLE8_MIX_PRIMARY_TOPIC,
+    CYCLE8_MIX_REPLICATION_ROLE,
+    CYCLE8_MIX_REPLICATION_TOPIC,
     CYCLE8_VALIDATION_ROLE,
     CYCLE8_VALIDATION_TOPIC,
     assert_cycle8_development_seed,
@@ -165,7 +173,15 @@ def _topic_for_seed(seed_base: int) -> str:
         return CYCLE8_LETTER_BENCHMARK_PRIMARY_TOPIC
     if role == CYCLE8_LETTER_BENCHMARK_REPLICATION_ROLE:
         return CYCLE8_LETTER_BENCHMARK_REPLICATION_TOPIC
-    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, density, letter, or letter-benchmark seeds")
+    if role == CYCLE8_MARGIN_PRIMARY_ROLE:
+        return CYCLE8_MARGIN_PRIMARY_TOPIC
+    if role == CYCLE8_MARGIN_REPLICATION_ROLE:
+        return CYCLE8_MARGIN_REPLICATION_TOPIC
+    if role == CYCLE8_MIX_PRIMARY_ROLE:
+        return CYCLE8_MIX_PRIMARY_TOPIC
+    if role == CYCLE8_MIX_REPLICATION_ROLE:
+        return CYCLE8_MIX_REPLICATION_TOPIC
+    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, density, letter, letter-benchmark, margin, or mix seeds")
 
 
 def _generate_cycle8_samples(

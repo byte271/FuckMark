@@ -4,10 +4,12 @@ from collections.abc import Mapping
 
 from .compare import (
     CYCLE8_IDENTITY_ARM_ID,
+    CYCLE8_LETTER_ALT_ARM_ID,
     CYCLE8_U034F_SPACE_ARM_ID,
     CYCLE8_U034F_SPACE_RUN_ARM_ID,
     CYCLE8_U034F_SPACE_WORDFINAL_ARM_ID,
     CYCLE8_U034F_LETTER_ARM_ID,
+    CYCLE8_U034F_LETTER_SPACE_ARM_ID,
     CYCLE8_U200C_SPACE_ARM_ID,
     CYCLE8_UFE00_SPACE_ARM_ID,
 )
@@ -167,6 +169,10 @@ def classify_scale_detector_compare(
         arm_label = "U+034F space-wordfinal x1"
     elif transformed_arm_id == CYCLE8_U034F_LETTER_ARM_ID:
         arm_label = "U+034F letter x1"
+    elif transformed_arm_id == CYCLE8_U034F_LETTER_SPACE_ARM_ID:
+        arm_label = "U+034F letter-space x1"
+    elif transformed_arm_id == CYCLE8_LETTER_ALT_ARM_ID:
+        arm_label = "U+034F/U+FE00 letter-alt v1"
     else:
         arm_label = transformed_arm_id
     visible_total = int(u034f["visible_total_count"])

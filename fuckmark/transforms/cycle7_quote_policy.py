@@ -39,6 +39,7 @@ QUOTE_INTERIOR_POLICY_IDS = frozenset(
 _PRODUCT_VISIBLE_CARRIER_RULE_PREFIXES = (
     "product-carrier-letter-",
     "product-carrier-word-final-letter-",
+    "product-carrier-space-",
 )
 
 _DURABLE_RULE_PREFIXES = (

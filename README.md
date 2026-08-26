@@ -19,7 +19,11 @@ Cycle 8 U+034F space-carrier x1 is a `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Tin
 
 Cycle 8 U+034F letter-x1 (after ASCII letters, visible-word invariants, quote-interior carriers, detector-blind cap 192) is a stronger `PROMISING_DEVELOPMENT` / `HYPOTHESIS` on the same visible contract. Diagnostic rescore of seen corpora: `930000` n=64 **0/64**, `940000` n=64 **0/64**, `960000` n=16 **0/16**. Independent reserved seed `970000` is **0/16** then **0/64**. Experimental letter-x1 **0/192** = those two seen 64-pair diagnostics plus independent `970000` n=64 (**128/192 seen**, **64/192 independent**).
 
-A later system benchmark reserved seeds `980000` and `990000` before generation and scored letter-x1 versus space-x1 on two new independent 64-pair corpora: letter-x1 **0/128** raw transformed WM (max 0.554066, gap 0.003032 below threshold 0.557099) and space-x1 **1/128** on the same corpora. Visible projection passed on every scored letter row and on 21/21 local fixtures. This is still not product-authorized, not confirmation, not a freeze, and not a substitute for generating `950000`. Formal confirmation readiness is `NOT_READY` because the fresh 0/128 margin is thin and the experimental 0/192 is not a preregistered confirmation protocol. Seed `880000` is publicly exposed by closed unmerged PR #98 and is not eligible as unseen validation. See [`docs/cycle8/letter-system-benchmark.md`](docs/cycle8/letter-system-benchmark.md) and [`docs/seeds.md`](docs/seeds.md).
+A later system benchmark reserved seeds `980000` and `990000` before generation and scored letter-x1 versus space-x1 on two new independent 64-pair corpora: letter-x1 **0/128** raw transformed WM (max 0.554066, gap 0.003032 below threshold 0.557099) and space-x1 **1/128** on the same corpora. Visible projection passed on every scored letter row and on 21/21 local fixtures.
+
+Letter-space margin seeds `1000000` and `1010000` were reserved before generation. Combined fresh letter-space is **1/128**; do not rewrite that as zero.
+
+Letter-mix margin seeds `1020000` and `1030000` were reserved before generation. Detector-blind U+034F/U+FE00 letter-alt is fresh **0/128** raw transformed WM (max 0.513691, gap 0.043407) with mix UW **0/128**. Letter-x1 on those same corpora is also 0/128 (max 0.527389). Chromium mix fixtures were pixel-equal on the measured surfaces. This is still not product-authorized, not confirmation, not a freeze, and not a substitute for generating `950000`. Formal confirmation readiness is `NOT_READY`. Seed `880000` is publicly exposed by closed unmerged PR #98 and is not eligible as unseen validation. See [`docs/cycle8/letter-mix-margin.md`](docs/cycle8/letter-mix-margin.md), [`docs/cycle8/letter-system-benchmark.md`](docs/cycle8/letter-system-benchmark.md), and [`docs/seeds.md`](docs/seeds.md).
 
 See [`docs/product-contract.md`](docs/product-contract.md) and `specs/fuckmark-user-visible-invariance-v1.contract.json`.
 
@@ -160,7 +164,7 @@ Cycle 7 Stage A/B/C researched collapse-resistant *visible* edits (contractions,
 
 ## Cycle 8 status
 
-Cycle 8 is the exact-visible-projection generation. See [`docs/cycle8/README.md`](docs/cycle8/README.md). U+200C remains a diagnostic baseline (stripped by Cf). Combining grapheme joiner U+034F letter-x1 is the current strongest visible-invariant development arm (`HYPOTHESIS`): fresh reserved-before-generation **0/128** on seeds `980000`+`990000`, plus a separate experimental **0/192** (128 seen + 64 independent). It is not a release mechanism and is not formal confirmation.
+Cycle 8 is the exact-visible-projection generation. See [`docs/cycle8/README.md`](docs/cycle8/README.md). U+200C remains a diagnostic baseline (stripped by Cf). Combining grapheme joiner U+034F letter-x1 remains a strong visible-invariant development arm (`HYPOTHESIS`): fresh reserved-before-generation **0/128** on seeds `980000`+`990000` with a thin 0.003 gap, plus a separate experimental **0/192** (128 seen + 64 independent). The later U+034F/U+FE00 letter-mix arm is currently stronger on fresh independent corpora: **0/128** on seeds `1020000`+`1030000` with worst score 0.513691 (gap 0.043407). Neither arm is a release mechanism or formal confirmation.
 
 ## Reproduce the research environment
 

@@ -18,12 +18,17 @@ from .compare import (
     run_fixture_compare,
 )
 from .decision import CYCLE8_DECISION_VERSION, classify_fixture_compare
+from .letter_mix import apply_letter_alternating_mix, select_letter_mix_sites
 from .registry import (
     apply_all_candidates,
+    apply_letter_payload_boost,
+    apply_letter_space_scheduled,
     cycle8_combined_carrier_registry,
     cycle8_letter_carrier_registry,
+    cycle8_letter_space_carrier_registry,
     cycle8_space_carrier_registry,
     cycle8_space_wordfinal_carrier_registry,
+    letter_payload_repeats,
 )
 from .scoreboard import CYCLE8_SCOREBOARD_VERSION, EvidenceLabel, ProductGate, product_scoreboard_payload
 from .tokenizer_screen import GPT2_FIXTURE, load_gpt2_encoder, require_gpt2_encoder, screen_carrier_tokenizer
@@ -53,6 +58,9 @@ __all__ = [
     "ProductGate",
     "UNICODE_PROPERTY_SCAN_VERSION",
     "apply_all_candidates",
+    "apply_letter_alternating_mix",
+    "apply_letter_payload_boost",
+    "apply_letter_space_scheduled",
     "assert_cycle8_development_seed",
     "audit_codepoints",
     "classify_carrier_hypothesis",
@@ -60,6 +68,8 @@ __all__ = [
     "codepoint_properties",
     "cycle8_combined_carrier_registry",
     "cycle8_letter_carrier_registry",
+    "cycle8_letter_space_carrier_registry",
+    "letter_payload_repeats",
     "cycle8_seed_ledger_hash",
     "cycle8_seed_ledger_payload",
     "cycle8_space_carrier_registry",
@@ -71,4 +81,5 @@ __all__ = [
     "product_scoreboard_payload",
     "run_fixture_compare",
     "screen_carrier_tokenizer",
+    "select_letter_mix_sites",
 ]

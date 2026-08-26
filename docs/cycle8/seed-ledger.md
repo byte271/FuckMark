@@ -4,7 +4,7 @@ Current ledger identity: `cycle8-seed-ledger-v2` (`fuckmark/cycle8/ledger.py`).
 
 The PR #97 snapshot `cycle8-seed-ledger-v1` remains frozen under `specs/cycle8/fuckmark-cycle8-seed-ledger-v1.json`. Do not rewrite it.
 
-Seeds `890000`, `900000`, `910000`, and `920000` were assigned **before** any Cycle 8 text generation or detector look. Scale seeds `930000`, `940000`, and `950000` and their topics were reserved in `global-seed-ledger-v1` **before** any scale generation. Density seed `960000` and topic `carrier density follow-up` were reserved in `global-seed-ledger-v1` **before** density generation. Letter seed `970000` and topic `intra-word carrier follow-up` were reserved in `global-seed-ledger-v1` **before** letter generation. Benchmark seeds `980000` and `990000` and topics `letter carrier system benchmark` and `letter carrier benchmark replication` were reserved in `global-seed-ledger-v1` **before** benchmark generation.
+Seeds `890000`, `900000`, `910000`, and `920000` were assigned **before** any Cycle 8 text generation or detector look. Scale seeds `930000`, `940000`, and `950000` and their topics were reserved in `global-seed-ledger-v1` **before** any scale generation. Density seed `960000` and topic `carrier density follow-up` were reserved in `global-seed-ledger-v1` **before** density generation. Letter seed `970000` and topic `intra-word carrier follow-up` were reserved in `global-seed-ledger-v1` **before** letter generation. Benchmark seeds `980000` and `990000` and topics `letter carrier system benchmark` and `letter carrier benchmark replication` were reserved in `global-seed-ledger-v1` **before** benchmark generation. Margin seeds `1000000` and `1010000` were reserved before letter-space generation. Mix seeds `1020000` and `1030000` were reserved before letter-mix generation.
 
 See also `docs/seeds.md`.
 
@@ -35,5 +35,9 @@ See also `docs/seeds.md`.
 | Letter exploratory | 970000 | intra-word carrier follow-up | reserved before generation; independent letter-x1 n=16 is 0/16 then n=64 is 0/64; experimental 0/192 is 128 seen plus 64 independent; not confirmation |
 | Letter benchmark primary | 980000 | letter carrier system benchmark | reserved before generation; n=64 letter-x1 0/64, space-x1 0/64; not confirmation |
 | Letter benchmark replication | 990000 | letter carrier benchmark replication | reserved before generation; n=64 letter-x1 0/64, space-x1 1/64; combined letter 0/128; not confirmation |
+| Margin primary | 1000000 | margin robustness development | reserved before generation; letter-space n=64 0/64; not confirmation |
+| Margin replication | 1010000 | margin robustness replication | reserved before generation; letter-space n=64 1/64; combined letter-space 1/128; do not rewrite as zero |
+| Mix primary | 1020000 | letter mix margin development | reserved before generation; letter-alt n=64 0/64, max 0.513691; not confirmation |
+| Mix replication | 1030000 | letter mix margin replication | reserved before generation; letter-alt n=64 0/64, max 0.513071; combined mix 0/128 gap 0.043407; not confirmation |
 
 Do not promote any of these seeds into confirmation after seeing scores.

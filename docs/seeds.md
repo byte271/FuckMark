@@ -13,6 +13,8 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 - Seed `960000` is reserved for detector-blind U+034F space plus word-final letter density follow-up. Do not inspect `930000` residual text to write lexical rules.
 - Seed `970000` is reserved for detector-blind intra-word letter-carrier follow-up. It was reserved in `global-seed-ledger-v1` before generation.
 - Seeds `980000` and `990000` are reserved for the letter-x1 system benchmark. They were reserved in `global-seed-ledger-v1` before generation.
+- Seeds `1000000` and `1010000` are reserved for letter-space margin follow-up. Combined letter-space is 1/128.
+- Seeds `1020000` and `1030000` are reserved for U+034F/U+FE00 letter-mix margin follow-up. Combined mix is 0/128.
 
 ## Cycle 8 scale reservation (before generation)
 
@@ -25,6 +27,10 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 970000 | letter exploratory | `intra-word carrier follow-up` | reserved before generation; independent letter-x1 n=16 is 0/16 then n=64 is 0/64; experimental 0/192 is 128 seen plus 64 independent; not confirmation |
 | 980000 | letter benchmark primary | `letter carrier system benchmark` | reserved before generation; system-benchmark n=64: letter-x1 0/64, space-x1 0/64, identity 62/64; letter max 0.554066; not confirmation |
 | 990000 | letter benchmark replication | `letter carrier benchmark replication` | reserved before generation; independent system-benchmark n=64: letter-x1 0/64, space-x1 1/64, identity 64/64; combined with 980000 letter 0/128 and space 1/128; not confirmation |
+| 1000000 | margin primary | `margin robustness development` | reserved before generation; letter-space n=64 0/64; not confirmation |
+| 1010000 | margin replication | `margin robustness replication` | reserved before generation; letter-space n=64 1/64; combined letter-space 1/128; do not rewrite as zero |
+| 1020000 | mix primary | `letter mix margin development` | reserved before generation; letter-alt n=64 0/64, max 0.513691, gap 0.043407; not confirmation |
+| 1030000 | mix replication | `letter mix margin replication` | reserved before generation; letter-alt n=64 0/64, max 0.513071; combined mix 0/128; not confirmation |
 
 ## Historical v1 Cycle 8 ledger
 

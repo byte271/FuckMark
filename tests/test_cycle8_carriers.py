@@ -61,6 +61,12 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert payload["letter_benchmark_primary_seed_base"] == 980_000
     assert payload["letter_benchmark_replication_seed_base"] == 990_000
     assert payload["letter_benchmark_primary_topic"] == "letter carrier system benchmark"
+    assert payload["margin_primary_seed_base"] == 1_000_000
+    assert payload["margin_replication_seed_base"] == 1_010_000
+    assert payload["margin_primary_topic"] == "margin robustness development"
+    assert payload["mix_primary_seed_base"] == 1_020_000
+    assert payload["mix_replication_seed_base"] == 1_030_000
+    assert payload["mix_primary_topic"] == "letter mix margin development"
     assert payload["confirmation_reserved_seed_bases"] == [830_000, 840_000, 850_000]
     assert payload["cycle7_publicly_exposed_validation_seed_base"] == 880_000
     assert cycle8_seed_ledger_hash()
@@ -70,6 +76,10 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert_cycle8_development_seed(970_000, role="letter_exploratory_development")
     assert_cycle8_development_seed(980_000, role="letter_benchmark_primary")
     assert_cycle8_development_seed(990_000, role="letter_benchmark_replication")
+    assert_cycle8_development_seed(1_000_000, role="margin_robustness_primary")
+    assert_cycle8_development_seed(1_010_000, role="margin_robustness_replication")
+    assert_cycle8_development_seed(1_020_000, role="mix_margin_primary")
+    assert_cycle8_development_seed(1_030_000, role="mix_margin_replication")
     with pytest.raises(ValueError):
         assert_cycle8_development_seed(760_000, role="exploratory_development")
     with pytest.raises(ValueError, match="publicly exposed|spent or reserved"):

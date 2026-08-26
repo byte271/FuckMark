@@ -18,6 +18,22 @@ from ..transforms.schema import InvariantStatus, TransformFamily
 
 
 LETTER_CARRIER_MAX_SELECTED = 192
+LETTER_PAYLOAD_TARGET = 384
+LETTER_PAYLOAD_MAX_REPEATS = 8
+
+
+def letter_payload_repeats(selected_count: int) -> int:
+    if not isinstance(selected_count, int) or isinstance(selected_count, bool):
+        raise TypeError("selected_count must be an integer")
+    if selected_count < 0:
+        raise ValueError("selected_count must be non-negative")
+    if selected_count == 0 or selected_count >= LETTER_CARRIER_MAX_SELECTED:
+        return 1
+    if selected_count >= 80:
+        return 2
+    if selected_count >= 40:
+        return 4
+    return 8
 
 
 def cycle8_space_carrier_registry(
@@ -38,9 +54,31 @@ def cycle8_letter_carrier_registry(
     identifiers: Sequence[str] = (),
     *,
     max_selected: int | None = LETTER_CARRIER_MAX_SELECTED,
+    repeats: int = 1,
 ) -> ProductTransformRegistry:
     return ProductTransformRegistry(
-        (InvisibleCarrierAfterAsciiLetterRule.create(codepoint),),
+        (InvisibleCarrierAfterAsciiLetterRule.create(codepoint, repeats=repeats),),
+        identifiers,
+        approved_carriers=(codepoint,),
+        quote_policy_id=PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID,
+        word_signature_source=WORD_SIGNATURE_SOURCE_VISIBLE,
+        max_selected=max_selected,
+    )
+
+
+def cycle8_letter_space_carrier_registry(
+    codepoint: int,
+    identifiers: Sequence[str] = (),
+    *,
+    letter_repeats: int = 1,
+    space_repeats: int = 1,
+    max_selected: int | None = LETTER_CARRIER_MAX_SELECTED,
+) -> ProductTransformRegistry:
+    return ProductTransformRegistry(
+        (
+            space_carrier_rule(codepoint, space_repeats),
+            InvisibleCarrierAfterAsciiLetterRule.create(codepoint, repeats=letter_repeats),
+        ),
         identifiers,
         approved_carriers=(codepoint,),
         quote_policy_id=PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID,
@@ -55,6 +93,34 @@ def cycle8_combined_carrier_registry(codepoint: int, identifiers: Sequence[str] 
         identifiers,
         approved_carriers=(codepoint,),
     )
+
+
+def apply_letter_payload_boost(text: str, codepoint: int = 0x034F) -> str:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    base = cycle8_letter_carrier_registry(codepoint, repeats=1)
+    enumeration = base.enumerate(text)
+    selected = select_nonoverlapping_candidate_ids(enumeration, registry=base)
+    repeats = letter_payload_repeats(len(selected))
+    if repeats == 1:
+        if not selected:
+            return text
+        return base.apply(enumeration, selected).output_text
+    return apply_all_candidates(cycle8_letter_carrier_registry(codepoint, repeats=repeats), text)
+
+
+def apply_letter_space_scheduled(text: str, codepoint: int = 0x034F) -> str:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    lettered = apply_letter_payload_boost(text, codepoint)
+    space = ProductTransformRegistry(
+        (space_carrier_rule(codepoint),),
+        identifiers=(),
+        approved_carriers=(codepoint,),
+        quote_policy_id=PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID,
+        word_signature_source=WORD_SIGNATURE_SOURCE_VISIBLE,
+    )
+    return apply_all_candidates(space, lettered)
 
 
 def cycle8_space_wordfinal_carrier_registry(

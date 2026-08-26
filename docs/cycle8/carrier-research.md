@@ -31,7 +31,15 @@ A later system benchmark reserved seeds `980000` and `990000` before generation.
 
 Still `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Not confirmation. Not a freeze. Public CLI remains empty. Do not generate `950000`.
 
-Intra-word insertion is no longer treated as tokenizer-diagnostic-only. It is the current strongest visible-invariant U+034F arm.
+Intra-word insertion is no longer treated as tokenizer-diagnostic-only. Letter-x1 was the previous strongest visible-invariant U+034F arm. The later mix arm below is stronger on fresh independent corpora.
+
+## H11. Alternating U+034F / U+FE00 letter mix
+
+`HYPOTHESIS` / `PROMISING_DEVELOPMENT`. Uniform CGJ repeats are masked by SynthID `valid_mask` on repeated 5-gram contexts. The mix arm places U+034F on even selected-site indexes and U+FE00 on odd indexes after ASCII letters, using raw unmerged hard machine spans instead of merged MATH+NUMBER protection. Quote interiors are allowed. URLs, numbers, code, and paths stay blocked.
+
+Seeds `1020000` and `1030000` were reserved before generation. Fresh mix is **0/128** raw transformed WM, mix UW **0/128**, visible 256/256 on the detector rows, frozen sanitizers matching raw zeros. Worst fresh mix score is 0.513691 versus threshold 0.557099 (gap 0.043407). Letter-x1 on the same corpora is also 0/128 with worst max 0.527389. Letter-space on `1000000`+`1010000` remains **1/128**. Chromium `pre`/textarea/contenteditable were pixel-equal on the measured mix fixtures.
+
+Not product-authorized. Not confirmation. Formal confirmation readiness is `NOT_READY`. See `docs/cycle8/letter-mix-margin.md`.
 
 ## H3-H8
 

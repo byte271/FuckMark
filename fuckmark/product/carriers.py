@@ -56,8 +56,8 @@ class InvisibleCarrierAfterAsciiLetterRule(LiteralTransformRule):
         if not self.replacement.startswith(INVISIBLE_LETTER_CARRIER_SENTINEL):
             raise ValueError("invisible letter-carrier replacement must keep the letter sentinel")
         carrier = self.replacement[len(INVISIBLE_LETTER_CARRIER_SENTINEL) :]
-        if len(carrier) != 1:
-            raise ValueError("invisible letter-carrier rules insert exactly one carrier")
+        if not carrier:
+            raise ValueError("invisible letter-carrier rules insert at least one carrier")
         if "\n" in self.source or "\r" in self.source or "\n" in self.replacement or "\r" in self.replacement:
             raise ValueError("invisible letter-carrier rules must stay single-line")
         require_bool("whole_word", self.whole_word)
@@ -85,12 +85,17 @@ class InvisibleCarrierAfterAsciiLetterRule(LiteralTransformRule):
         }
 
     @classmethod
-    def create(cls, codepoint: int) -> "InvisibleCarrierAfterAsciiLetterRule":
+    def create(cls, codepoint: int, repeats: int = 1) -> "InvisibleCarrierAfterAsciiLetterRule":
         require_int("codepoint", codepoint)
-        carrier = chr(codepoint)
+        require_int("repeats", repeats)
+        if repeats <= 0:
+            raise ValueError("repeats must be positive")
+        carrier = chr(codepoint) * repeats
+        suffix = "" if repeats == 1 else f"-x{repeats}"
+        rule_id = f"product-carrier-letter-{codepoint:04X}{suffix}"
         hashed = {
             "algorithm_version": RULE_ALGORITHM_VERSION,
-            "rule_id": f"product-carrier-letter-{codepoint:04X}",
+            "rule_id": rule_id,
             "version": "v1",
             "family": TransformFamily.ORTHOGRAPHY.value,
             "tier": TransformTier.EXPERIMENTAL.value,
@@ -102,7 +107,7 @@ class InvisibleCarrierAfterAsciiLetterRule(LiteralTransformRule):
             "carrier_pattern": INVISIBLE_CARRIER_RULE_ALGORITHM_VERSION,
         }
         return cls(
-            rule_id=f"product-carrier-letter-{codepoint:04X}",
+            rule_id=rule_id,
             version="v1",
             family=TransformFamily.ORTHOGRAPHY,
             tier=TransformTier.EXPERIMENTAL,

@@ -11,6 +11,14 @@ from ..seeds.ledger import (
     CYCLE8_LETTER_BENCHMARK_PRIMARY_TOPIC,
     CYCLE8_LETTER_BENCHMARK_REPLICATION_SEED_BASE,
     CYCLE8_LETTER_BENCHMARK_REPLICATION_TOPIC,
+    CYCLE8_MARGIN_PRIMARY_SEED_BASE,
+    CYCLE8_MARGIN_PRIMARY_TOPIC,
+    CYCLE8_MARGIN_REPLICATION_SEED_BASE,
+    CYCLE8_MARGIN_REPLICATION_TOPIC,
+    CYCLE8_MIX_PRIMARY_SEED_BASE,
+    CYCLE8_MIX_PRIMARY_TOPIC,
+    CYCLE8_MIX_REPLICATION_SEED_BASE,
+    CYCLE8_MIX_REPLICATION_TOPIC,
     CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
     CYCLE8_LETTER_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
@@ -34,6 +42,10 @@ CYCLE8_DENSITY_EXPLORATORY_ROLE = "density_exploratory_development"
 CYCLE8_LETTER_EXPLORATORY_ROLE = "letter_exploratory_development"
 CYCLE8_LETTER_BENCHMARK_PRIMARY_ROLE = "letter_benchmark_primary"
 CYCLE8_LETTER_BENCHMARK_REPLICATION_ROLE = "letter_benchmark_replication"
+CYCLE8_MARGIN_PRIMARY_ROLE = "margin_robustness_primary"
+CYCLE8_MARGIN_REPLICATION_ROLE = "margin_robustness_replication"
+CYCLE8_MIX_PRIMARY_ROLE = "mix_margin_primary"
+CYCLE8_MIX_REPLICATION_ROLE = "mix_margin_replication"
 CYCLE8_CONFIRMATION_RESERVED_ROLE = "confirmation_reserved"
 
 CYCLE8_EXPLORATORY_SEED_BASE = 890_000
@@ -50,6 +62,10 @@ CYCLE8_DENSITY_EXPLORATORY_SEED_BASES = (CYCLE8_DENSITY_EXPLORATORY_SEED_BASE,)
 CYCLE8_LETTER_EXPLORATORY_SEED_BASES = (CYCLE8_LETTER_EXPLORATORY_SEED_BASE,)
 CYCLE8_LETTER_BENCHMARK_PRIMARY_SEED_BASES = (CYCLE8_LETTER_BENCHMARK_PRIMARY_SEED_BASE,)
 CYCLE8_LETTER_BENCHMARK_REPLICATION_SEED_BASES = (CYCLE8_LETTER_BENCHMARK_REPLICATION_SEED_BASE,)
+CYCLE8_MARGIN_PRIMARY_SEED_BASES = (CYCLE8_MARGIN_PRIMARY_SEED_BASE,)
+CYCLE8_MARGIN_REPLICATION_SEED_BASES = (CYCLE8_MARGIN_REPLICATION_SEED_BASE,)
+CYCLE8_MIX_PRIMARY_SEED_BASES = (CYCLE8_MIX_PRIMARY_SEED_BASE,)
+CYCLE8_MIX_REPLICATION_SEED_BASES = (CYCLE8_MIX_REPLICATION_SEED_BASE,)
 CYCLE8_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
 CYCLE8_EXPLORATORY_TOPIC = "invisible carrier development"
 CYCLE8_REPLICATION_TOPIC = "invisible carrier replication"
@@ -113,6 +129,14 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
         "letter_benchmark_primary_topic": CYCLE8_LETTER_BENCHMARK_PRIMARY_TOPIC,
         "letter_benchmark_replication_seed_base": CYCLE8_LETTER_BENCHMARK_REPLICATION_SEED_BASE,
         "letter_benchmark_replication_topic": CYCLE8_LETTER_BENCHMARK_REPLICATION_TOPIC,
+        "margin_primary_seed_base": CYCLE8_MARGIN_PRIMARY_SEED_BASE,
+        "margin_primary_topic": CYCLE8_MARGIN_PRIMARY_TOPIC,
+        "margin_replication_seed_base": CYCLE8_MARGIN_REPLICATION_SEED_BASE,
+        "margin_replication_topic": CYCLE8_MARGIN_REPLICATION_TOPIC,
+        "mix_primary_seed_base": CYCLE8_MIX_PRIMARY_SEED_BASE,
+        "mix_primary_topic": CYCLE8_MIX_PRIMARY_TOPIC,
+        "mix_replication_seed_base": CYCLE8_MIX_REPLICATION_SEED_BASE,
+        "mix_replication_topic": CYCLE8_MIX_REPLICATION_TOPIC,
         "scale_pair_count": CYCLE8_SCALE_PAIR_COUNT,
         "letter_benchmark_pair_count": CYCLE8_LETTER_BENCHMARK_PAIR_COUNT,
         "confirmation_reserved_seed_bases": list(CYCLE8_CONFIRMATION_RESERVED_SEED_BASES),
@@ -131,7 +155,13 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
             "before letter generation. Benchmark seeds 980000 and 990000 and topics "
             "'letter carrier system benchmark' and 'letter carrier benchmark "
             "replication' were reserved in global-seed-ledger-v1 before benchmark "
-            "generation. Do not retune on Cycle 6 formal residuals."
+            "generation. Margin seeds 1000000 and 1010000 and topics 'margin "
+            "robustness development' and 'margin robustness replication' were "
+            "reserved in global-seed-ledger-v1 before margin generation. Mix seeds "
+            "1020000 and 1030000 and topics 'letter mix margin development' and "
+            "'letter mix margin replication' were reserved in global-seed-ledger-v1 "
+            "before mix generation. Do not "
+            "retune on Cycle 6 formal residuals."
         ),
     }
 
@@ -162,6 +192,14 @@ def role_for_seed_base(seed_base: int) -> str | None:
         return CYCLE8_LETTER_BENCHMARK_PRIMARY_ROLE
     if seed_base in CYCLE8_LETTER_BENCHMARK_REPLICATION_SEED_BASES:
         return CYCLE8_LETTER_BENCHMARK_REPLICATION_ROLE
+    if seed_base in CYCLE8_MARGIN_PRIMARY_SEED_BASES:
+        return CYCLE8_MARGIN_PRIMARY_ROLE
+    if seed_base in CYCLE8_MARGIN_REPLICATION_SEED_BASES:
+        return CYCLE8_MARGIN_REPLICATION_ROLE
+    if seed_base in CYCLE8_MIX_PRIMARY_SEED_BASES:
+        return CYCLE8_MIX_PRIMARY_ROLE
+    if seed_base in CYCLE8_MIX_REPLICATION_SEED_BASES:
+        return CYCLE8_MIX_REPLICATION_ROLE
     if seed_base in CYCLE8_CONFIRMATION_RESERVED_SEED_BASES:
         return CYCLE8_CONFIRMATION_RESERVED_ROLE
     return None
@@ -196,5 +234,9 @@ def ledger_roles() -> Mapping[str, Sequence[int]]:
         CYCLE8_LETTER_EXPLORATORY_ROLE: CYCLE8_LETTER_EXPLORATORY_SEED_BASES,
         CYCLE8_LETTER_BENCHMARK_PRIMARY_ROLE: CYCLE8_LETTER_BENCHMARK_PRIMARY_SEED_BASES,
         CYCLE8_LETTER_BENCHMARK_REPLICATION_ROLE: CYCLE8_LETTER_BENCHMARK_REPLICATION_SEED_BASES,
+        CYCLE8_MARGIN_PRIMARY_ROLE: CYCLE8_MARGIN_PRIMARY_SEED_BASES,
+        CYCLE8_MARGIN_REPLICATION_ROLE: CYCLE8_MARGIN_REPLICATION_SEED_BASES,
+        CYCLE8_MIX_PRIMARY_ROLE: CYCLE8_MIX_PRIMARY_SEED_BASES,
+        CYCLE8_MIX_REPLICATION_ROLE: CYCLE8_MIX_REPLICATION_SEED_BASES,
         CYCLE8_CONFIRMATION_RESERVED_ROLE: CYCLE8_CONFIRMATION_RESERVED_SEED_BASES,
     }
