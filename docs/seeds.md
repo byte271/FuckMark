@@ -6,7 +6,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 
 ## Hard rules
 
-- Do not generate, tokenize, score, or inspect content of confirmation reserves `830000`, `840000`, `850000`.
+- Do not generate, tokenize, score, or inspect content of confirmation reserves `830000`, `840000`, `850000` until `cycle8-mix-freeze-v1` confirmation is executed once.
 - Seed `880000` is **PUBLICLY_EXPOSED**. Closed unmerged [PR #98](https://github.com/byte271/FuckMark/pull/98) generated and scored it as Cycle 7 Stage D validation. It is **not** eligible as unseen validation.
 - Seed `890000` is Cycle 8 tiny exploratory on `main`. The same identifier was also used on unmerged PR #98 for Cycle 7 Stage D. Do not treat it as unseen.
 - Do not generate `950000` until the U+034F x1 mechanism is frozen.

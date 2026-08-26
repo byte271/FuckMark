@@ -174,8 +174,10 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
             "'letter mix margin replication' were reserved in global-seed-ledger-v1 "
             "before mix generation. Mix scale seeds 1040000 and 1050000 and topics "
             "'letter mix scale development' and 'letter mix scale replication' were "
-            "reserved in global-seed-ledger-v1 before mix scale generation. Do not "
-            "retune on Cycle 6 formal residuals."
+            "reserved in global-seed-ledger-v1 before mix scale generation. "
+            "cycle8-mix-freeze-v1 preregisters 830000, 840000, and 850000 for one-shot "
+            "mix confirmation; do not generate them until that freeze is committed, "
+            "and do not retune on Cycle 6 formal residuals."
         ),
     }
 

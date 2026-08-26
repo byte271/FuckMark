@@ -25,6 +25,9 @@ from fuckmark.seeds.ledger import (
     CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
     CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
     CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
+    CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
+    CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
+    CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
     CYCLE8_SCALE_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_REPLICATION_SEED_BASE,
@@ -66,8 +69,16 @@ def test_global_ledger_marks_880000_exposed_and_keeps_confirmation_unseen() -> N
         assert row["generated"] is False
         assert row["scored"] is False
         assert row["eligible_for_confirmation"] is True
+        assert row["generation_topic"] in {
+            CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
+            CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
+            CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
+        }
         with pytest.raises(ValueError, match="must not be inspected"):
             assert_seed_not_confirmation_content(seed_base)
+    assert row_for_seed_base(830000)["generation_topic"] == CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC
+    assert row_for_seed_base(840000)["generation_topic"] == CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC
+    assert row_for_seed_base(850000)["generation_topic"] == CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC
 
 
 def test_scale_seeds_are_reserved_before_generation() -> None:

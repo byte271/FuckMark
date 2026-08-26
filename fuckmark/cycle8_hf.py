@@ -48,6 +48,7 @@ from .cycle8.ledger import (
     CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
     CYCLE8_MIX_SCALE_REPLICATION_ROLE,
     CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
+    CYCLE8_CONFIRMATION_RESERVED_ROLE,
     CYCLE8_VALIDATION_ROLE,
     CYCLE8_VALIDATION_TOPIC,
     assert_cycle8_development_seed,
@@ -189,7 +190,14 @@ def _topic_for_seed(seed_base: int) -> str:
         return CYCLE8_MIX_SCALE_PRIMARY_TOPIC
     if role == CYCLE8_MIX_SCALE_REPLICATION_ROLE:
         return CYCLE8_MIX_SCALE_REPLICATION_TOPIC
-    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, density, letter, letter-benchmark, margin, or mix seeds")
+    if role == CYCLE8_CONFIRMATION_RESERVED_ROLE:
+        from .seeds.ledger import row_for_seed_base
+
+        topic = row_for_seed_base(seed_base)["generation_topic"]
+        if not isinstance(topic, str) or not topic:
+            raise ValueError("confirmation seed has no generation topic")
+        return topic
+    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, density, letter, letter-benchmark, margin, mix, or mix-confirmation seeds")
 
 
 def _generate_cycle8_samples(
@@ -198,11 +206,17 @@ def _generate_cycle8_samples(
     max_attempts: int,
     *,
     pair_count: int | None = None,
+    allow_confirmation: bool = False,
 ) -> tuple[dict[str, object], ...]:
     role = role_for_seed_base(seed_base)
     if role is None:
         raise ValueError("seed_base is not in the Cycle 8 ledger")
-    assert_cycle8_development_seed(seed_base, role=role)
+    if allow_confirmation:
+        from .cycle8.mix_freeze import assert_cycle8_mix_confirmation_generation_seed
+
+        assert_cycle8_mix_confirmation_generation_seed(seed_base)
+    else:
+        assert_cycle8_development_seed(seed_base, role=role)
     topic = _topic_for_seed(seed_base)
     domains = tuple(CorpusDomain)
     if pair_count is None:
@@ -400,15 +414,27 @@ def run_cycle8_detector_compare(
     sanitizer_ids: tuple[str, ...] = CYCLE7_SANITIZER_VARIANT_IDS,
     sanitize=sanitize_cycle7_variant,
     algorithm_version: str = CYCLE8_DETECTOR_VERSION,
+    allow_confirmation: bool = False,
 ) -> dict[str, object]:
     from .cycle7_stage_a_hf import _adapter_and_tokenizer
 
     role = role_for_seed_base(seed_base)
     if role is None:
         raise ValueError("seed_base is not in the Cycle 8 ledger")
-    assert_cycle8_development_seed(seed_base, role=role)
+    if allow_confirmation:
+        from .cycle8.mix_freeze import assert_cycle8_mix_confirmation_generation_seed
+
+        assert_cycle8_mix_confirmation_generation_seed(seed_base)
+    else:
+        assert_cycle8_development_seed(seed_base, role=role)
     backend, tokenizer, adapter, _identity_hash, eos = _adapter_and_tokenizer(device)
-    samples = _generate_cycle8_samples(backend, seed_base, max_attempts, pair_count=pair_count)
+    samples = _generate_cycle8_samples(
+        backend,
+        seed_base,
+        max_attempts,
+        pair_count=pair_count,
+        allow_confirmation=allow_confirmation,
+    )
     geometry_rows, scored_rows, summaries = _evaluate_samples(
         samples,
         tokenizer,

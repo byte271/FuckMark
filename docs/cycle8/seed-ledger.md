@@ -17,7 +17,7 @@ See also `docs/seeds.md`.
 | 810000, 860000, 870000 | Cycle 7 exploratory. Spent for new rule construction. |
 | 820000 | Cycle 7 Stage B3 validation. Spent. |
 | 880000 | Cycle 7 Stage C reserved validation. **PUBLICLY_EXPOSED** by closed unmerged PR #98. Not eligible as unseen validation. |
-| 830000, 840000, 850000 | Confirmation reserved. Do not inspect content. |
+| 830000, 840000, 850000 | Confirmation reserved. Preregistered for `cycle8-mix-freeze-v1`. Not yet generated. Generate once. |
 | 890000, 900000, 910000 | Cycle 8 tiny n=4 already generated and scored. Spent as unseen validation. |
 
 ## Cycle 8 roles

@@ -1,6 +1,6 @@
 # Cycle 8 letter-mix margin
 
-Status: `HYPOTHESIS` / `PROMISING_DEVELOPMENT`. Measurement, not confirmation.
+Status: frozen as `cycle8-mix-freeze-v1`. Not product-authorized. Confirmation not yet generated.
 
 Evidence: [`evidence/cycle8-mix-margin-2026-08-26/`](../../evidence/cycle8-mix-margin-2026-08-26/).
 
@@ -27,4 +27,4 @@ Additional independent scale seeds `1040000` n=64 plus `1050000` n=64, reserved 
 
 Letter-x1 system benchmark seeds `980000` and `990000` remain a separate 0/128 with gap 0.003032. Letter-space seeds `1000000` and `1010000` remain **1/128**. Do not rewrite that 1/128 as zero.
 
-Formal confirmation readiness: `NOT_READY`. This 0/256 is development scale, not a freeze and not confirmation.
+Formal confirmation readiness: freeze recorded as `cycle8-mix-freeze-v1`. Confirmation seeds `830000` / `840000` / `850000` are preregistered and not yet generated. This 0/256 is development evidence, not the confirmation result.

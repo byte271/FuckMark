@@ -37,6 +37,9 @@ CYCLE8_MIX_PRIMARY_TOPIC = "letter mix margin development"
 CYCLE8_MIX_REPLICATION_TOPIC = "letter mix margin replication"
 CYCLE8_MIX_SCALE_PRIMARY_TOPIC = "letter mix scale development"
 CYCLE8_MIX_SCALE_REPLICATION_TOPIC = "letter mix scale replication"
+CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC = "mix formal confirmation primary"
+CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC = "mix formal confirmation replication"
+CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC = "mix formal confirmation holdout"
 
 
 def _row(
@@ -91,9 +94,9 @@ def global_seed_rows() -> tuple[dict[str, object], ...]:
         _row(780000, "cycle6", "confirmation", "cycle6 formal", "cycle6", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 6 formal confirmation 3/64. Spent. Do not retune on residuals."),
         _row(810000, "cycle7", "exploratory_development", "reproducibility", "cycle7-seed-ledger-v3", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 7 Stage A. Do not keep expanding rules against it."),
         _row(820000, "cycle7", "validation_development", "held-out evaluation", "cycle7-seed-ledger-v3", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 7 Stage B3 validation. Spent. Do not retune."),
-        _row(830000, "shared", "confirmation_reserved", "", "cycle7-seed-ledger-v3", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=False, notes="Formal confirmation reserve. Do not generate, tokenize, score, or inspect content."),
-        _row(840000, "shared", "confirmation_reserved", "", "cycle7-seed-ledger-v3", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=False, notes="Formal confirmation reserve. Do not generate, tokenize, score, or inspect content."),
-        _row(850000, "shared", "confirmation_reserved", "", "cycle7-seed-ledger-v3", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=False, notes="Formal confirmation reserve. Do not generate, tokenize, score, or inspect content."),
+        _row(830000, "shared", "confirmation_reserved", CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC, "cycle7-seed-ledger-v3", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=False, notes="Formal confirmation reserve for cycle8-mix-freeze-v1. Not yet generated. Generate once under the frozen protocol. Do not retune on residuals."),
+        _row(840000, "shared", "confirmation_reserved", CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC, "cycle7-seed-ledger-v3", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=False, notes="Formal confirmation reserve for cycle8-mix-freeze-v1. Not yet generated. Generate once under the frozen protocol. Do not retune on residuals."),
+        _row(850000, "shared", "confirmation_reserved", CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC, "cycle7-seed-ledger-v3", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=False, notes="Formal confirmation reserve for cycle8-mix-freeze-v1. Not yet generated. Generate once under the frozen protocol. Do not retune on residuals."),
         _row(860000, "cycle7", "exploratory_development", "independent replication", "cycle7-seed-ledger-v3", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 7 Stage B1. Do not keep expanding rules against it."),
         _row(870000, "cycle7", "exploratory_development", "measurement protocol", "cycle7-seed-ledger-v3", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 7 Stage C1. Spent for new rule construction."),
         _row(880000, "cycle7", "validation_development", "independent check", "cycle7-seed-ledger-v3", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="PUBLICLY_EXPOSED by closed unmerged PR #98 Stage D validation artifacts. No longer eligible as unseen validation. Do not inspect residual rows for product tuning. Do not copy Stage D newline edits onto the product path."),
@@ -133,8 +136,9 @@ def global_seed_ledger_payload() -> dict[str, object]:
         "selection_rule": (
             "Every new development, validation, or confirmation seed must be reserved "
             "in this ledger before generation. Seed 880000 is PUBLICLY_EXPOSED by PR #98 "
-            "and is not eligible as unseen validation. Do not inspect 830000, 840000, or "
-            "850000. Do not generate 950000 until a stronger mechanism is frozen. "
+            "and is not eligible as unseen validation. Seeds 830000, 840000, and 850000 "
+            "are preregistered for one-shot cycle8-mix-freeze-v1 confirmation and are "
+            "not yet generated. Do not generate 950000. "
             "Seed 960000 is reserved for detector-blind density follow-up. "
             "Seed 970000 is reserved for detector-blind intra-word letter-carrier follow-up. "
             "Seeds 980000 and 990000 are reserved for the letter-x1 system benchmark. "
@@ -173,6 +177,9 @@ def global_seed_ledger_payload() -> dict[str, object]:
         "cycle8_mix_scale_primary_topic": CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
         "cycle8_mix_scale_replication_seed_base": CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
         "cycle8_mix_scale_replication_topic": CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
+        "cycle8_mix_confirmation_primary_topic": CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
+        "cycle8_mix_confirmation_replication_topic": CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
+        "cycle8_mix_confirmation_hold_topic": CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
         "rows": list(rows),
     }
 
