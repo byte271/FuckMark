@@ -315,11 +315,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--rescore-from", type=Path, default=None)
     args = parser.parse_args(argv)
     from .cycle8.compare import run_fixture_compare
-    from .cycle8.tokenizer_screen import require_gpt2_encoder
+    from .cycle8.tokenizer_screen import load_gpt2_encoder
 
     if args.detector_json is None:
         args.detector_json = Path(f"evidence/cycle8-{args.seed_base}-2026-08-25/detector-compare.json")
-    fixture = run_fixture_compare(encoder=require_gpt2_encoder())
+    fixture = run_fixture_compare(encoder=load_gpt2_encoder())
     args.detector_json.parent.mkdir(parents=True, exist_ok=True)
     write_canonical_json_fsynced(args.detector_json.parent / "fixture-compare.json", fixture)
     detector = None
