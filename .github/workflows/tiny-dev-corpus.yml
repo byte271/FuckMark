@@ -41,13 +41,16 @@ jobs:
       - name: Install maintained Transformers SynthID dependencies
         run: python -m pip install -r requirements-smoke.txt
       - name: Generate real TinyDev corpus
+        env:
+          INPUT_SEED_BASE: ${{ inputs.seed_base || '401000' }}
+          INPUT_MAX_ATTEMPTS: ${{ inputs.max_attempts || '16' }}
         run: >-
           python -m fuckmark.tiny_dev_corpus_hf
           --model openai-community/gpt2
           --model-revision 607a30d783dfa663caf39e06633721c8d4cfcd7e
           --device cpu
-          --seed-base "${{ inputs.seed_base || '401000' }}"
-          --max-attempts "${{ inputs.max_attempts || '16' }}"
+          --seed-base "$INPUT_SEED_BASE"
+          --max-attempts "$INPUT_MAX_ATTEMPTS"
           --temperature 0.8
           --top-k 50
           --top-p 0.95

@@ -98,6 +98,26 @@ def _promotion(human_audit=None):
     )
 
 
+def test_source_grounded_release_empty_promotions_stay_empty_product_registry() -> None:
+    registry = source_verified_release_transform_registry((), {})
+    assert registry.rules == ()
+
+
+def test_source_grounded_release_keeps_verified_visible_preserving_rules(monkeypatch) -> None:
+    promotion = _promotion()
+
+    def allow(*_args, **_kwargs) -> bool:
+        return True
+
+    monkeypatch.setattr("fuckmark.product.carriers.rule_preserves_visible_projection", allow)
+    monkeypatch.setattr("fuckmark.product.registry.rule_preserves_visible_projection", allow)
+    registry = source_verified_release_transform_registry(
+        (promotion,),
+        {promotion.model_tokenizer_identity.identity_hash: _tokenizer},
+    )
+    assert registry.rules == (promotion.rule,)
+
+
 def test_source_grounded_release_rejects_visible_lexical_promotion() -> None:
     promotion = _promotion()
     summary = verify_lexical_promotion_evidence(promotion, _tokenizer)

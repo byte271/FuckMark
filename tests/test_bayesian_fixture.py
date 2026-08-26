@@ -102,3 +102,13 @@ def test_bayesian_checkpoint_schema_rejects_extra_or_missing_fields() -> None:
     data["extra"] = True
     with pytest.raises(ValueError, match="schema"):
         BayesianCheckpoint.from_mapping(data)
+
+
+def test_load_bayesian_checkpoint_rejects_oversized_json(monkeypatch, tmp_path: Path) -> None:
+    from fuckmark.detectors import bayesian as bayesian_module
+
+    monkeypatch.setattr(bayesian_module, "BAYESIAN_CHECKPOINT_JSON_MAX_BYTES", 8)
+    path = tmp_path / "oversized.json"
+    path.write_text('{"too": "large"}', encoding="utf-8")
+    with pytest.raises(ValueError, match="size limit"):
+        load_bayesian_checkpoint(path)

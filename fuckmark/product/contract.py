@@ -9,6 +9,7 @@ from .visible_projection import PRODUCT_CONTRACT_ID, VISIBLE_PROJECTION_ALGORITH
 
 
 PRODUCT_CONTRACT_PATH = Path(__file__).resolve().parents[2] / "specs" / "fuckmark-user-visible-invariance-v1.contract.json"
+FROZEN_PRODUCT_CONTRACT_HASH = "5afd79586f82e31d0d673acbebebf0ac00804cff74b9f644f000bddfd3dc07d1"
 
 
 def product_contract_payload() -> dict[str, object]:
@@ -157,7 +158,10 @@ def product_contract_hash() -> str:
 
 def load_product_contract() -> dict[str, object]:
     payload = product_contract_payload()
-    contract = {**payload, "contract_hash": sha256_json(payload)}
+    digest = sha256_json(payload)
+    if digest != FROZEN_PRODUCT_CONTRACT_HASH:
+        raise ValueError("embedded product contract hash does not match frozen v1 digest")
+    contract = {**payload, "contract_hash": digest}
     if PRODUCT_CONTRACT_PATH.is_file():
         disk = json.loads(PRODUCT_CONTRACT_PATH.read_text(encoding="utf-8"))
         if disk != contract:

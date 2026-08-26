@@ -246,6 +246,7 @@ def source_verified_release_transform_registry(
     if len({value.rule.rule_hash for value in promotion_tuple}) != len(promotion_tuple):
         raise FidelityEvidenceVerificationError("lexical promotion rules must be unique")
     approved_carriers = product_approved_carriers_v1()
+    approved_rules: list[LexicalTemplateRule] = []
     for promotion in promotion_tuple:
         identity_hash = promotion.model_tokenizer_identity.identity_hash
         try:
@@ -257,4 +258,6 @@ def source_verified_release_transform_registry(
             raise FidelityEvidenceVerificationError(
                 "lexical promotion changes user-visible text and cannot enter the product release registry"
             )
-    return product_transform_registry(identifiers)
+        approved_rules.append(promotion.rule)
+    ordered = tuple(sorted(approved_rules, key=lambda value: (value.rule_id, value.version, value.rule_hash)))
+    return product_transform_registry(identifiers, rules=ordered)

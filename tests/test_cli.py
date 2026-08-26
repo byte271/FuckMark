@@ -67,29 +67,45 @@ def test_cli_reads_multiline_paste_until_ok_line() -> None:
     assert "Finish with :done on its own line" in output.getvalue()
 
 
-def test_cli_main_processes_and_copies_unchanged_visible_text() -> None:
+def test_cli_main_processes_unchanged_visible_text_without_copying() -> None:
     source = StringIO("I do not agree.\nok\n")
     output = StringIO()
     copied: list[str] = []
     status = main(source, output, copied.append)
     assert status == 0
-    assert copied == ["I do not agree."]
+    assert copied == []
     rendered = output.getvalue()
     assert "FuckMark 0.2.0" in rendered
     assert "Processing..." in rendered
     assert "visible text left unchanged" in rendered
-    assert "Copied to clipboard." in rendered
+    assert "Copied to clipboard." not in rendered
+    assert "I do not agree." in rendered
     assert "I don't agree." not in rendered
 
 
-def test_cli_main_copies_original_when_no_change_is_eligible() -> None:
+def test_cli_main_leaves_original_when_no_change_is_eligible() -> None:
     source = StringIO("Already concise.\nok\n")
     output = StringIO()
     copied: list[str] = []
     status = main(source, output, copied.append)
     assert status == 0
-    assert copied == ["Already concise."]
-    assert "visible text left unchanged" in output.getvalue()
+    assert copied == []
+    rendered = output.getvalue()
+    assert "Already concise." in rendered
+    assert "visible text left unchanged" in rendered
+    assert "Copied to clipboard." not in rendered
+
+
+def test_cli_main_copies_only_with_copy_flag() -> None:
+    source = StringIO("I do not agree.\nok\n")
+    output = StringIO()
+    copied: list[str] = []
+    status = main(source, output, copied.append, argv=("--copy",))
+    assert status == 0
+    assert copied == ["I do not agree."]
+    rendered = output.getvalue()
+    assert "Copied to clipboard." in rendered
+    assert "I don't agree." not in rendered
 
 
 def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
@@ -100,7 +116,7 @@ def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
     def fail(_: str) -> None:
         raise RuntimeError("clipboard unavailable")
 
-    status = main(source, output, fail, error_stream=errors)
+    status = main(source, output, fail, error_stream=errors, argv=("--copy",))
     assert status == 2
     rendered = output.getvalue()
     assert "I do not agree." in rendered

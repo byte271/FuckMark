@@ -50,42 +50,16 @@ The public CLI uses only `release_transform_registry()`, which is now the produc
 
 ## Install
 
-Python 3.11 or newer is required.
-
-### Linux
-
-```sh
-curl -fsSL https://d.q1z.org/mark | sh
-```
-
-### macOS
-
-```sh
-curl -fsSL https://d.q1z.org/mark | sh
-```
-
-### Windows
-
-Run PowerShell:
-
-```powershell
-irm https://d.q1z.org/mark | iex
-```
-
-Verify the installation:
+Python 3.11 or newer is required. Install a **tagged GitHub Release wheel** and check `SHA256SUMS.txt`. Do not pipe `https://d.q1z.org/mark` into a shell.
 
 ```text
-FuckMark --version
+python3 -m venv .venv
+.venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.2.0/fuckmark-0.2.0-py3-none-any.whl
 ```
 
-For a manual tagged install:
+v0.2.0 wheel SHA-256: `3478f46511120d37e319aae3226eab07da0440927d1f117894539c1d181be8f2`
 
-```text
-python -m venv .venv
-python -m pip install https://github.com/byte271/FuckMark/archive/refs/tags/v0.2.0.zip
-```
-
-See [`docs/install.md`](docs/install.md) for platform details and update behavior.
+The installed CLI currently returns input text unchanged. See [`docs/install.md`](docs/install.md) for checksum verification, the in-repo installer, and Windows notes.
 
 ## CLI
 

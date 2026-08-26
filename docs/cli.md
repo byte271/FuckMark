@@ -18,7 +18,7 @@ FuckMark
 
 Paste the source text and finish with `:done` on its own line. The legacy `ok` terminator remains accepted.
 
-Interactive mode reports the exact project version, processes the text deterministically, reports whether any product-authorized invisible transform was applied, and copies the result to the platform clipboard. Color is emitted only when standard output is an interactive terminal. `--no-color` and the `NO_COLOR` environment variable disable ANSI output.
+Interactive mode reports the exact project version, processes the text deterministically, prints the result, and reports whether any product-authorized invisible transform was applied. It does not copy to the clipboard unless `--copy` is passed. Color is emitted only when standard output is an interactive terminal. `--no-color` and the `NO_COLOR` environment variable disable ANSI output.
 
 ## Stream use
 

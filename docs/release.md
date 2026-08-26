@@ -25,18 +25,17 @@ The public CLI is restricted to product-authorized invisible transforms. None ar
 7. Verify every installed console alias, `--version`, deterministic stream output, wheel metadata, and source-distribution metadata.
 8. Generate `SHA256SUMS.txt` from the exact verified wheel and source distribution.
 9. Merge the release branch only after required GitHub Actions are green.
-10. On the resulting `main` push, rerun the cross-platform release matrix.
-11. If `v<project-version>` does not already exist, the release job creates that immutable tag at the exact verified `main` commit.
-12. The same job separately checks whether the GitHub Release exists. If the tag exists but the Release does not, publication is repaired from the verified distributions instead of silently stopping in a half-published state.
-13. Later `main` pushes with the same project version and an existing GitHub Release are safe no-ops for publication.
+10. On the resulting `main` push, rerun the cross-platform package matrix. That push must **not** create tags, publish a GitHub Release, or delete branches.
+11. Create and push the immutable `v<project-version>` tag yourself after the package matrix is green. The workflow never runs `git tag`.
+12. Publish with `workflow_dispatch` and `publish_github_release=true` on that same commit. The job refuses to run unless the tag already exists and points at the dispatch SHA. If the GitHub Release is missing, it uploads the verified wheel and sdist. It does not delete merged branches.
 
 ## Publication workflow
 
 The `Release Engineering` workflow runs its package matrix on Ubuntu, macOS, and Windows. It uses current Node 24 GitHub Actions, builds the distributions independently in each operating-system job, runs `twine check`, and invokes `tools/verify_release_install.py` against both artifacts.
 
-The Linux job uploads the verified release distributions. On a `main` push, the publication job derives `v<project-version>` from `pyproject.toml`, checks the Git tag and GitHub Release independently, creates the tag only when it is missing, and creates the GitHub Release only when it is missing. This makes publication idempotent and repairs the specific boundary where a tag was created successfully but Release creation failed afterward.
+The Linux job uploads the verified release distributions. Publication is **manual**: `workflow_dispatch` with `publish_github_release=true`. The job never creates tags, never uses `persist-credentials` to push, and never deletes merged pull-request branches. It publishes only when `v<project-version>` already exists and matches the dispatch commit.
 
-Direct tag pushes do not trigger the release workflow. That avoids duplicate release runs racing against the `main` run that created the tag. There is no hard-coded release tag and no commit-message release trigger.
+Direct tag pushes do not trigger the workflow. There is no hard-coded release tag and no commit-message release trigger.
 
 ## v0.2.0 scientific result
 

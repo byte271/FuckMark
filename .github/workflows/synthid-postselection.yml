@@ -58,15 +58,22 @@ jobs:
       - name: Install SynthID experiment dependencies
         run: python -m pip install -r requirements-smoke.txt
       - name: Run post-selection descriptive audit
+        env:
+          INPUT_MODEL: ${{ inputs.model }}
+          INPUT_PROMPT_LIMIT: ${{ inputs.prompt_limit }}
+          INPUT_MAX_NEW_TOKENS: ${{ inputs.max_new_tokens }}
+          INPUT_REGISTRY: ${{ inputs.registry }}
+          INPUT_BUDGETS: ${{ inputs.budgets }}
+          INPUT_RANDOM_SEED_COUNT: ${{ inputs.random_seed_count }}
         run: >-
           python -m fuckmark.synthid_postselection_hf
-          --model "${{ inputs.model }}"
+          --model "$INPUT_MODEL"
           --device cpu
-          --prompt-limit "${{ inputs.prompt_limit }}"
-          --max-new-tokens "${{ inputs.max_new_tokens }}"
-          --registry "${{ inputs.registry }}"
-          --budgets "${{ inputs.budgets }}"
-          --random-seed-count "${{ inputs.random_seed_count }}"
+          --prompt-limit "$INPUT_PROMPT_LIMIT"
+          --max-new-tokens "$INPUT_MAX_NEW_TOKENS"
+          --registry "$INPUT_REGISTRY"
+          --budgets "$INPUT_BUDGETS"
+          --random-seed-count "$INPUT_RANDOM_SEED_COUNT"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

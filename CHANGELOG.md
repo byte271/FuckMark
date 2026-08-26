@@ -12,6 +12,14 @@
 - Chromium `pre` screenshots: U+034F / U+FE00 pixel-equal; U+200C PNG bytes differ.
 - Detector-blind GPT-2 / SynthID development scoring on seeds `890000`, `900000`, and `910000` reduced watermarked detections for U+034F space-carrier x1 without unwatermarked inflation on these tiny 4-pair corpora. This is not confirmation and is not a product promotion.
 - Product contract loading uses the embedded v1 payload in installed wheels. Writers that replace pinned `specs/cycle8` tokenizer JSON refuse to run without a GPT-2 encoder; the detector harness still scores when tiktoken is absent. Chromium HTML evidence encodes less-than and greater-than as JSON unicode escapes so an ASCII script terminator cannot close the inline script.
+- Official install docs now use the tagged GitHub Release wheel plus `SHA256SUMS.txt`. In-repo installers verify that checksum, do not start the CLI, and do not use sudo. `d.q1z.org/mark` is no longer documented as the install path.
+- Release Engineering no longer auto-tags, auto-publishes, or deletes merged branches on `main` push. Publishing is `workflow_dispatch` only against an existing tag.
+- GitHub Actions `workflow_dispatch` values are passed through `env:` instead of being interpolated into `run:` scripts.
+- Interactive CLI copies to the clipboard only with `--copy`.
+- Product contract loading requires the frozen v1 hash even when `specs/` is absent from an installed wheel.
+- `source_verified_release_transform_registry` keeps verified visible-preserving rules instead of dropping them after promotion checks.
+- `BayesianDetectorEvidence.confirmatory_score()` refuses UNVERIFIED status. `raw_score` stays the frozen v1 field.
+- `load_bayesian_checkpoint` rejects JSON larger than 64 MiB.
 
 ## v0.2.0 — Exact-survival confirmation and release hardening
 
