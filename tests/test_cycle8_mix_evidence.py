@@ -10,12 +10,25 @@ from fuckmark.cycle8.decision import PROMISING_DEVELOPMENT
 from fuckmark.cycle8.mix_report import CYCLE8_MIX_SCORECARD_VERSION, build_mix_margin_scorecard
 from fuckmark.cycle8_mix_hf import CYCLE8_MIX_DETECTOR_VERSION
 from fuckmark.hashing import sha256_file, sha256_json
-from fuckmark.seeds.ledger import CYCLE8_MIX_PRIMARY_TOPIC, CYCLE8_MIX_REPLICATION_TOPIC
+from fuckmark.seeds.ledger import (
+    CYCLE8_MIX_PRIMARY_TOPIC,
+    CYCLE8_MIX_REPLICATION_TOPIC,
+    CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
+    CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
+)
 from fuckmark.transforms.registry import release_transform_registry
 
 
 def _load(relative: str) -> dict[str, object]:
     return json.loads((Path(__file__).resolve().parents[1] / relative).read_text(encoding="utf-8"))
+
+
+def _assert_sha256sums(relative: str) -> None:
+    root = Path(__file__).resolve().parents[1] / relative
+    sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
+    for line in sums.splitlines():
+        digest, name = line.split()
+        assert sha256_file(root / name) == digest
 
 
 def test_mix_1020000_letter_alt_is_zero_raw_with_wider_margin() -> None:
@@ -152,4 +165,100 @@ def test_mix_margin_scorecard_is_measurement_not_confirmation() -> None:
     for line in sums.splitlines():
         digest, name = line.split()
         assert sha256_file(root / name) == digest
+
+
+def test_mix_1040000_letter_alt_is_zero_raw() -> None:
+    artifact = _load("evidence/cycle8-mix-1040000-n64-2026-08-26/detector-compare.json")
+    body = {key: value for key, value in artifact.items() if key != "artifact_hash"}
+    assert artifact["artifact_hash"] == sha256_json(body)
+    assert artifact["artifact_hash"] == "46ddefff3200de9d45c919761d3cb4f842b1ffa7f5404542b0aed571cfbbdf7b"
+    assert artifact["seed_base"] == 1040000
+    assert artifact["pair_count"] == 64
+    assert artifact["topic"] == CYCLE8_MIX_SCALE_PRIMARY_TOPIC
+    assert artifact["algorithm_version"] == CYCLE8_MIX_DETECTOR_VERSION
+    mix = artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]
+    letter = artifact["summaries"][CYCLE8_U034F_LETTER_ARM_ID]
+    assert mix["raw_watermarked_detected"] == 0
+    assert mix["raw_unwatermarked_detected"] == 0
+    assert letter["raw_watermarked_detected"] == 0
+    assert mix["visible_pass_count"] == 128
+    assert mix["nfc_watermarked_detected"] == 0
+    assert mix["cf_strip_watermarked_detected"] == 0
+    assert mix["nfkc_watermarked_detected"] == 0
+    assert mix["fail_closed_identity_count"] == 0
+    assert float(mix["raw_watermarked_max_score"]) < 0.52
+    assert 0.5570987654320988 - float(mix["raw_watermarked_max_score"]) > 0.03
+    decision = _load("evidence/cycle8-mix-1040000-n64-2026-08-26/decision.json")
+    assert decision["decision"] == PROMISING_DEVELOPMENT
+    assert decision["transformed_arm_id"] == CYCLE8_LETTER_ALT_ARM_ID
+    assert release_transform_registry().rules == ()
+    _assert_sha256sums("evidence/cycle8-mix-1040000-n64-2026-08-26")
+
+
+def test_mix_1050000_letter_alt_is_zero_raw() -> None:
+    artifact = _load("evidence/cycle8-mix-1050000-n64-2026-08-26/detector-compare.json")
+    body = {key: value for key, value in artifact.items() if key != "artifact_hash"}
+    assert artifact["artifact_hash"] == sha256_json(body)
+    assert artifact["artifact_hash"] == "157572031cd0d4cbcc26345f3b33e79b5ca7154cc4365c0d62086c7e03e17575"
+    assert artifact["seed_base"] == 1050000
+    assert artifact["pair_count"] == 64
+    assert artifact["topic"] == CYCLE8_MIX_SCALE_REPLICATION_TOPIC
+    assert artifact["algorithm_version"] == CYCLE8_MIX_DETECTOR_VERSION
+    mix = artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]
+    letter = artifact["summaries"][CYCLE8_U034F_LETTER_ARM_ID]
+    identity = artifact["summaries"][CYCLE8_IDENTITY_ARM_ID]
+    assert mix["raw_watermarked_detected"] == 0
+    assert mix["raw_unwatermarked_detected"] == 0
+    assert letter["raw_watermarked_detected"] == 0
+    assert mix["visible_pass_count"] == 128
+    assert mix["nfc_watermarked_detected"] == 0
+    assert mix["cf_strip_watermarked_detected"] == 0
+    assert mix["nfkc_watermarked_detected"] == 0
+    assert mix["fail_closed_identity_count"] == 0
+    assert float(mix["raw_watermarked_max_score"]) < 0.52
+    assert 0.5570987654320988 - float(mix["raw_watermarked_max_score"]) > 0.04
+    assert identity["raw_unwatermarked_detected"] == 2
+    decision = _load("evidence/cycle8-mix-1050000-n64-2026-08-26/decision.json")
+    assert decision["decision"] == PROMISING_DEVELOPMENT
+    assert decision["transformed_arm_id"] == CYCLE8_LETTER_ALT_ARM_ID
+    assert release_transform_registry().rules == ()
+    _assert_sha256sums("evidence/cycle8-mix-1050000-n64-2026-08-26")
+
+
+def test_mix_fresh_three_corpus_combined_is_zero_of_192() -> None:
+    artifacts = [
+        _load("evidence/cycle8-mix-1020000-n64-2026-08-26/detector-compare.json"),
+        _load("evidence/cycle8-mix-1030000-n64-2026-08-26/detector-compare.json"),
+        _load("evidence/cycle8-mix-1040000-n64-2026-08-26/detector-compare.json"),
+    ]
+    mix_detected = sum(artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]["raw_watermarked_detected"] for artifact in artifacts)
+    mix_uw = sum(artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]["raw_unwatermarked_detected"] for artifact in artifacts)
+    mix_max = max(float(artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]["raw_watermarked_max_score"]) for artifact in artifacts)
+    assert mix_detected == 0
+    assert mix_uw == 0
+    assert mix_max < 0.52
+    assert 0.5570987654320988 - mix_max > 0.03
+    assert release_transform_registry().rules == ()
+
+
+def test_mix_fresh_four_corpus_combined_is_zero_of_256() -> None:
+    artifacts = [
+        _load("evidence/cycle8-mix-1020000-n64-2026-08-26/detector-compare.json"),
+        _load("evidence/cycle8-mix-1030000-n64-2026-08-26/detector-compare.json"),
+        _load("evidence/cycle8-mix-1040000-n64-2026-08-26/detector-compare.json"),
+        _load("evidence/cycle8-mix-1050000-n64-2026-08-26/detector-compare.json"),
+    ]
+    mix_detected = sum(artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]["raw_watermarked_detected"] for artifact in artifacts)
+    mix_uw = sum(artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]["raw_unwatermarked_detected"] for artifact in artifacts)
+    letter_detected = sum(artifact["summaries"][CYCLE8_U034F_LETTER_ARM_ID]["raw_watermarked_detected"] for artifact in artifacts)
+    mix_max = max(float(artifact["summaries"][CYCLE8_LETTER_ALT_ARM_ID]["raw_watermarked_max_score"]) for artifact in artifacts)
+    letter_max = max(float(artifact["summaries"][CYCLE8_U034F_LETTER_ARM_ID]["raw_watermarked_max_score"]) for artifact in artifacts)
+    assert mix_detected == 0
+    assert mix_uw == 0
+    assert letter_detected == 0
+    assert mix_max < 0.52
+    assert mix_max < letter_max
+    assert 0.5570987654320988 - mix_max > 0.03
+    assert release_transform_registry().rules == ()
+
 

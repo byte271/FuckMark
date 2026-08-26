@@ -4,6 +4,8 @@ Measurement of the development mechanism `u034f-ufe00-letter-alt-v1`. Not confir
 
 Do not collapse this fresh **0/128** into the letter-x1 system benchmark 0/128 or the experimental letter-x1 0/192. Letter-space on seeds `1000000` and `1010000` remains **1/128**. Do not rewrite that 1/128 as zero.
 
+Independent scale seeds `1040000` and `1050000` later measured mix **0/256** with worst max 0.519522 (gap 0.037577). That 0/256 is additional development scale. This scorecard remains the two-corpus 0/128 measurement and is not rewritten.
+
 Formal confirmation readiness: `NOT_READY`. Closest fresh mix score is 0.513691 versus threshold 0.557099 (gap 0.043407).
 
 ## Scorecard
@@ -72,4 +74,4 @@ Mix is the current strongest product-aligned development result. It is still `HY
 
 No. `NOT_READY`.
 
-Reasons: only two independent n=64 corpora; the mechanism is not frozen; `950000` is ungenerated; Mn-strip and default-ignorable-strip remove the carriers; this file is a measurement report, not a confirmation protocol. Do not generate `830000` / `840000` / `850000`.
+Reasons: this scorecard covers two independent n=64 corpora; later scale seeds `1040000` and `1050000` exist as additional development evidence and are not part of this hash-pinned scorecard; the mechanism is not frozen; `950000` is ungenerated; Mn-strip and default-ignorable-strip remove the carriers; this file is a measurement report, not a confirmation protocol. Do not generate `830000` / `840000` / `850000`.

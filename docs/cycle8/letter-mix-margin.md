@@ -18,6 +18,13 @@ Fresh reserved-before-generation corpora `1020000` n=64 plus `1030000` n=64:
 - frozen sanitizers match raw mix detections
 - Mn-strip and default-ignorable-strip remove the carriers
 
+Additional independent scale seeds `1040000` n=64 plus `1050000` n=64, reserved before generation:
+
+- mix raw transformed WM **0/256** across all four corpora
+- mix raw transformed UW **0/256**
+- worst mix maximum score **0.519522** versus threshold **0.557099** (gap **0.037577**)
+- the two-corpus 0/128 scorecard on `1020000`+`1030000` is not rewritten
+
 Letter-x1 system benchmark seeds `980000` and `990000` remain a separate 0/128 with gap 0.003032. Letter-space seeds `1000000` and `1010000` remain **1/128**. Do not rewrite that 1/128 as zero.
 
-Formal confirmation readiness: `NOT_READY`.
+Formal confirmation readiness: `NOT_READY`. This 0/256 is development scale, not a freeze and not confirmation.

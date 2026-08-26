@@ -39,6 +39,8 @@ Intra-word insertion is no longer treated as tokenizer-diagnostic-only. Letter-x
 
 Seeds `1020000` and `1030000` were reserved before generation. Fresh mix is **0/128** raw transformed WM, mix UW **0/128**, visible 256/256 on the detector rows, frozen sanitizers matching raw zeros. Worst fresh mix score is 0.513691 versus threshold 0.557099 (gap 0.043407). Letter-x1 on the same corpora is also 0/128 with worst max 0.527389. Letter-space on `1000000`+`1010000` remains **1/128**. Chromium `pre`/textarea/contenteditable were pixel-equal on the measured mix fixtures.
 
+Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale, not confirmation.
+
 Not product-authorized. Not confirmation. Formal confirmation readiness is `NOT_READY`. See `docs/cycle8/letter-mix-margin.md`.
 
 ## H3-H8

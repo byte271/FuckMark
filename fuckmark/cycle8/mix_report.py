@@ -13,18 +13,18 @@ from ..transforms.registry import release_transform_registry
 from .benchmark import (
     CYCLE6_THRESHOLD,
     enrich_detector_artifact,
-    environment_payload,
     run_rendering,
     strip_default_ignorable,
     strip_nonspacing_marks,
 )
-from .compare import CYCLE8_LETTER_ALT_ARM_ID, CYCLE8_MIX_ARM_IDS, CYCLE8_U034F_LETTER_ARM_ID
+from .compare import CYCLE8_LETTER_ALT_ARM_ID, CYCLE8_U034F_LETTER_ARM_ID
 from .letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 
 
 CYCLE8_MIX_SCORECARD_VERSION = "cycle8-mix-margin-scorecard-v1"
 _PRIMARY = Path("evidence/cycle8-mix-1020000-n64-2026-08-26/detector-compare.json")
 _REPLICA = Path("evidence/cycle8-mix-1030000-n64-2026-08-26/detector-compare.json")
+_ENVIRONMENT = Path("evidence/cycle8-mix-margin-2026-08-26/environment.json")
 _RENDER_FIXTURES = (
     ("short_paragraph", "I do not agree.", True),
     ("quote_heavy", 'He answered, "They are not finished and we do not agree." Then he left.', False),
@@ -199,7 +199,11 @@ def _render_status(local: dict[str, object]) -> dict[str, object]:
     return summary
 
 
-def build_mix_margin_scorecard(*, local: dict[str, object]) -> dict[str, object]:
+def build_mix_margin_scorecard(
+    *,
+    local: dict[str, object],
+    environment: dict[str, object] | None = None,
+) -> dict[str, object]:
     primary = _load(_PRIMARY)
     replica = _load(_REPLICA)
     mix_primary = enrich_detector_artifact(primary, transformed_arm_id=CYCLE8_LETTER_ALT_ARM_ID)
@@ -215,11 +219,8 @@ def build_mix_margin_scorecard(*, local: dict[str, object]) -> dict[str, object]
         float(letter_primary["raw_watermarked_scores"]["max"]),
         float(letter_replica["raw_watermarked_scores"]["max"]),
     )
-    base_environment = environment_payload()
-    environment = {key: value for key, value in base_environment.items() if key != "environment_hash"}
-    environment["algorithm_version"] = CYCLE8_MIX_SCORECARD_VERSION
-    environment["benchmark_arm_ids"] = list(CYCLE8_MIX_ARM_IDS)
-    environment_hash = sha256_json(environment)
+    env = environment if environment is not None else _load(_ENVIRONMENT)
+    environment_hash = env["environment_hash"]
     render = _render_status(local)
     payload = {
         "algorithm_version": CYCLE8_MIX_SCORECARD_VERSION,
