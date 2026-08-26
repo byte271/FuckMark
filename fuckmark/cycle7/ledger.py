@@ -6,7 +6,7 @@ from .._validation import require_int
 from ..hashing import sha256_json
 
 
-CYCLE7_LEDGER_VERSION = "cycle7-seed-ledger-v3"
+CYCLE7_LEDGER_VERSION = "cycle7-seed-ledger-v4"
 CYCLE7_EXPLORATORY_ROLE = "exploratory_development"
 CYCLE7_VALIDATION_ROLE = "validation_development"
 CYCLE7_CONFIRMATION_RESERVED_ROLE = "confirmation_reserved"
@@ -33,8 +33,9 @@ CYCLE7_ACTIVE_EXPLORATORY_SEED_BASES = (870_000,)
 CYCLE7_VALIDATION_SEED_BASE = 820_000
 CYCLE7_STAGE_C_VALIDATION_SEED_BASE = 880_000
 CYCLE7_VALIDATION_SEED_BASES = (820_000, 880_000)
-CYCLE7_USED_VALIDATION_SEED_BASES = (820_000,)
-CYCLE7_ACTIVE_VALIDATION_SEED_BASES = (880_000,)
+CYCLE7_USED_VALIDATION_SEED_BASES = (820_000, 880_000)
+CYCLE7_ACTIVE_VALIDATION_SEED_BASES = ()
+CYCLE7_PUBLICLY_EXPOSED_SEED_BASES = (880_000,)
 CYCLE7_VALIDATION_TOPIC = "held-out evaluation"
 CYCLE7_STAGE_C_VALIDATION_TOPIC = "independent check"
 CYCLE7_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
@@ -47,6 +48,7 @@ _ALL_BLOCKED = frozenset(
         *SPENT_DEVELOPMENT_SEED_BASES,
         *BLOCKED_PROFILE_SEED_BASES,
         *BLOCKED_HISTORIC_SEED_BASES,
+        *CYCLE7_PUBLICLY_EXPOSED_SEED_BASES,
     )
 )
 
@@ -70,6 +72,7 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
         "validation_development_seed_bases": list(CYCLE7_VALIDATION_SEED_BASES),
         "used_validation_development_seed_bases": list(CYCLE7_USED_VALIDATION_SEED_BASES),
         "active_validation_development_seed_bases": list(CYCLE7_ACTIVE_VALIDATION_SEED_BASES),
+        "publicly_exposed_seed_bases": list(CYCLE7_PUBLICLY_EXPOSED_SEED_BASES),
         "validation_topic": CYCLE7_VALIDATION_TOPIC,
         "stage_c_validation_seed_base": CYCLE7_STAGE_C_VALIDATION_SEED_BASE,
         "stage_c_validation_topic": CYCLE7_STAGE_C_VALIDATION_TOPIC,
@@ -85,13 +88,16 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
             "Seed 870000 and topic 'measurement protocol' were frozen before "
             "any Stage C generation or detector look. "
             "Seed 880000 and topic 'independent check' were frozen before "
-            "any Stage C validation generation or detector look."
+            "any Stage C validation generation or detector look. "
+            "Closed unmerged PR #98 later publicly generated and scored 880000. "
+            "Seed 880000 is PUBLICLY_EXPOSED and is not eligible as unseen validation."
         ),
         "spent_corpus_rule": (
             "Do not use 720000, 730000, 760000, 770000, or 780000 as "
             "Cycle 7 development, tuning, or confirmation data. "
             "Do not keep expanding transform rules against 810000 or 860000. "
             "Do not retune on validation seed 820000. "
+            "Do not use 880000 as unseen validation. "
             "Do not inspect 830000, 840000, or 850000."
         ),
     }
@@ -116,6 +122,8 @@ def assert_development_seed(seed_base: int, *, role: str) -> None:
     require_int("seed_base", seed_base)
     if not isinstance(role, str) or not role:
         raise ValueError("role must be a non-empty string")
+    if seed_base in CYCLE7_PUBLICLY_EXPOSED_SEED_BASES:
+        raise ValueError("seed_base is publicly exposed and is not eligible as unseen validation")
     if seed_base in _ALL_BLOCKED:
         raise ValueError("seed_base is spent or otherwise blocked for Cycle 7 development")
     expected = role_for_seed_base(seed_base)

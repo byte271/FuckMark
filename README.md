@@ -15,6 +15,8 @@ FuckMark is a deterministic, detector-blind research harness and CLI for disrupt
 
 The public CLI currently fail-closes: no product-authorized invisible carrier has been promoted yet, so `FuckMark` returns the original text unchanged rather than applying contractions or other visible edits. That is intentional. Historical visible-edit research remains replayable through explicitly named historical registries.
 
+Cycle 8 U+034F x1 is a `PROMISING_DEVELOPMENT` / `HYPOTHESIS` on three tiny 4-pair corpora (0/12 transformed WM). It is not product-authorized and is not a 0/192 claim. Seed `880000` is publicly exposed by closed unmerged PR #98 and is not eligible as unseen validation. See [`docs/seeds.md`](docs/seeds.md).
+
 See [`docs/product-contract.md`](docs/product-contract.md) and `specs/fuckmark-user-visible-invariance-v1.contract.json`.
 
 **Current tagged release: v0.2.0**  

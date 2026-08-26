@@ -139,8 +139,79 @@ def classify_fixture_compare(report: Mapping[str, object]) -> dict[str, object]:
         "detector_signal": detector_signal,
         "notes": (
             "This is Cycle 8 development classification, not confirmation. "
-            "Do not inspect 830000, 840000, 850000, or Cycle 7 reserved 880000. "
+            "Do not inspect 830000, 840000, or 850000. "
+            "Seed 880000 is PUBLICLY_EXPOSED by PR #98 and is not eligible as unseen validation. "
             "U+034F is not product-authorized."
+        ),
+    }
+    return payload
+
+
+CYCLE8_SCALE_DECISION_VERSION = "cycle8-scale-decision-v1"
+
+
+def classify_scale_detector_compare(artifact: Mapping[str, object]) -> dict[str, object]:
+    summaries = artifact.get("summaries")
+    if not isinstance(summaries, Mapping):
+        raise ValueError("scale detector artifact must contain summaries")
+    identity = summaries[CYCLE8_IDENTITY_ARM_ID]
+    u034f = summaries[CYCLE8_U034F_SPACE_ARM_ID]
+    visible_total = int(u034f["visible_total_count"])
+    visible_pass = int(u034f["visible_pass_count"])
+    visible_failures = visible_total - visible_pass
+    identity_wm = int(identity["raw_watermarked_detected"])
+    transformed_wm = int(u034f["raw_watermarked_detected"])
+    transformed_uw = int(u034f["raw_unwatermarked_detected"])
+    cf_wm = int(u034f["cf_strip_watermarked_detected"])
+    nfkc_wm = int(u034f["nfkc_watermarked_detected"])
+    collapse_wm = int(u034f["ws_collapse_watermarked_detected"])
+    nfkc_cf_wm = int(u034f["nfkc_cf_strip_watermarked_detected"])
+    combined_wm = int(u034f["ws_collapse_nfkc_cf_strip_watermarked_detected"])
+    reasons: list[str] = []
+    if visible_failures:
+        reasons.append("visible projection failed")
+        decision = REJECTED
+        label = EvidenceLabel.PRODUCT_DISQUALIFIED
+        gate = ProductGate.DISQUALIFIED
+    else:
+        gate = ProductGate.PASS
+        reasons.append("visible projection passed on all scored U+034F x1 rows")
+        if transformed_wm < identity_wm and transformed_uw <= int(identity["raw_unwatermarked_detected"]):
+            decision = PROMISING_DEVELOPMENT
+            label = EvidenceLabel.HYPOTHESIS
+            reasons.append("U+034F x1 reduced raw watermarked detections without raising unwatermarked detections")
+        else:
+            decision = INSUFFICIENT_EVIDENCE
+            label = EvidenceLabel.HYPOTHESIS
+            reasons.append("U+034F x1 did not beat identity on this scale development corpus")
+        if transformed_wm == 0:
+            reasons.append("raw transformed watermarked detections are 0 on this corpus")
+        if cf_wm == transformed_wm:
+            reasons.append("Cf-strip detections match raw transformed detections")
+        if nfkc_wm == transformed_wm and collapse_wm == transformed_wm:
+            reasons.append("NFKC and whitespace-collapse detections match raw transformed detections")
+        if nfkc_cf_wm == transformed_wm and combined_wm == transformed_wm:
+            reasons.append("combined sanitizer detections match raw transformed detections")
+    payload = {
+        "algorithm_version": CYCLE8_SCALE_DECISION_VERSION,
+        "decision": decision,
+        "product_gate": gate.value,
+        "evidence_label": label.value,
+        "visible_failures": visible_failures,
+        "visible_pass_rate": f"{visible_pass}/{visible_total}",
+        "identity_raw_watermarked_detected": identity_wm,
+        "u034f_raw_watermarked_detected": transformed_wm,
+        "u034f_raw_unwatermarked_detected": transformed_uw,
+        "u034f_cf_strip_watermarked_detected": cf_wm,
+        "u034f_nfkc_watermarked_detected": nfkc_wm,
+        "u034f_ws_collapse_watermarked_detected": collapse_wm,
+        "u034f_nfkc_cf_strip_watermarked_detected": nfkc_cf_wm,
+        "u034f_ws_collapse_nfkc_cf_strip_watermarked_detected": combined_wm,
+        "reasons": tuple(reasons),
+        "notes": (
+            "This is Cycle 8 scale development classification, not confirmation. "
+            "U+034F is not product-authorized. Do not inspect 830000, 840000, or 850000. "
+            "Seed 880000 is PUBLICLY_EXPOSED by PR #98. Do not generate 950000 yet."
         ),
     }
     return payload

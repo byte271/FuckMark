@@ -35,7 +35,7 @@ See `docs/cycle7/seed-ledger.md` and `fuckmark/cycle7/ledger.py`.
 | Exploratory development / rule construction (Stage B1) | `860000` | used; do not keep expanding rules against it |
 | Exploratory development / rule construction (Stage C1) | `870000` | active; topic frozen as `measurement protocol` |
 | Validation development (Stage B3) | `820000` | used as Stage B3 disjoint validation; do not retune on it |
-| Validation development (Stage C, reserved) | `880000` | unseen until a v4 freeze |
+| Validation development (Stage C, reserved) | `880000` | **PUBLICLY_EXPOSED** by closed unmerged PR #98; not eligible as unseen validation |
 | Confirmation reserved | `830000`, `840000`, `850000` | must not be inspected |
 
 Confirmation seeds were chosen as unused 10k blocks before any Cycle 7 detector look.
@@ -90,11 +90,11 @@ Details: `docs/cycle7/stage-a-decision.md`.
 
 Stage B1 on seed `860000` looked **`PROMISING_DEVELOPMENT`** on a tiny detector snapshot (durable 2/4 after collapse). Disjoint validation seed `820000` reproduced density/geometry but **not** the detector reduction (durable 4/4 after collapse). Overall Stage B decision: **`INSUFFICIENT_EVIDENCE`**. Details: `docs/cycle7/stage-b-decision.md`.
 
-Seed `820000` is spent as validation. Seed `880000` is the next unused validation split and has not been inspected. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
+Seed `820000` is spent as validation. Seed `880000` is **PUBLICLY_EXPOSED** by closed unmerged PR #98 and is not eligible as unseen validation. Seeds `830000` / `840000` / `850000` remain unseen confirmation reserves.
 
 ## Stage C
 
-Stage C1 on seed `870000` (topic frozen as `measurement protocol`) added clause-punctuation newlines and optional quantifier `of`. Mean durable candidates: **4.75** (still the Stage B four-site regime). Quantifier `of` mean **0.00**. Collapse-surviving intact/root **0.715**. Detector: durable **3/4** after collapse; Cycle 6 spacing **4/4** after collapse. Overall: **`INSUFFICIENT_EVIDENCE`**. Seed `880000` was not inspected. Details: `docs/cycle7/stage-c-decision.md`.
+Stage C1 on seed `870000` (topic frozen as `measurement protocol`) added clause-punctuation newlines and optional quantifier `of`. Mean durable candidates: **4.75** (still the Stage B four-site regime). Quantifier `of` mean **0.00**. Collapse-surviving intact/root **0.715**. Detector: durable **3/4** after collapse; Cycle 6 spacing **4/4** after collapse. Overall: **`INSUFFICIENT_EVIDENCE`**. Seed `880000` was not inspected by Stage C on `main`. Closed unmerged PR #98 later exposed it. Details: `docs/cycle7/stage-c-decision.md`.
 
 Not claimed:
 

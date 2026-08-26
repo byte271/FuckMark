@@ -36,7 +36,7 @@ def test_stage_b_catalog_and_ledger_identities() -> None:
     assert CYCLE7_DURABLE_RULE_CATALOG_VERSION == "cycle7-durable-rule-catalog-v4"
     assert CYCLE7_DURABLE_REGISTRY_ID == "cycle7-durable-catalog-v4"
     assert CYCLE7_COMBINED_REGISTRY_ID == "cycle7-durable-plus-cycle6-spacing-v3"
-    assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v3"
+    assert CYCLE7_LEDGER_VERSION == "cycle7-seed-ledger-v4"
     assert CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE == 860000
     assert CYCLE7_STAGE_B1_TOPIC == "independent replication"
     assert CYCLE7_VALIDATION_TOPIC == "held-out evaluation"
@@ -48,8 +48,9 @@ def test_stage_b_catalog_and_ledger_identities() -> None:
     assert payload["stage_c1_exploratory_seed_base"] == 870000
     assert payload["stage_c1_topic"] == "measurement protocol"
     assert payload["validation_topic"] == "held-out evaluation"
-    assert payload["used_validation_development_seed_bases"] == [820000]
-    assert payload["active_validation_development_seed_bases"] == [880000]
+    assert payload["used_validation_development_seed_bases"] == [820000, 880000]
+    assert payload["active_validation_development_seed_bases"] == []
+    assert payload["publicly_exposed_seed_bases"] == [880000]
 
 
 def test_rule_construction_admits_870000_and_blocks_spent_or_reserved_seeds() -> None:
@@ -71,7 +72,7 @@ def test_rule_construction_admits_870000_and_blocks_spent_or_reserved_seeds() ->
         assert_rule_construction_seed(850000)
     with pytest.raises(ValueError, match="exploratory"):
         assert_development_seed(CYCLE7_VALIDATION_SEED_BASE, role=CYCLE7_EXPLORATORY_ROLE)
-    with pytest.raises(ValueError, match="exploratory"):
+    with pytest.raises(ValueError, match="publicly exposed"):
         assert_development_seed(880000, role=CYCLE7_EXPLORATORY_ROLE)
     with pytest.raises(ValueError, match="spent"):
         assert_rule_construction_seed(760000)

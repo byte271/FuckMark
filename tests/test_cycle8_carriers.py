@@ -6,7 +6,10 @@ import pytest
 from fuckmark.cycle7.whitespace_collapse import collapse_horizontal_ascii_whitespace
 from fuckmark.cycle8.ledger import (
     CYCLE8_EXPLORATORY_SEED_BASE,
+    CYCLE8_HISTORICAL_LEDGER_VERSION,
+    CYCLE8_LEDGER_VERSION,
     CYCLE8_REPLICATION_SEED_BASE,
+    CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
     CYCLE8_VALIDATION_SEED_BASE,
     assert_cycle8_development_seed,
     cycle8_seed_ledger_hash,
@@ -24,12 +27,21 @@ from fuckmark.product.visible_projection import is_carrier_insertion_v1
 from fuckmark.sanitizer_robustness import nfkc_normalize, strip_unicode_format_characters
 
 
-def test_cycle8_ledger_file_matches_embedded_payload() -> None:
+def test_cycle8_historical_v1_ledger_file_remains_frozen() -> None:
     path = Path(__file__).resolve().parents[1] / "specs" / "cycle8" / "fuckmark-cycle8-seed-ledger-v1.json"
+    disk = json.loads(path.read_text(encoding="utf-8"))
+    assert disk["algorithm_version"] == CYCLE8_HISTORICAL_LEDGER_VERSION == "cycle8-seed-ledger-v1"
+    assert disk["cycle7_unseen_validation_seed_base"] == 880000
+    assert disk["ledger_hash"] == "dbf551dde1e3b41c7bb3daac4f6c5b242c4e0be1ecc726c571091e9b2e25b0cc"
+
+
+def test_cycle8_ledger_file_matches_embedded_payload() -> None:
+    path = Path(__file__).resolve().parents[1] / "specs" / "cycle8" / "fuckmark-cycle8-seed-ledger-v2.json"
     disk = json.loads(path.read_text(encoding="utf-8"))
     payload = {key: value for key, value in disk.items() if key != "ledger_hash"}
     assert payload == cycle8_seed_ledger_payload()
     assert disk["ledger_hash"] == cycle8_seed_ledger_hash() == sha256_json(payload)
+    assert payload["algorithm_version"] == CYCLE8_LEDGER_VERSION == "cycle8-seed-ledger-v2"
 
 
 def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
@@ -37,16 +49,20 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert payload["exploratory_development_seed_base"] == CYCLE8_EXPLORATORY_SEED_BASE == 890_000
     assert payload["exploratory_replication_seed_base"] == CYCLE8_REPLICATION_SEED_BASE == 900_000
     assert payload["validation_development_seed_base"] == CYCLE8_VALIDATION_SEED_BASE == 910_000
+    assert payload["scale_exploratory_seed_base"] == CYCLE8_SCALE_EXPLORATORY_SEED_BASE == 930_000
     assert payload["confirmation_reserved_seed_bases"] == [830_000, 840_000, 850_000]
-    assert payload["cycle7_unseen_validation_seed_base"] == 880_000
+    assert payload["cycle7_publicly_exposed_validation_seed_base"] == 880_000
     assert cycle8_seed_ledger_hash()
     assert_cycle8_development_seed(890_000, role="exploratory_development")
+    assert_cycle8_development_seed(930_000, role="scale_exploratory_development")
     with pytest.raises(ValueError):
         assert_cycle8_development_seed(760_000, role="exploratory_development")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="publicly exposed|spent or reserved"):
         assert_cycle8_development_seed(880_000, role="validation_development")
     with pytest.raises(ValueError):
         assert_cycle8_development_seed(830_000, role="exploratory_development")
+    with pytest.raises(ValueError, match="frozen"):
+        assert_cycle8_development_seed(950_000, role="scale_validation")
 
 
 def test_u200c_is_diagnostic_cf_and_not_durable() -> None:

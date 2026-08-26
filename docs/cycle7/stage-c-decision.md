@@ -4,6 +4,8 @@
 
 This is development-only. It is not a Cycle 7 formal confirmation. Seeds `830000` / `840000` / `850000` were not inspected. Seed `880000` remains unused validation and was **not** generated.
 
+Current status after this writeup: closed unmerged PR #98 later publicly generated seed `880000`. That exposure does not change the Stage C1 numbers below. Seed `880000` is no longer eligible as unseen validation.
+
 Catalog: `cycle7-durable-rule-catalog-v4`. Scheduler: unchanged cover-greedy v4. Detector threshold: frozen Cycle 6 value `0.5570987654320988`. Model: `openai-community/gpt2` revision `607a30d783dfa663caf39e06633721c8d4cfcd7e`.
 
 v4 adds Family 10 (clause punctuation newline) and Family 11 (optional quantifier `of` before a closed determiner/possessive). Families 1–9 are unchanged from catalog v3.

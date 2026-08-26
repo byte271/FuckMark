@@ -22,6 +22,12 @@ from .cycle8.ledger import (
     CYCLE8_EXPLORATORY_TOPIC,
     CYCLE8_REPLICATION_ROLE,
     CYCLE8_REPLICATION_TOPIC,
+    CYCLE8_SCALE_EXPLORATORY_ROLE,
+    CYCLE8_SCALE_EXPLORATORY_TOPIC,
+    CYCLE8_SCALE_REPLICATION_ROLE,
+    CYCLE8_SCALE_REPLICATION_TOPIC,
+    CYCLE8_SCALE_VALIDATION_ROLE,
+    CYCLE8_SCALE_VALIDATION_TOPIC,
     CYCLE8_VALIDATION_ROLE,
     CYCLE8_VALIDATION_TOPIC,
     assert_cycle8_development_seed,
@@ -68,6 +74,19 @@ def _detector_arm_summary(rows: tuple[dict[str, object], ...], arm_id: str) -> d
     def _mean(selected, variant):
         return sum(float(row["sanitizers"][variant]["score"]) for row in selected) / len(selected)
 
+    def _score_stats(selected, variant):
+        values = tuple(float(row["sanitizers"][variant]["score"]) for row in selected)
+        ordered = tuple(sorted(values))
+        mid = len(ordered) // 2
+        median = ordered[mid] if len(ordered) % 2 else (ordered[mid - 1] + ordered[mid]) / 2
+        return {
+            "mean": sum(values) / len(values),
+            "median": median,
+            "min": ordered[0],
+            "max": ordered[-1],
+        }
+
+    raw_wm = _score_stats(watermarked, "raw") if watermarked else {"mean": None, "median": None, "min": None, "max": None}
     return {
         "arm_id": arm_id,
         "watermarked_row_count": len(watermarked),
@@ -80,10 +99,30 @@ def _detector_arm_summary(rows: tuple[dict[str, object], ...], arm_id: str) -> d
         "ws_collapse_unwatermarked_detected": _count(unwatermarked, "ws_collapse", "detected"),
         "cf_strip_watermarked_detected": _count(watermarked, "cf_strip", "detected"),
         "nfkc_watermarked_detected": _count(watermarked, "nfkc", "detected"),
-        "raw_watermarked_mean_score": _mean(watermarked, "raw"),
-        "ws_collapse_watermarked_mean_score": _mean(watermarked, "ws_collapse"),
+        "nfkc_cf_strip_watermarked_detected": _count(watermarked, "nfkc_cf_strip", "detected"),
+        "ws_collapse_nfkc_cf_strip_watermarked_detected": _count(watermarked, "ws_collapse_nfkc_cf_strip", "detected"),
+        "nfc_watermarked_detected": (
+            _count(watermarked, "nfc", "detected") if watermarked and "nfc" in watermarked[0]["sanitizers"] else None
+        ),
+        "raw_watermarked_mean_score": raw_wm["mean"],
+        "raw_watermarked_median_score": raw_wm["median"],
+        "raw_watermarked_min_score": raw_wm["min"],
+        "raw_watermarked_max_score": raw_wm["max"],
+        "ws_collapse_watermarked_mean_score": _mean(watermarked, "ws_collapse") if watermarked else None,
         "visible_pass_count": sum(bool(row["geometry"]["visible_ok"]) for row in (*watermarked, *unwatermarked)),
         "visible_total_count": len(watermarked) + len(unwatermarked),
+        "inserted_count_mean": (
+            sum(int(row["geometry"]["inserted_count"]) for row in (*watermarked, *unwatermarked))
+            / (len(watermarked) + len(unwatermarked))
+            if watermarked or unwatermarked
+            else 0
+        ),
+        "utf8_overhead_mean": (
+            sum(int(row["geometry"]["utf8_overhead"]) for row in (*watermarked, *unwatermarked))
+            / (len(watermarked) + len(unwatermarked))
+            if watermarked or unwatermarked
+            else 0
+        ),
     }
 
 
@@ -95,17 +134,37 @@ def _topic_for_seed(seed_base: int) -> str:
         return CYCLE8_REPLICATION_TOPIC
     if role == CYCLE8_VALIDATION_ROLE:
         return CYCLE8_VALIDATION_TOPIC
-    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, or validation seeds")
+    if role == CYCLE8_SCALE_EXPLORATORY_ROLE:
+        return CYCLE8_SCALE_EXPLORATORY_TOPIC
+    if role == CYCLE8_SCALE_REPLICATION_ROLE:
+        return CYCLE8_SCALE_REPLICATION_TOPIC
+    if role == CYCLE8_SCALE_VALIDATION_ROLE:
+        return CYCLE8_SCALE_VALIDATION_TOPIC
+    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, or scale seeds")
 
 
-def _generate_cycle8_samples(backend: Any, seed_base: int, max_attempts: int) -> tuple[dict[str, object], ...]:
+def _generate_cycle8_samples(
+    backend: Any,
+    seed_base: int,
+    max_attempts: int,
+    *,
+    pair_count: int | None = None,
+) -> tuple[dict[str, object], ...]:
     role = role_for_seed_base(seed_base)
     if role is None:
         raise ValueError("seed_base is not in the Cycle 8 ledger")
     assert_cycle8_development_seed(seed_base, role=role)
     topic = _topic_for_seed(seed_base)
+    domains = tuple(CorpusDomain)
+    if pair_count is None:
+        pair_count = len(domains)
+    if not isinstance(pair_count, int) or isinstance(pair_count, bool) or pair_count <= 0:
+        raise ValueError("pair_count must be a positive integer")
+    if pair_count % len(domains) != 0:
+        raise ValueError("pair_count must be a multiple of the Cycle 8 domain count")
     samples: list[dict[str, object]] = []
-    for pair_index, domain in enumerate(CorpusDomain):
+    for pair_index in range(pair_count):
+        domain = domains[pair_index % len(domains)]
         prompt = _CYCLE8_TEMPLATES[domain].format(topic=topic)
         pair_seed_base = seed_base + pair_index * TINY_DEV_PAIR_SEED_STRIDE
         accepted = None
@@ -132,13 +191,16 @@ def _generate_cycle8_samples(backend: Any, seed_base: int, max_attempts: int) ->
             accepted = (seed, control, watermarked)
             break
         if accepted is None:
-            raise RuntimeError(f"Cycle 8 failed to generate an ASCII pair for {domain.value}")
+            raise RuntimeError(f"Cycle 8 failed to generate an ASCII pair for {domain.value} pair {pair_index}")
         seed, control, watermarked = accepted
         for label, generated in (
             (WatermarkLabel.UNWATERMARKED, control),
             (WatermarkLabel.WATERMARKED, watermarked),
         ):
-            sample_id = f"cycle8-{seed_base}-{domain.value}-{label.value}"
+            if pair_count == len(domains):
+                sample_id = f"cycle8-{seed_base}-{domain.value}-{label.value}"
+            else:
+                sample_id = f"cycle8-{seed_base}-{pair_index:02d}-{domain.value}-{label.value}"
             samples.append(
                 {
                     "sample_id": sample_id,
@@ -146,6 +208,7 @@ def _generate_cycle8_samples(backend: Any, seed_base: int, max_attempts: int) ->
                     "label": label.value,
                     "prompt": prompt,
                     "seed": seed,
+                    "pair_index": pair_index,
                     "text": generated.text,
                     "text_sha256": sha256_text(generated.text),
                     "text_only_token_ids": generated.text_only_token_ids,
@@ -159,6 +222,10 @@ def _evaluate_samples(
     tokenizer: Any,
     adapter: Any,
     eos: int,
+    *,
+    arm_ids: tuple[str, ...] = CYCLE8_DETECTOR_ARM_IDS,
+    sanitizer_ids: tuple[str, ...] = CYCLE7_SANITIZER_VARIANT_IDS,
+    sanitize=sanitize_cycle7_variant,
 ) -> tuple[tuple[dict[str, object], ...], tuple[dict[str, object], ...], dict[str, object]]:
     from .cycle7_stage_a_hf import _score_text
     from .tiny_dev_transform_hf import _encode_text
@@ -170,7 +237,7 @@ def _evaluate_samples(
     geometry_rows: list[dict[str, object]] = []
     for sample in samples:
         measurements = {}
-        for arm_id in CYCLE8_DETECTOR_ARM_IDS:
+        for arm_id in arm_ids:
             measurements[arm_id] = measure_carrier_arm(
                 arm_id=arm_id,
                 source_sample_id=str(sample["sample_id"]),
@@ -194,8 +261,8 @@ def _evaluate_samples(
         )
         for arm_id, measurement in measurements.items():
             sanitizers = {}
-            for variant in CYCLE7_SANITIZER_VARIANT_IDS:
-                text = sanitize_cycle7_variant(variant, str(measurement["transformed_text"]))
+            for variant in sanitizer_ids:
+                text = sanitize(variant, str(measurement["transformed_text"]))
                 score = _score_text(
                     f"{sample['sample_id']}-{arm_id}-{variant}",
                     text,
@@ -208,6 +275,7 @@ def _evaluate_samples(
                     "score": score,
                     "detected": score >= CYCLE6_THRESHOLD,
                     "equals_source": text == str(sample["text"]),
+                    "equals_transformed": text == str(measurement["transformed_text"]),
                 }
             scored_rows.append(
                 {
@@ -221,9 +289,7 @@ def _evaluate_samples(
                     "sanitizers": sanitizers,
                 }
             )
-    summaries = {
-        arm_id: _detector_arm_summary(tuple(scored_rows), arm_id) for arm_id in CYCLE8_DETECTOR_ARM_IDS
-    }
+    summaries = {arm_id: _detector_arm_summary(tuple(scored_rows), arm_id) for arm_id in arm_ids}
     return tuple(geometry_rows), tuple(scored_rows), summaries
 
 
@@ -234,20 +300,25 @@ def _build_detector_artifact(
     summaries: dict[str, object],
     *,
     seed_base: int,
+    algorithm_version: str = CYCLE8_DETECTOR_VERSION,
+    arm_ids: tuple[str, ...] = CYCLE8_DETECTOR_ARM_IDS,
+    sanitizer_ids: tuple[str, ...] = CYCLE7_SANITIZER_VARIANT_IDS,
+    pair_count: int | None = None,
 ) -> dict[str, object]:
     from .tiny_dev_context_survival_plan_hf import DEFAULT_MODEL_ID, DEFAULT_MODEL_REVISION
 
     visible_pass = sum(int(summary["visible_pass_count"]) for summary in summaries.values())
     visible_total = sum(int(summary["visible_total_count"]) for summary in summaries.values())
     artifact = {
-        "algorithm_version": CYCLE8_DETECTOR_VERSION,
+        "algorithm_version": algorithm_version,
         "seed_base": seed_base,
         "topic": _topic_for_seed(seed_base),
+        "pair_count": pair_count if pair_count is not None else len({sample["sample_id"] for sample in samples}) // 2,
         "model": DEFAULT_MODEL_ID,
         "model_revision": DEFAULT_MODEL_REVISION,
         "threshold": CYCLE6_THRESHOLD,
-        "sanitizer_ids": CYCLE7_SANITIZER_VARIANT_IDS,
-        "arm_ids": CYCLE8_DETECTOR_ARM_IDS,
+        "sanitizer_ids": sanitizer_ids,
+        "arm_ids": arm_ids,
         "visible_pass_rate": f"{visible_pass}/{visible_total}",
         "samples": tuple(
             {
@@ -255,6 +326,7 @@ def _build_detector_artifact(
                 "domain": sample["domain"],
                 "label": sample["label"],
                 "seed": sample["seed"],
+                "pair_index": sample.get("pair_index"),
                 "text": sample["text"],
                 "text_sha256": sample["text_sha256"],
             }
@@ -274,6 +346,11 @@ def run_cycle8_detector_compare(
     device: str = "cpu",
     max_attempts: int = CYCLE8_MAX_ATTEMPTS,
     seed_base: int = CYCLE8_EXPLORATORY_SEED_BASE,
+    pair_count: int | None = None,
+    arm_ids: tuple[str, ...] = CYCLE8_DETECTOR_ARM_IDS,
+    sanitizer_ids: tuple[str, ...] = CYCLE7_SANITIZER_VARIANT_IDS,
+    sanitize=sanitize_cycle7_variant,
+    algorithm_version: str = CYCLE8_DETECTOR_VERSION,
 ) -> dict[str, object]:
     from .cycle7_stage_a_hf import _adapter_and_tokenizer
 
@@ -282,9 +359,27 @@ def run_cycle8_detector_compare(
         raise ValueError("seed_base is not in the Cycle 8 ledger")
     assert_cycle8_development_seed(seed_base, role=role)
     backend, tokenizer, adapter, _identity_hash, eos = _adapter_and_tokenizer(device)
-    samples = _generate_cycle8_samples(backend, seed_base, max_attempts)
-    geometry_rows, scored_rows, summaries = _evaluate_samples(samples, tokenizer, adapter, eos)
-    return _build_detector_artifact(samples, geometry_rows, scored_rows, summaries, seed_base=seed_base)
+    samples = _generate_cycle8_samples(backend, seed_base, max_attempts, pair_count=pair_count)
+    geometry_rows, scored_rows, summaries = _evaluate_samples(
+        samples,
+        tokenizer,
+        adapter,
+        eos,
+        arm_ids=arm_ids,
+        sanitizer_ids=sanitizer_ids,
+        sanitize=sanitize,
+    )
+    return _build_detector_artifact(
+        samples,
+        geometry_rows,
+        scored_rows,
+        summaries,
+        seed_base=seed_base,
+        algorithm_version=algorithm_version,
+        arm_ids=arm_ids,
+        sanitizer_ids=sanitizer_ids,
+        pair_count=pair_count,
+    )
 
 
 def rescore_cycle8_detector_compare(previous: dict[str, object], *, device: str = "cpu") -> dict[str, object]:
@@ -297,8 +392,27 @@ def rescore_cycle8_detector_compare(previous: dict[str, object], *, device: str 
     assert_cycle8_development_seed(seed_base, role=role)
     _backend, tokenizer, adapter, _identity_hash, eos = _adapter_and_tokenizer(device)
     samples = tuple(previous["samples"])
-    geometry_rows, scored_rows, summaries = _evaluate_samples(samples, tokenizer, adapter, eos)
-    return _build_detector_artifact(samples, geometry_rows, scored_rows, summaries, seed_base=seed_base)
+    arm_ids = tuple(previous.get("arm_ids") or CYCLE8_DETECTOR_ARM_IDS)
+    sanitizer_ids = tuple(previous.get("sanitizer_ids") or CYCLE7_SANITIZER_VARIANT_IDS)
+    geometry_rows, scored_rows, summaries = _evaluate_samples(
+        samples,
+        tokenizer,
+        adapter,
+        eos,
+        arm_ids=arm_ids,
+        sanitizer_ids=sanitizer_ids,
+    )
+    return _build_detector_artifact(
+        samples,
+        geometry_rows,
+        scored_rows,
+        summaries,
+        seed_base=seed_base,
+        algorithm_version=str(previous.get("algorithm_version") or CYCLE8_DETECTOR_VERSION),
+        arm_ids=arm_ids,
+        sanitizer_ids=sanitizer_ids,
+        pair_count=previous.get("pair_count"),
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
