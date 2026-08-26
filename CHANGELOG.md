@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased — exact user-visible invariance
+
+- Restored Priority Zero: product output must keep the exact user-visible projection of the input.
+- Public CLI `release-cli-v4` fail-closes instead of applying contractions or other visible edits.
+- `release_transform_registry()` is the empty product-visible-invariance registry. Historical contraction/lexical/syntax/spacing catalogs remain replayable under explicit historical names.
+- Added `specs/fuckmark-user-visible-invariance-v1.contract.json` and Cycle 8 invisible-carrier research. No product-authorized carrier is promoted yet.
+- Reclassified Cycle 6 formal `NONZERO_RESIDUAL` 7/192 and Cycle 7 visible-edit stages as scientific evidence that is product-disqualified.
+- GitHub CI installed-CLI end-to-end now expects unchanged visible text, matching `release-cli-v4`.
+- Cycle 8 fixture compare reports visible-projection pass `20/20` for space-carrier arms.
+- Chromium `pre` screenshots: U+034F / U+FE00 pixel-equal; U+200C PNG bytes differ.
+- Detector-blind GPT-2 / SynthID development scoring on seeds `890000`, `900000`, and `910000` reduced watermarked detections for U+034F space-carrier x1 without unwatermarked inflation on these tiny 4-pair corpora. This is not confirmation and is not a product promotion.
+- Product contract loading uses the embedded v1 payload in installed wheels. Writers that replace pinned `specs/cycle8` tokenizer JSON refuse to run without a GPT-2 encoder; the detector harness still scores when tiktoken is absent. Chromium HTML evidence encodes less-than and greater-than as JSON unicode escapes so an ASCII script terminator cannot close the inline script.
+
 ## v0.2.0 — Exact-survival confirmation and release hardening
 
 ### Research

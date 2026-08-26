@@ -373,13 +373,15 @@ def default_contraction_rules() -> tuple[LiteralTransformRule, ...]:
 TransformRule = LiteralTransformRule | LexicalTemplateRule | SyntaxTemplateRule
 
 
-def validate_rules(rules: Sequence[TransformRule]) -> tuple[TransformRule, ...]:
+def validate_rules(rules: Sequence[TransformRule], *, allow_empty: bool = False) -> tuple[TransformRule, ...]:
     if not isinstance(rules, Sequence) or isinstance(rules, (str, bytes, bytearray)):
         raise TypeError("rules must be a sequence")
     if len(rules) > _MAX_RULES:
         raise ValueError("rules exceeded resource limit")
     normalized = tuple(rules)
     if not normalized:
+        if allow_empty:
+            return ()
         raise ValueError("rules must not be empty")
     if any(not isinstance(rule, (LiteralTransformRule, LexicalTemplateRule, SyntaxTemplateRule)) for rule in normalized):
         raise TypeError("rules must contain supported transform rule values")

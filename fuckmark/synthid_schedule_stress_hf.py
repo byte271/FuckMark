@@ -10,7 +10,7 @@ from .experiments.synthid_schedule_stress import run_synthid_schedule_stress
 from .experiments.synthid_smoke import SynthIDSmokePrompt
 from .synthid_geometry_hf import HuggingFaceSynthIDGeometryBackend
 from .synthid_smoke_hf import DEFAULT_KEYS, DEFAULT_NGRAM_LEN
-from .transforms import development_transform_registry, release_transform_registry
+from .transforms import development_transform_registry, historical_visible_edit_transform_registry, release_transform_registry
 from .transforms.mechanism_registry import mechanism_stress_transform_registry
 
 
@@ -166,7 +166,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--temperature", type=float, default=0.8)
     parser.add_argument("--top-k", type=int, default=50)
     parser.add_argument("--top-p", type=float, default=0.95)
-    parser.add_argument("--registry", choices=("release", "development", "mechanism"), default="release")
+    parser.add_argument("--registry", choices=("release", "historical-visible-edit", "default", "development", "mechanism"), default="release")
     parser.add_argument("--budgets", type=_parse_budgets, default=(1, 2, 4))
     parser.add_argument("--random-seed-count", type=int, default=8)
     parser.add_argument("--schedule-seed-base", type=int, default=9300)
@@ -179,6 +179,8 @@ def _parser() -> argparse.ArgumentParser:
 def _registry(name: str):
     if name == "release":
         return release_transform_registry()
+    if name in ("historical-visible-edit", "default"):
+        return historical_visible_edit_transform_registry()
     if name == "development":
         return development_transform_registry()
     if name == "mechanism":

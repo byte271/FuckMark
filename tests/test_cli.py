@@ -5,21 +5,54 @@ import tomllib
 
 import pytest
 
-from fuckmark.cli import main, process_text, read_pasted_text, transform_text
+from fuckmark.cli import RELEASE_CLI_ALGORITHM_VERSION, main, process_text, read_pasted_text, transform_text
+from fuckmark.product.invariants import validate_user_visible_invariants
+from fuckmark.product.visible_projection import is_carrier_insertion_v1
+from fuckmark.transforms.registry import (
+    historical_visible_edit_transform_registry,
+    release_transform_registry,
+)
+from fuckmark.transforms.schema import InvariantStatus
 
 
-def test_cli_process_text_uses_release_contractions_deterministically() -> None:
+VISIBLE_FIXTURES = (
+    "I do not agree.",
+    "We cannot continue.",
+    "You should not do that.",
+    "It's important to test this.",
+    "This is a proof of concept.",
+    "However, the result matters.",
+    "All of the examples are relevant.",
+)
+
+
+def test_cli_process_text_does_not_apply_visible_contractions() -> None:
     source = "I do not agree and I cannot stay."
-    expected = "I don't agree and I can't stay."
-    assert process_text(source) == expected
-    assert process_text(source) == expected
-    assert transform_text(source).change_count == 2
+    assert process_text(source) == source
+    assert transform_text(source).change_count == 0
+    assert transform_text(source).output_text == source
 
 
-def test_cli_process_text_respects_protected_quoted_content() -> None:
+@pytest.mark.parametrize("source", VISIBLE_FIXTURES)
+def test_cli_preserves_exact_visible_projection_on_contract_examples(source: str) -> None:
+    assert process_text(source) == source
+    assert is_carrier_insertion_v1(source, process_text(source), ())
+
+
+def test_historical_visible_edit_registry_still_contracts_for_replay() -> None:
+    source = "I do not agree."
+    registry = historical_visible_edit_transform_registry()
+    enumeration = registry.enumerate(source)
+    candidate = next(value for value in enumeration.candidates if value.rule_id == "contract-do-not")
+    result = registry.apply(enumeration, (candidate.candidate_id,))
+    assert result.output_text == "I don't agree."
+    report = validate_user_visible_invariants(source, result.output_text)
+    assert report.status is InvariantStatus.FAIL
+
+
+def test_cli_process_text_preserves_quoted_and_unquoted_visible_text() -> None:
     source = 'Keep "do not change this" but I do not agree.'
-    expected = "Keep \"do not change this\" but I don't agree."
-    assert process_text(source) == expected
+    assert process_text(source) == source
 
 
 def test_cli_process_text_preserves_text_when_no_candidate_is_eligible() -> None:
@@ -34,18 +67,19 @@ def test_cli_reads_multiline_paste_until_ok_line() -> None:
     assert "Finish with :done on its own line" in output.getvalue()
 
 
-def test_cli_main_processes_and_copies_result() -> None:
+def test_cli_main_processes_and_copies_unchanged_visible_text() -> None:
     source = StringIO("I do not agree.\nok\n")
     output = StringIO()
     copied: list[str] = []
     status = main(source, output, copied.append)
     assert status == 0
-    assert copied == ["I don't agree."]
+    assert copied == ["I do not agree."]
     rendered = output.getvalue()
     assert "FuckMark 0.2.0" in rendered
     assert "Processing..." in rendered
-    assert "Done — 1 change applied." in rendered
+    assert "visible text left unchanged" in rendered
     assert "Copied to clipboard." in rendered
+    assert "I don't agree." not in rendered
 
 
 def test_cli_main_copies_original_when_no_change_is_eligible() -> None:
@@ -55,7 +89,7 @@ def test_cli_main_copies_original_when_no_change_is_eligible() -> None:
     status = main(source, output, copied.append)
     assert status == 0
     assert copied == ["Already concise."]
-    assert "no eligible release-safe changes" in output.getvalue()
+    assert "visible text left unchanged" in output.getvalue()
 
 
 def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
@@ -69,7 +103,8 @@ def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
     status = main(source, output, fail, error_stream=errors)
     assert status == 2
     rendered = output.getvalue()
-    assert "I don't agree." in rendered
+    assert "I do not agree." in rendered
+    assert "I don't agree." not in rendered
     assert "clipboard copy failed" in errors.getvalue()
 
 
@@ -79,7 +114,8 @@ def test_cli_version_reports_project_and_algorithm_identity(capsys) -> None:
     assert result.value.code == 0
     rendered = capsys.readouterr().out
     assert "FuckMark 0.2.0" in rendered
-    assert "release-cli-v3" in rendered
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v4"
+    assert "release-cli-v4" in rendered
     assert "transform-registry-v6" in rendered
 
 
@@ -90,7 +126,7 @@ def test_cli_noninteractive_mode_writes_only_transformed_text(option) -> None:
     copied: list[str] = []
     status = main(source, output, copied.append, argv=option)
     assert status == 0
-    assert output.getvalue() == "I don't agree.\n"
+    assert output.getvalue() == "I do not agree.\n"
     assert copied == []
 
 
@@ -112,7 +148,7 @@ def test_cli_reads_file_and_atomically_writes_output(tmp_path: Path) -> None:
     assert main(output_stream=output, error_stream=errors, argv=(str(source), "--output", str(target))) == 0
     assert output.getvalue() == ""
     assert errors.getvalue() == ""
-    assert target.read_text(encoding="utf-8") == "I don't agree.\n"
+    assert target.read_text(encoding="utf-8") == "I do not agree.\n"
 
 
 def test_cli_refuses_to_overwrite_its_input_file(tmp_path: Path) -> None:
@@ -132,11 +168,11 @@ def test_cli_automatically_uses_stream_mode_for_a_pipe(monkeypatch) -> None:
     monkeypatch.setattr(sys, "stdout", output)
     monkeypatch.setattr(sys, "stderr", errors)
     assert main(argv=()) == 0
-    assert output.getvalue() == "I don't agree.\n"
+    assert output.getvalue() == "I do not agree.\n"
     assert errors.getvalue() == ""
 
 
-def test_cli_help_documents_file_pipe_clipboard_and_output(capsys) -> None:
+def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> None:
     with pytest.raises(SystemExit) as result:
         main(argv=("--help",))
     assert result.value.code == 0
@@ -145,6 +181,15 @@ def test_cli_help_documents_file_pipe_clipboard_and_output(capsys) -> None:
     assert "--stdin" in rendered
     assert "--copy" in rendered
     assert "--output" in rendered
+    assert "user-visible" in rendered
+
+
+def test_release_registry_contains_no_visible_edit_transforms() -> None:
+    release_ids = {rule.rule_id for rule in release_transform_registry().rules}
+    historical_ids = {rule.rule_id for rule in historical_visible_edit_transform_registry().rules}
+    assert release_ids == set()
+    assert "contract-do-not" in historical_ids
+    assert historical_visible_edit_transform_registry().ruleset_hash != release_transform_registry().ruleset_hash
 
 
 def test_pyproject_installs_all_FuckMark_console_command_aliases() -> None:

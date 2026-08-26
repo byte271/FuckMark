@@ -12,7 +12,7 @@ from fuckmark.experiments.synthid_schedule_stress import (
 )
 from fuckmark.experiments.synthid_smoke import SynthIDSmokePrompt
 from fuckmark.hashing import sha256_text
-from fuckmark.transforms import SchedulePolicy, release_transform_registry
+from fuckmark.transforms import SchedulePolicy, historical_visible_edit_transform_registry
 
 
 class _StressBackend:
@@ -58,7 +58,7 @@ def test_schedule_stress_finds_exact_public_geometry_headroom() -> None:
     report = run_synthid_schedule_stress(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1, 2),
         random_seeds=(201, 202, 203, 204),
         spacing_seed=200,
@@ -90,7 +90,7 @@ def test_schedule_stress_keeps_ineligible_sources() -> None:
     report = run_synthid_schedule_stress(
         (prompt,),
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         random_seeds=(1, 2),
     )
@@ -108,7 +108,7 @@ def test_schedule_stress_report_fails_closed_on_tamper() -> None:
     report = run_synthid_schedule_stress(
         (prompt,),
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         random_seeds=(1, 2),
     )
@@ -125,5 +125,5 @@ def test_schedule_stress_rejects_duplicate_prompt_ids() -> None:
         run_synthid_schedule_stress(
             (prompt, replace(prompt, seed=8)),
             backend,
-            release_transform_registry(),
+            historical_visible_edit_transform_registry(),
         )

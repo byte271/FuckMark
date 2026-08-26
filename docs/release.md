@@ -1,15 +1,18 @@
 # v0.2.0 Release Process
 
-FuckMark v0.2.0 is a deterministic CLI and research-infrastructure release. The release contains the Cycle 4 exact-survival research machinery and its confirmatory evidence path, while the public CLI remains restricted to the separately reviewed release transform registry.
+FuckMark v0.2.0 is a deterministic CLI and research-infrastructure release. The published tag remains historically valid. Current `main` after the visible-invariance repair still reports package version `0.2.0`, but the public CLI algorithm identity is `release-cli-v4` and the release registry is the empty product-visible-invariance registry. Do not treat the v0.2.0 tag's contraction behavior as the current product contract.
+
+The public CLI is restricted to product-authorized invisible transforms. None are authorized yet, so the CLI fail-closes to unchanged text. Cycle 4 exact-survival machinery remains in the research path.
 
 ## Release invariants
 
 1. `pyproject.toml`, `fuckmark.__version__`, `uv.lock`, installed CLI output, and the Git tag must agree on `0.2.0` / `v0.2.0`.
-2. The release registry is not broadened merely because a development experiment succeeds.
+2. The release registry is not broadened merely because a development experiment succeeds. Product authorization additionally requires exact visible-projection equality.
 3. U+200C remains diagnostic-only and is never promoted into automatic CLI behavior.
-4. Frozen historical contracts and evidence under `specs/` remain byte-stable unless their own protocol explicitly defines a successor artifact.
-5. The release must build and clean-install on Linux, macOS, and Windows.
-6. Every published GitHub Release must be backed by an immutable `v*` tag.
+4. Visible-edit historical catalogs (contractions, Cycle 6 spacing, Cycle 7 durable families) remain replayable and must not silently become release defaults.
+5. Frozen historical contracts and evidence under `specs/` remain byte-stable unless their own protocol explicitly defines a successor artifact.
+6. The release must build and clean-install on Linux, macOS, and Windows.
+7. Every published GitHub Release must be backed by an immutable `v*` tag.
 
 ## Required release sequence
 
@@ -53,7 +56,7 @@ The expanded pool plus scheduler v2 achieved 0/12 detected in its fresh developm
 
 `specs/fuckmark-v0.1.0-release-readiness-baseline.json` remains an immutable historical artifact. v0.2.0 does not rewrite the old baseline's gate statuses or reinterpret the repository state it captured.
 
-Likewise, rejected experiments remain rejected records. The U+200C visible-projection mechanism stays quarantined because Unicode format-character stripping restores the evaluated detection behavior.
+Likewise, rejected experiments remain rejected records. The U+200C visible-projection mechanism stays quarantined because Unicode format-character stripping restores the evaluated detection behavior. Cycle 6 `NONZERO_RESIDUAL` 7/192 remains the frozen formal detector result and is product-disqualified because it used visible ASCII spaces.
 
 ## Distribution scope
 

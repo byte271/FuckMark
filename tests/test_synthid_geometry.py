@@ -14,7 +14,7 @@ from fuckmark.experiments.synthid_geometry import (
 )
 from fuckmark.experiments.synthid_smoke import SynthIDSmokePrompt
 from fuckmark.hashing import sha256_text
-from fuckmark.transforms import SchedulePolicy, release_transform_registry
+from fuckmark.transforms import SchedulePolicy, historical_visible_edit_transform_registry
 
 
 class _FakeBackend:
@@ -61,7 +61,7 @@ def _prompts() -> tuple[SynthIDSmokePrompt, ...]:
 
 def test_public_candidate_coverage_uses_tokenizer_geometry_only() -> None:
     backend = _FakeBackend(expected_generate_calls=0)
-    registry = release_transform_registry()
+    registry = historical_visible_edit_transform_registry()
     enumeration = registry.enumerate(
         "We do not panic. We should not drift. We cannot ignore evidence."
     )
@@ -82,7 +82,7 @@ def test_geometry_pilot_builds_matched_random_vs_greedy_pairs_before_scoring() -
     report = run_synthid_geometry_pilot(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1, 2),
         random_seeds=(101, 102, 103, 104),
         greedy_seed=100,
@@ -113,7 +113,7 @@ def test_geometry_pilot_keeps_ineligible_sources_in_report() -> None:
     report = run_synthid_geometry_pilot(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         random_seeds=(1, 2),
     )
@@ -130,7 +130,7 @@ def test_geometry_report_and_variants_fail_closed_on_tamper() -> None:
     report = run_synthid_geometry_pilot(
         prompts,
         backend,
-        release_transform_registry(),
+        historical_visible_edit_transform_registry(),
         budgets=(1,),
         random_seeds=(1, 2),
     )
@@ -147,5 +147,5 @@ def test_geometry_pilot_rejects_duplicate_prompt_ids() -> None:
         run_synthid_geometry_pilot(
             (prompt, replace(prompt, seed=2)),
             backend,
-            release_transform_registry(),
+            historical_visible_edit_transform_registry(),
         )

@@ -12,12 +12,13 @@ from pathlib import Path
 from typing import TextIO
 
 from . import __project_name__, __version__
+from .product.visible_projection import is_carrier_insertion_v1, product_approved_carriers_v1
 from .transforms import TRANSFORM_REGISTRY_ALGORITHM_VERSION, release_transform_registry
 
 
 CLI_TERMINATORS = frozenset({":done", "ok"})
 CLI_SELECTION_SEED = 0
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v3"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v4"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -53,7 +54,12 @@ def transform_text(text: str) -> ProcessResult:
         occupied_until = candidate.end
     if not selected:
         return ProcessResult(text, 0)
-    result = registry.apply(enumeration, tuple(selected), seed=CLI_SELECTION_SEED)
+    try:
+        result = registry.apply(enumeration, tuple(selected), seed=CLI_SELECTION_SEED)
+    except (KeyError, TypeError, ValueError):
+        return ProcessResult(text, 0)
+    if not is_carrier_insertion_v1(text, result.output_text, product_approved_carriers_v1()):
+        return ProcessResult(text, 0)
     return ProcessResult(result.output_text, len(result.trace.operations))
 
 
@@ -76,7 +82,7 @@ def read_pasted_text(input_stream: TextIO, output_stream: TextIO) -> str:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog=__project_name__,
-        description="Apply FuckMark's deterministic, release-safe English text transforms.",
+        description="Apply FuckMark product-authorized invisible transforms without changing user-visible text.",
         epilog=(
             "Examples:\n"
             "  FuckMark\n"
@@ -263,7 +269,7 @@ def main(
 
     if interactive and not arguments.quiet:
         output.write(_styled(f"{__project_name__} {__version__}", _ANSI_BOLD + _ANSI_BLUE, enabled=color))
-        output.write("\nDeterministic English text transform\n\n")
+        output.write("\nProduct path: exact user-visible text preservation.\n\n")
         output.flush()
 
     try:
@@ -308,9 +314,9 @@ def main(
     if interactive and not arguments.quiet:
         if result.changed:
             noun = "change" if result.change_count == 1 else "changes"
-            message = f"Done — {result.change_count} {noun} applied."
+            message = f"Done — {result.change_count} product-authorized invisible {noun} applied."
         else:
-            message = "Done — no eligible release-safe changes."
+            message = "Done — no product-authorized invisible transform; visible text left unchanged."
         output.write(_styled(message, _ANSI_GREEN, enabled=color) + "\n")
         if arguments.output not in (None, "-"):
             output.write(f"Saved to {arguments.output}\n")

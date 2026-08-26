@@ -45,6 +45,7 @@ class CandidateRejectionReason(str, Enum):
     ALL_CAPS_BLOCKED = "all_caps_blocked"
     UNSUPPORTED_CASE = "unsupported_case"
     PRECONDITION_FAILED = "precondition_failed"
+    USER_VISIBLE_TEXT_CHANGED = "user_visible_text_changed"
 
 
 class InvariantStatus(str, Enum):

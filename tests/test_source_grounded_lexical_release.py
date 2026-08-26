@@ -12,6 +12,7 @@ from fuckmark.transforms.fidelity_evidence import (
 from fuckmark.transforms.fidelity_verification import (
     FidelityEvidenceVerificationError,
     LexicalPromotionEvidence,
+    source_verified_historical_visible_edit_transform_registry,
     source_verified_release_transform_registry,
     verify_lexical_promotion_evidence,
 )
@@ -97,11 +98,20 @@ def _promotion(human_audit=None):
     )
 
 
-def test_source_grounded_release_replays_all_evidence_before_enabling_lexical_rule() -> None:
+def test_source_grounded_release_rejects_visible_lexical_promotion() -> None:
     promotion = _promotion()
     summary = verify_lexical_promotion_evidence(promotion, _tokenizer)
     assert summary.evidence_summary_complete
-    registry = source_verified_release_transform_registry(
+    with pytest.raises(FidelityEvidenceVerificationError, match="user-visible text"):
+        source_verified_release_transform_registry(
+            (promotion,),
+            {promotion.model_tokenizer_identity.identity_hash: _tokenizer},
+        )
+
+
+def test_source_grounded_historical_visible_edit_registry_still_enables_lexical_replay() -> None:
+    promotion = _promotion()
+    registry = source_verified_historical_visible_edit_transform_registry(
         (promotion,),
         {promotion.model_tokenizer_identity.identity_hash: _tokenizer},
     )

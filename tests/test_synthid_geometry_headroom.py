@@ -12,12 +12,12 @@ from fuckmark.hashing import sha256_text
 from fuckmark.transforms import (
     KeyBlindScheduleInput,
     ScheduleGeometryMode,
-    release_transform_registry,
+    historical_visible_edit_transform_registry,
 )
 
 
 def _inputs():
-    registry = release_transform_registry()
+    registry = historical_visible_edit_transform_registry()
     enumeration = registry.enumerate(
         "We do not panic. We should not drift. We cannot ignore evidence."
     )
@@ -77,7 +77,7 @@ def test_headroom_detects_rank_and_greedy_disagreement() -> None:
 def test_headroom_marks_empty_eligible_geometry_without_forcing_schedule() -> None:
     all_input, eligible_input = _inputs()
     empty = KeyBlindScheduleInput.from_enumeration(
-        release_transform_registry().enumerate(
+        historical_visible_edit_transform_registry().enumerate(
             "We do not panic. We should not drift. We cannot ignore evidence."
         ),
         coverage_intervals={candidate.candidate_id: () for candidate in eligible_input.candidates},
@@ -101,7 +101,7 @@ def test_headroom_report_is_content_addressed() -> None:
 
 
 def test_source_builder_uses_public_eligibility_geometry() -> None:
-    registry = release_transform_registry()
+    registry = historical_visible_edit_transform_registry()
     vocabulary = {}
 
     def tokenize(text: str):
@@ -127,7 +127,7 @@ def test_source_builder_uses_public_eligibility_geometry() -> None:
 
 def test_headroom_rejects_mismatched_candidate_geometry() -> None:
     all_input, _ = _inputs()
-    registry = release_transform_registry()
+    registry = historical_visible_edit_transform_registry()
     other_enumeration = registry.enumerate(
         "We do not stop. We should not wait. We cannot ignore facts."
     )
