@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from fuckmark.cycle7.density import durable_density_row, durable_density_table
@@ -13,7 +16,10 @@ from fuckmark.cycle7.ledger import (
     CYCLE7_STAGE_C_VALIDATION_SEED_BASE,
     CYCLE7_STAGE_C_VALIDATION_TOPIC,
 )
-from fuckmark.cycle7.registry import cycle7_durable_transform_registry
+from fuckmark.cycle7.registry import (
+    cycle7_durable_transform_registry,
+    cycle7_stage_c_durable_transform_registry,
+)
 from fuckmark.cycle7.stage_b import INSUFFICIENT_EVIDENCE, PROMISING_DEVELOPMENT, summarize_density_rows
 from fuckmark.cycle7.stage_c import classify_stage_c_density, density_artifact_stage_c
 from fuckmark.cycle7.whitespace_collapse import collapse_horizontal_ascii_whitespace, sanitize_cycle7_variant
@@ -189,3 +195,33 @@ def test_gpt2_tokenization_changes_for_stage_c_channels() -> None:
         assert tokenizer.encode(left, add_special_tokens=False) != tokenizer.encode(
             right, add_special_tokens=False
         )
+
+
+def test_stage_c_density_replay_stays_on_catalog_v4() -> None:
+    previous = json.loads(
+        Path("evidence/cycle7-stage-c-2026-08-25/samples.json").read_text(encoding="utf-8")
+    )
+    samples = tuple(
+        {"sample_id": sample["sample_id"], "text": sample["text"]} for sample in previous["samples"]
+    )
+    artifact = density_artifact_stage_c(
+        samples,
+        seed_base=CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE,
+        catalog_version=CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
+    )
+    assert artifact["durable_catalog_version"] == "cycle7-durable-rule-catalog-v4"
+    assert artifact["summary"]["mean_candidate_count"] == 4.75
+    assert artifact["summary"]["mean_word_boundary_candidate_count"] == 0.0
+    assert artifact["summary"]["mean_format_clause_candidate_count"] == 1.5
+    v4_ids = {
+        rule.rule_id for rule in cycle7_stage_c_durable_transform_registry().rules
+    }
+    assert not any(rule_id.startswith("cycle7-word-boundary-") for rule_id in v4_ids)
+    live = durable_density_table(samples)
+    live_summary = summarize_density_rows(live)
+    assert live_summary["mean_candidate_count"] == 37.625
+    assert live_summary["mean_word_boundary_candidate_count"] == 32.875
+    assert any(
+        rule.rule_id.startswith("cycle7-word-boundary-")
+        for rule in cycle7_durable_transform_registry().rules
+    )

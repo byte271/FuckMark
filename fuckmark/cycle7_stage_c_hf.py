@@ -5,12 +5,17 @@ import json
 from pathlib import Path
 
 from .config import canonical_json_text
-from .cycle7.durable_rules import CYCLE7_DURABLE_RULE_CATALOG_VERSION
+from .cycle7.compare import cycle7_arm_registries
+from .cycle7.durable_rules import CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION
 from .cycle7.ledger import (
     CYCLE7_STAGE_C1_EXPLORATORY_SEED_BASE,
     CYCLE7_STAGE_C1_TOPIC,
     CYCLE7_STAGE_C_VALIDATION_SEED_BASE,
     assert_rule_construction_seed,
+)
+from .cycle7.registry import (
+    cycle7_stage_c_combined_transform_registry,
+    cycle7_stage_c_durable_transform_registry,
 )
 from .cycle7.stage_c import classify_stage_c_density, density_artifact_stage_c
 from .cycle7_stage_a_hf import _adapter_and_tokenizer, _build_detector_artifact, _evaluate_samples
@@ -45,9 +50,21 @@ def run_stage_c1(
     density = density_artifact_stage_c(
         density_samples,
         seed_base=seed_base,
-        catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+        catalog_version=CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
     )
-    geometry = _geometry_artifact(samples, tokenizer, identity_hash, seed_base)
+    stage_c_registries = cycle7_arm_registries(
+        durable=cycle7_stage_c_durable_transform_registry(),
+        combined=cycle7_stage_c_combined_transform_registry(),
+    )
+    geometry = _geometry_artifact(
+        samples,
+        tokenizer,
+        identity_hash,
+        seed_base,
+        catalog_version=CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
+        registries=stage_c_registries,
+        durable_registry=cycle7_stage_c_durable_transform_registry(),
+    )
     density_decision = classify_stage_c_density(
         density_summary=density["summary"],
         collapsed_intact_mean=float(geometry["durable_intact_means"]["mean_collapsed_intact_window_count"]),
@@ -56,14 +73,19 @@ def run_stage_c1(
     detector = None
     if not skip_detector:
         geometry_rows, scored_rows, summaries = _evaluate_samples(
-            samples, tokenizer, identity_hash, adapter, eos
+            samples,
+            tokenizer,
+            identity_hash,
+            adapter,
+            eos,
+            registries=stage_c_registries,
         )
         detector = _build_detector_artifact(
             samples,
             geometry_rows,
             scored_rows,
             summaries,
-            catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+            catalog_version=CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
         )
         detector = {
             **{k: v for k, v in detector.items() if k != "artifact_hash"},
@@ -117,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
         "seed_base": bundle["seed_base"],
         "topic": bundle["topic"],
         "stage": bundle["stage"],
-        "durable_catalog_version": CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+        "durable_catalog_version": CYCLE7_STAGE_C_DURABLE_RULE_CATALOG_VERSION,
         "samples": tuple(
             {
                 "sample_id": sample["sample_id"],

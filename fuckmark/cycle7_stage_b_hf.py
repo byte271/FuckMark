@@ -14,9 +14,17 @@ from .cycle7.compare import (
     CYCLE7_COMBINED_ARM_ID,
     CYCLE7_DURABLE_ARM_ID,
     compare_arms_on_text,
+    cycle7_arm_registries,
     summarize_arm,
 )
-from .cycle7.durable_rules import CYCLE7_DURABLE_RULE_CATALOG_VERSION
+from .cycle7.durable_rules import (
+    CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+    CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
+)
+from .cycle7.registry import (
+    cycle7_stage_b_combined_transform_registry,
+    cycle7_stage_b_durable_transform_registry,
+)
 from .cycle7.ledger import (
     CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
     CYCLE7_STAGE_B1_TOPIC,
@@ -108,6 +116,10 @@ def _geometry_artifact(
     tokenizer: Any,
     identity_hash: str,
     seed_base: int,
+    *,
+    catalog_version: str = CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+    registries: dict[str, Any] | None = None,
+    durable_registry=None,
 ) -> dict[str, object]:
     rows = []
     for sample in samples:
@@ -116,6 +128,7 @@ def _geometry_artifact(
             source_text=str(sample["text"]),
             tokenizer=tokenizer,
             tokenizer_identity_hash=identity_hash,
+            registries=registries,
         )
         rows.append(
             {
@@ -128,11 +141,16 @@ def _geometry_artifact(
     durable_samples = tuple(
         {"sample_id": sample["sample_id"], "text": sample["text"]} for sample in samples
     )
-    intact = geometry_intact_means(durable_samples, tokenizer, identity_hash)
+    intact = geometry_intact_means(
+        durable_samples,
+        tokenizer,
+        identity_hash,
+        registry=durable_registry,
+    )
     payload = {
         "algorithm_version": "cycle7-stage-b-geometry-v1",
         "seed_base": seed_base,
-        "durable_catalog_version": CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+        "durable_catalog_version": catalog_version,
         "detector_access_used_for_selection": False,
         "rows": tuple(rows),
         "durable_intact_means": intact,
@@ -167,9 +185,21 @@ def run_stage_b(
     density = density_artifact(
         density_samples,
         seed_base=seed_base,
-        catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+        catalog_version=CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
     )
-    geometry = _geometry_artifact(samples, tokenizer, identity_hash, seed_base)
+    stage_b_registries = cycle7_arm_registries(
+        durable=cycle7_stage_b_durable_transform_registry(),
+        combined=cycle7_stage_b_combined_transform_registry(),
+    )
+    geometry = _geometry_artifact(
+        samples,
+        tokenizer,
+        identity_hash,
+        seed_base,
+        catalog_version=CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
+        registries=stage_b_registries,
+        durable_registry=cycle7_stage_b_durable_transform_registry(),
+    )
     density_decision = classify_stage_b_density(
         density_summary=density["summary"],
         collapsed_intact_mean=float(geometry["durable_intact_means"]["mean_collapsed_intact_window_count"]),
@@ -178,14 +208,19 @@ def run_stage_b(
     detector = None
     if not skip_detector:
         geometry_rows, scored_rows, summaries = _evaluate_samples(
-            samples, tokenizer, identity_hash, adapter, eos
+            samples,
+            tokenizer,
+            identity_hash,
+            adapter,
+            eos,
+            registries=stage_b_registries,
         )
         detector = _build_detector_artifact(
             samples,
             geometry_rows,
             scored_rows,
             summaries,
-            catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+            catalog_version=CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
         )
         detector = {
             **{k: v for k, v in detector.items() if k != "artifact_hash"},
@@ -283,7 +318,7 @@ def main(argv: list[str] | None = None) -> int:
         "seed_base": bundle["seed_base"],
         "topic": bundle["topic"],
         "stage": bundle["stage"],
-        "durable_catalog_version": CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+        "durable_catalog_version": CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
         "samples": tuple(
             {
                 "sample_id": sample["sample_id"],

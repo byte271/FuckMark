@@ -682,7 +682,7 @@ def cycle7_coordinating_conjunction_comma_rules() -> tuple[SyntaxTemplateRule, .
     return tuple(rules)
 
 
-def cycle7_durable_rules() -> tuple[object, ...]:
+def cycle7_stage_b_durable_rules() -> tuple[object, ...]:
     return (
         *development_forward_contraction_rules(),
         *reverse_contraction_rules(),
@@ -696,14 +696,26 @@ def cycle7_durable_rules() -> tuple[object, ...]:
         *cycle7_typographic_apostrophe_rules(),
         *cycle7_discourse_comma_rules(),
         *cycle7_format_boundary_rules(),
-        *cycle7_clause_punctuation_rules(),
-        *cycle7_word_boundary_rules(),
-        *cycle7_quantifier_of_rules(),
         *cycle7_complementizer_that_rules(),
         *cycle7_parenthetical_adverb_rules(),
         *cycle7_coordinating_conjunction_comma_rules(),
         *development_lexical_rules(),
         *development_syntax_rules(),
+    )
+
+
+def cycle7_stage_c_durable_rules() -> tuple[object, ...]:
+    return (
+        *cycle7_stage_b_durable_rules(),
+        *cycle7_clause_punctuation_rules(),
+        *cycle7_quantifier_of_rules(),
+    )
+
+
+def cycle7_durable_rules() -> tuple[object, ...]:
+    return (
+        *cycle7_stage_c_durable_rules(),
+        *cycle7_word_boundary_rules(),
     )
 
 

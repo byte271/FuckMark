@@ -5,7 +5,7 @@ from collections.abc import Mapping, Sequence
 from ..hashing import sha256_json
 from .density import durable_density_table
 from .instrumentation import measure_arm
-from .registry import cycle7_durable_transform_registry
+from .registry import cycle7_durable_transform_registry, cycle7_stage_b_durable_transform_registry
 
 
 CYCLE7_STAGE_B_DECISION_VERSION = "cycle7-stage-b-decision-v1"
@@ -114,7 +114,7 @@ def density_artifact(
     seed_base: int,
     catalog_version: str,
 ) -> dict[str, object]:
-    rows = durable_density_table(samples)
+    rows = durable_density_table(samples, registry=cycle7_stage_b_durable_transform_registry())
     summary = summarize_density_rows(rows)
     payload = {
         "algorithm_version": "cycle7-stage-b-density-v1",
@@ -132,8 +132,10 @@ def geometry_intact_means(
     samples: Sequence[Mapping[str, object]],
     tokenizer,
     tokenizer_identity_hash: str,
+    *,
+    registry=None,
 ) -> dict[str, float]:
-    registry = cycle7_durable_transform_registry()
+    active = cycle7_durable_transform_registry() if registry is None else registry
     intact = []
     collapsed_intact = []
     selected = []
@@ -143,7 +145,7 @@ def geometry_intact_means(
             arm_id="cycle7_durable",
             source_sample_id=str(sample["sample_id"]),
             source_text=str(sample["text"]),
-            registry=registry,
+            registry=active,
             tokenizer=tokenizer,
             tokenizer_identity_hash=tokenizer_identity_hash,
         )

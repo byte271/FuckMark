@@ -4,6 +4,7 @@ from collections.abc import Mapping, Sequence
 
 from ..hashing import sha256_json
 from .density import durable_density_table
+from .registry import cycle7_stage_c_durable_transform_registry
 from .stage_b import INSUFFICIENT_EVIDENCE, PROMISING_DEVELOPMENT, summarize_density_rows
 
 
@@ -80,7 +81,7 @@ def density_artifact_stage_c(
     seed_base: int,
     catalog_version: str,
 ) -> dict[str, object]:
-    rows = durable_density_table(samples)
+    rows = durable_density_table(samples, registry=cycle7_stage_c_durable_transform_registry())
     summary = summarize_density_rows(rows)
     payload = {
         "algorithm_version": "cycle7-stage-c-density-v1",

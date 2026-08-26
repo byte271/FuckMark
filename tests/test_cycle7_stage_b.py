@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 from fuckmark.cycle7.density import durable_density_table
 from fuckmark.cycle7.durable_rules import (
     CYCLE7_DURABLE_RULE_CATALOG_VERSION,
@@ -98,8 +101,9 @@ def test_stage_b_density_classifier_on_construction_fixtures() -> None:
     artifact = density_artifact(
         samples,
         seed_base=CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
-        catalog_version=CYCLE7_DURABLE_RULE_CATALOG_VERSION,
+        catalog_version=CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
     )
+    assert artifact["durable_catalog_version"] == "cycle7-durable-rule-catalog-v3"
     assert artifact["detector_access_used_for_selection"] is False
     assert artifact["seed_base"] == 860000
     assert artifact["artifact_hash"]
@@ -134,3 +138,25 @@ def test_stage_b_classifier_keeps_low_density_as_insufficient() -> None:
     }
     decision = classify_stage_b_density(density_summary=summary)
     assert decision["decision"] == INSUFFICIENT_EVIDENCE
+
+
+def test_stage_b_density_replay_stays_on_catalog_v3() -> None:
+    previous = json.loads(
+        Path("evidence/cycle7-stage-b-2026-08-25/samples.json").read_text(encoding="utf-8")
+    )
+    samples = tuple(
+        {"sample_id": sample["sample_id"], "text": sample["text"]} for sample in previous["samples"]
+    )
+    artifact = density_artifact(
+        samples,
+        seed_base=CYCLE7_STAGE_B1_EXPLORATORY_SEED_BASE,
+        catalog_version=CYCLE7_STAGE_B_DURABLE_RULE_CATALOG_VERSION,
+    )
+    assert artifact["durable_catalog_version"] == "cycle7-durable-rule-catalog-v3"
+    assert artifact["summary"]["mean_candidate_count"] == 4.25
+    assert artifact["summary"]["mean_word_boundary_candidate_count"] == 0.0
+    assert artifact["summary"]["mean_format_clause_candidate_count"] == 0.0
+    live = durable_density_table(samples)
+    live_summary = summarize_density_rows(live)
+    assert live_summary["mean_candidate_count"] == 41.75
+    assert live_summary["mean_word_boundary_candidate_count"] == 36.0

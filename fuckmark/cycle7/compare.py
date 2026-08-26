@@ -17,10 +17,14 @@ CYCLE7_COMBINED_ARM_ID = "cycle7_combined"
 
 
 def _registries():
+    return cycle7_arm_registries()
+
+
+def cycle7_arm_registries(*, durable=None, combined=None):
     return {
         CYCLE6_SPACING_ARM_ID: quote_safe_zrd_transform_registry(),
-        CYCLE7_DURABLE_ARM_ID: cycle7_durable_transform_registry(),
-        CYCLE7_COMBINED_ARM_ID: cycle7_combined_transform_registry(),
+        CYCLE7_DURABLE_ARM_ID: cycle7_durable_transform_registry() if durable is None else durable,
+        CYCLE7_COMBINED_ARM_ID: cycle7_combined_transform_registry() if combined is None else combined,
     }
 
 
@@ -31,7 +35,9 @@ def compare_arms_on_text(
     tokenizer: Any,
     tokenizer_identity_hash: str,
     budget: int = CYCLE6_BUDGET,
+    registries: dict[str, Any] | None = None,
 ) -> dict[str, Cycle7ArmMeasurement]:
+    active = _registries() if registries is None else registries
     return {
         arm_id: measure_arm(
             arm_id=arm_id,
@@ -42,7 +48,7 @@ def compare_arms_on_text(
             tokenizer_identity_hash=tokenizer_identity_hash,
             budget=budget,
         )
-        for arm_id, registry in _registries().items()
+        for arm_id, registry in active.items()
     }
 
 

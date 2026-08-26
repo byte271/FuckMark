@@ -151,6 +151,8 @@ def _evaluate_samples(
     identity_hash: str,
     adapter: HuggingFaceSynthIDAdapter,
     eos: int,
+    *,
+    registries: dict[str, Any] | None = None,
 ) -> tuple[tuple[dict[str, object], ...], tuple[dict[str, object], ...], dict[str, object]]:
     scored_rows: list[dict[str, object]] = []
     geometry_rows: list[dict[str, object]] = []
@@ -161,6 +163,7 @@ def _evaluate_samples(
             tokenizer=tokenizer,
             tokenizer_identity_hash=identity_hash,
             budget=CYCLE6_BUDGET,
+            registries=registries,
         )
         geometry_rows.append(
             {

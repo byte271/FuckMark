@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
+from ..transforms.registry import TransformRegistry
 from .registry import cycle7_durable_transform_registry
 
 
@@ -9,14 +10,20 @@ def _prefix_ids(rule_ids: Sequence[str], prefixes: tuple[str, ...]) -> tuple[str
     return tuple(rule_id for rule_id in rule_ids if rule_id.startswith(prefixes))
 
 
-def durable_candidate_rule_ids(text: str) -> tuple[str, ...]:
-    enumeration = cycle7_durable_transform_registry().enumerate(text)
+def durable_candidate_rule_ids(text: str, *, registry: TransformRegistry | None = None) -> tuple[str, ...]:
+    active = cycle7_durable_transform_registry() if registry is None else registry
+    enumeration = active.enumerate(text)
     return tuple(candidate.rule_id for candidate in enumeration.candidates)
 
 
-def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
-    registry = cycle7_durable_transform_registry()
-    enumeration = registry.enumerate(text)
+def durable_density_row(
+    sample_id: str,
+    text: str,
+    *,
+    registry: TransformRegistry | None = None,
+) -> dict[str, object]:
+    active = cycle7_durable_transform_registry() if registry is None else registry
+    enumeration = active.enumerate(text)
     rule_ids = tuple(candidate.rule_id for candidate in enumeration.candidates)
     conflict_ids = {item.first_candidate_id for item in enumeration.conflicts} | {
         item.second_candidate_id for item in enumeration.conflicts
@@ -88,8 +95,14 @@ def durable_density_row(sample_id: str, text: str) -> dict[str, object]:
     }
 
 
-def durable_density_table(samples: Sequence[Mapping[str, object]]) -> tuple[dict[str, object], ...]:
+def durable_density_table(
+    samples: Sequence[Mapping[str, object]],
+    *,
+    registry: TransformRegistry | None = None,
+) -> tuple[dict[str, object], ...]:
     rows: list[dict[str, object]] = []
     for sample in samples:
-        rows.append(durable_density_row(str(sample["sample_id"]), str(sample["text"])))
+        rows.append(
+            durable_density_row(str(sample["sample_id"]), str(sample["text"]), registry=registry)
+        )
     return tuple(rows)
