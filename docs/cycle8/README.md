@@ -17,7 +17,7 @@ Cycle 8 is a new scientific generation. The mechanism class is hidden Unicode re
 
 ## Seed ledger
 
-See `docs/cycle8/seed-ledger.md`. Seeds `890000`, `900000`, `910000`, and `920000` were assigned before Cycle 8 generation. Do not inspect `830000` / `840000` / `850000`. Do not inspect Cycle 7 reserved `880000`.
+See `docs/cycle8/seed-ledger.md`. Seeds `890000`, `900000`, `910000`, and `920000` were assigned before Cycle 8 generation. Do not inspect `830000` / `840000` / `850000`. Do not inspect Cycle 7 validation seed `880000` (used by Cycle 7 Stage D; still blocked from Cycle 8). Seed `890000` is also Cycle 7 Stage D's exploratory pair-seed with a disjoint `document structure` corpus; do not mix those texts.
 
 ## Carrier research
 

@@ -37,5 +37,7 @@ Stage C1 generation used 870000 with topic `measurement protocol`. That seed is 
 
 Stage D1 generation used 890000 with topic `document structure`. Fresh rule-construction generation must call `assert_rule_construction_seed(890000)` and is now locked. Replay of the frozen D1 evidence via `--samples-from` uses exploratory-development admission so 890000 can be rescored. Do not retune catalog v5 on 890000.
 
-Stage D validation used 880000 with topic `independent check`. Do not retune catalog v5 on 880000. A later revised mechanism must reserve a new unused validation seed.
+Cycle 8 independently assigned the same seed base `890000` with topic `invisible carrier development` and generated a different TinyDev corpus (same pair seeds `890000`/`890032`/`890064`/`890096`, disjoint text hashes). Stage D evidence is the `document structure` texts only. Do not retune Cycle 7 on Cycle 8 texts, or Cycle 8 on Stage D texts. Cycle 8 seeds `900000`, `910000`, and `920000` are not Cycle 7 data.
+
+Stage D validation used 880000 with topic `independent check`. Do not retune catalog v5 on 880000. Cycle 8 must still not inspect 880000. A later revised mechanism must reserve a new unused validation seed.
 

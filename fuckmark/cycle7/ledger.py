@@ -93,7 +93,12 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
             "Seed 890000 and topic 'document structure' were frozen before "
             "any Stage D generation or detector look. "
             "Seed 880000 was used as Stage D disjoint validation after catalog v5 "
-            "was frozen; do not retune on it."
+            "was frozen; do not retune on it. "
+            "Cycle 8 independently assigned 890000 with topic 'invisible carrier "
+            "development' and generated a different TinyDev corpus from the same "
+            "pair seeds. Do not retune Cycle 7 on Cycle 8 texts or Cycle 8 on "
+            "Cycle 7 Stage D texts. Do not use Cycle 8 seeds 900000, 910000, or "
+            "920000 for Cycle 7 construction."
         ),
         "spent_corpus_rule": (
             "Do not use 720000, 730000, 760000, 770000, or 780000 as "
@@ -102,7 +107,8 @@ def cycle7_seed_ledger_payload() -> dict[str, object]:
             "Do not retune on validation seed 820000. "
             "Do not retune on 870000. "
             "Do not retune on 890000 or validation seed 880000. "
-            "Do not inspect 830000, 840000, or 850000."
+            "Do not inspect 830000, 840000, or 850000. "
+            "Do not use 900000, 910000, or 920000 as Cycle 7 data."
         ),
     }
 

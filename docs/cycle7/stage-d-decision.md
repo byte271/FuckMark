@@ -2,7 +2,7 @@
 
 **Decision: `PROMISING_DEVELOPMENT`**
 
-This is development-only. It is not a Cycle 7 formal confirmation. Seeds `830000` / `840000` / `850000` were not inspected. Catalog v5 was frozen before disjoint validation. Seed `880000` was then used as validation and must not be used for retuning.
+This is development-only. It is not a Cycle 7 formal confirmation. Seeds `830000` / `840000` / `850000` were not inspected. Catalog v5 was frozen before disjoint validation. Seed `880000` was then used as validation and must not be used for retuning. Catalog v5 remains **PRODUCT_DISQUALIFIED** for `release_transform_registry()`.
 
 Catalog: `cycle7-durable-rule-catalog-v5`. Scheduler: unchanged cover-greedy v4. Detector threshold: frozen Cycle 6 value `0.5570987654320988`. Model: `openai-community/gpt2` revision `607a30d783dfa663caf39e06633721c8d4cfcd7e`.
 
@@ -12,7 +12,7 @@ v5 adds Family 12 (word-boundary newline). Families 1–11 are unchanged from ca
 
 ## Stage D1 corpus
 
-Exploratory seed `890000` and topic `document structure` were frozen in `cycle7-seed-ledger-v4` before generation. Pair stride 32, one pair per TinyDev domain, 8 texts (4 watermarked + 4 matched unwatermarked). Seeds `810000`, `860000`, `820000`, and `870000` were not used as rule-construction data for v5.
+Exploratory seed `890000` and topic `document structure` were frozen in `cycle7-seed-ledger-v4` before generation. Pair stride 32, one pair per TinyDev domain, 8 texts (4 watermarked + 4 matched unwatermarked). Seeds `810000`, `860000`, `820000`, and `870000` were not used as rule-construction data for v5. Cycle 8 independently generated a different corpus from the same pair seeds with topic `invisible carrier development`; those texts are not Stage D evidence.
 
 Artifact hashes:
 
@@ -128,5 +128,6 @@ Remaining bounds: layout/reflow sanitizer is not in the frozen suite (HYPOTHESIS
 
 1. Do not retune catalog v5 on `890000` or `880000`.
 2. Do not inspect `830000` / `840000` / `850000` unless a later frozen confirmation protocol names them.
-3. A later revised mechanism must reserve a new unused validation seed. Do not recycle `820000` or `880000`.
+3. A later revised mechanism must reserve a new unused validation seed. Do not recycle `820000` or `880000`. Do not use Cycle 8 seeds `900000` / `910000` / `920000`.
 4. A detector-blind combined scheduler that prefers collapse-surviving families remains a HYPOTHESIS.
+5. Do not promote catalog v5 into the product registry.

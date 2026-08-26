@@ -76,5 +76,13 @@ Open PR after the merge: [#97](https://github.com/byte271/FuckMark/pull/97) (`cu
 
 Stage C1 on seed `870000` was `INSUFFICIENT_EVIDENCE` (mean durable candidates 4.75; durable detector 3/4 after collapse). Seed `880000` was not inspected.
 
-Stage D continues on branch `cursor/cycle7-stage-d-wrap-3fb1` from this `main`, with exploratory seed `890000` and topic `document structure` frozen before generation. Disjoint validation seed `880000` / topic `independent check` was scored after catalog v5 was frozen and is now used. Confirmation seeds `830000` / `840000` / `850000` were not inspected.
+## Continuation (2026-08-26, after PR #97 squash-merge)
+
+Verified `main` HEAD: `3ab6bd1f98077128a5b8c83ee1f30f89f58d6e77`
+
+Subject: `Restore exact user-visible invariance and start Cycle 8 carrier research (#97)`
+
+Cycle 6 formal result is unchanged: `NONZERO_RESIDUAL` 7/192. Cycle 7 visible-edit catalogs are **PRODUCT_DISQUALIFIED** for the CLI.
+
+PR [#98](https://github.com/byte271/FuckMark/pull/98) (`cursor/cycle7-stage-d-wrap-3fb1`) was closed unmerged when #97 landed, then rebased onto this `main`. Cycle 8 exploratory seed `890000` / topic `invisible carrier development` and Cycle 7 Stage D seed `890000` / topic `document structure` share pair seeds but have disjoint text hashes. Cycle 7 Stage D validation used `880000`; Cycle 8 still must not inspect it. Confirmation seeds `830000` / `840000` / `850000` were not inspected.
 

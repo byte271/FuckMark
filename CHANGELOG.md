@@ -11,6 +11,7 @@
 - Cycle 8 fixture compare reports visible-projection pass `20/20` for space-carrier arms.
 - Chromium `pre` screenshots: U+034F / U+FE00 pixel-equal; U+200C PNG bytes differ.
 - Detector-blind GPT-2 / SynthID development scoring on seeds `890000`, `900000`, and `910000` reduced watermarked detections for U+034F space-carrier x1 without unwatermarked inflation on these tiny 4-pair corpora. This is not confirmation and is not a product promotion.
+- Cycle 7 Stage D catalog v5 (word-boundary newline) is research-only `PROMISING_DEVELOPMENT` on n=4+4 and remains product-disqualified. Family 12 is not a product carrier.
 - Product contract loading uses the embedded v1 payload in installed wheels. Writers that replace pinned `specs/cycle8` tokenizer JSON refuse to run without a GPT-2 encoder; the detector harness still scores when tiktoken is absent. Chromium HTML evidence encodes less-than and greater-than as JSON unicode escapes so an ASCII script terminator cannot close the inline script.
 
 ## v0.2.0 — Exact-survival confirmation and release hardening

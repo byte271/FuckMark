@@ -6,11 +6,12 @@ Cycle 7 researched collapse-resistant *visible* transforms. Those edits may pres
 
 Cycle 8 (`docs/cycle8/`) is the exact-visible-projection generation. Do not promote Cycle 7 catalogs into `release_transform_registry()`.
 
-## Live state (verified 2026-08-25)
+## Live state (verified 2026-08-26)
 
 See `docs/cycle7/live-state-audit.md`. Independent GitHub inspection:
 
-- `main` HEAD `d7eeb0f905b7046ddc4a4d8281354f06713d58b0` (PR #96 squash-merge)
+- `main` HEAD `3ab6bd1f98077128a5b8c83ee1f30f89f58d6e77` (PR #97 squash-merge: product-visible invariance / Cycle 8)
+- Cycle 7 Stage B/C ancestor `d7eeb0f905b7046ddc4a4d8281354f06713d58b0` (PR #96)
 - Cycle 6 freeze ancestor `ddccd74a9e0e710085b385fed98959f2730b9d60`
 - PR #93 and PR #94 merged
 - Recovery run `32886342498` success
@@ -103,9 +104,9 @@ Stage C1 on seed `870000` (topic frozen as `measurement protocol`) added clause-
 
 ## Stage D
 
-Stage D1 on seed `890000` (topic frozen as `document structure`) added word-boundary newlines. Mean durable candidates: **38.0**. Collapse-surviving intact/root **0.164**. Detector: durable **0/4** after collapse; Cycle 6 spacing **3/4** after collapse.
+Stage D1 on seed `890000` (topic frozen as `document structure`) added word-boundary newlines. Mean durable candidates: **38.0**. Collapse-surviving intact/root **0.164**. Detector: durable **0/4** after collapse; Cycle 6 spacing **3/4** after collapse. Cycle 8 later used the same seed base with topic `invisible carrier development` and a disjoint corpus; Stage D evidence is the `document structure` texts only.
 
-Disjoint validation seed `880000` (topic frozen as `independent check`) replicated: mean **44.875**, collapsed intact/root **0.080**, durable **0/4** after collapse, Cycle 6 spacing **4/4** after collapse. Overall: **`PROMISING_DEVELOPMENT`**. Not formal confirmation. Details: `docs/cycle7/stage-d-decision.md`.
+Disjoint validation seed `880000` (topic frozen as `independent check`) replicated: mean **44.875**, collapsed intact/root **0.080**, durable **0/4** after collapse, Cycle 6 spacing **4/4** after collapse. Overall: **`PROMISING_DEVELOPMENT`**. Not formal confirmation. Catalog v5 remains **PRODUCT_DISQUALIFIED** for the CLI. Details: `docs/cycle7/stage-d-decision.md`.
 
 Not claimed:
 
