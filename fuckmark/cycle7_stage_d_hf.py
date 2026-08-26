@@ -7,6 +7,7 @@ from pathlib import Path
 from .config import canonical_json_text
 from .cycle7.durable_rules import CYCLE7_DURABLE_RULE_CATALOG_VERSION
 from .cycle7.ledger import (
+    CYCLE7_EXPLORATORY_ROLE,
     CYCLE7_STAGE_C_VALIDATION_SEED_BASE,
     CYCLE7_STAGE_C_VALIDATION_TOPIC,
     CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE,
@@ -25,6 +26,13 @@ from .hashing import sha256_json
 CYCLE7_STAGE_D_DETECTOR_VERSION = "cycle7-stage-d-detector-compare-v1"
 
 
+def admit_stage_d1_seed(seed_base: int, *, samples_from: Path | None) -> None:
+    if samples_from is None:
+        assert_rule_construction_seed(seed_base)
+        return
+    assert_development_seed(seed_base, role=CYCLE7_EXPLORATORY_ROLE)
+
+
 def run_stage_d1(
     *,
     device: str = "cpu",
@@ -33,7 +41,7 @@ def run_stage_d1(
 ) -> dict[str, object]:
     seed_base = CYCLE7_STAGE_D1_EXPLORATORY_SEED_BASE
     topic = CYCLE7_STAGE_D1_TOPIC
-    assert_rule_construction_seed(seed_base)
+    admit_stage_d1_seed(seed_base, samples_from=samples_from)
     backend, tokenizer, adapter, identity_hash, eos = _adapter_and_tokenizer(device)
     if samples_from is not None:
         previous = json.loads(samples_from.read_text(encoding="utf-8"))
