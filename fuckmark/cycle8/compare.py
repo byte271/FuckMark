@@ -8,7 +8,11 @@ from ..hashing import sha256_json, sha256_text
 from ..product.registry import product_transform_registry
 from ..product.visible_projection import is_carrier_insertion_v1, project_visible_v1
 from ..transforms.schema import CandidateRejectionReason
-from .registry import cycle8_space_carrier_registry, select_nonoverlapping_candidate_ids
+from .registry import (
+    cycle8_space_carrier_registry,
+    cycle8_space_wordfinal_carrier_registry,
+    select_nonoverlapping_candidate_ids,
+)
 from .tokenizer_screen import GPT2_FIXTURE, resynchronization_metrics
 
 
@@ -18,6 +22,7 @@ CYCLE8_U200C_SPACE_ARM_ID = "u200c-space-x1"
 CYCLE8_U034F_SPACE_ARM_ID = "u034f-space-x1"
 CYCLE8_U034F_SPACE_RUN_ARM_ID = "u034f-space-x8"
 CYCLE8_UFE00_SPACE_ARM_ID = "ufe00-space-x1"
+CYCLE8_U034F_SPACE_WORDFINAL_ARM_ID = "u034f-space-wordfinal-x1"
 CYCLE8_DETECTOR_ARM_IDS = (
     CYCLE8_IDENTITY_ARM_ID,
     CYCLE8_U200C_SPACE_ARM_ID,
@@ -27,6 +32,11 @@ CYCLE8_DETECTOR_ARM_IDS = (
 CYCLE8_SCALE_ARM_IDS = (
     CYCLE8_IDENTITY_ARM_ID,
     CYCLE8_U034F_SPACE_ARM_ID,
+)
+CYCLE8_DENSITY_ARM_IDS = (
+    CYCLE8_IDENTITY_ARM_ID,
+    CYCLE8_U034F_SPACE_ARM_ID,
+    CYCLE8_U034F_SPACE_WORDFINAL_ARM_ID,
 )
 CYCLE8_FIXTURE_ARM_IDS = (
     *CYCLE8_DETECTOR_ARM_IDS,
@@ -39,6 +49,7 @@ _ARM_SPEC = {
     CYCLE8_U034F_SPACE_ARM_ID: (0x034F, 1),
     CYCLE8_U034F_SPACE_RUN_ARM_ID: (0x034F, 8),
     CYCLE8_UFE00_SPACE_ARM_ID: (0xFE00, 1),
+    CYCLE8_U034F_SPACE_WORDFINAL_ARM_ID: (0x034F, 1),
 }
 
 
@@ -59,6 +70,8 @@ def arm_approved_carriers(arm_id: str) -> tuple[int, ...]:
 
 
 def arm_registry(arm_id: str):
+    if arm_id == CYCLE8_U034F_SPACE_WORDFINAL_ARM_ID:
+        return cycle8_space_wordfinal_carrier_registry(0x034F)
     spec = _ARM_SPEC[arm_id]
     if spec is None:
         return product_transform_registry()

@@ -19,6 +19,8 @@ Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for vi
 
 `HYPOTHESIS`. Repeating an approved carrier after existing ASCII spaces increases hidden payload without splitting `[A-Za-z]+` words, so historical hard-invariant word matching still passes. This is the TransformRegistry-compatible high-density channel. Intra-word insertion is tokenizer-diagnostic only because it breaks the frozen hard-invariant word regex.
 
+Word-final ASCII letter x1 (`[A-Za-z](?![A-Za-z])`) plus space x1 is a detector-blind density follow-up on reserved seed `960000`. It is not every-letter insertion. Sites that would split contracted words such as `don't` are fail-closed by the frozen hard-invariant validator. This arm is not product-authorized.
+
 ## H3-H8
 
 Placement geometry, Cycle 6 scheduler reuse, and root-window correlation remain `HYPOTHESIS` for larger corpora. Tiny-corpus detector looks on seeds `890000`, `900000`, and `910000` are `PROMISING_DEVELOPMENT` only.

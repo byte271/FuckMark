@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from ..product.carriers import InvisibleCarrierAfterAsciiLetterRule, space_carrier_rule
+from ..product.carriers import (
+    InvisibleCarrierAfterAsciiLetterRule,
+    InvisibleCarrierAfterWordFinalAsciiLetterRule,
+    space_carrier_rule,
+)
 from ..product.registry import ProductTransformRegistry
 from ..transforms.schema import TransformFamily
 
@@ -31,6 +35,22 @@ def cycle8_letter_carrier_registry(codepoint: int, identifiers: Sequence[str] = 
 def cycle8_combined_carrier_registry(codepoint: int, identifiers: Sequence[str] = ()) -> ProductTransformRegistry:
     return ProductTransformRegistry(
         (space_carrier_rule(codepoint), InvisibleCarrierAfterAsciiLetterRule.create(codepoint)),
+        identifiers,
+        approved_carriers=(codepoint,),
+    )
+
+
+def cycle8_space_wordfinal_carrier_registry(
+    codepoint: int,
+    identifiers: Sequence[str] = (),
+    *,
+    repeats: int = 1,
+) -> ProductTransformRegistry:
+    return ProductTransformRegistry(
+        (
+            space_carrier_rule(codepoint, repeats),
+            InvisibleCarrierAfterWordFinalAsciiLetterRule.create(codepoint),
+        ),
         identifiers,
         approved_carriers=(codepoint,),
     )

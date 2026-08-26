@@ -28,6 +28,8 @@ from .cycle8.ledger import (
     CYCLE8_SCALE_REPLICATION_TOPIC,
     CYCLE8_SCALE_VALIDATION_ROLE,
     CYCLE8_SCALE_VALIDATION_TOPIC,
+    CYCLE8_DENSITY_EXPLORATORY_ROLE,
+    CYCLE8_DENSITY_EXPLORATORY_TOPIC,
     CYCLE8_VALIDATION_ROLE,
     CYCLE8_VALIDATION_TOPIC,
     assert_cycle8_development_seed,
@@ -149,7 +151,9 @@ def _topic_for_seed(seed_base: int) -> str:
         return CYCLE8_SCALE_REPLICATION_TOPIC
     if role == CYCLE8_SCALE_VALIDATION_ROLE:
         return CYCLE8_SCALE_VALIDATION_TOPIC
-    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, or scale seeds")
+    if role == CYCLE8_DENSITY_EXPLORATORY_ROLE:
+        return CYCLE8_DENSITY_EXPLORATORY_TOPIC
+    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, or density seeds")
 
 
 def _generate_cycle8_samples(

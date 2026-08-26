@@ -10,6 +10,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 - Seed `880000` is **PUBLICLY_EXPOSED**. Closed unmerged [PR #98](https://github.com/byte271/FuckMark/pull/98) generated and scored it as Cycle 7 Stage D validation. It is **not** eligible as unseen validation.
 - Seed `890000` is Cycle 8 tiny exploratory on `main`. The same identifier was also used on unmerged PR #98 for Cycle 7 Stage D. Do not treat it as unseen.
 - Do not generate `950000` until the U+034F x1 mechanism is frozen.
+- Seed `960000` is reserved for detector-blind U+034F space plus word-final letter density follow-up. Do not inspect `930000` residual text to write lexical rules.
 
 ## Cycle 8 scale reservation (before generation)
 
@@ -18,6 +19,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 930000 | scale exploratory | `carrier scaling` | generated and scored: 0/16, 0/32, then 1/64 U+034F x1 raw WM; do not rewrite 1/64 as zero |
 | 940000 | scale replication | `independent scale replication` | generated and scored: independent 0/64 U+034F x1 raw WM; max score 0.557052 vs threshold 0.557099 |
 | 950000 | scale validation | `clean scale validation` | reserved; do not generate until freeze |
+| 960000 | density exploratory | `carrier density follow-up` | reserved before generation; detector-blind space x1 versus space plus word-final letter x1 |
 
 ## Historical v1 Cycle 8 ledger
 

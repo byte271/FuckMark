@@ -15,7 +15,11 @@ from fuckmark.cycle8.ledger import (
     cycle8_seed_ledger_hash,
     cycle8_seed_ledger_payload,
 )
-from fuckmark.cycle8.registry import apply_all_candidates, cycle8_space_carrier_registry
+from fuckmark.cycle8.registry import (
+    apply_all_candidates,
+    cycle8_space_carrier_registry,
+    cycle8_space_wordfinal_carrier_registry,
+)
 from fuckmark.cycle8.unicode_meta import (
     audit_codepoints,
     classify_carrier_hypothesis,
@@ -23,6 +27,7 @@ from fuckmark.cycle8.unicode_meta import (
     iter_default_ignorable_codepoints_v1,
 )
 from fuckmark.hashing import sha256_json
+from fuckmark.product.carriers import InvisibleCarrierAfterWordFinalAsciiLetterRule
 from fuckmark.product.visible_projection import is_carrier_insertion_v1
 from fuckmark.sanitizer_robustness import nfkc_normalize, strip_unicode_format_characters
 
@@ -50,11 +55,13 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert payload["exploratory_replication_seed_base"] == CYCLE8_REPLICATION_SEED_BASE == 900_000
     assert payload["validation_development_seed_base"] == CYCLE8_VALIDATION_SEED_BASE == 910_000
     assert payload["scale_exploratory_seed_base"] == CYCLE8_SCALE_EXPLORATORY_SEED_BASE == 930_000
+    assert payload["density_exploratory_seed_base"] == 960_000
     assert payload["confirmation_reserved_seed_bases"] == [830_000, 840_000, 850_000]
     assert payload["cycle7_publicly_exposed_validation_seed_base"] == 880_000
     assert cycle8_seed_ledger_hash()
     assert_cycle8_development_seed(890_000, role="exploratory_development")
     assert_cycle8_development_seed(930_000, role="scale_exploratory_development")
+    assert_cycle8_development_seed(960_000, role="density_exploratory_development")
     with pytest.raises(ValueError):
         assert_cycle8_development_seed(760_000, role="exploratory_development")
     with pytest.raises(ValueError, match="publicly exposed|spent or reserved"):
@@ -115,3 +122,35 @@ def test_cgj_space_carrier_survives_utf8_file_roundtrip(tmp_path: Path) -> None:
     assert loaded == transformed
     assert is_carrier_insertion_v1(source, loaded, (0x034F,))
     assert loaded.encode("utf-8").decode("utf-8") == transformed
+
+
+def test_word_final_letter_carrier_is_denser_than_space_and_fail_closes_apostrophe_splits() -> None:
+    from fuckmark.product.visible_projection import project_visible_v1
+    from fuckmark.transforms.hard_invariants import validate_hard_invariants
+    from fuckmark.transforms.registry import release_transform_registry
+    from fuckmark.transforms.schema import CandidateRejectionReason, InvariantStatus
+
+    rule = InvisibleCarrierAfterWordFinalAsciiLetterRule.create(0x034F)
+    assert [match.group() for match in rule.pattern().finditer("alpha")] == ["a"]
+    assert [match.group() for match in rule.pattern().finditer("don't")] == ["n", "t"]
+    source = "hello world"
+    space_only = apply_all_candidates(cycle8_space_carrier_registry(0x034F), source)
+    combined = apply_all_candidates(cycle8_space_wordfinal_carrier_registry(0x034F), source)
+    assert space_only.count("\u034f") == 1
+    assert combined.count("\u034f") == 3
+    assert is_carrier_insertion_v1(source, combined, (0x034F,))
+    assert project_visible_v1(combined, (0x034F,)) == source
+    assert validate_hard_invariants(source, combined).status is InvariantStatus.PASS
+    contracted = "I don't wait."
+    registry = cycle8_space_wordfinal_carrier_registry(0x034F)
+    enumeration = registry.enumerate(contracted)
+    assert any(
+        rejection.reason is CandidateRejectionReason.HARD_INVARIANT_FAILED for rejection in enumeration.rejections
+    )
+    applied = apply_all_candidates(registry, contracted)
+    assert is_carrier_insertion_v1(contracted, applied, (0x034F,))
+    assert project_visible_v1(applied, (0x034F,)) == contracted
+    assert validate_hard_invariants(contracted, applied).status is InvariantStatus.PASS
+    assert "don't" in applied.replace("\u034f", "")
+    assert applied.count("\u034f") >= 1
+    assert release_transform_registry().rules == ()

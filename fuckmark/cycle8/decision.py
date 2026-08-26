@@ -6,6 +6,7 @@ from .compare import (
     CYCLE8_IDENTITY_ARM_ID,
     CYCLE8_U034F_SPACE_ARM_ID,
     CYCLE8_U034F_SPACE_RUN_ARM_ID,
+    CYCLE8_U034F_SPACE_WORDFINAL_ARM_ID,
     CYCLE8_U200C_SPACE_ARM_ID,
     CYCLE8_UFE00_SPACE_ARM_ID,
 )
@@ -150,12 +151,21 @@ def classify_fixture_compare(report: Mapping[str, object]) -> dict[str, object]:
 CYCLE8_SCALE_DECISION_VERSION = "cycle8-scale-decision-v1"
 
 
-def classify_scale_detector_compare(artifact: Mapping[str, object]) -> dict[str, object]:
+def classify_scale_detector_compare(
+    artifact: Mapping[str, object],
+    transformed_arm_id: str = CYCLE8_U034F_SPACE_ARM_ID,
+) -> dict[str, object]:
     summaries = artifact.get("summaries")
     if not isinstance(summaries, Mapping):
         raise ValueError("scale detector artifact must contain summaries")
     identity = summaries[CYCLE8_IDENTITY_ARM_ID]
-    u034f = summaries[CYCLE8_U034F_SPACE_ARM_ID]
+    u034f = summaries[transformed_arm_id]
+    if transformed_arm_id == CYCLE8_U034F_SPACE_ARM_ID:
+        arm_label = "U+034F x1"
+    elif transformed_arm_id == CYCLE8_U034F_SPACE_WORDFINAL_ARM_ID:
+        arm_label = "U+034F space-wordfinal x1"
+    else:
+        arm_label = transformed_arm_id
     visible_total = int(u034f["visible_total_count"])
     visible_pass = int(u034f["visible_pass_count"])
     visible_failures = visible_total - visible_pass
@@ -175,15 +185,15 @@ def classify_scale_detector_compare(artifact: Mapping[str, object]) -> dict[str,
         gate = ProductGate.DISQUALIFIED
     else:
         gate = ProductGate.PASS
-        reasons.append("visible projection passed on all scored U+034F x1 rows")
+        reasons.append(f"visible projection passed on all scored {arm_label} rows")
         if transformed_wm < identity_wm and transformed_uw <= int(identity["raw_unwatermarked_detected"]):
             decision = PROMISING_DEVELOPMENT
             label = EvidenceLabel.HYPOTHESIS
-            reasons.append("U+034F x1 reduced raw watermarked detections without raising unwatermarked detections")
+            reasons.append(f"{arm_label} reduced raw watermarked detections without raising unwatermarked detections")
         else:
             decision = INSUFFICIENT_EVIDENCE
             label = EvidenceLabel.HYPOTHESIS
-            reasons.append("U+034F x1 did not beat identity on this scale development corpus")
+            reasons.append(f"{arm_label} did not beat identity on this scale development corpus")
         if transformed_wm == 0:
             reasons.append("raw transformed watermarked detections are 0 on this corpus")
         if cf_wm == transformed_wm:
@@ -207,6 +217,7 @@ def classify_scale_detector_compare(artifact: Mapping[str, object]) -> dict[str,
         "u034f_ws_collapse_watermarked_detected": collapse_wm,
         "u034f_nfkc_cf_strip_watermarked_detected": nfkc_cf_wm,
         "u034f_ws_collapse_nfkc_cf_strip_watermarked_detected": combined_wm,
+        "transformed_arm_id": transformed_arm_id,
         "reasons": tuple(reasons),
         "notes": (
             "This is Cycle 8 scale development classification, not confirmation. "

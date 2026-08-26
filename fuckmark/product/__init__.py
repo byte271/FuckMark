@@ -1,5 +1,6 @@
 from .carriers import (
     InvisibleCarrierAfterAsciiLetterRule,
+    InvisibleCarrierAfterWordFinalAsciiLetterRule,
     codepoint_label,
     rule_preserves_visible_projection,
     space_carrier_rule,
@@ -29,6 +30,7 @@ from .visible_projection import (
 
 __all__ = [
     "InvisibleCarrierAfterAsciiLetterRule",
+    "InvisibleCarrierAfterWordFinalAsciiLetterRule",
     "PRODUCT_CONTRACT_ID",
     "PRODUCT_CONTRACT_PATH",
     "PRODUCT_DOMAIN_ID",

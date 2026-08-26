@@ -12,6 +12,7 @@ from .visible_projection import is_carrier_insertion_v1, normalize_approved_carr
 
 INVISIBLE_CARRIER_RULE_ALGORITHM_VERSION = "invisible-carrier-rule-v1"
 INVISIBLE_LETTER_CARRIER_SENTINEL = "letter"
+INVISIBLE_WORD_FINAL_CARRIER_PATTERN = "invisible-word-final-carrier-rule-v1"
 
 
 def codepoint_label(codepoint: int) -> str:
@@ -118,6 +119,44 @@ class InvisibleCarrierAfterAsciiLetterRule(LiteralTransformRule):
 
     def replacement_for(self, source_text: str) -> str:
         return source_text + self.replacement[len(INVISIBLE_LETTER_CARRIER_SENTINEL) :]
+
+
+class InvisibleCarrierAfterWordFinalAsciiLetterRule(InvisibleCarrierAfterAsciiLetterRule):
+    def _payload(self) -> dict[str, object]:
+        return {**super()._payload(), "carrier_pattern": INVISIBLE_WORD_FINAL_CARRIER_PATTERN}
+
+    @classmethod
+    def create(cls, codepoint: int) -> "InvisibleCarrierAfterWordFinalAsciiLetterRule":
+        require_int("codepoint", codepoint)
+        carrier = chr(codepoint)
+        hashed = {
+            "algorithm_version": RULE_ALGORITHM_VERSION,
+            "rule_id": f"product-carrier-word-final-letter-{codepoint:04X}",
+            "version": "v1",
+            "family": TransformFamily.ORTHOGRAPHY.value,
+            "tier": TransformTier.EXPERIMENTAL.value,
+            "source": INVISIBLE_LETTER_CARRIER_SENTINEL,
+            "replacement": INVISIBLE_LETTER_CARRIER_SENTINEL + carrier,
+            "whole_word": False,
+            "preserve_simple_case": False,
+            "block_all_caps": False,
+            "carrier_pattern": INVISIBLE_WORD_FINAL_CARRIER_PATTERN,
+        }
+        return cls(
+            rule_id=f"product-carrier-word-final-letter-{codepoint:04X}",
+            version="v1",
+            family=TransformFamily.ORTHOGRAPHY,
+            tier=TransformTier.EXPERIMENTAL,
+            source=INVISIBLE_LETTER_CARRIER_SENTINEL,
+            replacement=INVISIBLE_LETTER_CARRIER_SENTINEL + carrier,
+            whole_word=False,
+            preserve_simple_case=False,
+            block_all_caps=False,
+            rule_hash=sha256_json(hashed),
+        )
+
+    def pattern(self) -> re.Pattern[str]:
+        return re.compile(r"[A-Za-z](?![A-Za-z])")
 
 
 def rule_preserves_visible_projection(rule: LiteralTransformRule, approved_carriers=None) -> bool:
