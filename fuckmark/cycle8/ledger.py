@@ -7,6 +7,8 @@ from ..hashing import sha256_json
 from ..seeds.ledger import (
     CYCLE8_DENSITY_EXPLORATORY_SEED_BASE,
     CYCLE8_DENSITY_EXPLORATORY_TOPIC,
+    CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
+    CYCLE8_LETTER_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
     CYCLE8_SCALE_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_REPLICATION_SEED_BASE,
@@ -25,6 +27,7 @@ CYCLE8_SCALE_EXPLORATORY_ROLE = "scale_exploratory_development"
 CYCLE8_SCALE_REPLICATION_ROLE = "scale_replication"
 CYCLE8_SCALE_VALIDATION_ROLE = "scale_validation"
 CYCLE8_DENSITY_EXPLORATORY_ROLE = "density_exploratory_development"
+CYCLE8_LETTER_EXPLORATORY_ROLE = "letter_exploratory_development"
 CYCLE8_CONFIRMATION_RESERVED_ROLE = "confirmation_reserved"
 
 CYCLE8_EXPLORATORY_SEED_BASE = 890_000
@@ -38,6 +41,7 @@ CYCLE8_SCALE_EXPLORATORY_SEED_BASES = (CYCLE8_SCALE_EXPLORATORY_SEED_BASE,)
 CYCLE8_SCALE_REPLICATION_SEED_BASES = (CYCLE8_SCALE_REPLICATION_SEED_BASE,)
 CYCLE8_SCALE_VALIDATION_SEED_BASES = (CYCLE8_SCALE_VALIDATION_SEED_BASE,)
 CYCLE8_DENSITY_EXPLORATORY_SEED_BASES = (CYCLE8_DENSITY_EXPLORATORY_SEED_BASE,)
+CYCLE8_LETTER_EXPLORATORY_SEED_BASES = (CYCLE8_LETTER_EXPLORATORY_SEED_BASE,)
 CYCLE8_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
 CYCLE8_EXPLORATORY_TOPIC = "invisible carrier development"
 CYCLE8_REPLICATION_TOPIC = "invisible carrier replication"
@@ -94,6 +98,8 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
         "scale_validation_topic": CYCLE8_SCALE_VALIDATION_TOPIC,
         "density_exploratory_seed_base": CYCLE8_DENSITY_EXPLORATORY_SEED_BASE,
         "density_exploratory_topic": CYCLE8_DENSITY_EXPLORATORY_TOPIC,
+        "letter_exploratory_seed_base": CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
+        "letter_exploratory_topic": CYCLE8_LETTER_EXPLORATORY_TOPIC,
         "scale_pair_count": CYCLE8_SCALE_PAIR_COUNT,
         "confirmation_reserved_seed_bases": list(CYCLE8_CONFIRMATION_RESERVED_SEED_BASES),
         "selection_rule": (
@@ -106,7 +112,9 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
             "Do not inspect 830000, 840000, or 850000. Do not generate 950000 until "
             "the U+034F x1 mechanism is frozen. Density seed 960000 and topic "
             "'carrier density follow-up' were reserved in global-seed-ledger-v1 "
-            "before density generation. Do not retune on Cycle 6 formal residuals."
+            "before density generation. Letter seed 970000 and topic "
+            "'intra-word carrier follow-up' were reserved in global-seed-ledger-v1 "
+            "before letter generation. Do not retune on Cycle 6 formal residuals."
         ),
     }
 
@@ -131,6 +139,8 @@ def role_for_seed_base(seed_base: int) -> str | None:
         return CYCLE8_SCALE_VALIDATION_ROLE
     if seed_base in CYCLE8_DENSITY_EXPLORATORY_SEED_BASES:
         return CYCLE8_DENSITY_EXPLORATORY_ROLE
+    if seed_base in CYCLE8_LETTER_EXPLORATORY_SEED_BASES:
+        return CYCLE8_LETTER_EXPLORATORY_ROLE
     if seed_base in CYCLE8_CONFIRMATION_RESERVED_SEED_BASES:
         return CYCLE8_CONFIRMATION_RESERVED_ROLE
     return None
@@ -162,5 +172,6 @@ def ledger_roles() -> Mapping[str, Sequence[int]]:
         CYCLE8_SCALE_REPLICATION_ROLE: CYCLE8_SCALE_REPLICATION_SEED_BASES,
         CYCLE8_SCALE_VALIDATION_ROLE: CYCLE8_SCALE_VALIDATION_SEED_BASES,
         CYCLE8_DENSITY_EXPLORATORY_ROLE: CYCLE8_DENSITY_EXPLORATORY_SEED_BASES,
+        CYCLE8_LETTER_EXPLORATORY_ROLE: CYCLE8_LETTER_EXPLORATORY_SEED_BASES,
         CYCLE8_CONFIRMATION_RESERVED_ROLE: CYCLE8_CONFIRMATION_RESERVED_SEED_BASES,
     }

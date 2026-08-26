@@ -26,13 +26,19 @@ if TYPE_CHECKING:
 
 CYCLE7_QUOTE_SAFE_DURABLE_POLICY_ID = "quote-container-durable-v1"
 CYCLE7_QUOTE_SAFE_MIXED_POLICY_ID = "quote-container-durable-or-spacing-v1"
+PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID = "quote-visible-carrier-v1"
 
 QUOTE_INTERIOR_POLICY_IDS = frozenset(
     {
         QUOTE_SAFE_SURFACE_POLICY_ID,
         CYCLE7_QUOTE_SAFE_DURABLE_POLICY_ID,
         CYCLE7_QUOTE_SAFE_MIXED_POLICY_ID,
+        PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID,
     }
+)
+_PRODUCT_VISIBLE_CARRIER_RULE_PREFIXES = (
+    "product-carrier-letter-",
+    "product-carrier-word-final-letter-",
 )
 
 _DURABLE_RULE_PREFIXES = (
@@ -74,6 +80,13 @@ def is_cycle7_quote_durable_rule_id(rule_id: str) -> bool:
     return rule_id.startswith(_DURABLE_RULE_PREFIXES)
 
 
+def is_product_visible_carrier_rule(rule: object) -> bool:
+    rule_id = getattr(rule, "rule_id", "")
+    if not isinstance(rule_id, str) or not rule_id:
+        return False
+    return rule_id.startswith(_PRODUCT_VISIBLE_CARRIER_RULE_PREFIXES)
+
+
 def quote_interior_rule_allowed(quote_policy_id: str, rule: object) -> bool:
     if quote_policy_id == QUOTE_SAFE_SURFACE_POLICY_ID:
         return is_quote_safe_surface_rule(rule)
@@ -81,6 +94,8 @@ def quote_interior_rule_allowed(quote_policy_id: str, rule: object) -> bool:
         return is_cycle7_quote_durable_rule(rule)
     if quote_policy_id == CYCLE7_QUOTE_SAFE_MIXED_POLICY_ID:
         return is_quote_safe_surface_rule(rule) or is_cycle7_quote_durable_rule(rule)
+    if quote_policy_id == PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID:
+        return is_product_visible_carrier_rule(rule)
     return False
 
 

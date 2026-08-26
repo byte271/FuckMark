@@ -17,9 +17,17 @@ Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for vi
 
 ## H2. Carrier runs at space boundaries
 
-`HYPOTHESIS`. Repeating an approved carrier after existing ASCII spaces increases hidden payload without splitting `[A-Za-z]+` words, so historical hard-invariant word matching still passes. This is the TransformRegistry-compatible high-density channel. Intra-word insertion is tokenizer-diagnostic only because it breaks the frozen hard-invariant word regex.
+`HYPOTHESIS` for the space-x1 product-research arm. Repeating an approved carrier after existing ASCII spaces increases hidden payload without splitting `[A-Za-z]+` words, so historical hard-invariant word matching still passes. Word-final ASCII letter x1 (`[A-Za-z](?![A-Za-z])`) plus space x1 was a detector-blind density follow-up on reserved seed `960000`. On that 16-pair corpus both space x1 and space-wordfinal were **1/16** raw transformed WM on the same residual row. Density did not beat space x1. Space-x1 scale remains **1/64** on seed `930000` and **0/64** on seed `940000` (combined **1/128**). These space-x1 results are frozen. Do not rewrite them as zero.
 
-Word-final ASCII letter x1 (`[A-Za-z](?![A-Za-z])`) plus space x1 was a detector-blind density follow-up on reserved seed `960000`. It is not every-letter insertion. Sites that would split contracted words such as `don't` are fail-closed by the frozen hard-invariant validator. On that 16-pair corpus both space x1 and space-wordfinal were **1/16** raw transformed WM on the same residual row, with word-final about 2x insertions. Density did not beat space x1. This arm is not product-authorized.
+## H10. Intra-word visible-preserving letter carrier
+
+`HYPOTHESIS` / `PROMISING_DEVELOPMENT`. The frozen hard-invariant word regex is a raw-byte check. User-visible words are the Priority Zero object, so the letter arm computes negation/modality signatures on `project_visible_v1` and opt-in quote-interior policy `quote-visible-carrier-v1` allows approved letter carriers inside surface-editable quotations without changing quote delimiters. Machine spans (URLs, paths, code, numbers) stay blocked on raw protected-span identity. A detector-blind selected-site cap of 192 keeps GPT-2 context under 1024 tokens.
+
+Letter-x1 is **not** in `release_transform_registry()`. Space-x1 still uses blanket quotes and raw word signatures.
+
+Diagnostic rescore of seen corpora (not unseen): `960000` n=16 **0/16**, `930000` n=64 **0/64**, `940000` n=64 **0/64**. Independent reserved seed `970000` is **0/16** then **0/64**. Experimental letter-x1 **0/192** = seen `930000` n=64 plus seen `940000` n=64 plus independent `970000` n=64 (**128/192 seen**, **64/192 independent**). Matched unwatermarked controls stayed clean. Visible projection passed on every scored letter row. Still `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Not confirmation. Not a freeze. Public CLI remains empty. Do not generate `950000`.
+
+Intra-word insertion is no longer treated as tokenizer-diagnostic-only. It is the current strongest visible-invariant U+034F arm.
 
 ## H3-H8
 

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from .._validation import require_int
 from ..hashing import sha256_json
 from ..transforms.candidate_artifacts import CandidateEnumeration, _build_conflicts
 from ..transforms.cycle7_quote_policy import QUOTE_INTERIOR_POLICY_IDS
-from ..transforms.hard_invariants import validate_hard_invariants
+from ..transforms.hard_invariants import HardInvariantReport, validate_hard_invariants
 from ..transforms.quote_policy import BLANKET_QUOTE_PROTECTION_POLICY_ID
 from ..transforms.registry import (
     TRANSFORM_REGISTRY_ALGORITHM_VERSION,
@@ -13,6 +14,12 @@ from ..transforms.registry import (
     _make_rejection,
 )
 from ..transforms.schema import CandidateRejectionReason, InvariantStatus
+from .carrier_invariants import (
+    WORD_SIGNATURE_SOURCE_RAW,
+    WORD_SIGNATURE_SOURCES,
+    WORD_SIGNATURE_SOURCE_VISIBLE,
+    validate_product_carrier_invariants,
+)
 from .carriers import rule_preserves_visible_projection
 from .contract import PRODUCT_CONTRACT_ID
 from .domain import is_supported_product_domain_v1
@@ -24,7 +31,7 @@ PRODUCT_REGISTRY_ALGORITHM_VERSION = "product-transform-registry-v2"
 
 
 class ProductTransformRegistry(TransformRegistry):
-    __slots__ = ("_approved_carriers",)
+    __slots__ = ("_approved_carriers", "_word_signature_source", "_max_selected")
 
     def __init__(
         self,
@@ -33,8 +40,18 @@ class ProductTransformRegistry(TransformRegistry):
         *,
         approved_carriers: Sequence[int] = (),
         quote_policy_id: str = BLANKET_QUOTE_PROTECTION_POLICY_ID,
+        word_signature_source: str = WORD_SIGNATURE_SOURCE_RAW,
+        max_selected: int | None = None,
     ) -> None:
+        if word_signature_source not in WORD_SIGNATURE_SOURCES:
+            raise ValueError("unsupported word signature source")
+        if max_selected is not None:
+            require_int("max_selected", max_selected)
+            if max_selected <= 0:
+                raise ValueError("max_selected must be positive")
         self._approved_carriers = tuple(sorted(normalize_approved_carriers(approved_carriers)))
+        self._word_signature_source = word_signature_source
+        self._max_selected = max_selected
         super().__init__(
             rules,
             identifiers,
@@ -49,11 +66,49 @@ class ProductTransformRegistry(TransformRegistry):
             "quote_policy_id": quote_policy_id,
             "rules": self.rules,
         }
+        if word_signature_source != WORD_SIGNATURE_SOURCE_RAW:
+            payload["word_signature_source"] = word_signature_source
+        if max_selected is not None:
+            payload["max_selected"] = max_selected
         self._ruleset_hash = sha256_json(payload)
 
     @property
     def approved_carriers(self) -> tuple[int, ...]:
         return self._approved_carriers
+
+    @property
+    def word_signature_source(self) -> str:
+        return self._word_signature_source
+
+    @property
+    def max_selected(self) -> int | None:
+        return self._max_selected
+
+    def _trial_invariants(
+        self,
+        original: str,
+        trial: str,
+        identifiers: Sequence[str],
+        user_ranges,
+        *,
+        include_quotations: bool,
+    ) -> HardInvariantReport:
+        if self._word_signature_source == WORD_SIGNATURE_SOURCE_VISIBLE:
+            return validate_product_carrier_invariants(
+                original,
+                trial,
+                identifiers,
+                user_ranges,
+                include_quotations=include_quotations,
+                approved_carriers=self._approved_carriers,
+            )
+        return validate_hard_invariants(
+            original,
+            trial,
+            identifiers,
+            user_ranges,
+            include_quotations=include_quotations,
+        )
 
     def enumerate(self, text: str, user_ranges=()) -> CandidateEnumeration:
         original = super().enumerate(text, user_ranges)
@@ -99,7 +154,7 @@ class ProductTransformRegistry(TransformRegistry):
                     )
                 )
                 continue
-            invariant_report = validate_hard_invariants(
+            invariant_report = self._trial_invariants(
                 text,
                 trial,
                 self.identifiers,
@@ -149,7 +204,12 @@ class ProductTransformRegistry(TransformRegistry):
         )
 
     def apply(self, enumeration: CandidateEnumeration, candidate_ids: Sequence[str], seed: int = 0):
-        result = super().apply(enumeration, candidate_ids, seed=seed)
+        result = super().apply(
+            enumeration,
+            candidate_ids,
+            seed=seed,
+            invariant_validate=self._trial_invariants,
+        )
         report = validate_user_visible_invariants(
             enumeration.input_text,
             result.output_text,

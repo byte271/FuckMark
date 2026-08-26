@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from bisect import bisect_right
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 from .._validation import require_int, require_sha256
 from ..hashing import sha256_json, sha256_text
 from .candidate_artifacts import CandidateEnumeration, CandidateRejection, TransformCandidate, _build_conflicts
 from .format_rules import FormatBoundaryRule
-from .hard_invariants import validate_hard_invariants
+from .hard_invariants import HardInvariantReport, validate_hard_invariants
 from .lexical_audit import LexicalRuleAudit, LexicalRulePromotionError
 from .lexical_rules import LexicalTemplateRule, development_lexical_rules
 from .protected import ProtectedSpanExtractor
@@ -183,7 +183,14 @@ class TransformRegistry:
         payload = {"algorithm_version": TRANSFORM_REGISTRY_ALGORITHM_VERSION, "input_hash": input_hash, "ruleset_hash": self._ruleset_hash, "protected_manifest_hash": protected.manifest_hash, "candidates": ordered_candidates, "rejections": ordered_rejections, "conflicts": conflicts}
         return CandidateEnumeration(TRANSFORM_REGISTRY_ALGORITHM_VERSION, text, input_hash, self._ruleset_hash, protected, ordered_candidates, ordered_rejections, conflicts, sha256_json(payload))
 
-    def apply(self, enumeration: CandidateEnumeration, candidate_ids: Sequence[str], seed: int = 0) -> TransformResult:
+    def apply(
+        self,
+        enumeration: CandidateEnumeration,
+        candidate_ids: Sequence[str],
+        seed: int = 0,
+        *,
+        invariant_validate: Callable[..., HardInvariantReport] | None = None,
+    ) -> TransformResult:
         if not isinstance(enumeration, CandidateEnumeration):
             raise TypeError("enumeration must be a CandidateEnumeration")
         if enumeration.ruleset_hash != self._ruleset_hash:
@@ -240,7 +247,8 @@ class TransformRegistry:
         if selected and output_hash == input_hash:
             raise ValueError("non-empty candidate selection produced no net text change")
         quote_interior = self._quote_policy_id in QUOTE_INTERIOR_POLICY_IDS
-        invariant_report = validate_hard_invariants(
+        validator = validate_hard_invariants if invariant_validate is None else invariant_validate
+        invariant_report = validator(
             enumeration.input_text,
             output_text,
             self.identifiers,

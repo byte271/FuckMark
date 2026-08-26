@@ -7,6 +7,8 @@ from fuckmark.hashing import sha256_json
 from fuckmark.seeds.ledger import (
     CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES,
     CYCLE8_DENSITY_EXPLORATORY_SEED_BASE,
+    CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
+    CYCLE8_LETTER_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
     CYCLE8_SCALE_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_REPLICATION_SEED_BASE,
@@ -14,6 +16,7 @@ from fuckmark.seeds.ledger import (
     GLOBAL_SEED_LEDGER_VERSION,
     PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES,
     assert_new_cycle8_density_generation_seed,
+    assert_new_cycle8_letter_generation_seed,
     assert_new_cycle8_scale_generation_seed,
     assert_seed_not_confirmation_content,
     global_seed_ledger_hash,
@@ -68,7 +71,7 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
         assert_new_cycle8_scale_generation_seed(920000)
     bases = known_seed_bases()
     assert len(bases) == len(set(bases))
-    assert 930000 in bases and 940000 in bases and 950000 in bases and 960000 in bases
+    assert 930000 in bases and 940000 in bases and 950000 in bases and 960000 in bases and 970000 in bases
     density = row_for_seed_base(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
     assert density["generated"] is True
     assert density["scored"] is True
@@ -82,3 +85,14 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
         assert_new_cycle8_density_generation_seed(880000)
     with pytest.raises(ValueError, match="confirmation"):
         assert_new_cycle8_density_generation_seed(830000)
+    letter = row_for_seed_base(CYCLE8_LETTER_EXPLORATORY_SEED_BASE)
+    assert letter["generation_topic"] == CYCLE8_LETTER_EXPLORATORY_TOPIC == "intra-word carrier follow-up"
+    assert letter["generated"] is True
+    assert letter["scored"] is True
+    assert_new_cycle8_letter_generation_seed(CYCLE8_LETTER_EXPLORATORY_SEED_BASE)
+    with pytest.raises(ValueError, match="letter"):
+        assert_new_cycle8_letter_generation_seed(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
+    with pytest.raises(ValueError, match="frozen"):
+        assert_new_cycle8_letter_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)
+    with pytest.raises(ValueError, match="confirmation"):
+        assert_new_cycle8_letter_generation_seed(830000)

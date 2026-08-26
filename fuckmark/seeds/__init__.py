@@ -1,5 +1,8 @@
 from .ledger import (
     CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES,
+    CYCLE8_DENSITY_EXPLORATORY_SEED_BASE,
+    CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
+    CYCLE8_LETTER_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
     CYCLE8_SCALE_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_REPLICATION_SEED_BASE,
@@ -8,6 +11,8 @@ from .ledger import (
     CYCLE8_SCALE_VALIDATION_TOPIC,
     GLOBAL_SEED_LEDGER_VERSION,
     PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES,
+    assert_new_cycle8_density_generation_seed,
+    assert_new_cycle8_letter_generation_seed,
     assert_new_cycle8_scale_generation_seed,
     assert_seed_not_confirmation_content,
     global_seed_ledger_hash,
@@ -18,6 +23,9 @@ from .ledger import (
 
 __all__ = [
     "CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES",
+    "CYCLE8_DENSITY_EXPLORATORY_SEED_BASE",
+    "CYCLE8_LETTER_EXPLORATORY_SEED_BASE",
+    "CYCLE8_LETTER_EXPLORATORY_TOPIC",
     "CYCLE8_SCALE_EXPLORATORY_SEED_BASE",
     "CYCLE8_SCALE_EXPLORATORY_TOPIC",
     "CYCLE8_SCALE_REPLICATION_SEED_BASE",
@@ -26,6 +34,8 @@ __all__ = [
     "CYCLE8_SCALE_VALIDATION_TOPIC",
     "GLOBAL_SEED_LEDGER_VERSION",
     "PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES",
+    "assert_new_cycle8_density_generation_seed",
+    "assert_new_cycle8_letter_generation_seed",
     "assert_new_cycle8_scale_generation_seed",
     "assert_seed_not_confirmation_content",
     "global_seed_ledger_hash",

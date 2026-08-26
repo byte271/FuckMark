@@ -15,10 +15,12 @@ CYCLE8_SCALE_EXPLORATORY_SEED_BASE = 930_000
 CYCLE8_SCALE_REPLICATION_SEED_BASE = 940_000
 CYCLE8_SCALE_VALIDATION_SEED_BASE = 950_000
 CYCLE8_DENSITY_EXPLORATORY_SEED_BASE = 960_000
+CYCLE8_LETTER_EXPLORATORY_SEED_BASE = 970_000
 CYCLE8_SCALE_EXPLORATORY_TOPIC = "carrier scaling"
 CYCLE8_SCALE_REPLICATION_TOPIC = "independent scale replication"
 CYCLE8_SCALE_VALIDATION_TOPIC = "clean scale validation"
 CYCLE8_DENSITY_EXPLORATORY_TOPIC = "carrier density follow-up"
+CYCLE8_LETTER_EXPLORATORY_TOPIC = "intra-word carrier follow-up"
 
 
 def _row(
@@ -83,10 +85,11 @@ def global_seed_rows() -> tuple[dict[str, object], ...]:
         _row(900000, "cycle8", "exploratory_replication", "invisible carrier replication", "cycle8-seed-ledger-v1", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 tiny n=4 replication. Spent as unseen validation."),
         _row(910000, "cycle8", "validation_development", "invisible carrier validation", "cycle8-seed-ledger-v1", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 tiny n=4 validation. Spent. Do not reuse as future clean validation."),
         _row(920000, "cycle8", "exploratory_development", "invisible carrier development", "cycle8-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 secondary exploratory. Unused. Not a confirmation reserve."),
-        _row(930000, "cycle8", "scale_exploratory_development", CYCLE8_SCALE_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. U+034F x1 scale exploratory: 0/16, 0/32, then 1/64 raw transformed WM. Do not rewrite 1/64 as zero. Not confirmation."),
-        _row(940000, "cycle8", "scale_replication", CYCLE8_SCALE_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F x1 n=64 replication: 0/64 raw transformed WM. Max score 0.557052 vs threshold 0.557099. Does not erase 930000 1/64. Not confirmation."),
+        _row(930000, "cycle8", "scale_exploratory_development", CYCLE8_SCALE_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. U+034F space x1 scale exploratory: 0/16, 0/32, then 1/64 raw transformed WM. Letter-x1 diagnostic rescore of this seen corpus is 0/64. Do not rewrite space 1/64 as zero. Not confirmation."),
+        _row(940000, "cycle8", "scale_replication", CYCLE8_SCALE_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F space x1 n=64 replication: 0/64 raw transformed WM. Max score 0.557052 vs threshold 0.557099. Letter-x1 diagnostic rescore of this seen corpus is 0/64. Does not erase space-x1 930000 1/64. Not confirmation."),
         _row(950000, "cycle8", "scale_validation", CYCLE8_SCALE_VALIDATION_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=True, notes="Reserved before generation. Clean unseen validation after mechanism freeze. Do not generate until U+034F x1 is frozen."),
-        _row(960000, "cycle8", "density_exploratory_development", CYCLE8_DENSITY_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Detector-blind U+034F space plus word-final letter n=16: space-x1 1/16 and space-wordfinal 1/16 on the same residual row. Density did not beat space-x1. Do not rewrite 1/16 as zero. Do not inspect residual text to write lexical rules. Not confirmation."),
+        _row(960000, "cycle8", "density_exploratory_development", CYCLE8_DENSITY_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Detector-blind U+034F space plus word-final letter n=16: space-x1 1/16 and space-wordfinal 1/16 on the same residual row. Density did not beat space-x1. Letter-x1 diagnostic rescore of this seen corpus is 0/16. Do not rewrite space 1/16 as zero. Do not inspect residual text to write lexical rules. Not confirmation."),
+        _row(970000, "cycle8", "letter_exploratory_development", CYCLE8_LETTER_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F letter-x1: n=16 0/16 then n=64 0/64 raw transformed WM, 0 UW, visible 128/128. Experimental letter-x1 0/192 = seen diagnostic 930000 n=64 0/64 plus 940000 n=64 0/64 plus independent 970000 n=64 0/64 (128/192 seen, 64/192 independent). Do not rewrite space-x1 1/64 or 1/16 as zero. Do not generate 950000. Not confirmation."),
         _row(1120000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1130000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1140000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
@@ -107,8 +110,9 @@ def global_seed_ledger_payload() -> dict[str, object]:
             "Every new development, validation, or confirmation seed must be reserved "
             "in this ledger before generation. Seed 880000 is PUBLICLY_EXPOSED by PR #98 "
             "and is not eligible as unseen validation. Do not inspect 830000, 840000, or "
-            "850000. Do not generate 950000 until the U+034F x1 mechanism is frozen. "
-            "Seed 960000 is reserved for detector-blind density follow-up."
+            "850000. Do not generate 950000 until a stronger mechanism is frozen. "
+            "Seed 960000 is reserved for detector-blind density follow-up. "
+            "Seed 970000 is reserved for detector-blind intra-word letter-carrier follow-up."
         ),
         "confirmation_content_forbidden_seed_bases": list(CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES),
         "publicly_exposed_unseen_invalid_seed_bases": list(PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES),
@@ -120,6 +124,8 @@ def global_seed_ledger_payload() -> dict[str, object]:
         "cycle8_scale_validation_topic": CYCLE8_SCALE_VALIDATION_TOPIC,
         "cycle8_density_exploratory_seed_base": CYCLE8_DENSITY_EXPLORATORY_SEED_BASE,
         "cycle8_density_exploratory_topic": CYCLE8_DENSITY_EXPLORATORY_TOPIC,
+        "cycle8_letter_exploratory_seed_base": CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
+        "cycle8_letter_exploratory_topic": CYCLE8_LETTER_EXPLORATORY_TOPIC,
         "rows": list(rows),
     }
 
@@ -164,6 +170,20 @@ def assert_new_cycle8_density_generation_seed(seed_base: int) -> None:
         raise ValueError("scale validation seed is reserved until the U+034F x1 mechanism is frozen")
     if seed_base != CYCLE8_DENSITY_EXPLORATORY_SEED_BASE:
         raise ValueError("seed_base is not a Cycle 8 density generation seed")
+    if row["eligible_for_confirmation"] is True:
+        raise ValueError("confirmation-reserved seeds must not be used for development")
+    if row["eligible_as_unseen_validation"] is True:
+        raise ValueError("unseen validation seeds must not be used for development generation")
+
+
+def assert_new_cycle8_letter_generation_seed(seed_base: int) -> None:
+    require_int("seed_base", seed_base)
+    assert_seed_not_confirmation_content(seed_base)
+    row = row_for_seed_base(seed_base)
+    if seed_base == CYCLE8_SCALE_VALIDATION_SEED_BASE:
+        raise ValueError("scale validation seed is reserved until the U+034F x1 mechanism is frozen")
+    if seed_base != CYCLE8_LETTER_EXPLORATORY_SEED_BASE:
+        raise ValueError("seed_base is not a Cycle 8 letter generation seed")
     if row["eligible_for_confirmation"] is True:
         raise ValueError("confirmation-reserved seeds must not be used for development")
     if row["eligible_as_unseen_validation"] is True:

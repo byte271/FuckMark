@@ -30,6 +30,8 @@ from .cycle8.ledger import (
     CYCLE8_SCALE_VALIDATION_TOPIC,
     CYCLE8_DENSITY_EXPLORATORY_ROLE,
     CYCLE8_DENSITY_EXPLORATORY_TOPIC,
+    CYCLE8_LETTER_EXPLORATORY_ROLE,
+    CYCLE8_LETTER_EXPLORATORY_TOPIC,
     CYCLE8_VALIDATION_ROLE,
     CYCLE8_VALIDATION_TOPIC,
     assert_cycle8_development_seed,
@@ -153,7 +155,9 @@ def _topic_for_seed(seed_base: int) -> str:
         return CYCLE8_SCALE_VALIDATION_TOPIC
     if role == CYCLE8_DENSITY_EXPLORATORY_ROLE:
         return CYCLE8_DENSITY_EXPLORATORY_TOPIC
-    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, or density seeds")
+    if role == CYCLE8_LETTER_EXPLORATORY_ROLE:
+        return CYCLE8_LETTER_EXPLORATORY_TOPIC
+    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, density, or letter seeds")
 
 
 def _generate_cycle8_samples(
@@ -395,8 +399,17 @@ def run_cycle8_detector_compare(
     )
 
 
-def rescore_cycle8_detector_compare(previous: dict[str, object], *, device: str = "cpu") -> dict[str, object]:
+def rescore_cycle8_detector_compare(
+    previous: dict[str, object],
+    *,
+    device: str = "cpu",
+    arm_ids: tuple[str, ...] | None = None,
+    sanitizer_ids: tuple[str, ...] | None = None,
+    sanitize=None,
+    algorithm_version: str | None = None,
+) -> dict[str, object]:
     from .cycle7_stage_a_hf import _adapter_and_tokenizer
+    from .cycle8.sanitize import CYCLE8_SCALE_SANITIZER_VARIANT_IDS, sanitize_cycle8_scale_variant
 
     seed_base = int(previous["seed_base"])
     role = role_for_seed_base(seed_base)
@@ -405,15 +418,24 @@ def rescore_cycle8_detector_compare(previous: dict[str, object], *, device: str 
     assert_cycle8_development_seed(seed_base, role=role)
     _backend, tokenizer, adapter, _identity_hash, eos = _adapter_and_tokenizer(device)
     samples = tuple(previous["samples"])
-    arm_ids = tuple(previous.get("arm_ids") or CYCLE8_DETECTOR_ARM_IDS)
-    sanitizer_ids = tuple(previous.get("sanitizer_ids") or CYCLE7_SANITIZER_VARIANT_IDS)
+    resolved_arm_ids = tuple(arm_ids) if arm_ids is not None else tuple(previous.get("arm_ids") or CYCLE8_DETECTOR_ARM_IDS)
+    resolved_sanitizer_ids = (
+        tuple(sanitizer_ids) if sanitizer_ids is not None else tuple(previous.get("sanitizer_ids") or CYCLE7_SANITIZER_VARIANT_IDS)
+    )
+    if sanitize is None:
+        sanitize = (
+            sanitize_cycle8_scale_variant
+            if "nfc" in resolved_sanitizer_ids or resolved_sanitizer_ids == CYCLE8_SCALE_SANITIZER_VARIANT_IDS
+            else sanitize_cycle7_variant
+        )
     geometry_rows, scored_rows, summaries = _evaluate_samples(
         samples,
         tokenizer,
         adapter,
         eos,
-        arm_ids=arm_ids,
-        sanitizer_ids=sanitizer_ids,
+        arm_ids=resolved_arm_ids,
+        sanitizer_ids=resolved_sanitizer_ids,
+        sanitize=sanitize,
     )
     return _build_detector_artifact(
         samples,
@@ -421,9 +443,9 @@ def rescore_cycle8_detector_compare(previous: dict[str, object], *, device: str 
         scored_rows,
         summaries,
         seed_base=seed_base,
-        algorithm_version=str(previous.get("algorithm_version") or CYCLE8_DETECTOR_VERSION),
-        arm_ids=arm_ids,
-        sanitizer_ids=sanitizer_ids,
+        algorithm_version=str(algorithm_version or previous.get("algorithm_version") or CYCLE8_DETECTOR_VERSION),
+        arm_ids=resolved_arm_ids,
+        sanitizer_ids=resolved_sanitizer_ids,
         pair_count=previous.get("pair_count"),
     )
 

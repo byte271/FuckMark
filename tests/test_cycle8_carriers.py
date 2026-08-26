@@ -56,12 +56,15 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert payload["validation_development_seed_base"] == CYCLE8_VALIDATION_SEED_BASE == 910_000
     assert payload["scale_exploratory_seed_base"] == CYCLE8_SCALE_EXPLORATORY_SEED_BASE == 930_000
     assert payload["density_exploratory_seed_base"] == 960_000
+    assert payload["letter_exploratory_seed_base"] == 970_000
+    assert payload["letter_exploratory_topic"] == "intra-word carrier follow-up"
     assert payload["confirmation_reserved_seed_bases"] == [830_000, 840_000, 850_000]
     assert payload["cycle7_publicly_exposed_validation_seed_base"] == 880_000
     assert cycle8_seed_ledger_hash()
     assert_cycle8_development_seed(890_000, role="exploratory_development")
     assert_cycle8_development_seed(930_000, role="scale_exploratory_development")
     assert_cycle8_development_seed(960_000, role="density_exploratory_development")
+    assert_cycle8_development_seed(970_000, role="letter_exploratory_development")
     with pytest.raises(ValueError):
         assert_cycle8_development_seed(760_000, role="exploratory_development")
     with pytest.raises(ValueError, match="publicly exposed|spent or reserved"):

@@ -10,6 +10,7 @@ from .invariants import validate_protected_invariants
 from .cycle7_quote_policy import (
     CYCLE7_QUOTE_SAFE_DURABLE_POLICY_ID,
     CYCLE7_QUOTE_SAFE_MIXED_POLICY_ID,
+    PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID,
     validate_cycle7_quote_operations,
 )
 from .quote_policy import QUOTE_SAFE_SURFACE_POLICY_ID, validate_quote_safe_surface_operations
@@ -189,16 +190,30 @@ class TransformResult:
                 raise ValueError("operation source span extends beyond reconstructed input")
             if reconstructed_input[operation.source_start:operation.source_end] != operation.before_text:
                 raise ValueError("operation source geometry does not match reconstructed input")
-        if hard_invariant_signature(reconstructed_input) != self.trace.invariant_report.original_signature:
-            raise ValueError("trace original hard-invariant signature does not match reconstructed input")
-        if hard_invariant_signature(self.output_text) != self.trace.invariant_report.transformed_signature:
-            raise ValueError("trace transformed hard-invariant signature does not match output_text")
         quote_spacing = self.trace.selection_policy_id.endswith(
             f":{QUOTE_SAFE_SURFACE_POLICY_ID}"
         )
         quote_cycle7 = self.trace.selection_policy_id.endswith(
             (f":{CYCLE7_QUOTE_SAFE_DURABLE_POLICY_ID}", f":{CYCLE7_QUOTE_SAFE_MIXED_POLICY_ID}")
         )
+        quote_product_visible = self.trace.selection_policy_id.endswith(
+            f":{PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID}"
+        )
+        original_for_signature = reconstructed_input
+        transformed_for_signature = self.output_text
+        if quote_product_visible:
+            from ..product.visible_projection import project_visible_v1
+
+            approved = []
+            for operation in self.trace.operations:
+                if operation.after_text.startswith(operation.before_text):
+                    approved.extend(ord(character) for character in operation.after_text[len(operation.before_text) :])
+            original_for_signature = project_visible_v1(reconstructed_input, approved)
+            transformed_for_signature = project_visible_v1(self.output_text, approved)
+        if hard_invariant_signature(original_for_signature) != self.trace.invariant_report.original_signature:
+            raise ValueError("trace original hard-invariant signature does not match reconstructed input")
+        if hard_invariant_signature(transformed_for_signature) != self.trace.invariant_report.transformed_signature:
+            raise ValueError("trace transformed hard-invariant signature does not match output_text")
         if quote_spacing:
             validate_quote_safe_surface_operations(reconstructed_input, self.trace.operations)
         elif quote_cycle7:
@@ -211,7 +226,7 @@ class TransformResult:
         if validate_protected_invariants(
             reconstructed_input,
             self.output_text,
-            include_quotations=not (quote_spacing or quote_cycle7),
+            include_quotations=not (quote_spacing or quote_cycle7 or quote_product_visible),
         ).status is not InvariantStatus.PASS:
             raise ValueError("transform result violates default protected-content invariants")
         require_sha256("result_hash", self.result_hash)

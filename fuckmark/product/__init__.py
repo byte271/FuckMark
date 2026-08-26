@@ -1,3 +1,9 @@
+from .carrier_invariants import (
+    PRODUCT_CARRIER_INVARIANT_ALGORITHM_VERSION,
+    WORD_SIGNATURE_SOURCE_RAW,
+    WORD_SIGNATURE_SOURCE_VISIBLE,
+    validate_product_carrier_invariants,
+)
 from .carriers import (
     InvisibleCarrierAfterAsciiLetterRule,
     InvisibleCarrierAfterWordFinalAsciiLetterRule,
@@ -31,6 +37,7 @@ from .visible_projection import (
 __all__ = [
     "InvisibleCarrierAfterAsciiLetterRule",
     "InvisibleCarrierAfterWordFinalAsciiLetterRule",
+    "PRODUCT_CARRIER_INVARIANT_ALGORITHM_VERSION",
     "PRODUCT_CONTRACT_ID",
     "PRODUCT_CONTRACT_PATH",
     "PRODUCT_DOMAIN_ID",
@@ -52,5 +59,8 @@ __all__ = [
     "project_visible_v1",
     "rule_preserves_visible_projection",
     "space_carrier_rule",
+    "validate_product_carrier_invariants",
     "validate_user_visible_invariants",
+    "WORD_SIGNATURE_SOURCE_RAW",
+    "WORD_SIGNATURE_SOURCE_VISIBLE",
 ]
