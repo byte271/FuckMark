@@ -22,6 +22,8 @@ CYCLE8_MARGIN_PRIMARY_SEED_BASE = 1_000_000
 CYCLE8_MARGIN_REPLICATION_SEED_BASE = 1_010_000
 CYCLE8_MIX_PRIMARY_SEED_BASE = 1_020_000
 CYCLE8_MIX_REPLICATION_SEED_BASE = 1_030_000
+CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE = 1_040_000
+CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE = 1_050_000
 CYCLE8_SCALE_EXPLORATORY_TOPIC = "carrier scaling"
 CYCLE8_SCALE_REPLICATION_TOPIC = "independent scale replication"
 CYCLE8_SCALE_VALIDATION_TOPIC = "clean scale validation"
@@ -33,6 +35,8 @@ CYCLE8_MARGIN_PRIMARY_TOPIC = "margin robustness development"
 CYCLE8_MARGIN_REPLICATION_TOPIC = "margin robustness replication"
 CYCLE8_MIX_PRIMARY_TOPIC = "letter mix margin development"
 CYCLE8_MIX_REPLICATION_TOPIC = "letter mix margin replication"
+CYCLE8_MIX_SCALE_PRIMARY_TOPIC = "letter mix scale development"
+CYCLE8_MIX_SCALE_REPLICATION_TOPIC = "letter mix scale replication"
 
 
 def _row(
@@ -108,6 +112,8 @@ def global_seed_rows() -> tuple[dict[str, object], ...]:
         _row(1010000, "cycle8", "margin_robustness_replication", CYCLE8_MARGIN_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent letter-space n=64: letter-x1 1/64, letter-space 1/64 on the same residual row, identity 64/64, UW letter-space 0/64. Combined letter-space 1/128. Residual text not inspected. Not confirmation. Do not generate 950000."),
         _row(1020000, "cycle8", "mix_margin_primary", CYCLE8_MIX_PRIMARY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. U+034F/U+FE00 letter-alt n=64: mix 0/64 raw WM, letter-x1 0/64, identity 64/64, visible 128/128. Mix max 0.51369 versus threshold 0.55710 (gap 0.04341). Not confirmation. Do not generate 950000."),
         _row(1030000, "cycle8", "mix_margin_replication", CYCLE8_MIX_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F/U+FE00 letter-alt n=64: mix 0/64 raw WM, letter-x1 0/64, identity 64/64, mix UW 0/64. Mix max 0.51307. Combined with 1020000: mix 0/128, worst max 0.51369, gap 0.04341. Not confirmation. Do not generate 950000."),
+        _row(1040000, "cycle8", "mix_scale_primary", CYCLE8_MIX_SCALE_PRIMARY_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Third independent U+034F/U+FE00 letter-mix n=64 for wider-N development. Not confirmation. Do not generate 950000. Do not inspect 830000, 840000, or 850000."),
+        _row(1050000, "cycle8", "mix_scale_replication", CYCLE8_MIX_SCALE_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Fourth independent U+034F/U+FE00 letter-mix n=64. Not confirmation. Do not generate 950000. Do not inspect 830000, 840000, or 850000."),
         _row(1120000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1130000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1140000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
@@ -135,7 +141,9 @@ def global_seed_ledger_payload() -> dict[str, object]:
             "Seeds 1000000 and 1010000 are reserved for detector-blind letter-plus-space "
             "margin robustness follow-up. "
             "Seeds 1020000 and 1030000 are reserved for detector-blind U+034F/U+FE00 "
-            "letter-mix margin follow-up."
+            "letter-mix margin follow-up. "
+            "Seeds 1040000 and 1050000 are reserved for detector-blind letter-mix "
+            "scale follow-up."
         ),
         "confirmation_content_forbidden_seed_bases": list(CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES),
         "publicly_exposed_unseen_invalid_seed_bases": list(PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES),
@@ -161,6 +169,10 @@ def global_seed_ledger_payload() -> dict[str, object]:
         "cycle8_mix_primary_topic": CYCLE8_MIX_PRIMARY_TOPIC,
         "cycle8_mix_replication_seed_base": CYCLE8_MIX_REPLICATION_SEED_BASE,
         "cycle8_mix_replication_topic": CYCLE8_MIX_REPLICATION_TOPIC,
+        "cycle8_mix_scale_primary_seed_base": CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE,
+        "cycle8_mix_scale_primary_topic": CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
+        "cycle8_mix_scale_replication_seed_base": CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
+        "cycle8_mix_scale_replication_topic": CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
         "rows": list(rows),
     }
 
@@ -259,7 +271,12 @@ def assert_new_cycle8_mix_generation_seed(seed_base: int) -> None:
     row = row_for_seed_base(seed_base)
     if seed_base == CYCLE8_SCALE_VALIDATION_SEED_BASE:
         raise ValueError("scale validation seed is reserved until the U+034F x1 mechanism is frozen")
-    if seed_base not in {CYCLE8_MIX_PRIMARY_SEED_BASE, CYCLE8_MIX_REPLICATION_SEED_BASE}:
+    if seed_base not in {
+        CYCLE8_MIX_PRIMARY_SEED_BASE,
+        CYCLE8_MIX_REPLICATION_SEED_BASE,
+        CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE,
+        CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
+    }:
         raise ValueError("seed_base is not a Cycle 8 letter-mix generation seed")
     if row["eligible_for_confirmation"] is True:
         raise ValueError("confirmation-reserved seeds must not be used for development")

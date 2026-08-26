@@ -21,6 +21,10 @@ from fuckmark.seeds.ledger import (
     CYCLE8_MIX_PRIMARY_TOPIC,
     CYCLE8_MIX_REPLICATION_SEED_BASE,
     CYCLE8_MIX_REPLICATION_TOPIC,
+    CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE,
+    CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
+    CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
+    CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
     CYCLE8_SCALE_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_REPLICATION_SEED_BASE,
@@ -90,6 +94,7 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
     assert 980000 in bases and 990000 in bases
     assert 1000000 in bases and 1010000 in bases
     assert 1020000 in bases and 1030000 in bases
+    assert 1040000 in bases and 1050000 in bases
     density = row_for_seed_base(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
     assert density["generated"] is True
     assert density["scored"] is True
@@ -151,6 +156,15 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
     assert mix_replica["generation_topic"] == CYCLE8_MIX_REPLICATION_TOPIC == "letter mix margin replication"
     assert mix_replica["generated"] is True
     assert mix_replica["scored"] is True
+    mix_scale = row_for_seed_base(CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE)
+    assert mix_scale["generation_topic"] == CYCLE8_MIX_SCALE_PRIMARY_TOPIC == "letter mix scale development"
+    assert mix_scale["generated"] is False
+    assert mix_scale["scored"] is False
+    assert_new_cycle8_mix_generation_seed(CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE)
+    assert_new_cycle8_mix_generation_seed(CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE)
+    mix_scale_replica = row_for_seed_base(CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE)
+    assert mix_scale_replica["generation_topic"] == CYCLE8_MIX_SCALE_REPLICATION_TOPIC == "letter mix scale replication"
+    assert mix_scale_replica["generated"] is False
     with pytest.raises(ValueError, match="mix"):
         assert_new_cycle8_mix_generation_seed(CYCLE8_MARGIN_PRIMARY_SEED_BASE)
     with pytest.raises(ValueError, match="frozen"):

@@ -39,5 +39,7 @@ See also `docs/seeds.md`.
 | Margin replication | 1010000 | margin robustness replication | reserved before generation; letter-space n=64 1/64; combined letter-space 1/128; do not rewrite as zero |
 | Mix primary | 1020000 | letter mix margin development | reserved before generation; letter-alt n=64 0/64, max 0.513691; not confirmation |
 | Mix replication | 1030000 | letter mix margin replication | reserved before generation; letter-alt n=64 0/64, max 0.513071; combined mix 0/128 gap 0.043407; not confirmation |
+| Mix scale primary | 1040000 | letter mix scale development | reserved before generation; not yet generated; not confirmation |
+| Mix scale replication | 1050000 | letter mix scale replication | reserved before generation; not yet generated; not confirmation |
 
 Do not promote any of these seeds into confirmation after seeing scores.

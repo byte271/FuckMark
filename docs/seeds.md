@@ -15,6 +15,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 - Seeds `980000` and `990000` are reserved for the letter-x1 system benchmark. They were reserved in `global-seed-ledger-v1` before generation.
 - Seeds `1000000` and `1010000` are reserved for letter-space margin follow-up. Combined letter-space is 1/128.
 - Seeds `1020000` and `1030000` are reserved for U+034F/U+FE00 letter-mix margin follow-up. Combined mix is 0/128.
+- Seeds `1040000` and `1050000` are reserved for letter-mix scale follow-up. They are not yet generated.
 
 ## Cycle 8 scale reservation (before generation)
 
@@ -31,6 +32,8 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 1010000 | margin replication | `margin robustness replication` | reserved before generation; letter-space n=64 1/64; combined letter-space 1/128; do not rewrite as zero |
 | 1020000 | mix primary | `letter mix margin development` | reserved before generation; letter-alt n=64 0/64, max 0.513691, gap 0.043407; not confirmation |
 | 1030000 | mix replication | `letter mix margin replication` | reserved before generation; letter-alt n=64 0/64, max 0.513071; combined mix 0/128; not confirmation |
+| 1040000 | mix scale primary | `letter mix scale development` | reserved before generation; not yet generated; not confirmation |
+| 1050000 | mix scale replication | `letter mix scale replication` | reserved before generation; not yet generated; not confirmation |
 
 ## Historical v1 Cycle 8 ledger
 
