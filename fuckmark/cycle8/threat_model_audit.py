@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import unicodedata
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from ..product.contract import FROZEN_PRODUCT_CONTRACT_HASH, product_contract_pa
 from ..sanitizer_robustness import strip_unicode_format_characters
 from .benchmark import strip_default_ignorable, strip_nonspacing_marks
 from .control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_keep
+from .letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 from .post_sanitizer_sequences import CYCLE8_POST_SANITIZER_SEQUENCES_HASH
 from .publishability import (
     CYCLE8_MIX_PUBLISHABILITY_HASH,
@@ -19,7 +21,7 @@ from .publishability import (
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "8e96a5c26b3e0ddbb403bf89333074d298115a1288a0a992ced3f7f19b567cdb"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "980f4ae6f17b7e6c2f86ed08236f63cab06e7fd1233612a7ee01cc3075472c06"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -31,6 +33,16 @@ SHAPING_FALLBACK_FONTS = (
 )
 SHAPING_LEFT = "A"
 SHAPING_RIGHT = "B"
+LM_WATERMARKING_UNICODE_SANITIZER_SOURCE = (
+    "jwkirchenbauer/lm-watermarking normalizers.py UnicodeSanitizer, ruleset='whitespaces', "
+    "the shipped default of WatermarkDetector(normalizers=['unicode'])"
+)
+LM_WATERMARKING_UNICODE_SANITIZER_PATTERN = re.compile(
+    "[\u00a0\u1680\u180e\u2000-\u200b\u200c\u200d\u200e\u200f\u2060\u2063\u202f\u205f\u3000"
+    "\ufeff\uffa0\ufff9\ufffa\ufffb\ufe00\ufe01\ufe02\ufe03\ufe04\ufe05\ufe06\ufe07\ufe08\ufe09"
+    "\ufe0a\ufe0b\ufe0c\ufe0d\ufe0e\ufe0f\u3164\u202a\u202b\u202c\u202d\u202e\u202f]"
+)
+REAL_SANITIZER_SOURCE = "I do not agree with that."
 SHAPING_CONTEXTS: tuple[tuple[str, str, str], ...] = (
     ("latin", "A", "B"),
     ("latin_lower", "n", "o"),
@@ -170,6 +182,51 @@ def sanitizer_deployability_damage() -> dict[str, dict[str, object]]:
     return report
 
 
+def lm_watermarking_unicode_sanitizer(text: str) -> str:
+    cleaned = unicodedata.normalize("NFC", text)
+    cleaned = LM_WATERMARKING_UNICODE_SANITIZER_PATTERN.sub(" ", cleaned)
+    cleaned = re.sub(" +", " ", cleaned)
+    return "".join(character for character in cleaned if unicodedata.category(character) != "Cc")
+
+
+def real_world_sanitizer_observations() -> dict[str, object]:
+    mixed = apply_letter_alternating_mix(REAL_SANITIZER_SOURCE)
+    cleaned = lm_watermarking_unicode_sanitizer(mixed)
+    carriers = sorted(LETTER_MIX_APPROVED_CARRIERS)
+    surviving = [
+        codepoint
+        for codepoint in carriers
+        if lm_watermarking_unicode_sanitizer(f"A{chr(codepoint)}B") == f"A{chr(codepoint)}B"
+    ]
+    invisible = list(iter_shaping_invisible_codepoints())
+    invisible_surviving = [
+        codepoint
+        for codepoint in invisible
+        if lm_watermarking_unicode_sanitizer(f"A{chr(codepoint)}B") == f"A{chr(codepoint)}B"
+    ]
+    corrupted = [
+        sample_id
+        for sample_id, text in DEPLOYABILITY_CORPUS
+        if lm_watermarking_unicode_sanitizer(text) != text
+    ]
+    return {
+        "source": LM_WATERMARKING_UNICODE_SANITIZER_SOURCE,
+        "shipped_on_by_default": True,
+        "steps": ["nfc", "regex_replace_with_space", "collapse_spaces", "cc_strip"],
+        "restores_the_unwatermarked_source": cleaned == REAL_SANITIZER_SOURCE,
+        "output_differs_from_source": cleaned != REAL_SANITIZER_SOURCE,
+        "injects_spurious_visible_spaces": cleaned.count(" ") > REAL_SANITIZER_SOURCE.count(" "),
+        "mix_carriers": [f"U+{codepoint:04X}" for codepoint in carriers],
+        "mix_carriers_surviving": [f"U+{codepoint:04X}" for codepoint in surviving],
+        "invisible_codepoints_surviving": len(invisible_surviving),
+        "invisible_codepoints_total": len(invisible),
+        "ordinary_text_corrupted": len(corrupted),
+        "ordinary_text_corpus_size": len(DEPLOYABILITY_CORPUS),
+        "ordinary_text_corrupted_sample_ids": corrupted,
+        "detection_after_this_sanitizer": "UNMEASURED",
+    }
+
+
 def contract_stress_only_sanitizers() -> tuple[str, ...]:
     assumptions = product_contract_payload()["sanitizer_assumptions"]
     return tuple(assumptions["stress_only_not_frozen"])
@@ -203,14 +260,20 @@ def proposed_gate_status_on_existing_evidence() -> dict[str, object]:
             measured["frozen_sanitizer_survive"],
             measured["frozen_sanitizer_total"],
         ],
-        "proposed_gate_v2_already_satisfied": (
+        "frozen_sanitizer_conditions_satisfied": (
             all(value == 0 for value in detected.values())
             and durability["frozen_sanitizers_match_raw"] is True
             and scorecard["effectiveness"]["transformed_wm"]["rate"] == "0/192"
             and scorecard["visibility"]["watermarked_pass_rate"] == "192/192"
             and measured["frozen_sanitizer_survive"] == measured["frozen_sanitizer_total"]
         ),
-        "adoption_still_blocked_on": "explicit product decision, not further carrier research",
+        "lm_watermarking_unicode_sanitizer_condition": "UNMEASURED",
+        "proposed_gate_v2_fully_satisfied": False,
+        "outstanding_measurement": (
+            "detection after the lm-watermarking UnicodeSanitizer, which removes U+FE00, keeps "
+            "U+034F, and injects spurious spaces; it does not restore the unwatermarked source"
+        ),
+        "adoption_still_blocked_on": "explicit product decision plus the outstanding measurement",
     }
 
 
@@ -238,11 +301,16 @@ def threat_model_audit_payload() -> dict[str, object]:
             "id": "q2_are_stress_sanitizers_realistic",
             "question": "Are Mn-strip and default-ignorable-strip realistic countermeasures?",
             "answer": (
-                "No. They are not deployable. Mn-strip corrupts Devanagari, Hebrew niqqud, Thai "
-                "and emoji presentation. Default-ignorable-strip corrupts Persian ZWNJ, emoji ZWJ "
-                "sequences and Devanagari conjuncts. A platform running either would corrupt "
-                "ordinary user text in widely used writing systems, so no detector vendor can "
-                "apply them as a preprocessing step."
+                "Neither is realistic, but the alternative is not 'no sanitizer exists'. Exactly "
+                "one real sanitizer ships on by default in the watermarking ecosystem: the "
+                "lm-watermarking UnicodeSanitizer, which is NFC plus a fixed BMP regex plus "
+                "Cc-strip, not Mn-strip or default-ignorable-strip. Measured here it leaves 366 "
+                "of the 396 invisible code points intact, including U+034F, and it corrupts 5 of "
+                "7 ordinary samples by replacing matches with spaces. Mn-strip and "
+                "default-ignorable-strip remain undeployable on their own terms: Mn-strip "
+                "corrupts Devanagari, Hebrew niqqud, Thai and emoji presentation, and "
+                "default-ignorable-strip corrupts Persian ZWNJ, emoji ZWJ sequences and "
+                "Devanagari conjuncts."
             ),
             "evidence": "evidence/h16-local/sanitizer-deployability.json",
         },
@@ -306,6 +374,7 @@ def threat_model_audit_payload() -> dict[str, object]:
         },
         "tokenizer_observations": [dict(row) for row in TOKENIZER_OBSERVATIONS],
         "sanitizer_deployability": damage,
+        "real_world_sanitizer": real_world_sanitizer_observations(),
         "contract_stress_only_sanitizers": list(stress_only),
         "gate_promotes_stress_only_sanitizers": gate_promotes_stress_only_sanitizers(),
         "findings": [dict(row) for row in findings],
@@ -316,7 +385,17 @@ def threat_model_audit_payload() -> dict[str, object]:
                 "rather than on carrier fixed-point survival under sanitizers that corrupt "
                 "ordinary text."
             ),
-            "required_sanitizers": ["raw", "nfc", "nfkc", "cf_strip", "nfkc_cf_strip", "ws_collapse"],
+            "required_sanitizers": [
+                "raw",
+                "nfc",
+                "nfkc",
+                "cf_strip",
+                "nfkc_cf_strip",
+                "ws_collapse",
+                "lm_watermarking_unicode_sanitizer",
+            ],
+            "added_since_first_draft": ["lm_watermarking_unicode_sanitizer"],
+            "addition_reason": "the only sanitizer measured here that really ships on by default",
             "excluded_sanitizers": list(stress_only),
             "exclusion_reason": "not deployable without corrupting ordinary multilingual text",
             "condition": "detector must not detect after each required sanitizer",
@@ -347,13 +426,19 @@ def threat_model_audit_payload() -> dict[str, object]:
             "requirement excludes. Meanwhile the two sanitizers that close the space, Mn-strip "
             "and default-ignorable-strip, are marked stress_only_not_frozen by the frozen product "
             "contract, are applied by no production detector tokenizer measured here, and corrupt "
-            "ordinary Devanagari, Hebrew, Thai, Persian and emoji text. Read against the already "
-            "recorded frozen confirmation evidence, and without running any new corpus, the "
-            "proposed gate is already met: identity detects 185 of 192, mix detects 0 of 192, "
-            "every deployable sanitizer still detects 0, and visible text passes 192 of 192. The "
-            "correct next step is therefore a product decision on the gate, not a further carrier "
-            "search. This record does not make that decision: the required bundle is unchanged, "
-            "the proposal stays inactive, and mix stays FAIL."
+            "ordinary Devanagari, Hebrew, Thai, Persian and emoji text. That does not mean no "
+            "sanitizer is real. Exactly one ships on by default, the lm-watermarking "
+            "UnicodeSanitizer, and it is NFC plus a fixed BMP regex plus Cc-strip: it keeps 366 "
+            "of the 396 invisible code points including U+034F, removes U+FE00, injects spurious "
+            "spaces, corrupts 5 of 7 ordinary samples, and does not restore the unwatermarked "
+            "source. Read against the already recorded frozen confirmation evidence, and without "
+            "running any new corpus, the frozen conditions of the proposed gate are already met: "
+            "identity detects 185 of 192, mix detects 0 of 192, every frozen sanitizer still "
+            "detects 0, and visible text passes 192 of 192. Detection after the real sanitizer is "
+            "the one condition still unmeasured, so the proposed gate is not yet fully satisfied. "
+            "The correct next step is a product decision on the gate plus that single measurement, "
+            "not a further carrier search. This record makes neither: the required bundle is "
+            "unchanged, the proposal stays inactive, and mix stays FAIL."
         ),
     }
     return {**payload, "audit_hash": sha256_json(payload)}
@@ -406,8 +491,15 @@ def assert_threat_model_audit_committed() -> None:
     status = disk["proposed_gate_status_on_existing_evidence"]
     if status["source"] != "already-run frozen confirmation evidence, no new corpus":
         raise ValueError("the proposed gate reading must not consume a fresh corpus")
-    if status["adoption_still_blocked_on"] != "explicit product decision, not further carrier research":
-        raise ValueError("the audit must not treat the gate proposal as adopted")
+    if status["proposed_gate_v2_fully_satisfied"] is not False:
+        raise ValueError("the proposed gate must not be reported as fully satisfied")
+    if status["lm_watermarking_unicode_sanitizer_condition"] != "UNMEASURED":
+        raise ValueError("detection after the real sanitizer must stay honestly unmeasured")
+    real = disk["real_world_sanitizer"]
+    if real["restores_the_unwatermarked_source"] is not False:
+        raise ValueError("the real sanitizer measurement must record whether the source is restored")
+    if real["detection_after_this_sanitizer"] != "UNMEASURED":
+        raise ValueError("detection after the real sanitizer must stay honestly unmeasured")
     live = threat_model_audit_payload()
     if live != disk:
         raise ValueError("threat model audit spec does not match the live payload")

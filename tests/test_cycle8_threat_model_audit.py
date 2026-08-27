@@ -18,8 +18,10 @@ from fuckmark.cycle8.threat_model_audit import (
     control_required_sanitizer_fixed_points,
     gate_promotes_stress_only_sanitizers,
     iter_shaping_invisible_codepoints,
+    lm_watermarking_unicode_sanitizer,
     load_threat_model_audit,
     proposed_gate_status_on_existing_evidence,
+    real_world_sanitizer_observations,
     render_identical_ascii_substitutes,
     sanitizer_deployability_damage,
     shaping_invisible_all_stripped_by_required_bundle,
@@ -159,19 +161,58 @@ def test_audit_records_all_four_questions():
         assert row["evidence"]
 
 
-def test_proposed_gate_is_already_met_by_existing_frozen_evidence():
+def test_frozen_gate_conditions_are_met_by_existing_evidence():
     status = proposed_gate_status_on_existing_evidence()
     assert status["source"] == "already-run frozen confirmation evidence, no new corpus"
     assert status["identity_watermarked_detected"] == 185
     assert status["transformed_watermarked_rate"] == "0/192"
     assert status["visible_pass_rate"] == "192/192"
     assert all(value == 0 for value in status["detected_after_each_deployable_sanitizer"].values())
-    assert status["proposed_gate_v2_already_satisfied"] is True
+    assert status["frozen_sanitizer_conditions_satisfied"] is True
 
 
-def test_gate_already_met_does_not_authorize_the_product():
+def test_proposed_gate_is_not_claimed_fully_satisfied():
+    status = proposed_gate_status_on_existing_evidence()
+    assert status["proposed_gate_v2_fully_satisfied"] is False
+    assert status["lm_watermarking_unicode_sanitizer_condition"] == "UNMEASURED"
+    assert "outstanding_measurement" in status
+
+
+def test_real_sanitizer_does_not_restore_the_unwatermarked_source():
+    observations = real_world_sanitizer_observations()
+    assert observations["shipped_on_by_default"] is True
+    assert observations["restores_the_unwatermarked_source"] is False
+    assert observations["output_differs_from_source"] is True
+    assert observations["injects_spurious_visible_spaces"] is True
+    assert observations["detection_after_this_sanitizer"] == "UNMEASURED"
+
+
+def test_real_sanitizer_keeps_cgj_and_most_invisible_codepoints():
+    observations = real_world_sanitizer_observations()
+    assert observations["mix_carriers"] == ["U+034F", "U+FE00"]
+    assert observations["mix_carriers_surviving"] == ["U+034F"]
+    assert observations["invisible_codepoints_surviving"] == 366
+    assert observations["invisible_codepoints_total"] == 396
+
+
+def test_real_sanitizer_also_corrupts_ordinary_text():
+    observations = real_world_sanitizer_observations()
+    assert observations["ordinary_text_corrupted"] == 5
+    assert "persian_zwnj" in observations["ordinary_text_corrupted_sample_ids"]
+    assert "emoji_zwj_family" in observations["ordinary_text_corrupted_sample_ids"]
+    family = "\U0001f468\u200d\U0001f469\u200d\U0001f467"
+    assert lm_watermarking_unicode_sanitizer(family) != family
+
+
+def test_real_sanitizer_is_required_by_the_proposal():
+    proposal = load_threat_model_audit()["proposed_gate_v2"]
+    assert "lm_watermarking_unicode_sanitizer" in proposal["required_sanitizers"]
+    assert proposal["added_since_first_draft"] == ["lm_watermarking_unicode_sanitizer"]
+
+
+def test_gate_findings_do_not_authorize_the_product():
     disk = load_threat_model_audit()
-    assert disk["proposed_gate_status_on_existing_evidence"]["proposed_gate_v2_already_satisfied"] is True
+    assert disk["proposed_gate_status_on_existing_evidence"]["frozen_sanitizer_conditions_satisfied"] is True
     assert disk["product_authorized"] is False
     assert disk["mix_sanitizer_gate"] == "FAIL"
     assert disk["proposed_gate_v2"]["status"] == "proposal_only_not_active"

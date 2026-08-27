@@ -56,6 +56,24 @@ The Gemma tokenizers that SynthID-Text is deployed on declare only the SentenceP
 
 The two SentencePiece `Precompiled` (`nmt_nfkc`) normalizers are the only ones that drop anything, and what they drop is DEL. That inverts the project's gate: real normalization removes the one class the gate permits and preserves the classes the gate forbids.
 
+### The one sanitizer that is real
+
+"No production tokenizer strips these" is not the same as "no real sanitizer exists". Exactly one ships on by default in the watermarking ecosystem: the `UnicodeSanitizer` in [`jwkirchenbauer/lm-watermarking`](https://github.com/jwkirchenbauer/lm-watermarking/blob/main/normalizers.py), which `WatermarkDetector` enables via `normalizers=["unicode"]` and applies before tokenization. It is not Mn-strip or default-ignorable-strip. It is NFC, then a fixed BMP regex whose matches are replaced with a **space**, then a space collapse, then `Cc` removal.
+
+Measured against it:
+
+| measurement | value |
+| --- | --- |
+| restores the unwatermarked source from mix | **no** |
+| mix carriers surviving | `U+034F` (`U+FE00` is removed) |
+| invisible code points surviving | 366 of 396 |
+| injects spurious visible spaces | yes |
+| ordinary samples corrupted | 5 of 7 |
+
+Because matches are replaced with a space rather than deleted, running it on mixed text turns `I do not agree with that.` into `I͏ d o͏ n o͏t a͏g r͏e e͏ w i͏t h͏ t h͏a t͏.` — the CGJ survives, `U+FE00` becomes a space, and word boundaries move. The sanitizer does not recover the original string; it produces mangled text. It is also lossy on ordinary input, splitting `👨‍👩‍👧` into three people separated by spaces and breaking the Persian ZWNJ and the Devanagari conjunct.
+
+Because this sanitizer is real, `proposed_gate_v2` **requires** it. Whether the detector fires on its output is not measured here and is recorded as `UNMEASURED`.
+
 ## 3. The stress sanitizers are not deployable
 
 `tools/h16_sanitizer_deployability.py` runs each sanitizer in the bundle over ordinary, non-adversarial text where every code point is needed to spell the sentence correctly.
@@ -86,9 +104,9 @@ This is the whole of the blockage. Mix survives 21/21 frozen sanitizer fixtures.
 
 **Form.** The gate asks whether the carrier is a fixed point of every sanitizer, `S(T(x)) == T(x)`. The product goal is that detection fail after sanitization. Fixed-point survival is sufficient for that but not necessary, so the gate is strictly stronger than the goal it stands in for.
 
-## 5. The corrected gate is already met by evidence on record
+## 5. Where the corrected gate stands on evidence already on record
 
-Reading the already-recorded frozen confirmation evidence against `proposed_gate_v2` — without running any new corpus and without retuning any spent seed — the corrected gate is already satisfied:
+Reading the already-recorded frozen confirmation evidence against `proposed_gate_v2` — without running any new corpus and without retuning any spent seed — the frozen conditions are already satisfied:
 
 | measurement | value |
 | --- | --- |
@@ -99,7 +117,9 @@ Reading the already-recorded frozen confirmation evidence against `proposed_gate
 | detected after `nfc` / `nfkc` / `cf_strip` / `nfkc_cf_strip` / `ws_collapse` / `ws_collapse_nfkc_cf_strip` | 0 each |
 | frozen sanitizer fixture survival | 21/21 |
 
-So the gap between the project and a shippable mechanism is not a missing carrier. It is a decision about which sanitizers the gate should require. That decision is a product call and this record does not make it.
+One condition is **not** satisfied and is recorded as `UNMEASURED`: detection after the lm-watermarking `UnicodeSanitizer`. That sanitizer removes `U+FE00`, keeps `U+034F`, and injects spaces, so mix reaches the detector in a materially different form than under the frozen sanitizers. Answering it needs a detector run, which this record does not perform.
+
+So `proposed_gate_v2` is **not** claimed to be satisfied. What the evidence does show is that the remaining work is one measurement plus a decision about which sanitizers the gate should require — not a further carrier search, which the closure result rules out entirely.
 
 ## What this does not do
 
