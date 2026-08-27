@@ -1,7 +1,11 @@
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+VERIFY_RELEASE_INSTALL = ROOT / "tools" / "verify_release_install.py"
 WORKFLOWS = ROOT / ".github" / "workflows"
 RELEASE_WORKFLOW = WORKFLOWS / "release-engineering.yml"
 UNIX_INSTALLER = ROOT / "tools" / "install" / "unix.sh"
@@ -89,6 +93,26 @@ def test_windows_installer_uses_tagged_release_checksum_and_does_not_start_cli()
     assert "Starting FuckMark" not in text
     assert text.count("-m fuckmark.cli") == 1
     assert "Command: fuckmark --help" in text
+
+
+def test_verify_release_install_loads_mix_from_repository_root() -> None:
+    text = VERIFY_RELEASE_INSTALL.read_text(encoding="utf-8")
+    assert "sys.path.insert(0, str(PROJECT_ROOT))" in text
+    assert text.index("PROJECT_ROOT = Path") < text.index("from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix")
+
+
+def test_verify_release_install_imports_under_isolated_interpreter() -> None:
+    completed = subprocess.run(
+        [sys.executable, "-I", str(VERIFY_RELEASE_INSTALL)],
+        cwd=ROOT,
+        env={**os.environ, "PYTHONPATH": ""},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert completed.returncode != 0
+    assert "ModuleNotFoundError" not in completed.stderr
+    assert "usage: verify_release_install.py DIST_DIRECTORY" in completed.stderr
 
 
 def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:

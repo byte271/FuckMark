@@ -9,12 +9,14 @@ import tomllib
 import venv
 from pathlib import Path
 
-from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 
 EXPECTED_INPUT = "I do not agree and I cannot stay.\n"
 EXPECTED_OUTPUT = apply_letter_alternating_mix(EXPECTED_INPUT)
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_VERSION = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["version"]
 
 
