@@ -20,6 +20,7 @@ from fuckmark.cycle8.threat_model_audit import (
     iter_shaping_invisible_codepoints,
     lm_watermarking_unicode_sanitizer,
     load_threat_model_audit,
+    multi_context_closure,
     proposed_gate_status_on_existing_evidence,
     real_sanitizer_detector_observations,
     real_world_sanitizer_observations,
@@ -178,6 +179,34 @@ def test_proposed_gate_is_not_claimed_fully_satisfied():
     assert status["all_conditions_measured"] is True
     assert status["confirmation_grade"] is False
     assert "why_not_fully_satisfied" in status
+
+
+def test_closure_holds_across_all_twelve_shaping_contexts():
+    multi = multi_context_closure()
+    assert multi["contexts_scanned"] == 12
+    assert len(multi["per_context_invisible_counts"]) == 12
+    assert multi["invisible_in_all_contexts_count"] == 389
+    assert multi["invisible_in_any_context_count"] == 396
+
+
+def test_closure_holds_on_the_loosest_invisibility_definition():
+    multi = multi_context_closure()
+    assert multi["intersection_invisible_in_any_context"] == 0
+    assert multi["intersection_invisible_in_all_contexts"] == 0
+    assert multi["outside_mn_cf_in_any_context"] == []
+    for categories in (
+        multi["invisible_in_all_contexts_categories"],
+        multi["invisible_in_any_context_categories"],
+    ):
+        assert set(categories) == {"Mn", "Cf"}
+
+
+def test_the_single_context_overclaim_is_recorded_as_errata():
+    multi = multi_context_closure()
+    assert "errata" in multi
+    assert multi["invisible_in_all_contexts_count"] <= multi["invisible_in_any_context_count"]
+    assert max(multi["per_context_invisible_counts"].values()) <= multi["invisible_in_any_context_count"]
+    assert min(multi["per_context_invisible_counts"].values()) >= multi["invisible_in_all_contexts_count"]
 
 
 def test_mix_still_evades_the_real_sanitizer():

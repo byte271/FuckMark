@@ -13,14 +13,23 @@ H9-H15 searched for a carrier that is invisible to the reader and also survives 
 | assigned code points scanned | 286719 |
 | shaping contexts per code point | 12 |
 | code points that are a required-bundle fixed point | 267550 |
-| code points that are shaping-invisible | 396 |
-| shaping-invisible categories | `Mn` 262, `Cf` 134 |
-| shaping-invisible outside `Mn`/`Cf` | none |
-| **intersection** | **0** |
+| shaping-invisible in **every** context | 389 (`Mn` 262, `Cf` 127) |
+| shaping-invisible in **at least one** context | 396 (`Mn` 262, `Cf` 134) |
+| shaping-invisible outside `Mn`/`Cf` | none, under either definition |
+| **intersection, all-context definition** | **0** |
+| **intersection, any-context definition** | **0** |
 
-The 396 invisible code points occupy 15 contiguous ranges and are the familiar invisible set: soft hyphen, CGJ, ALM, Khmer inherent vowels, Mongolian free variation selectors, the zero-width and bidi marks, bidi embedding and isolate controls, word joiner and the invisible operators, variation selectors, BOM, musical combining marks, and the tag characters.
+Both definitions are reported because they bracket the question. Requiring invisibility in every context is the safety criterion a real carrier would have to meet; requiring it in only one context is far looser and admits strictly more candidates. The intersection is empty either way, so the closure does not depend on which definition you pick.
 
-Every one of them is `Mn` or `Cf`. The required bundle strips exactly `Mn`, `Cf`, and default-ignorable. Invisibility and required-bundle survival are therefore complementary by construction, not by coincidence. No further enumeration of code points, sequences, or shaping contexts can find a survivor, because the two sets partition the space.
+Per-context counts are `latin` 396, `latin_lower` 396, `digit` 395, `space_left` 396, `space_right` 396, `start` 395, `end` 396, `arabic` 390, `devanagari` 396, `cjk` 396, `hangul` 396, `punct` 395. The Arabic context is the most discriminating, which is expected: joining behaviour gives several `Cf` controls a visible effect there.
+
+Every invisible code point under either definition is `Mn` or `Cf`. The required bundle strips exactly `Mn`, `Cf`, and default-ignorable. Invisibility and required-bundle survival are therefore complementary by construction, not by coincidence. No further enumeration of code points, sequences, or shaping contexts can find a survivor, because the two sets partition the space.
+
+### Errata: the original scan was single-context
+
+The first committed version of this record advertised 12 shaping contexts, but `scan()` called `primary.invisible(codepoint)` with the oracle's default Latin A/B pair and never iterated `SHAPING_CONTEXTS`. The 12-context claim was therefore unsupported when first published. It was caught in review and the tool now iterates all twelve.
+
+The corrected numbers are above. 396 turns out to be the any-context figure, so the originally published count was correct for the loose reading, and the newly measured all-context count is 389. The conclusion is unchanged and the correction makes it stronger, since the intersection is now shown to be empty on the loosest definition rather than on one context. `evidence/h16-local/shaping-closure.json` is the original Latin A/B scan, kept as-is; `evidence/h16-local/shaping-closure-12-context.json` is the corrected one.
 
 The other transformation classes close as well:
 

@@ -21,7 +21,7 @@ from .publishability import (
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "702ee4613e8573823ecf45b0b74a0a112c9891e39a16a73f5d09023ddb4745d7"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "f482e0fcabe42e2d2aef5a736828e0ff551241861e7fe8d3afb14846c346dde5"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -128,6 +128,50 @@ def iter_shaping_invisible_codepoints():
 
 def shaping_invisible_codepoint_count() -> int:
     return sum(end - start + 1 for start, end in SHAPING_INVISIBLE_RANGES)
+
+
+MULTI_CONTEXT_ALL_INVISIBLE_COUNT = 389
+MULTI_CONTEXT_ALL_INVISIBLE_CATEGORIES = {"Cf": 127, "Mn": 262}
+MULTI_CONTEXT_ANY_INVISIBLE_COUNT = 396
+MULTI_CONTEXT_ANY_INVISIBLE_CATEGORIES = {"Cf": 134, "Mn": 262}
+MULTI_CONTEXT_PER_CONTEXT_INVISIBLE = {
+    "arabic": 390,
+    "cjk": 396,
+    "devanagari": 396,
+    "digit": 395,
+    "end": 396,
+    "hangul": 396,
+    "latin": 396,
+    "latin_lower": 396,
+    "punct": 395,
+    "space_left": 396,
+    "space_right": 396,
+    "start": 395,
+}
+
+
+def multi_context_closure() -> dict[str, object]:
+    return {
+        "contexts_scanned": SHAPING_CONTEXTS_SCANNED,
+        "context_labels": [label for label, _, _ in SHAPING_CONTEXTS],
+        "per_context_invisible_counts": dict(MULTI_CONTEXT_PER_CONTEXT_INVISIBLE),
+        "invisible_in_all_contexts_count": MULTI_CONTEXT_ALL_INVISIBLE_COUNT,
+        "invisible_in_all_contexts_categories": dict(MULTI_CONTEXT_ALL_INVISIBLE_CATEGORIES),
+        "invisible_in_any_context_count": MULTI_CONTEXT_ANY_INVISIBLE_COUNT,
+        "invisible_in_any_context_categories": dict(MULTI_CONTEXT_ANY_INVISIBLE_CATEGORIES),
+        "intersection_invisible_in_all_contexts": 0,
+        "intersection_invisible_in_any_context": 0,
+        "outside_mn_cf_in_any_context": [],
+        "errata": (
+            "The first committed scan advertised 12 shaping contexts but called the oracle with "
+            "its default Latin A/B pair only, so the original 396 figure was single-context. The "
+            "corrected scan iterates all 12. Invisible in all 12 is 389; invisible in at least "
+            "one is 396, which reproduces the original number. The intersection with required "
+            "sanitizer survival is 0 under both definitions, so the closure holds on the loosest "
+            "reading and the correction strengthens it rather than weakening it."
+        ),
+        "evidence": "evidence/h16-local/shaping-closure-12-context.json",
+    }
 
 
 def shaping_invisible_categories() -> dict[str, int]:
@@ -382,8 +426,9 @@ def threat_model_audit_payload() -> dict[str, object]:
             "question": "Did H9-H15 become trapped in one mechanism family or framing?",
             "answer": (
                 "The framing was not merely narrow, it was empty. Invisibility and required "
-                "sanitizer survival are complementary by construction: every one of the 396 "
-                "invisible code points in the Chromium pre font is Mn or Cf, and the required "
+                "sanitizer survival are complementary by construction: across all 12 shaping "
+                "contexts every code point the Chromium pre font renders invisibly, 389 in every "
+                "context and 396 in at least one, is Mn or Cf, and the required "
                 "bundle strips exactly Mn, Cf and default-ignorable. No enumeration of code "
                 "points, sequences or shaping contexts could have found a survivor, so the "
                 "H9-H15 negatives measure the gate rather than Unicode."
@@ -414,6 +459,7 @@ def threat_model_audit_payload() -> dict[str, object]:
                 shaping_invisible_all_stripped_by_required_bundle()
             ),
             "intersection_count": 0,
+            "multi_context": multi_context_closure(),
             "substitution_class_render_identical_count": len(render_identical_ascii_substitutes()),
             "substitution_class_survivor_count": len(substitution_class_survivors()),
             "ascii_domain_is_normalization_fixed_point": ascii_domain_is_normalization_fixed_point(),
@@ -466,9 +512,14 @@ def threat_model_audit_payload() -> dict[str, object]:
         "mix_sanitizer_gate": "FAIL",
         "boundary": (
             "The H12-H15 sanitizer gate cannot be satisfied by any mechanism, and the reason is "
-            "structural rather than empirical. Across 286719 assigned code points and 12 shaping "
-            "contexts, the Chromium pre font renders 396 code points invisibly and every one is "
-            "Mn or Cf, which the required bundle strips by definition. Substitution adds nothing: "
+            "structural rather than empirical. Across 286719 assigned code points and all 12 "
+            "shaping contexts, the Chromium pre font renders 389 code points invisibly in every "
+            "context and 396 in at least one, and every one of them is Mn or Cf, which the "
+            "required bundle strips by definition, so the intersection is 0 under both readings. "
+            "An earlier revision of this record advertised 12 contexts while the committed scan "
+            "used only the default Latin A/B pair; the corrected scan reproduces 396 as the "
+            "any-context figure and strengthens the closure rather than weakening it. "
+            "Substitution adds nothing: "
             "14 code points render as an ASCII space and none survives the bundle. Canonical "
             "re-encoding adds nothing either, because the declared ASCII input domain is a fixed "
             "point of all four normalization forms. Deletion and reordering change visible text. "
@@ -539,6 +590,15 @@ def assert_threat_model_audit_committed() -> None:
         raise ValueError("the proposed gate must remain a proposal")
     if disk["closure"]["intersection_count"] != 0:
         raise ValueError("closure intersection must be empty")
+    multi = disk["closure"]["multi_context"]
+    if multi["contexts_scanned"] != len(SHAPING_CONTEXTS):
+        raise ValueError("the recorded context count must match the scanned contexts")
+    if multi["intersection_invisible_in_any_context"] != 0:
+        raise ValueError("the closure must hold on the loosest invisibility definition")
+    if multi["invisible_in_all_contexts_count"] > multi["invisible_in_any_context_count"]:
+        raise ValueError("all-context invisibility cannot exceed any-context invisibility")
+    if multi["outside_mn_cf_in_any_context"] != []:
+        raise ValueError("an invisible codepoint outside Mn/Cf would break the closure")
     if disk["closure"]["shaping_invisible_outside_mn_cf"] != []:
         raise ValueError("invisible code points must all be Mn or Cf")
     if disk["closure"]["shaping_invisible_all_stripped_by_required_bundle"] is not True:

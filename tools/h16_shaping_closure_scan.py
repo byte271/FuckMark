@@ -9,6 +9,7 @@ from fuckmark.cycle8.control_carrier import required_sanitizers_keep
 from fuckmark.cycle8.threat_model_audit import (
     CHROMIUM_PRE_FONT,
     H16_RESEARCH_EXTRA_INSTALL,
+    SHAPING_CONTEXTS,
     SHAPING_FALLBACK_FONTS,
     SHAPING_LEFT,
     SHAPING_RIGHT,
@@ -38,6 +39,7 @@ class ShapingOracle:
         self._glyph_set = font.getGlyphSet()
         self._cmap = font.getBestCmap() or {}
         self._ink_cache: dict[int, bool] = {}
+        self._context_baselines: dict[tuple[str, str], tuple[int, tuple[int, ...]]] = {}
         self._baseline = self._shape(SHAPING_LEFT + SHAPING_RIGHT)
 
     @property
@@ -79,6 +81,21 @@ class ShapingOracle:
         baseline = self._baseline if (left, right) == (SHAPING_LEFT, SHAPING_RIGHT) else self._shape(left + right)
         return self._signature(self._shape(left + chr(codepoint) + right)) == self._signature(baseline)
 
+    def _context_baseline(self, left: str, right: str) -> tuple[int, tuple[int, ...]]:
+        cached = self._context_baselines.get((left, right))
+        if cached is None:
+            cached = self._signature(self._shape(left + right))
+            self._context_baselines[(left, right)] = cached
+        return cached
+
+    def invisible_contexts(self, codepoint: int) -> dict[str, bool]:
+        character = chr(codepoint)
+        results = {}
+        for label, left, right in SHAPING_CONTEXTS:
+            signature = self._signature(self._shape(left + character + right))
+            results[label] = signature == self._context_baseline(left, right)
+        return results
+
 
 def iter_assigned_codepoints():
     for codepoint in range(0x110000):
@@ -109,12 +126,36 @@ def scan() -> dict[str, object]:
     sanitizer_survivors = 0
     intersection_categories: dict[str, int] = {}
 
+    any_invisible_codepoints: list[int] = []
+    any_invisible_categories: dict[str, int] = {}
+    any_intersection: list[dict[str, object]] = []
+    context_invisible_counts = {label: 0 for label, _, _ in SHAPING_CONTEXTS}
+
     for codepoint, character, category in iter_assigned_codepoints():
         assigned += 1
         keeps = required_sanitizers_keep(f"I{character} do not agree.")
         if keeps:
             sanitizer_survivors += 1
-        if not primary.invisible(codepoint):
+        contexts = primary.invisible_contexts(codepoint)
+        invisible_anywhere = any(contexts.values())
+        if not invisible_anywhere:
+            continue
+        for label, value in contexts.items():
+            if value:
+                context_invisible_counts[label] += 1
+        any_invisible_codepoints.append(codepoint)
+        any_invisible_categories[category] = any_invisible_categories.get(category, 0) + 1
+        record = {
+            "codepoint": f"U+{codepoint:04X}",
+            "category": category,
+            "default_ignorable": is_default_ignorable_v1(codepoint),
+            "mapped_in_chromium_pre_font": primary.maps(codepoint),
+            "invisible_context_count": sum(contexts.values()),
+            "name": _name(codepoint),
+        }
+        if keeps:
+            any_intersection.append(record)
+        if not all(contexts.values()):
             continue
         invisible_codepoints.append(codepoint)
         invisible_categories[category] = invisible_categories.get(category, 0) + 1
@@ -123,14 +164,10 @@ def scan() -> dict[str, object]:
         intersection_categories[category] = intersection_categories.get(category, 0) + 1
         survivors.append(
             {
-                "codepoint": f"U+{codepoint:04X}",
-                "category": category,
-                "default_ignorable": is_default_ignorable_v1(codepoint),
-                "mapped_in_chromium_pre_font": primary.maps(codepoint),
+                **record,
                 "invisible_in_every_mapping_fallback": all(
                     oracle.invisible(codepoint) for oracle in fallbacks if oracle.maps(codepoint)
                 ),
-                "name": _name(codepoint),
             }
         )
 
@@ -143,7 +180,15 @@ def scan() -> dict[str, object]:
 
     return {
         "assigned_codepoints_scanned": assigned,
+        "shaping_contexts_scanned": len(SHAPING_CONTEXTS),
+        "shaping_context_labels": [label for label, _, _ in SHAPING_CONTEXTS],
         "required_sanitizer_fixed_point_count": sanitizer_survivors,
+        "invisible_definition": "invisible in all scanned contexts",
+        "per_context_invisible_counts": dict(sorted(context_invisible_counts.items())),
+        "any_context_invisible_count": len(any_invisible_codepoints),
+        "any_context_invisible_categories": dict(sorted(any_invisible_categories.items())),
+        "any_context_intersection_count": len(any_intersection),
+        "any_context_intersection": any_intersection,
         "shaping_invisible_count": len(invisible_codepoints),
         "shaping_invisible_categories": dict(sorted(invisible_categories.items())),
         "shaping_invisible_codepoints": [f"U+{value:04X}" for value in invisible_codepoints],
