@@ -30,19 +30,19 @@ That prints `FuckMark 0.4.0`. The checksummed GitHub Release wheel is published 
 ## Use
 
 ```text
+fuckmark
+```
+
+Paste or type text, then a line that is only `:done`. The result is copied to the clipboard. You still read the same words; the hidden payload is not printed.
+
+```text
 printf 'I do not agree.\n' | fuckmark
 fuckmark "I do not agree."
 fuckmark notes.txt -o notes.fm.txt
 printf 'I do not agree.\n' | fuckmark --visible
 ```
 
-You still read **I do not agree.** The bytes changed. The visible words did not.
-
-```text
-printf 'I do not agree.\n' | fuckmark | python3 -c "import sys; t=sys.stdin.read(); print(len(t.encode()), 'bytes')"
-```
-
-`--copy` also puts that output on the clipboard. `fuckmark --help` is enough to start.
+Pipes and files write the payload to stdout. `--copy` also puts that output on the clipboard. `fuckmark --help` is enough to start.
 
 ## What it guarantees
 

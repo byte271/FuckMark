@@ -108,7 +108,7 @@ def _verify_artifact(artifact: Path) -> None:
                     f"installed CLI quoted argument failed for {command.name}: stdout={quoted.stdout!r} stderr={quoted.stderr!r}"
                 )
             help_text = _run([str(command), "--help"], capture_output=True, env=environment).stdout
-            if "fuckmark" not in help_text.casefold() or "--visible" not in help_text:
+            if "fuckmark" not in help_text.casefold() or "--visible" not in help_text or ":done" not in help_text:
                 raise RuntimeError(f"installed CLI --help failed for {command.name}: {help_text!r}")
 
 

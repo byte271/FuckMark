@@ -23,13 +23,14 @@ from .product.visible_projection import (
 from .transforms import TRANSFORM_REGISTRY_ALGORITHM_VERSION
 
 
-CLI_TERMINATORS = frozenset({":done", "ok"})
+INTERACTIVE_DONE = ":done"
 RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v5"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
 _ANSI_BOLD = "\033[1m"
 _ANSI_RESET = "\033[0m"
+_COPIED = "\u2713 Copied to clipboard"
 
 
 class ClipboardUnavailableError(RuntimeError):
@@ -73,16 +74,27 @@ def process_text(text: str) -> str:
     return transform_text(text).output_text
 
 
-def read_pasted_text(input_stream: TextIO, output_stream: TextIO) -> str:
-    output_stream.write("Paste text, then a line with only :done\n\n")
-    output_stream.flush()
+def read_interactive_text(input_stream: TextIO, ui_stream: TextIO, *, color: bool = False) -> list[str] | None:
+    ui_stream.write(_styled("FuckMark", _ANSI_BOLD, enabled=color) + "\n")
+    ui_stream.write(
+        "\n"
+        "Paste or type your text below.\n"
+        "Enter :done on a new line when finished.\n"
+        "\n"
+    )
+    ui_stream.flush()
     lines: list[str] = []
-    for raw_line in input_stream:
+    while True:
+        ui_stream.write("> ")
+        ui_stream.flush()
+        raw_line = input_stream.readline()
+        if raw_line == "":
+            return None
         line = raw_line.rstrip("\r\n")
-        if line.strip().casefold() in CLI_TERMINATORS:
+        if line == INTERACTIVE_DONE:
             break
         lines.append(line)
-    return "\n".join(lines)
+    return lines
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -93,7 +105,12 @@ def _parser() -> argparse.ArgumentParser:
             "without changing the visible words."
         ),
         epilog=(
+            "With no arguments in a terminal, paste or type text and finish with a\n"
+            "line that is only :done. Blank lines are kept. The result is copied to\n"
+            "the clipboard and not printed.\n"
+            "\n"
             "Examples:\n"
+            "  fuckmark\n"
             "  printf 'I do not agree.\\n' | fuckmark\n"
             "  fuckmark \"I do not agree.\"\n"
             "  fuckmark notes.txt -o notes.fm.txt\n"
@@ -110,7 +127,7 @@ def _parser() -> argparse.ArgumentParser:
         "source",
         nargs="?",
         metavar="TEXT_OR_FILE",
-        help="quoted text, or a UTF-8 file path; omit to read standard input; use - for stdin",
+        help="quoted text or UTF-8 file; omit in a terminal to paste; - reads stdin",
     )
     parser.add_argument(
         "--version",
@@ -136,7 +153,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--copy",
         action="store_true",
-        help="also copy the output to the clipboard",
+        help="copy output to the clipboard; the paste UI always copies",
     )
     parser.add_argument(
         "--visible",
@@ -153,7 +170,7 @@ def _parser() -> argparse.ArgumentParser:
         "-q",
         "--quiet",
         action="store_true",
-        help="hide status messages on stderr",
+        help="hide non-essential status messages",
     )
     parser.add_argument(
         "--no-color",
@@ -357,14 +374,43 @@ def main(
     argv: Sequence[str] | None = None,
     error_stream: TextIO | None = None,
 ) -> int:
-    parser_argv = argv
-    injected = any(value is not None for value in (input_stream, output_stream, clipboard_writer, error_stream))
-    if parser_argv is None and injected:
-        parser_argv = ()
-    arguments = _parser().parse_args(parser_argv)
     source = sys.stdin if input_stream is None else input_stream
     output = sys.stdout if output_stream is None else output_stream
     errors = sys.stderr if error_stream is None else error_stream
+    try:
+        return _run(
+            source,
+            output,
+            errors,
+            clipboard_writer,
+            argv,
+            injected=any(
+                value is not None
+                for value in (input_stream, output_stream, clipboard_writer, error_stream)
+            ),
+        )
+    except KeyboardInterrupt:
+        try:
+            errors.write("\n")
+            errors.flush()
+        except (OSError, UnicodeError, ValueError):
+            pass
+        return 130
+
+
+def _run(
+    source: TextIO,
+    output: TextIO,
+    errors: TextIO,
+    clipboard_writer: Callable[[str], None] | None,
+    argv: Sequence[str] | None,
+    *,
+    injected: bool,
+) -> int:
+    parser_argv = argv
+    if parser_argv is None and injected:
+        parser_argv = ()
+    arguments = _parser().parse_args(parser_argv)
     _ensure_utf8(source)
     _ensure_utf8(output)
     _ensure_utf8(errors)
@@ -389,36 +435,35 @@ def main(
     ):
         return _error(errors, "input and output files must be different")
 
-    automatic_pipe = input_stream is None and not _is_tty(source)
     literal_or_file = source_arg not in (None, "-") and not arguments.stdin_mode
-    batch_mode = wants_stdin or literal_or_file or automatic_pipe
-    interactive = not batch_mode
+    interactive = (not wants_stdin) and (not literal_or_file) and _is_tty(source)
     color = _is_tty(errors) and not arguments.no_color and "NO_COLOR" not in os.environ
-    talk = interactive and not arguments.quiet
-
-    if talk:
-        _status(errors, f"{__project_name__} {__version__}", enabled=color, code=_ANSI_BOLD + _ANSI_BLUE)
 
     try:
         if literal_or_file:
             text = _load_source_argument(str(source_arg))
-        elif batch_mode:
-            text = source.read()
+        elif interactive:
+            captured = read_interactive_text(source, errors, color=color)
+            if captured is None:
+                return _error(errors, "ended without :done. Nothing copied.")
+            if not captured:
+                return _error(errors, "no input. Paste or type text, then :done.")
+            text = "\n".join(captured)
         else:
-            text = read_pasted_text(source, errors)
+            text = source.read()
     except UnicodeError:
         return _error(errors, "input is not valid UTF-8. Only UTF-8 is supported.")
     except (OSError, ValueError) as error:
         return _error(errors, str(error))
 
-    if not text:
+    if not interactive and not text:
         return _error(
             errors,
             "no input. Pipe text, pass a file, or quote a string. Example: printf 'I do not agree.\\n' | fuckmark",
         )
 
-    if talk:
-        _status(errors, "Working...", enabled=color, code=_ANSI_BLUE)
+    if interactive:
+        _status(errors, "Processing...", enabled=color, code=_ANSI_BLUE)
     try:
         result = transform_text(text)
     except (KeyError, TypeError, ValueError) as error:
@@ -428,7 +473,7 @@ def main(
     if arguments.visible:
         output_text = project_visible_v1(output_text, product_approved_carriers_v1())
 
-    should_copy = arguments.copy
+    should_copy = arguments.copy or interactive
     copy_failed: Exception | None = None
     if should_copy:
         writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
@@ -437,32 +482,30 @@ def main(
         except Exception as error:
             copy_failed = error
 
-    try:
-        _write_result(output_text, arguments.output, output)
-    except ValueError as error:
-        return _error(errors, str(error))
+    wrote_payload = False
+    if (not interactive) or arguments.output not in (None, "-"):
+        try:
+            _write_result(output_text, arguments.output, output)
+            wrote_payload = True
+        except ValueError as error:
+            return _error(errors, str(error))
 
-    if talk:
-        if result.changed:
-            noun = "character" if result.change_count == 1 else "characters"
-            message = f"Done. Inserted {result.change_count} hidden {noun}."
-        else:
-            message = (
-                "Left the text unchanged "
-                "(unsupported characters, no eligible letters, or already transformed)."
-            )
-        _status(errors, message, enabled=color, code=_ANSI_GREEN)
-        if arguments.output not in (None, "-"):
-            _status(errors, f"Wrote {arguments.output}", enabled=color, code=_ANSI_GREEN)
-        if should_copy and copy_failed is None:
-            _status(errors, "Copied to the clipboard.", enabled=color, code=_ANSI_GREEN)
+    if interactive and copy_failed is None:
+        _status(errors, _COPIED, enabled=color, code=_ANSI_GREEN)
 
     if copy_failed is not None:
         tool_failed = "no supported clipboard command found" not in str(copy_failed)
+        if wrote_payload:
+            follow = "The transformed text was still written."
+        else:
+            follow = (
+                "Nothing was printed. Pipe text if you need stdout: "
+                "printf 'I do not agree.\\n' | fuckmark"
+            )
         _status(
             errors,
             f"FuckMark: clipboard copy failed ({copy_failed}). {_clipboard_hint(tool_failed=tool_failed)} "
-            "The transformed text was still written.",
+            f"{follow}",
             enabled=color,
             code=_ANSI_YELLOW,
         )

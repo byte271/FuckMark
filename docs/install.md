@@ -66,6 +66,8 @@ printf 'I do not agree.\n' | fuckmark --visible
 
 `--version` must begin with `FuckMark 0.4.0` and mention `release-cli-v5`. `--visible` must print `I do not agree.`
 
+In a terminal, `fuckmark` with no arguments opens the paste UI. Finish with `:done`. The result is copied, not printed.
+
 ## Development
 
 ```text
@@ -84,6 +86,6 @@ python -m pip install -r requirements-smoke.txt
 
 If the command is not found, open a new terminal so PATH updates load.
 
-On Linux, `--copy` needs `wl-copy`, `xclip`, `xsel`, or `clip.exe`. The CLI still prints the text if clipboard copy fails (exit 2).
+On Linux, clipboard copy needs `wl-copy`, `xclip`, `xsel`, or `clip.exe`. Stream `--copy` still prints the text if copy fails (exit 2). The paste UI does not print the payload; pipe text if you need stdout.
 
 Website: [mark.q1z.org](https://mark.q1z.org).

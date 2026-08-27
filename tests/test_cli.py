@@ -8,11 +8,12 @@ import pytest
 
 from fuckmark import __version__
 from fuckmark.cli import (
+    INTERACTIVE_DONE,
     RELEASE_CLI_ALGORITHM_VERSION,
     copy_to_clipboard,
     main,
     process_text,
-    read_pasted_text,
+    read_interactive_text,
     transform_text,
 )
 from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
@@ -35,6 +36,11 @@ VISIBLE_FIXTURES = (
     "All of the examples are relevant.",
 )
 APPROVED = frozenset(LETTER_MIX_APPROVED_CARRIERS)
+
+
+class TtyIO(StringIO):
+    def isatty(self) -> bool:
+        return True
 
 
 def test_cli_process_text_does_not_apply_visible_contractions() -> None:
@@ -106,11 +112,129 @@ def test_cli_respects_selected_site_cap() -> None:
     assert project_visible_v1(applied, APPROVED) == source
 
 
-def test_cli_reads_multiline_paste_until_ok_line() -> None:
-    source = StringIO("First line\nSecond line\nok\nIgnored line\n")
+def test_cli_reads_multiline_paste_until_done_and_keeps_blank_lines() -> None:
+    source = TtyIO("I do not agree.\n\nSecond paragraph.\nok is content\n:done\nIgnored\n")
     prompt = StringIO()
-    assert read_pasted_text(source, prompt) == "First line\nSecond line"
-    assert ":done" in prompt.getvalue()
+    captured = read_interactive_text(source, prompt)
+    assert captured == ["I do not agree.", "", "Second paragraph.", "ok is content"]
+    assert INTERACTIVE_DONE not in captured
+    ui = prompt.getvalue()
+    assert ui.startswith("FuckMark\n")
+    assert "Paste or type your text below." in ui
+    assert ":done" in ui
+    assert ui.count("> ") == 5
+
+
+def test_cli_done_terminates_only_as_the_entire_line() -> None:
+    source = TtyIO("say :done please\n:done\n")
+    prompt = StringIO()
+    assert read_interactive_text(source, prompt) == ["say :done please"]
+
+
+def test_cli_main_interactive_copies_without_printing_payload() -> None:
+    source = TtyIO("I do not agree.\n:done\n")
+    output = StringIO()
+    errors = StringIO()
+    copied: list[str] = []
+    status = main(source, output, copied.append, error_stream=errors)
+    assert status == 0
+    expected = apply_letter_alternating_mix("I do not agree.")
+    assert copied == [expected]
+    assert output.getvalue() == ""
+    ui = errors.getvalue()
+    assert "FuckMark" in ui
+    assert "Processing..." in ui
+    assert "Copied to clipboard" in ui
+    assert expected not in ui
+    assert "I don't agree." not in ui
+    assert project_visible_v1(expected, APPROVED) == "I do not agree."
+
+
+def test_cli_main_interactive_preserves_blank_lines_and_multiline() -> None:
+    source = TtyIO("I do not agree.\n\nYou should not do that.\n:done\n")
+    output = StringIO()
+    errors = StringIO()
+    copied: list[str] = []
+    status = main(source, output, copied.append, error_stream=errors)
+    assert status == 0
+    expected = apply_letter_alternating_mix("I do not agree.\n\nYou should not do that.")
+    assert copied == [expected]
+    assert output.getvalue() == ""
+    assert project_visible_v1(expected, APPROVED) == "I do not agree.\n\nYou should not do that."
+
+
+def test_cli_main_interactive_copies_fail_closed_unicode_without_printing() -> None:
+    source_text = "I do not agree " + chr(0x00E9) + "."
+    source = TtyIO(source_text + "\n:done\n")
+    output = StringIO()
+    errors = StringIO()
+    copied: list[str] = []
+    status = main(source, output, copied.append, error_stream=errors)
+    assert status == 0
+    assert copied == [source_text]
+    assert output.getvalue() == ""
+    assert "Copied to clipboard" in errors.getvalue()
+    assert "\u034f" not in copied[0]
+
+
+def test_cli_main_interactive_reports_clipboard_failure_without_printing_payload() -> None:
+    source = TtyIO("I do not agree.\n:done\n")
+    output = StringIO()
+    errors = StringIO()
+
+    def fail(_: str) -> None:
+        raise RuntimeError("clipboard unavailable")
+
+    status = main(source, output, fail, error_stream=errors)
+    assert status == 2
+    assert output.getvalue() == ""
+    ui = errors.getvalue()
+    assert "clipboard copy failed" in ui
+    assert "Nothing was printed" in ui
+    expected = apply_letter_alternating_mix("I do not agree.")
+    assert expected not in ui
+    assert "Copied to clipboard" not in ui
+
+
+def test_cli_main_interactive_eof_without_done_is_clean() -> None:
+    source = TtyIO("I do not agree.\n")
+    output = StringIO()
+    errors = StringIO()
+    copied: list[str] = []
+    status = main(source, output, copied.append, error_stream=errors)
+    assert status == 1
+    assert copied == []
+    assert output.getvalue() == ""
+    assert "ended without :done" in errors.getvalue()
+
+
+def test_cli_main_interactive_ctrl_c_exits_cleanly() -> None:
+    class Boom(TtyIO):
+        def readline(self, *args, **kwargs):
+            raise KeyboardInterrupt
+
+    output = StringIO()
+    errors = StringIO()
+    copied: list[str] = []
+    status = main(Boom(), output, copied.append, error_stream=errors)
+    assert status == 130
+    assert copied == []
+    assert output.getvalue() == ""
+    assert errors.getvalue().endswith("\n")
+    assert "Copied to clipboard" not in errors.getvalue()
+    assert "Traceback" not in errors.getvalue()
+
+
+def test_cli_main_interactive_empty_done_is_an_error() -> None:
+    source = TtyIO(":done\n")
+    output = StringIO()
+    errors = StringIO()
+    copied: list[str] = []
+    status = main(source, output, copied.append, error_stream=errors)
+    assert status == 1
+    assert copied == []
+    assert output.getvalue() == ""
+    assert "no input" in errors.getvalue()
 
 
 def test_copy_to_clipboard_sends_utf16_to_windows_clip(monkeypatch) -> None:
@@ -155,63 +279,32 @@ def test_copy_to_clipboard_sends_utf8_to_unix_tools(monkeypatch) -> None:
     assert kwargs["encoding"] == "utf-8"
 
 
-def test_cli_main_applies_mix_without_copying() -> None:
-    source = StringIO("I do not agree.\nok\n")
-    output = StringIO()
-    errors = StringIO()
-    copied: list[str] = []
-    status = main(source, output, copied.append, error_stream=errors)
-    assert status == 0
-    assert copied == []
-    expected = apply_letter_alternating_mix("I do not agree.")
-    assert output.getvalue() == expected
-    status_text = errors.getvalue()
-    assert f"FuckMark {__version__}" in status_text
-    assert "Done." in status_text
-    assert "Copied" not in status_text
-    assert "I don't agree." not in output.getvalue()
-    assert project_visible_v1(expected, APPROVED) == "I do not agree."
-
-
-def test_cli_main_leaves_original_when_no_letter_site_is_eligible() -> None:
-    source = StringIO("123.\nok\n")
-    output = StringIO()
-    errors = StringIO()
-    copied: list[str] = []
-    status = main(source, output, copied.append, error_stream=errors)
-    assert status == 0
-    assert copied == []
-    assert output.getvalue() == "123."
-    assert "unchanged" in errors.getvalue()
-    assert "Copied" not in errors.getvalue()
-
-
 def test_cli_main_copies_raw_mix_payload_with_copy_flag() -> None:
-    source = StringIO("I do not agree.\nok\n")
+    source = StringIO("I do not agree.\n")
     output = StringIO()
     errors = StringIO()
     copied: list[str] = []
-    status = main(source, output, copied.append, error_stream=errors, argv=("--copy",))
+    status = main(source, output, copied.append, error_stream=errors, argv=("--stdin", "--copy"))
     assert status == 0
-    expected = apply_letter_alternating_mix("I do not agree.")
+    expected = apply_letter_alternating_mix("I do not agree.\n")
     assert copied == [expected]
     assert output.getvalue() == expected
-    assert "Copied to the clipboard." in errors.getvalue()
+    assert errors.getvalue() == ""
     assert "I don't agree." not in output.getvalue()
 
 
 def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
-    source = StringIO("I do not agree.\nok\n")
+    source = StringIO("I do not agree.\n")
     output = StringIO()
     errors = StringIO()
 
     def fail(_: str) -> None:
         raise RuntimeError("clipboard unavailable")
 
-    status = main(source, output, fail, error_stream=errors, argv=("--copy",))
+    status = main(source, output, fail, error_stream=errors, argv=("--stdin", "--copy"))
     assert status == 2
     rendered = output.getvalue()
-    expected = apply_letter_alternating_mix("I do not agree.")
+    expected = apply_letter_alternating_mix("I do not agree.\n")
     assert expected in rendered
     assert "I don't agree." not in rendered
     assert "clipboard copy failed" in errors.getvalue()
@@ -325,6 +418,8 @@ def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> 
     assert "printf" in rendered
     assert "fuckmark \"I do not agree.\"" in rendered
     assert "standard input" in rendered.casefold() or "--stdin" in rendered
+    assert ":done" in rendered
+    assert "clipboard" in rendered.casefold()
 
 
 def test_cli_quoted_text_argument_transforms_without_a_file() -> None:

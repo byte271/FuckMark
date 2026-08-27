@@ -65,6 +65,29 @@ jobs:
           expected_arg="$(python -c "from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix; import sys; sys.stdout.write(apply_letter_alternating_mix('I do not agree.'))")"
           test "$(FuckMark 'I do not agree.')" = "$expected_arg"
           FuckMark --help >/dev/null
+          python - <<'PY'
+          from io import StringIO
+          from fuckmark.cli import main
+          from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
+
+          class Tty(StringIO):
+              def isatty(self):
+                  return True
+
+          copied = []
+          out = StringIO()
+          err = StringIO()
+          src = Tty("I do not agree.\n\nSecond paragraph.\n:done\n")
+          assert main(src, out, copied.append, error_stream=err) == 0
+          expected = apply_letter_alternating_mix("I do not agree.\n\nSecond paragraph.")
+          assert copied == [expected], copied
+          assert out.getvalue() == ""
+          ui = err.getvalue()
+          assert "Processing..." in ui
+          assert "Copied to clipboard" in ui
+          assert expected not in ui
+          print("interactive e2e ok")
+          PY
 
   calibration-readiness:
     name: Frozen calibration readiness
