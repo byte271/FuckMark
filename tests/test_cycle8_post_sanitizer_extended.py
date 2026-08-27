@@ -82,8 +82,8 @@ def test_post_sanitizer_extended_class_has_no_conjunction_survivor() -> None:
     assert by_id["cc_csi_filtered_subset"]["chromium_pre"] == "HOST_DEPENDENT"
     assert by_id["cc_csi_filtered_subset"]["ordinary_plain_text"] == "FAIL"
     assert mix_is_product_publishable() is False
-    assert process_text("I do not agree.") == "I do not agree."
-    assert product_approved_carriers_v1() == frozenset()
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
     assert release_transform_registry().rules == ()
     for row in disk["classes"]:
         conjunction = (

@@ -93,7 +93,7 @@ No measured class is simultaneously:
 
 Mix (Mn + default-ignorable) dies to Mn-strip and default-ignorable-strip. Enclosing marks survive those sanitizers and change Chromium pixels. Control-code insertion survives those sanitizers and is Chromium host-dependent, with ISO-6429 device controls remaining in the measured set. Homoglyphs, whitespace edits, HTML/CSS, and custom fonts stay forbidden.
 
-This does **not** rewrite mix sanitizer FAIL. It does not product-authorize any carrier. Public CLI stays empty.
+This does **not** rewrite mix sanitizer FAIL. H12 did not product-authorize any carrier. Live mix authorization is Gate v2.
 
 Spec: `cycle8-post-sanitizer-mechanism-class-v1`.
 
@@ -115,7 +115,7 @@ Live Unicode 15.0 scan:
 
 The only sanitizer-surviving pixel-equal probes on the research host were control codes. H12 already closed that class for product use.
 
-This does **not** rewrite mix sanitizer FAIL. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
+This does **not** rewrite mix sanitizer FAIL. H13/H14/H15 did not authorize a carrier. Live mix authorization is Gate v2. Do not generate `950000`. Do not retune spent confirmation seeds.
 
 Spec: `cycle8-post-sanitizer-extended-class-v1`. Evidence: `evidence/h14-local/`.
 
@@ -136,7 +136,7 @@ Live sequence measurements:
 - Mix plus DEL is pixel-equal here; Mn-strip leaves DEL. That is the H12 remainder, not a new class.
 - DejaVu Sans Mono has no sanitizer-surviving zero-advance mapped glyph, including composites. Discretionary `fi`/`fl` ligatures map to NFKC-fragile compatibility characters and are not applied in Chromium `pre`.
 
-This does **not** rewrite mix sanitizer FAIL. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
+This does **not** rewrite mix sanitizer FAIL. H13/H14/H15 did not authorize a carrier. Live mix authorization is Gate v2. Do not generate `950000`. Do not retune spent confirmation seeds.
 
 Spec: `cycle8-post-sanitizer-sequences-v1`. Evidence: `evidence/h15-local/`.
 
@@ -158,9 +158,9 @@ The other transformation classes close too. Substitution: 14 code points render 
 
 **Mix still evades the real sanitizer.** Measured on the exploratory lane, seed 890000 with GPT-2 and 48 watermarked rows: pristine detects 47/48, and mix detects 0/48 under raw, NFKC, Cf-strip, and the lm-watermarking `UnicodeSanitizer` alike. That sanitizer collapses space runs and strips `Cc`, so it could have suppressed detection by itself; the carrier-free control rules that out, detecting 46/48. It costs one row of detection power on its own, so the drop to zero belongs to the carrier. The only variant that restores detection is the required bundle, at 47/48 — and it restores the original string on 96/96 rows. That is the mechanism behind the whole H12-H15 blockage: the bundle does not defeat the carrier, it deletes it and hands the detector back the untouched watermarked text. No spent or forbidden seed is used.
 
-**Where the corrected gate stands.** Reading the existing mix-freeze confirmation evidence against the frozen sanitizers: identity detects 185/192, mix detects 0/192 watermarked and 0/192 unwatermarked, visible text passes 192/192, and every frozen sanitizer still detects 0. The real-sanitizer condition is now confirmation-grade on seeds `1200000` / `1210000` / `1220000`: mix **0/192** after the UnicodeSanitizer, carrier-free **182/192**, drop 6 from identity **188/192**, visible **192/192**. Gate v2 is `confirmed_not_product_authorized`. That is not product authorization.
+**Where the corrected gate stands.** Reading the existing mix-freeze confirmation evidence against the frozen sanitizers: identity detects 185/192, mix detects 0/192 watermarked and 0/192 unwatermarked, visible text passes 192/192, and every frozen sanitizer still detects 0. The real-sanitizer condition is now confirmation-grade on seeds `1200000` / `1210000` / `1220000`: mix **0/192** after the UnicodeSanitizer, carrier-free **182/192**, drop 6 from identity **188/192**, visible **192/192**. The H16 audit recorded Gate v2 as `confirmed_not_product_authorized`. Live Gate v2 is now `confirmed_and_product_authorized` after a separate engineering step. The audit file itself is not rewritten.
 
-`proposed_gate_v2` in the H16 audit spec remains `proposal_only_not_active` as a historical draft. Formal Gate v2 is `cycle8-publishability-gate-v2`, status `confirmed_not_product_authorized`. It adds frozen Cycle 7 sanitizer `ws_collapse_nfkc_cf_strip` versus the H16 draft. This does **not** rewrite mix sanitizer FAIL, does not relax `required_sanitizers_keep`, and does not authorize a product mechanism. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds `830000` / `840000` / `850000` or `1200000` / `1210000` / `1220000`.
+`proposed_gate_v2` in the H16 audit spec remains `proposal_only_not_active` as a historical draft. Formal Gate v2 is `cycle8-publishability-gate-v2`. It adds frozen Cycle 7 sanitizer `ws_collapse_nfkc_cf_strip` versus the H16 draft. This does **not** rewrite mix sanitizer FAIL and does not relax `required_sanitizers_keep`. Do not generate `950000`. Do not retune spent confirmation seeds `830000` / `840000` / `850000` or `1200000` / `1210000` / `1220000`.
 
 Spec: `cycle8-threat-model-audit-v1` and `cycle8-publishability-gate-v2`. Evidence: `evidence/h16-local/`. Protocol: `docs/cycle8/gate-v2.md`.
 

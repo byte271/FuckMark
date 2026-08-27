@@ -10,6 +10,7 @@ from fuckmark.cycle8.compare import (
     CYCLE8_LETTER_ALT_ARM_ID,
     CYCLE8_U034F_LETTER_ARM_ID,
 )
+from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 from fuckmark.cycle8.mix_confirmation import (
     CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION,
     build_mix_confirmation_scorecard,
@@ -151,7 +152,7 @@ def test_mix_confirmation_corpora_are_zero_raw_once() -> None:
     assert _THRESHOLD - mix_max == 0.03279838457434092
     assert token_max == 612
     assert release_transform_registry().rules == ()
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
     assert CYCLE8_LETTER_ALT_ARM_ID not in CYCLE8_BENCHMARK_ARM_IDS
 
 
@@ -194,7 +195,7 @@ def test_mix_confirmation_scorecard_is_verified_zero_of_192() -> None:
     assert mix_freeze_hash() == _FREEZE_HASH
     _assert_sha256sums("evidence/cycle8-mix-confirmation-2026-08-26")
     assert release_transform_registry().rules == ()
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
 
 
 def test_mix_confirmation_refuses_rerun() -> None:

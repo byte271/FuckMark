@@ -141,11 +141,11 @@ Reading the already-recorded frozen confirmation evidence against `proposed_gate
 
 The remaining condition, detection after the lm-watermarking `UnicodeSanitizer`, is met too: 0 of 48 on the exploratory lane, against 47 of 48 pristine. Confirmation-grade measurement of that same condition is now on record: seeds `1200000` / `1210000` / `1220000`, mix **0/192** after the UnicodeSanitizer, carrier-free **182/192**, drop 6 from identity **188/192**. See `docs/cycle8/gate-v2.md`.
 
-So every frozen condition of `proposed_gate_v2` now has a measurement behind it. The H16 draft still records `proposed_gate_v2_fully_satisfied` as `false` because that draft's remaining-condition sentence was written against the exploratory lane. Formal Gate v2 is `cycle8-publishability-gate-v2`, status `confirmed_not_product_authorized`. It adds `ws_collapse_nfkc_cf_strip` versus the H16 draft.
+So every frozen condition of `proposed_gate_v2` now has a measurement behind it. The H16 draft still records `proposed_gate_v2_fully_satisfied` as `false` because that draft's remaining-condition sentence was written against the exploratory lane. Formal Gate v2 is `cycle8-publishability-gate-v2`. At audit time its status was `confirmed_not_product_authorized`. Live status is `confirmed_and_product_authorized`. It adds `ws_collapse_nfkc_cf_strip` versus the H16 draft.
 
 ## What this does not do
 
-This record is an audit. It does not authorize a mechanism, does not relax `required_sanitizers_keep`, and does not rewrite the mix verdict. `proposed_gate_v2` in the spec is marked `proposal_only_not_active`. Formal Gate v2 is `confirmed_not_product_authorized`. Public CLI stays empty.
+This record is an audit. It does not authorize a mechanism, does not relax `required_sanitizers_keep`, and does not rewrite the mix verdict. `proposed_gate_v2` in the spec is marked `proposal_only_not_active`. Live product authorization is recorded in Gate v2 and `cycle8-product-authorization-v1`, not in this audit file.
 
 Spec: `specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json`.
 

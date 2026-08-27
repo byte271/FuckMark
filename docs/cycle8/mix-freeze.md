@@ -4,7 +4,7 @@ Status: frozen development mechanism. One-shot confirmation **VERIFIED 0/192**. 
 
 Freeze identity: `cycle8-mix-freeze-v1` (`specs/cycle8/fuckmark-cycle8-mix-freeze-v1.json`). Freeze-time fields stay `confirmation: false` and `confirmation_generated: false`. The confirmation outcome is `cycle8-mix-confirmation-scorecard-v1`.
 
-The frozen mechanism is `u034f-ufe00-letter-alt-v1`. It is not in `release_transform_registry()`. `process_text("I do not agree.")` remains unchanged.
+The frozen mechanism is `u034f-ufe00-letter-alt-v1`. It is not in `release_transform_registry()`. Freeze-time `cli_identity` and `release_registry_empty` are snapshotted as true. Live product authorization is Gate v2 / `release-cli-v5`.
 
 ## Frozen contract
 

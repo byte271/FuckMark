@@ -40,7 +40,7 @@ def test_control_mix_diagnostic_920000_is_seen_hypothesis_zero() -> None:
     assert effectiveness["control_mix_uw"]["rate"] == "0/16"
     assert effectiveness["mix_uw"]["rate"] == "0/16"
     assert float(effectiveness["control_mix_wm_max_score"]) == 0.505336937084192
-    assert product_approved_carriers_v1() == frozenset()
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
     assert release_transform_registry().rules == ()
     samples = json.loads((Path(__file__).resolve().parents[1] / _SAMPLES).read_text(encoding="utf-8"))["samples"]
     by_id = {row["sample_id"]: row for row in samples}

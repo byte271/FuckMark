@@ -1,8 +1,8 @@
 # Cycle 8 publishability Gate v2
 
-Status: `confirmed_not_product_authorized`. Evidence label: `VERIFIED`. Confirmation passed. Not product authorization. Public CLI remains empty.
+Status: `confirmed_and_product_authorized`. Evidence label: `VERIFIED`. Confirmation passed. Public CLI applies frozen `u034f-ufe00-letter-alt-v1` as `release-cli-v5`.
 
-Gate v2 is a versioned publishability definition. Confirmation does not enable the CLI.
+Gate v2 is a versioned publishability definition. Confirmation did not by itself enable the CLI. Product authorization is a separate engineering step recorded here and in `cycle8-product-authorization-v1`.
 
 ## Decision
 
@@ -66,9 +66,23 @@ Closest mix residual geometry only: `cycle8-1210000-52-general_explanatory-water
 
 Generic `classify_scale_detector_compare` still labels each corpus `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. That is the shared scale classifier, not the Gate v2 claim.
 
+## Product authorization
+
+After confirmation, the public CLI was authorized to apply the frozen mix. Status is now `confirmed_and_product_authorized`.
+
+- `process_text` equals `apply_letter_alternating_mix` on ordinary English ASCII
+- `product_approved_carriers_v1()` is `{U+034F, U+FE00}`
+- `release_transform_registry()` stays empty
+- CLI identity is `release-cli-v5`
+- v1 mix publishability sanitizer stays FAIL
+- mix-freeze and mix-confirmation scorecards keep `product_authorized: false` as historical snapshots
+- the threat-model audit keeps `product_authorized: false` as an audit, not the authorization instrument
+
 Spec: `specs/cycle8/fuckmark-cycle8-publishability-gate-v2.json`.
 
 Scorecard: `specs/cycle8/fuckmark-cycle8-gate-v2-confirmation-scorecard-v1.json`.
+
+Authorization: `specs/cycle8/fuckmark-cycle8-product-authorization-v1.json`.
 
 Evidence: `evidence/cycle8-gate-v2-confirmation-2026-08-27/`.
 

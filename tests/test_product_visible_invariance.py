@@ -84,7 +84,9 @@ def test_visible_projection_accepts_approved_carrier_insertions_only() -> None:
     assert is_carrier_insertion_v1(original, transformed, (0x034F,))
     assert project_visible_v1(transformed, (0x034F,)) == original
     assert validate_user_visible_invariants(original, transformed, (0x034F,)).status is InvariantStatus.PASS
-    assert validate_user_visible_invariants(original, transformed).status is InvariantStatus.FAIL
+    assert validate_user_visible_invariants(original, transformed).status is InvariantStatus.PASS
+    unauthorized = "I do \u200cnot agree."
+    assert validate_user_visible_invariants(original, unauthorized).status is InvariantStatus.FAIL
 
 
 def test_product_registry_refuses_visible_edit_rules() -> None:

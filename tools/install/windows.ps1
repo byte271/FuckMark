@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$ReleaseTag = if ($env:FUCKMARK_RELEASE_TAG) { $env:FUCKMARK_RELEASE_TAG } else { "v0.3.0" }
+$ReleaseTag = if ($env:FUCKMARK_RELEASE_TAG) { $env:FUCKMARK_RELEASE_TAG } else { "v0.4.0" }
 $PackageVersion = $ReleaseTag.TrimStart("v")
 $WheelName = "fuckmark-$PackageVersion-py3-none-any.whl"
 $ReleaseBase = "https://github.com/byte271/FuckMark/releases/download/$ReleaseTag"

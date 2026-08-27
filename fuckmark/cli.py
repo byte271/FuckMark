@@ -12,18 +12,19 @@ from pathlib import Path
 from typing import TextIO
 
 from . import __project_name__, __version__
+from .cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
+from .product.domain import is_supported_product_domain_v1
 from .product.encodings import require_supported_product_encoding
 from .product.visible_projection import (
     is_carrier_insertion_v1,
     product_approved_carriers_v1,
     project_visible_v1,
 )
-from .transforms import TRANSFORM_REGISTRY_ALGORITHM_VERSION, release_transform_registry
+from .transforms import TRANSFORM_REGISTRY_ALGORITHM_VERSION
 
 
 CLI_TERMINATORS = frozenset({":done", "ok"})
-CLI_SELECTION_SEED = 0
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v4"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v5"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -48,24 +49,24 @@ class ProcessResult:
 def transform_text(text: str) -> ProcessResult:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
-    registry = release_transform_registry()
-    enumeration = registry.enumerate(text)
-    selected: list[str] = []
-    occupied_until = 0
-    for candidate in enumeration.candidates:
-        if candidate.start < occupied_until:
-            continue
-        selected.append(candidate.candidate_id)
-        occupied_until = candidate.end
-    if not selected:
-        return ProcessResult(text, 0)
     try:
-        result = registry.apply(enumeration, tuple(selected), seed=CLI_SELECTION_SEED)
-    except (KeyError, TypeError, ValueError):
+        approved = product_approved_carriers_v1()
+        if approved != frozenset(LETTER_MIX_APPROVED_CARRIERS):
+            return ProcessResult(text, 0)
+        if not is_supported_product_domain_v1(text):
+            return ProcessResult(text, 0)
+        if any(ord(character) in approved for character in text):
+            return ProcessResult(text, 0)
+        applied = apply_letter_alternating_mix(text)
+        if applied == text:
+            return ProcessResult(text, 0)
+        if not is_carrier_insertion_v1(text, applied, approved):
+            return ProcessResult(text, 0)
+        if project_visible_v1(applied, approved) != text:
+            return ProcessResult(text, 0)
+        return ProcessResult(applied, len(applied) - len(text))
+    except (KeyError, TypeError, ValueError, RuntimeError):
         return ProcessResult(text, 0)
-    if not is_carrier_insertion_v1(text, result.output_text, product_approved_carriers_v1()):
-        return ProcessResult(text, 0)
-    return ProcessResult(result.output_text, len(result.trace.operations))
 
 
 def process_text(text: str) -> str:

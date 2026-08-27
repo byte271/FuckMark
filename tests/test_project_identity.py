@@ -4,13 +4,13 @@ import tomllib
 import fuckmark
 
 
-def test_project_identity_is_fuckmark_v030() -> None:
+def test_project_identity_is_fuckmark_v040() -> None:
     root = Path(__file__).resolve().parents[1]
     project = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     assert project["name"] == "fuckmark"
-    assert project["version"] == "0.3.0"
+    assert project["version"] == "0.4.0"
     assert fuckmark.__project_name__ == "FuckMark"
-    assert fuckmark.__version__ == "0.3.0"
+    assert fuckmark.__version__ == "0.4.0"
 
 
 def test_legacy_project_identity_is_absent_outside_immutable_spec() -> None:

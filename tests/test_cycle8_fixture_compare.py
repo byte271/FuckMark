@@ -14,12 +14,14 @@ from fuckmark.product.domain import is_supported_product_domain_v1
 from fuckmark.cycle8.scoreboard import ProductGate
 
 
-def test_github_ci_cli_e2e_expects_unchanged_visible_text() -> None:
+def test_github_ci_cli_e2e_expects_letter_mix_not_contractions() -> None:
     text = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     assert "I don't agree" not in text
     assert "I can't stay" not in text
-    assert 'test "$output" = "I do not agree and I cannot stay."' in text
-    assert 'test "$(printf \'I do not agree.\\n\' | FuckMark)" = "I do not agree."' in text
+    assert "apply_letter_alternating_mix" in text
+    assert "--visible" in text
+    assert 'test "$output" = "I do not agree and I cannot stay."' not in text
+    assert 'test "$(printf \'I do not agree.\\n\' | FuckMark)" = "I do not agree."' not in text
 
 
 def test_cycle8_fixture_compare_passes_visible_projection_without_encoder() -> None:

@@ -9,6 +9,7 @@ from fuckmark.experiments.synthid_smoke import (
     run_synthid_smoke,
 )
 from fuckmark.hashing import sha256_text
+from fuckmark.product.visible_projection import project_visible_v1
 from fuckmark.transforms.registry import historical_visible_edit_transform_registry
 
 
@@ -44,8 +45,9 @@ class _FakeBackend:
     def score(self, text: str) -> float:
         if self.score_guard is not None:
             self.score_guard()
-        transformed = "don't" in text and "can't" in text
-        if text.startswith("WATERMARKED"):
+        visible = project_visible_v1(text)
+        transformed = "don't" in visible and "can't" in visible
+        if visible.startswith("WATERMARKED"):
             return 0.15 if transformed else 0.90
         return 0.18 if transformed else 0.20
 
@@ -71,10 +73,11 @@ def test_synthid_smoke_measures_paired_watermark_degradation_and_control_shift()
     assert report.summary.mean_watermark_score_drop == pytest.approx(0.0)
     assert report.summary.median_watermark_score_drop == pytest.approx(0.0)
     assert report.summary.mean_control_score_shift == pytest.approx(0.0)
-    assert report.summary.control_transform_rate == 0.0
-    assert report.summary.watermark_transform_rate == 0.0
-    assert not any(value.watermark_changed for value in report.results)
-    assert not any(value.control_changed for value in report.results)
+    assert report.summary.control_transform_rate == 1.0
+    assert report.summary.watermark_transform_rate == 1.0
+    assert all(value.watermark_changed for value in report.results)
+    assert all(value.control_changed for value in report.results)
+    assert not any("don't" in project_visible_v1(value.watermark_transformed_text) for value in report.results)
 
 
 def test_historical_visible_edit_smoke_still_contracts_when_requested_explicitly() -> None:

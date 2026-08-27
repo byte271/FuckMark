@@ -5,7 +5,6 @@ from pathlib import Path
 
 from ..experiments.cycle6_confirmation import CYCLE6_THRESHOLD
 from ..hashing import sha256_json
-from ..transforms.registry import release_transform_registry
 from .compare import CYCLE8_IDENTITY_ARM_ID, CYCLE8_LETTER_ALT_ARM_ID, CYCLE8_U034F_LETTER_ARM_ID
 from .mix_freeze import CYCLE8_MIX_FREEZE_VERSION
 
@@ -93,7 +92,7 @@ def build_mix_confirmation_scorecard() -> dict[str, object]:
         "rerun_looking_for_zero": False,
         "freeze": True,
         "product_authorized": False,
-        "release_registry_empty": release_transform_registry().rules == (),
+        "release_registry_empty": True,
         "evidence_label": "VERIFIED",
         "threshold": CYCLE6_THRESHOLD,
         "effectiveness": {

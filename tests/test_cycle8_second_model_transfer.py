@@ -65,4 +65,4 @@ def test_distilgpt2_n16_is_second_model_hypothesis_not_confirmation() -> None:
         assert sha256_file(root / name) == digest
     assert_mix_second_model_transfer_committed()
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset()
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})

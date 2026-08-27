@@ -60,7 +60,7 @@ def test_deepmind_920000_n16_is_independent_configuration_hypothesis() -> None:
         digest, name = line.split()
         assert sha256_file(root / name) == digest
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset()
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
 
 
 def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> None:
@@ -118,4 +118,4 @@ def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> Non
         file_digest, name = line.split()
         assert sha256_file(combined_root / name) == file_digest
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset()
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})

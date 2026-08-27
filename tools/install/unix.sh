@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-RELEASE_TAG="${FUCKMARK_RELEASE_TAG:-v0.3.0}"
+RELEASE_TAG="${FUCKMARK_RELEASE_TAG:-v0.4.0}"
 PACKAGE_VERSION="${RELEASE_TAG#v}"
 WHEEL_NAME="fuckmark-${PACKAGE_VERSION}-py3-none-any.whl"
 RELEASE_BASE="https://github.com/byte271/FuckMark/releases/download/${RELEASE_TAG}"

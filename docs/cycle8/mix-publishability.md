@@ -1,8 +1,8 @@
 # Cycle 8 mix publishability gates
 
-Status: **not product-publishable**. Mix freeze confirmation remains `VERIFIED` **0/192**. The public CLI stays empty.
+Status: **not product-publishable on the v1 report**. Mix freeze confirmation remains `VERIFIED` **0/192**. Live product authorization is Gate v2, not a rewrite of this v1 report.
 
-Report identity: `cycle8-mix-publishability-v1` (`specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json`). This report does not rewrite `cycle8-mix-freeze-v1` or `cycle8-mix-confirmation-scorecard-v1`. Tag `v0.3.0` is not retagged.
+Report identity: `cycle8-mix-publishability-v1` (`specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json`). This report does not rewrite `cycle8-mix-freeze-v1` or `cycle8-mix-confirmation-scorecard-v1`. Tag `v0.3.0` is not retagged. Historical fields on this report snapshot identity CLI `release-cli-v4` and empty approved carriers. Live CLI is `release-cli-v5`.
 
 The five gates are the bar for calling mix a publishable FuckMark product. Passing a research confirmation is not enough.
 
@@ -16,7 +16,7 @@ The five gates are the bar for calling mix a publishable FuckMark product. Passi
 | Known sanitizer weaknesses | FAIL | yes |
 | Cross-detector generalization | PASS | yes |
 
-`product_publishable` is false. `product_authorized` is false. `product_approved_carriers_v1()` is empty. `process_text("I do not agree.")` is unchanged.
+`product_publishable` is false. `product_authorized` is false on this v1 report. Those fields are historical snapshots. Live `product_approved_carriers_v1()` is the frozen mix pair. `process_text("I do not agree.")` equals `apply_letter_alternating_mix`.
 
 ## Reproducibility
 
@@ -35,7 +35,7 @@ PASS on the product surface:
 - Product search is visible-projection search (`visible_contains`). After letter-mix, `do not` is found on the visible projection and missed by raw codepoint `in`.
 - Raw codepoint search is **not** the product search API. Many editors that search UTF-16 code units will miss intra-letter carriers. That is a payload limitation, not a claimed editor Ctrl+F guarantee.
 - Chromium `window.find` HIT for `do not` on mix text was measured on a host with Chrome. That measurement is host-dependent and is **not** hashed into this spec. CI without Chrome reports UNKNOWN.
-- Protected URL and email spans stay intact. Clipboard copies Unicode text. `--visible` writes the product-authorized visible projection (currently identity, because no carrier is authorized).
+- Protected URL and email spans stay intact. Clipboard copies Unicode text. `--visible` writes the product-authorized visible projection.
 
 ## Sanitizer weaknesses
 

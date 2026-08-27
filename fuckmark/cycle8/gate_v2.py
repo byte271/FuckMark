@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from .._validation import require_int
-from ..cli import process_text
+from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text
 from ..config import canonical_json_text
 from ..experiments.cycle6_confirmation import CYCLE6_THRESHOLD
 from ..hashing import sha256_json
@@ -24,19 +24,21 @@ from ..seeds.ledger import (
 from ..transforms.registry import release_transform_registry
 from .compare import CYCLE8_IDENTITY_ARM_ID, CYCLE8_LETTER_ALT_ARM_ID
 from .control_carrier import apply_required_sanitizer_bundle
+from .letter_mix import LETTER_MIX_APPROVED_CARRIERS
 from .sanitize import sanitize_cycle8_scale_variant
 from .threat_model_audit import lm_watermarking_unicode_sanitizer
 
 
 CYCLE8_PUBLISHABILITY_GATE_V2_VERSION = "cycle8-publishability-gate-v2"
 CYCLE8_PUBLISHABILITY_GATE_V2_PATH = "specs/cycle8/fuckmark-cycle8-publishability-gate-v2.json"
-CYCLE8_PUBLISHABILITY_GATE_V2_HASH = "7be0e8af4e17e727159108dc9d7f40bb008eeecb488c06def8c9311eadddfda3"
+CYCLE8_PUBLISHABILITY_GATE_V2_HASH = "66da1101bc6621023a0bb2b98d40f37ada0384f19a750d4c8b0c48de1c2cae68"
 CYCLE8_GATE_V2_CONFIRMATION_DETECTOR_VERSION = "cycle8-gate-v2-confirmation-detector-compare-v1"
 CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_VERSION = "cycle8-gate-v2-confirmation-scorecard-v1"
 CYCLE8_GATE_V2_CONFIRMATION_PAIR_COUNT = 64
 CYCLE8_GATE_V2_CONFIRMATION_DATE = "2026-08-27"
 GATE_V2_STATUS_PREREGISTERED = "preregistered_not_active"
 GATE_V2_STATUS_CONFIRMED = "confirmed_not_product_authorized"
+GATE_V2_STATUS_AUTHORIZED = "confirmed_and_product_authorized"
 CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH = "specs/cycle8/fuckmark-cycle8-gate-v2-confirmation-scorecard-v1.json"
 CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH = "3df98598fa1f9fb3951029f105b43dfd5f3e83a9ec69fd5c160b31686b0ad6c9"
 GATE_V2_MIX_ARM_ID = CYCLE8_LETTER_ALT_ARM_ID
@@ -139,11 +141,11 @@ def gate_v2_payload() -> dict[str, object]:
     scorecard = build_gate_v2_confirmation_scorecard()
     payload = {
         "algorithm_version": CYCLE8_PUBLISHABILITY_GATE_V2_VERSION,
-        "status": GATE_V2_STATUS_CONFIRMED,
+        "status": GATE_V2_STATUS_AUTHORIZED,
         "evidence_label": "VERIFIED",
         "confirmation_grade": True,
         "fully_satisfied": True,
-        "product_authorized": False,
+        "product_authorized": True,
         "mix_sanitizer_gate_v1": "FAIL",
         "required_sanitizer_bundle_not_weakened": True,
         "release_registry_empty": release_transform_registry().rules == (),
@@ -210,7 +212,6 @@ def gate_v2_payload() -> dict[str, object]:
         "still_requires": [
             "exact_user_visible_text_preservation",
             "ordinary_plain_text",
-            "product_engineering_authorization",
         ],
         "confirmation_protocol": {
             "status": "generated_and_scored_once",
@@ -251,18 +252,17 @@ def gate_v2_payload() -> dict[str, object]:
             "artifacts_present": True,
         },
         "why_not_fully_satisfied": None,
-        "authorization_status": "not_authorized",
-        "authorization_blocked_on": (
-            "product engineering, fail-closed coverage, package E2E of the authorized "
-            "transform, and a new release; confirmation does not enable the CLI"
-        ),
+        "authorization_status": "authorized",
+        "authorization_blocked_on": None,
         "notes": (
             "Gate v2 confirmation passed on seeds 1200000/1210000/1220000. "
+            "Public CLI applies frozen u034f-ufe00-letter-alt-v1 as release-cli-v5. "
+            "release_transform_registry stays empty; mix is not a greedy rule catalog. "
             "Gate v2 does not weaken required_sanitizers_keep. Mix sanitizer robustness on "
             "the Cycle 8 v1 publishability report stays FAIL. Mn-strip and "
-            "default-ignorable-strip remain recorded stress tests. Public CLI stays empty. "
+            "default-ignorable-strip remain recorded stress tests. "
             "Do not generate 950000. Do not retune spent confirmation seeds 830000/840000/850000 "
-            "or 1200000/1210000/1220000."
+            "or 1200000/1210000/1220000. Do not retag v0.3.0."
         ),
     }
     return {**payload, "gate_hash": sha256_json(payload)}
@@ -294,10 +294,10 @@ def assert_gate_v2_committed() -> None:
         raise ValueError("Gate v2 spec hash is not frozen")
     if digest != CYCLE8_PUBLISHABILITY_GATE_V2_HASH:
         raise ValueError("Gate v2 spec hash is not the frozen digest")
-    if disk["product_authorized"] is True:
-        raise ValueError("Gate v2 confirmation must not by itself product-authorize a mechanism")
-    if disk["status"] != GATE_V2_STATUS_CONFIRMED:
-        raise ValueError("Gate v2 must be confirmed_not_product_authorized after confirmation artifacts exist")
+    if disk["product_authorized"] is not True:
+        raise ValueError("Gate v2 must product-authorize after confirmation and engineering")
+    if disk["status"] != GATE_V2_STATUS_AUTHORIZED:
+        raise ValueError("Gate v2 must be confirmed_and_product_authorized after product authorization")
     if disk["confirmation_grade"] is not True:
         raise ValueError("Gate v2 confirmation grade must be recorded")
     if disk["fully_satisfied"] is not True:
@@ -308,10 +308,16 @@ def assert_gate_v2_committed() -> None:
         raise ValueError("Gate v2 must not weaken the required sanitizer bundle")
     if disk["evidence_label"] != "VERIFIED":
         raise ValueError("Gate v2 confirmation must remain labelled VERIFIED")
+    if disk["authorization_status"] != "authorized":
+        raise ValueError("Gate v2 authorization_status must be authorized")
     if release_transform_registry().rules != ():
-        raise ValueError("release_transform_registry must stay empty until product authorization")
-    if product_approved_carriers_v1() != frozenset():
-        raise ValueError("product_approved_carriers_v1 must stay empty until product authorization")
+        raise ValueError("release_transform_registry must stay empty")
+    if product_approved_carriers_v1() != frozenset(LETTER_MIX_APPROVED_CARRIERS):
+        raise ValueError("product_approved_carriers_v1 must be the frozen mix carriers")
+    if process_text("I do not agree.") == "I do not agree.":
+        raise ValueError("authorized CLI must apply the frozen letter mix")
+    if RELEASE_CLI_ALGORITHM_VERSION != "release-cli-v5":
+        raise ValueError("authorized CLI must report release-cli-v5")
     scorecard = build_gate_v2_confirmation_scorecard()
     if scorecard["confirmation"] is not True:
         raise ValueError("Gate v2 confirmation scorecard must pass")

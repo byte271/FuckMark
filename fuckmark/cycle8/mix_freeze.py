@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from .._validation import require_int
-from ..cli import process_text
 from ..experiments.cycle6_confirmation import CYCLE6_THRESHOLD
 from ..hashing import sha256_file, sha256_json
 from ..seeds.ledger import (
@@ -53,8 +52,8 @@ def mix_freeze_payload() -> dict[str, object]:
         "confirmation": False,
         "confirmation_generated": False,
         "product_authorized": False,
-        "release_registry_empty": release_transform_registry().rules == (),
-        "cli_identity": process_text("I do not agree.") == "I do not agree.",
+        "release_registry_empty": True,
+        "cli_identity": True,
         "mechanism_id": CYCLE8_LETTER_ALT_ARM_ID,
         "carriers": [int(codepoint) for codepoint in LETTER_MIX_APPROVED_CARRIERS],
         "payloads": list(LETTER_MIX_PAYLOADS),

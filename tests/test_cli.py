@@ -7,8 +7,9 @@ import pytest
 
 from fuckmark import __version__
 from fuckmark.cli import RELEASE_CLI_ALGORITHM_VERSION, main, process_text, read_pasted_text, transform_text
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 from fuckmark.product.invariants import validate_user_visible_invariants
-from fuckmark.product.visible_projection import is_carrier_insertion_v1
+from fuckmark.product.visible_projection import is_carrier_insertion_v1, product_approved_carriers_v1, project_visible_v1
 from fuckmark.transforms.registry import (
     historical_visible_edit_transform_registry,
     release_transform_registry,
@@ -25,19 +26,27 @@ VISIBLE_FIXTURES = (
     "However, the result matters.",
     "All of the examples are relevant.",
 )
+APPROVED = frozenset(LETTER_MIX_APPROVED_CARRIERS)
 
 
 def test_cli_process_text_does_not_apply_visible_contractions() -> None:
     source = "I do not agree and I cannot stay."
-    assert process_text(source) == source
-    assert transform_text(source).change_count == 0
-    assert transform_text(source).output_text == source
+    applied = process_text(source)
+    assert applied == apply_letter_alternating_mix(source)
+    assert "don't" not in applied
+    assert "can't" not in applied
+    assert project_visible_v1(applied, APPROVED) == source
+    assert transform_text(source).change_count > 0
+    assert transform_text(source).output_text == applied
 
 
 @pytest.mark.parametrize("source", VISIBLE_FIXTURES)
 def test_cli_preserves_exact_visible_projection_on_contract_examples(source: str) -> None:
-    assert process_text(source) == source
-    assert is_carrier_insertion_v1(source, process_text(source), ())
+    applied = process_text(source)
+    assert applied == apply_letter_alternating_mix(source)
+    assert is_carrier_insertion_v1(source, applied, APPROVED)
+    assert project_visible_v1(applied, APPROVED) == source
+    assert validate_user_visible_invariants(source, applied, APPROVED).status is InvariantStatus.PASS
 
 
 def test_historical_visible_edit_registry_still_contracts_for_replay() -> None:
@@ -51,14 +60,42 @@ def test_historical_visible_edit_registry_still_contracts_for_replay() -> None:
     assert report.status is InvariantStatus.FAIL
 
 
-def test_cli_process_text_preserves_quoted_and_unquoted_visible_text() -> None:
+def test_cli_process_text_applies_mix_inside_quotes_and_blocks_urls() -> None:
     source = 'Keep "do not change this" but I do not agree.'
-    assert process_text(source) == source
+    applied = process_text(source)
+    assert applied == apply_letter_alternating_mix(source)
+    interior = applied[applied.index('"') + 1 : applied.rindex('"')]
+    assert "\u034f" in interior or "\ufe00" in interior
+    machine = "See https://example.com/do-not-touch and continue."
+    mixed = process_text(machine)
+    assert "https://example.com/do-not-touch" in mixed
+    assert project_visible_v1(mixed, APPROVED) == machine
 
 
-def test_cli_process_text_preserves_text_when_no_candidate_is_eligible() -> None:
-    source = "Already concise."
+def test_cli_process_text_fail_closes_without_letter_sites() -> None:
+    source = "123."
     assert process_text(source) == source
+    assert transform_text(source).change_count == 0
+
+
+def test_cli_process_text_fail_closes_outside_ascii_domain() -> None:
+    source = "I do not agree " + chr(0x00E9) + "."
+    assert process_text(source) == source
+    assert transform_text(source).change_count == 0
+
+
+def test_cli_process_text_fail_closes_when_carriers_already_present() -> None:
+    source = "I do not agree."
+    mixed = apply_letter_alternating_mix(source)
+    assert process_text(mixed) == mixed
+    assert transform_text(mixed).change_count == 0
+
+
+def test_cli_respects_selected_site_cap() -> None:
+    source = "abcdefghijklmnopqrstuvwxyz" * 12
+    applied = process_text(source)
+    assert applied.count("\u034f") + applied.count("\ufe00") == 192
+    assert project_visible_v1(applied, APPROVED) == source
 
 
 def test_cli_reads_multiline_paste_until_ok_line() -> None:
@@ -68,7 +105,7 @@ def test_cli_reads_multiline_paste_until_ok_line() -> None:
     assert "Finish with :done on its own line" in output.getvalue()
 
 
-def test_cli_main_processes_unchanged_visible_text_without_copying() -> None:
+def test_cli_main_applies_mix_without_copying() -> None:
     source = StringIO("I do not agree.\nok\n")
     output = StringIO()
     copied: list[str] = []
@@ -76,34 +113,37 @@ def test_cli_main_processes_unchanged_visible_text_without_copying() -> None:
     assert status == 0
     assert copied == []
     rendered = output.getvalue()
+    expected = apply_letter_alternating_mix("I do not agree.")
     assert f"FuckMark {__version__}" in rendered
     assert "Processing..." in rendered
-    assert "visible text left unchanged" in rendered
+    assert "product-authorized invisible" in rendered
     assert "Copied to clipboard." not in rendered
-    assert "I do not agree." in rendered
+    assert expected in rendered
     assert "I don't agree." not in rendered
+    assert project_visible_v1(expected, APPROVED) == "I do not agree."
 
 
-def test_cli_main_leaves_original_when_no_change_is_eligible() -> None:
-    source = StringIO("Already concise.\nok\n")
+def test_cli_main_leaves_original_when_no_letter_site_is_eligible() -> None:
+    source = StringIO("123.\nok\n")
     output = StringIO()
     copied: list[str] = []
     status = main(source, output, copied.append)
     assert status == 0
     assert copied == []
     rendered = output.getvalue()
-    assert "Already concise." in rendered
+    assert "123." in rendered
     assert "visible text left unchanged" in rendered
     assert "Copied to clipboard." not in rendered
 
 
-def test_cli_main_copies_only_with_copy_flag() -> None:
+def test_cli_main_copies_raw_mix_payload_with_copy_flag() -> None:
     source = StringIO("I do not agree.\nok\n")
     output = StringIO()
     copied: list[str] = []
     status = main(source, output, copied.append, argv=("--copy",))
     assert status == 0
-    assert copied == ["I do not agree."]
+    expected = apply_letter_alternating_mix("I do not agree.")
+    assert copied == [expected]
     rendered = output.getvalue()
     assert "Copied to clipboard." in rendered
     assert "I don't agree." not in rendered
@@ -120,7 +160,8 @@ def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
     status = main(source, output, fail, error_stream=errors, argv=("--copy",))
     assert status == 2
     rendered = output.getvalue()
-    assert "I do not agree." in rendered
+    expected = apply_letter_alternating_mix("I do not agree.")
+    assert expected in rendered
     assert "I don't agree." not in rendered
     assert "clipboard copy failed" in errors.getvalue()
 
@@ -131,8 +172,8 @@ def test_cli_version_reports_project_and_algorithm_identity(capsys) -> None:
     assert result.value.code == 0
     rendered = capsys.readouterr().out
     assert f"FuckMark {__version__}" in rendered
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v4"
-    assert "release-cli-v4" in rendered
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v5"
+    assert "release-cli-v5" in rendered
     assert "transform-registry-v6" in rendered
 
 
@@ -143,11 +184,11 @@ def test_cli_noninteractive_mode_writes_only_transformed_text(option) -> None:
     copied: list[str] = []
     status = main(source, output, copied.append, argv=option)
     assert status == 0
-    assert output.getvalue() == "I do not agree.\n"
+    assert output.getvalue() == apply_letter_alternating_mix("I do not agree.\n")
     assert copied == []
 
 
-def test_cli_rejects_latin1_and_keeps_visible_projection_identity() -> None:
+def test_cli_rejects_latin1_and_visible_flag_strips_to_source() -> None:
     source = StringIO("I do not agree.\n")
     output = StringIO()
     errors = StringIO()
@@ -180,7 +221,7 @@ def test_cli_reads_file_and_atomically_writes_output(tmp_path: Path) -> None:
     assert main(output_stream=output, error_stream=errors, argv=(str(source), "--output", str(target))) == 0
     assert output.getvalue() == ""
     assert errors.getvalue() == ""
-    assert target.read_text(encoding="utf-8") == "I do not agree.\n"
+    assert target.read_text(encoding="utf-8") == apply_letter_alternating_mix("I do not agree.\n")
 
 
 def test_cli_refuses_to_overwrite_its_input_file(tmp_path: Path) -> None:
@@ -200,7 +241,7 @@ def test_cli_automatically_uses_stream_mode_for_a_pipe(monkeypatch) -> None:
     monkeypatch.setattr(sys, "stdout", output)
     monkeypatch.setattr(sys, "stderr", errors)
     assert main(argv=()) == 0
-    assert output.getvalue() == "I do not agree.\n"
+    assert output.getvalue() == apply_letter_alternating_mix("I do not agree.\n")
     assert errors.getvalue() == ""
 
 
@@ -225,6 +266,7 @@ def test_release_registry_contains_no_visible_edit_transforms() -> None:
     assert release_ids == set()
     assert "contract-do-not" in historical_ids
     assert historical_visible_edit_transform_registry().ruleset_hash != release_transform_registry().ruleset_hash
+    assert product_approved_carriers_v1() == APPROVED
 
 
 def test_pyproject_installs_all_FuckMark_console_command_aliases() -> None:

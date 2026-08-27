@@ -39,7 +39,7 @@ def test_mix_mean_transfer_scorecard_is_hypothesis_on_the_same_adapter() -> None
     assert float(effectiveness["mix_weighted_mean_wm_max_score"]) == 0.5243003808577579
     assert_mix_mean_transfer_committed()
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset()
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
 
 
 def test_mix_mean_transfer_rows_match_reapplied_mix_hashes_without_storing_text() -> None:

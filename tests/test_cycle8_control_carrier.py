@@ -71,8 +71,8 @@ def test_control_carrier_scan_keeps_width0_closed_and_finds_cc_survivors() -> No
     assert "U+000A" not in disk["eligible_codepoints"]
     assert payload == disk
     assert_control_carrier_scan_committed()
-    assert process_text("I do not agree.") == "I do not agree."
-    assert product_approved_carriers_v1() == frozenset()
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
     assert release_transform_registry().rules == ()
 
 
@@ -103,8 +103,8 @@ def test_eligible_controls_are_policy_filtered_and_survive_required_sanitizers()
     assert sanitize_benchmark_stress("default_ignorable_strip", mix) == source
     assert display_column_width(source) != display_column_width(control)
     assert control_display_column_width(source) == control_display_column_width(control)
-    assert process_text(source) == source
-    assert product_approved_carriers_v1() == frozenset()
+    assert process_text(source) == apply_letter_alternating_mix(source)
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
 
 
 def test_control_mix_carriers_match_eligible_set() -> None:

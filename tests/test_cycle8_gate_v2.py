@@ -13,7 +13,7 @@ from fuckmark.cycle8.gate_v2 import (
     GATE_V2_CONFIRMATION_SEED_BASES,
     GATE_V2_IDENTITY_WM_MIN,
     GATE_V2_REQUIRED_SANITIZER_IDS,
-    GATE_V2_STATUS_CONFIRMED,
+    GATE_V2_STATUS_AUTHORIZED,
     GATE_V2_UNICODE_SANITIZER_ID,
     assert_gate_v2_committed,
     assert_gate_v2_confirmation_generation_seed,
@@ -28,6 +28,7 @@ from fuckmark.cycle8.gate_v2 import (
 from fuckmark.cycle8.ledger import assert_cycle8_development_seed
 from fuckmark.cycle8.publishability import measure_mix_fixtures
 from fuckmark.cycle8.threat_model_audit import lm_watermarking_unicode_sanitizer
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 from fuckmark.hashing import sha256_file, sha256_json
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.seeds.ledger import (
@@ -48,20 +49,24 @@ def test_gate_v2_spec_is_committed_and_confirmed():
     disk = load_gate_v2()
     assert disk["gate_hash"] == CYCLE8_PUBLISHABILITY_GATE_V2_HASH
     assert disk == gate_v2_payload()
-    assert disk["status"] == GATE_V2_STATUS_CONFIRMED
+    assert disk["status"] == GATE_V2_STATUS_AUTHORIZED
     assert disk["evidence_label"] == "VERIFIED"
     assert disk["confirmation_grade"] is True
     assert disk["fully_satisfied"] is True
-    assert disk["product_authorized"] is False
+    assert disk["product_authorized"] is True
     assert disk["mix_sanitizer_gate_v1"] == "FAIL"
     assert disk["required_sanitizer_bundle_not_weakened"] is True
+    assert disk["authorization_status"] == "authorized"
+    assert "product_engineering_authorization" not in disk["still_requires"]
     assert gate_v2_confirmation_artifacts_present() is True
 
 
-def test_gate_v2_does_not_authorize_the_product():
-    assert product_approved_carriers_v1() == frozenset()
+def test_gate_v2_authorizes_the_frozen_mix():
+    source = "I do not agree."
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
     assert release_transform_registry().rules == ()
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text(source) == apply_letter_alternating_mix(source)
+    assert process_text(source) != source
 
 
 def test_gate_v2_does_not_weaken_the_required_bundle():

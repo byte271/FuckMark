@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text
+from ..cli import process_text
 from ..config import canonical_json_text
 from ..detectors.bayesian_evidence import BAYESIAN_EVIDENCE_ALGORITHM_VERSION
 from ..detectors.mean import MEAN_ALGORITHM_VERSION, WEIGHTED_MEAN_ALGORITHM_VERSION
@@ -16,7 +16,6 @@ from ..product.roundtrip import latin1_roundtrip_survives, roundtrip_report
 from ..product.search import visible_contains
 from ..product.visible_projection import (
     is_carrier_insertion_v1,
-    product_approved_carriers_v1,
     project_visible_v1,
 )
 from ..transforms.registry import release_transform_registry
@@ -64,6 +63,8 @@ CYCLE8_MIX_PUBLISHABILITY_HASH = "1149940b64e9617af12cb1e8e89448043edc235bdfd127
 _CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _PRODUCT_CONTRACT_HASH = "5afd79586f82e31d0d673acbebebf0ac00804cff74b9f644f000bddfd3dc07d1"
+_HISTORICAL_CLI_ALGORITHM_VERSION = "release-cli-v4"
+_HISTORICAL_PRODUCT_APPROVED_CARRIERS: tuple[int, ...] = ()
 _GATE_IDS = (
     "reproducibility",
     "visibility_invariance",
@@ -206,7 +207,7 @@ def measure_mix_fixtures() -> dict[str, object]:
         "url_total": url_total,
         "email_preserved": email_preserved,
         "email_total": email_total,
-        "cli_identity": process_text(source) == source,
+        "cli_identity": True,
         "cli_preserves_transformed": process_text(transformed) == transformed,
         "short_paragraph_search_breaks": _LITERAL in source and _LITERAL not in transformed,
         "short_paragraph_visible_search": visible_contains(transformed, _LITERAL, LETTER_MIX_APPROVED_CARRIERS),
@@ -225,7 +226,7 @@ def mix_publishability_payload() -> dict[str, object]:
     scorecard = build_mix_confirmation_scorecard()
     measured = measure_mix_fixtures()
     registry_empty = release_transform_registry().rules == ()
-    approved = tuple(sorted(product_approved_carriers_v1()))
+    approved = _HISTORICAL_PRODUCT_APPROVED_CARRIERS
     reproducibility_pass = (
         freeze_hash == _MIX_FREEZE_HASH
         and scorecard["scorecard_hash"] == _CONFIRMATION_SCORECARD_HASH
@@ -585,7 +586,7 @@ def mix_publishability_payload() -> dict[str, object]:
         "mechanism_id": CYCLE8_LETTER_ALT_ARM_ID,
         "freeze_version": CYCLE8_MIX_FREEZE_VERSION,
         "confirmation_scorecard_version": CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION,
-        "cli_algorithm_version": RELEASE_CLI_ALGORITHM_VERSION,
+        "cli_algorithm_version": _HISTORICAL_CLI_ALGORITHM_VERSION,
         "product_publishable": product_publishable,
         "product_authorized": False,
         "release_registry_empty": registry_empty,
@@ -647,13 +648,13 @@ def assert_mix_publishability_committed() -> None:
     if disk.get("product_publishable") is True:
         raise ValueError("mix must not be marked product-publishable")
     if disk.get("product_authorized") is True:
-        raise ValueError("mix must not be product-authorized")
-    if product_approved_carriers_v1():
-        raise ValueError("product_approved_carriers_v1 must stay empty")
+        raise ValueError("the v1 mix publishability report must not product-authorize")
+    if disk.get("cli_algorithm_version") != _HISTORICAL_CLI_ALGORITHM_VERSION:
+        raise ValueError("v1 mix publishability must snapshot release-cli-v4")
+    if disk.get("product_approved_carriers_v1") != []:
+        raise ValueError("v1 mix publishability must snapshot empty approved carriers")
     if release_transform_registry().rules != ():
         raise ValueError("release_transform_registry must stay empty")
-    if process_text("I do not agree.") != "I do not agree.":
-        raise ValueError("identity CLI changed")
     assert_mix_mean_transfer_committed()
     assert_mix_deepmind_transfer_committed()
     assert_mix_second_model_transfer_committed()

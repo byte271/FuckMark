@@ -3,7 +3,7 @@
 Contract identity: `fuckmark-user-visible-invariance-v1`  
 Machine-readable file: `specs/fuckmark-user-visible-invariance-v1.contract.json`
 
-This contract is Priority Zero. Detector score cannot override it.
+This contract is Priority Zero. Detector score cannot override it. The v1 JSON is immutable. Live approved carriers are filled by product authorization without rewriting that file.
 
 ## Rule
 
@@ -36,28 +36,15 @@ These are not product success:
 
 ## Current product path
 
-`release_transform_registry()` is the product registry. It currently authorizes **zero** carriers.
+`release_transform_registry()` stays empty. The public CLI (`release-cli-v5`) applies frozen `apply_letter_alternating_mix` directly: U+034F on even selected ASCII-letter sites, U+FE00 on odd sites, cap 192, outside hard machine spans.
 
-The public CLI (`release-cli-v4`) therefore returns the original text unchanged. That fail-closed behavior is required until a carrier has:
+Live `product_approved_carriers_v1()` is `{U+034F, U+FE00}`. The v1 contract's empty `product_authorized_carriers_v1` list is a historical snapshot of that file.
 
-1. exact visible-projection pass;
-2. English-ASCII v1 domain evidence;
-3. sanitizer evidence (whitespace collapse, and preferably NFKC + Cf-strip);
-4. GPT-2 tokenizer disruption evidence;
-5. protected machine-span safety;
-6. later, replicated detector reduction.
+Authorization is recorded in `cycle8-publishability-gate-v2` (`confirmed_and_product_authorized`) and `cycle8-product-authorization-v1`. Confirmation does not by itself enable the CLI; the engineering step did.
 
-Cycle 8 mix freeze confirmation is not enough. A carrier is product-publishable only after these additional gates all PASS:
+The Cycle 8 v1 mix publishability report (`cycle8-mix-publishability-v1`) stays `product_publishable: false` because sanitizer weaknesses FAIL: Mn-strip and default-ignorable-strip remove the mix carriers. Gate v2 treats those two as `stress_only_not_frozen` / `KNOWN_DESTRUCTIVE_COUNTERMEASURE` and does not weaken `required_sanitizers_keep`. See `docs/cycle8/mix-publishability.md` and `docs/cycle8/gate-v2.md`.
 
-1. reproducibility of frozen hashes and deterministic apply;
-2. cross-environment visibility invariance on Unicode-capable surfaces;
-3. real-world software compatibility on the product surface (UTF-8 only; visible-projection search; Latin-1/ASCII/cp1252 unsupported rather than pretended);
-4. known sanitizer weaknesses no longer kill the carriers, or an explicit product decision to accept those sanitizers as out of scope;
-5. cross-detector generalization beyond one open GPT-2 SynthID Weighted Mean detector.
-
-`cycle8-mix-publishability-v1` currently fail-closes. Software compatibility now PASSes on that product surface. Cross-detector generalization PASSes on Hugging Face nine-key GPT-2 Weighted Mean plus independent DeepMind 30-key GPT-2. Sanitizer weaknesses still FAIL: Mn-strip and default-ignorable-strip remove the mix carriers, and the assigned-Unicode closed set found no Priority-Zero-safe survivor. See `docs/cycle8/mix-publishability.md`.
-
-U+200C is not authorized. It is a diagnostic baseline and is removed by Cf stripping.
+U+200C is not authorized. It is a diagnostic baseline and is removed by Cf stripping. H12 control-mix is not authorized.
 
 ## Historical research
 
@@ -76,4 +63,4 @@ Output is ordinary Unicode plain text. HTML overlays, custom fonts, canvas, clip
 
 ## Failure behavior
 
-If a candidate would change visible projection, if the input is outside ordinary English ASCII v1, if carrier safety is uncertain, or if a protected machine span would be broken, the product path leaves that region unchanged. It never falls back to a visible edit. Product carrier enumeration also skip-closes any insertion whose trial output would fail the frozen hard-invariant validator.
+If a candidate would change visible projection, if the input is outside ordinary English ASCII v1, if carrier safety is uncertain, or if a protected machine span would be broken, the product path leaves that region unchanged. It never falls back to a visible edit.

@@ -25,7 +25,7 @@ def test_letter_mix_uses_alternating_carriers_and_keeps_visible_text() -> None:
     assert is_carrier_insertion_v1(source, applied, LETTER_MIX_APPROVED_CARRIERS)
     assert project_visible_v1(applied, LETTER_MIX_APPROVED_CARRIERS) == source
     assert LETTER_MIX_MAX_SELECTED == LETTER_CARRIER_MAX_SELECTED == 192
-    assert process_text(source) == source
+    assert process_text(source) == apply_letter_alternating_mix(source)
     assert release_transform_registry().rules == ()
 
 
@@ -73,5 +73,5 @@ def test_letter_mix_inserts_inside_quotes_and_respects_cap() -> None:
     capped = apply_letter_alternating_mix(source, max_selected=16)
     assert capped.count("\u034f") + capped.count("\ufe00") == 16
     assert project_visible_v1(capped, LETTER_MIX_APPROVED_CARRIERS) == source
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
     assert release_transform_registry().rules == ()

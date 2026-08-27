@@ -49,16 +49,19 @@ jobs:
           SH
           chmod +x "$test_bin/wl-copy"
           export PATH="$test_bin:$PATH"
+          expected_long="$(printf 'I do not agree and I cannot stay.\n' | python -c "from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix; import sys; sys.stdout.write(apply_letter_alternating_mix(sys.stdin.read()))")"
+          expected_short="$(printf 'I do not agree.\n' | python -c "from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix; import sys; sys.stdout.write(apply_letter_alternating_mix(sys.stdin.read()))")"
           for command in FuckMark Fuckmark fuckmark; do
             command -v "$command"
             capture="$RUNNER_TEMP/${command}.clipboard"
             export FUCKMARK_CLIPBOARD_CAPTURE="$capture"
             output="$(printf 'I do not agree and I cannot stay.\n' | "$command" --stdin --copy)"
             printf '%s\n' "$output"
-            test "$output" = "I do not agree and I cannot stay."
-            test "$(cat "$capture")" = "I do not agree and I cannot stay."
+            test "$output" = "$expected_long"
+            test "$(cat "$capture")" = "$expected_long"
           done
-          test "$(printf 'I do not agree.\n' | FuckMark)" = "I do not agree."
+          test "$(printf 'I do not agree.\n' | FuckMark)" = "$expected_short"
+          test "$(printf 'I do not agree.\n' | FuckMark --stdin --visible)" = "I do not agree."
 
   calibration-readiness:
     name: Frozen calibration readiness

@@ -13,6 +13,7 @@ from fuckmark.cycle8.mix_freeze import (
     mix_freeze_hash,
     mix_freeze_payload,
 )
+from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 from fuckmark.hashing import sha256_json
 from fuckmark.seeds.ledger import (
     CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
@@ -46,7 +47,7 @@ def test_mix_freeze_file_matches_embedded_payload() -> None:
     assert disk["do_not_generate_950000"] is True
     assert_mix_freeze_committed()
     assert release_transform_registry().rules == ()
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
     assert CYCLE8_LETTER_ALT_ARM_ID not in CYCLE8_BENCHMARK_ARM_IDS
 
 

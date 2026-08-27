@@ -38,7 +38,7 @@ def test_mix_publishability_spec_fail_closes_product_promotion() -> None:
     assert disk["mechanism_id"] == CYCLE8_LETTER_ALT_ARM_ID
     assert disk["freeze_version"] == CYCLE8_MIX_FREEZE_VERSION
     assert disk["confirmation_scorecard_version"] == CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION
-    assert disk["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION
+    assert disk["cli_algorithm_version"] == "release-cli-v4"
     assert disk["product_publishable"] is False
     assert disk["product_authorized"] is False
     assert disk["release_registry_empty"] is True
@@ -48,8 +48,9 @@ def test_mix_publishability_spec_fail_closes_product_promotion() -> None:
     assert mix_is_product_publishable() is False
     assert_mix_publishability_committed()
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset()
-    assert process_text("I do not agree.") == "I do not agree."
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v5"
+    assert process_text("I do not agree.") != "I do not agree."
 
 
 def test_mix_publishability_gates_match_measured_evidence() -> None:

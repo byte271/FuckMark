@@ -1,4 +1,5 @@
 from fuckmark.cli import process_text
+from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 from fuckmark.cycle8.compare import (
     CYCLE8_LETTER_ARM_IDS,
     CYCLE8_MARGIN_ARM_IDS,
@@ -61,7 +62,7 @@ def test_letter_carrier_preserves_visible_words_including_cannot_and_dont() -> N
     assert "d\u034fo" in applied
     assert "n\u034f'" in applied
     assert applied.count("\u034f") >= 12
-    assert process_text(source) == source
+    assert process_text(source) == apply_letter_alternating_mix(source)
     assert release_transform_registry().rules == ()
 
 
@@ -116,7 +117,7 @@ def test_letter_arm_is_denser_than_space_and_space_x1_still_blocks_quotes() -> N
     letter_interior = quoted_letter[quoted_letter.index('"') + 1 : quoted_letter.rindex('"')]
     assert "\u034f" not in space_interior
     assert "\u034f" in letter_interior
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
     assert cycle8_space_carrier_registry(0x034F).quote_policy_id != PRODUCT_VISIBLE_CARRIER_QUOTE_POLICY_ID
     assert cycle8_space_carrier_registry(0x034F).word_signature_source == "raw"
     assert cycle8_space_carrier_registry(0x034F).max_selected is None
@@ -143,7 +144,7 @@ def test_letter_seed_is_reserved_and_release_registry_stays_empty() -> None:
     assert_new_cycle8_margin_generation_seed(CYCLE8_MARGIN_REPLICATION_SEED_BASE)
     assert_cycle8_development_seed(CYCLE8_MARGIN_PRIMARY_SEED_BASE, role=CYCLE8_MARGIN_PRIMARY_ROLE)
     assert_cycle8_development_seed(CYCLE8_MARGIN_REPLICATION_SEED_BASE, role=CYCLE8_MARGIN_REPLICATION_ROLE)
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
     assert release_transform_registry().rules == ()
 
 
@@ -170,7 +171,7 @@ def test_letter_x2_doubles_payload_and_stays_visible_invariant() -> None:
     )
     assert measured["visible_ok"] is True
     assert int(measured["inserted_count"]) == x2.count("\u034f")
-    assert process_text(source) == source
+    assert process_text(source) == apply_letter_alternating_mix(source)
     assert release_transform_registry().rules == ()
 
 
@@ -227,5 +228,5 @@ def test_letter_space_combined_keeps_visible_words_and_quote_interior() -> None:
         source_text=source,
     )
     assert measured["visible_ok"] is True
-    assert process_text("I do not agree.") == "I do not agree."
+    assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
     assert release_transform_registry().rules == ()

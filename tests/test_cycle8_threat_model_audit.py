@@ -260,7 +260,7 @@ def test_gate_findings_do_not_authorize_the_product():
     assert disk["product_authorized"] is False
     assert disk["mix_sanitizer_gate"] == "FAIL"
     assert disk["proposed_gate_v2"]["status"] == "proposal_only_not_active"
-    assert product_approved_carriers_v1() == frozenset()
+    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
     assert release_transform_registry().rules == ()
 
 
