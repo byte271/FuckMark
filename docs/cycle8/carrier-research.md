@@ -110,7 +110,7 @@ Live Unicode 15.0 scan:
 - Designed blanks and gap fillers (U+13441, U+13442, U+A8F9, U+1144E, U+11C44, U+11F48, U+2800, U+2422, U+1680, U+FFFC) survive and change Chromium `pre` pixels.
 - Hangul jamo fillers U+115F+U+1160 are default-ignorable. The sequence dies to default-ignorable-strip and changes Chromium pixels.
 - Project default-ignorable ranges match Unicode 15.0. That is not a cheat channel.
-- DejaVu Sans Mono, the Chromium `pre` font, has no sanitizer-surviving simple empty zero-advance glyph. U+FFFC is a full cell there. System-font zero-advance empties that survive sanitizers are `Cc` or layout separators, plus U+FFFC in DejaVu Sans.
+- DejaVu Sans Mono, the Chromium `pre` font, has no sanitizer-surviving simple empty zero-advance glyph. Simple empty means TrueType `numberOfContours == 0`. Composite glyphs (`numberOfContours == -1`) are not empty. U+FFFC is a full cell there. System-font zero-advance empties that survive sanitizers are `Cc` or layout separators, plus U+FFFC in DejaVu Sans.
 - A CSI-filtered C1 subset is still `Cc`. It is not a new class. Chromium remains host-dependent. Ordinary-text FAIL remains.
 
 The only sanitizer-surviving pixel-equal probes on the research host were control codes. H12 already closed that class for product use.

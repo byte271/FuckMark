@@ -43,6 +43,15 @@ LM_CHROMIUM_PROBES = (0x02B9, 0x02BC, 0x02C0, 0xA71D)
 DESIGNED_BLANK_PROBES = (0x1680, 0x2422, 0x2800, 0xA8F9, 0xFFFC, 0x1144E, 0x11C44, 0x11F48, 0x13441, 0x13442)
 NFKC_COLLAPSE_PROBES = (0x00A0, 0x02B0, 0xFF9E, 0xFF9F)
 HANGUL_JAMO_FILLER_SEQUENCE = "\u115f\u1160"
+TRUE_TYPE_SIMPLE_EMPTY_CONTOUR_COUNT = 0
+TRUE_TYPE_COMPOSITE_CONTOUR_COUNT = -1
+H14_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
+
+
+def is_simple_empty_true_type_glyph(contour_count: object) -> bool:
+    if type(contour_count) is not int:
+        raise TypeError("contour_count")
+    return contour_count == TRUE_TYPE_SIMPLE_EMPTY_CONTOUR_COUNT
 
 
 def _assigned_name(codepoint: int) -> str | None:

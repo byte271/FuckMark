@@ -11,9 +11,15 @@ This folder records local research that went beyond assigned width-0 insertion a
 - Designed blanks and gap fillers (Egyptian hieroglyph blanks, Indic gap fillers, Braille blank, Ogham space, U+FFFC) survive those sanitizers with nonzero width.
 - Hangul jamo fillers U+115F+U+1160 and Hangul filler U+3164 are default-ignorable and die to default-ignorable-strip.
 - NBSP, U+02B0, and U+FF9E/U+FF9F die to NFKC.
-- DejaVu Sans Mono has no sanitizer-surviving simple empty zero-advance glyph.
+- DejaVu Sans Mono has no sanitizer-surviving simple empty zero-advance glyph. Simple empty means TrueType `numberOfContours == 0`. Composite glyphs (`numberOfContours == -1`) are ordinary outlines and are not classified as empty.
 - Chromium `pre` pixels: Mc, Lm, designed blanks, PUA, noncharacters, and layout separators `REJECTED`. CGJ remains pixel-equal and sanitizer-fragile. The only sanitizer-surviving pixel-equal probes on this host were `Cc` (DEL, NUL, CSI-filtered C1), which H12 already recorded as host-dependent and not ordinary text.
 
 `scan.json` is a local working dump and is not committed. Spec: `specs/cycle8/fuckmark-cycle8-post-sanitizer-extended-class-v1.json`.
+
+The scan runner is `tools/h14_mechanism_scan.py`. FontTools is not a runtime dependency. Install the research extra:
+
+```text
+python -m pip install -e ".[research]"
+```
 
 Do not generate `950000`. Do not retune spent confirmation seeds `830000` / `840000` / `850000`.

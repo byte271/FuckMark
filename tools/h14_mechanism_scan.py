@@ -6,13 +6,15 @@ import unicodedata
 from collections import Counter
 from pathlib import Path
 
-from fontTools.ttLib import TTFont
-
 from fuckmark.cycle8.control_carrier import (
     CONTROL_MIX_ELIGIBLE_CODEPOINTS,
     HOSTILE_CONTROL_CODEPOINTS,
     LAYOUT_CONTROL_CODEPOINTS,
     required_sanitizers_keep,
+)
+from fuckmark.cycle8.post_sanitizer_extended import (
+    H14_RESEARCH_EXTRA_INSTALL,
+    is_simple_empty_true_type_glyph,
 )
 from fuckmark.cycle8.unicode_meta import is_default_ignorable_v1
 from fuckmark.product.roundtrip import display_column_width
@@ -88,8 +90,16 @@ def official_di_ucd15(codepoint: int) -> bool:
     return _in_ranges(codepoint, OFFICIAL_DI_RANGES_UCD15)
 
 
+def _tt_font_class():
+    try:
+        from fontTools.ttLib import TTFont
+    except ImportError as error:
+        raise SystemExit(f"fonttools is required: {H14_RESEARCH_EXTRA_INSTALL}") from error
+    return TTFont
+
+
 def load_dejavu_metrics(path: Path) -> dict[int, dict[str, object]]:
-    font = TTFont(path)
+    font = _tt_font_class()(path)
     cmap = font.getBestCmap() or {}
     glyf = font["glyf"]
     hmtx = font["hmtx"]
@@ -104,7 +114,7 @@ def load_dejavu_metrics(path: Path) -> dict[int, dict[str, object]]:
             "contours": contours,
             "advance": int(advance),
             "lsb": int(lsb),
-            "empty": contours <= 0,
+            "empty": is_simple_empty_true_type_glyph(contours),
             "zero_advance": int(advance) == 0,
         }
     font.close()

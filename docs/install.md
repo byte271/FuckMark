@@ -69,7 +69,11 @@ For development and tests:
 python -m pip install -e ".[dev]"
 ```
 
-The core package has no runtime dependencies. Research workflows that reproduce open SynthID experiments install pinned model/runtime dependencies through `requirements-smoke.txt`.
+The core package has no runtime dependencies. Research workflows that reproduce open SynthID experiments install pinned model/runtime dependencies through `requirements-smoke.txt`. The H14 DejaVu font-metric scan uses optional extra `research` (`fonttools`), not a runtime dependency:
+
+```text
+python -m pip install -e ".[research]"
+```
 
 ## Update
 

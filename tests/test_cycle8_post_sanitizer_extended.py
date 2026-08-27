@@ -1,4 +1,6 @@
+import ast
 import json
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -15,12 +17,16 @@ from fuckmark.cycle8.post_sanitizer_extended import (
     CYCLE8_POST_SANITIZER_EXTENDED_PATH,
     CYCLE8_POST_SANITIZER_EXTENDED_VERSION,
     DESIGNED_BLANK_PROBES,
+    H14_RESEARCH_EXTRA_INSTALL,
     HANGUL_JAMO_FILLER_SEQUENCE,
     LM_CHROMIUM_PROBES,
     MC_CHROMIUM_PROBES,
     NFKC_COLLAPSE_PROBES,
+    TRUE_TYPE_COMPOSITE_CONTOUR_COUNT,
+    TRUE_TYPE_SIMPLE_EMPTY_CONTOUR_COUNT,
     UCD15_DEFAULT_IGNORABLE_RANGES,
     assert_post_sanitizer_extended_class_committed,
+    is_simple_empty_true_type_glyph,
     post_sanitizer_extended_class_payload,
 )
 from fuckmark.cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_HASH, mix_is_product_publishable
@@ -142,3 +148,57 @@ def test_h14_local_evidence_hashes() -> None:
         "cc_nul",
         "cc_c1_no_device_csi_filtered",
     ]
+
+
+def test_simple_empty_true_type_glyph_excludes_composites() -> None:
+    assert TRUE_TYPE_SIMPLE_EMPTY_CONTOUR_COUNT == 0
+    assert TRUE_TYPE_COMPOSITE_CONTOUR_COUNT == -1
+    assert is_simple_empty_true_type_glyph(TRUE_TYPE_SIMPLE_EMPTY_CONTOUR_COUNT) is True
+    assert is_simple_empty_true_type_glyph(TRUE_TYPE_COMPOSITE_CONTOUR_COUNT) is False
+    assert is_simple_empty_true_type_glyph(1) is False
+    assert is_simple_empty_true_type_glyph(12) is False
+    with pytest.raises(TypeError, match="contour_count"):
+        is_simple_empty_true_type_glyph(False)
+    with pytest.raises(TypeError, match="contour_count"):
+        is_simple_empty_true_type_glyph(0.0)
+
+
+def test_research_extra_declares_fonttools_without_runtime_dependency() -> None:
+    root = Path(__file__).resolve().parents[1]
+    data = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))
+    assert data["project"]["dependencies"] == []
+    research = data["project"]["optional-dependencies"]["research"]
+    assert any(item.lower().startswith("fonttools") for item in research)
+    assert H14_RESEARCH_EXTRA_INSTALL == 'pip install -e ".[research]"'
+
+
+def test_h14_mechanism_scan_defers_fonttools_import() -> None:
+    path = Path(__file__).resolve().parents[1] / "tools" / "h14_mechanism_scan.py"
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    top_imports: list[str] = []
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            top_imports.extend(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            top_imports.append(node.module)
+    assert all(not name.startswith("fontTools") for name in top_imports)
+    assert "fuckmark.cycle8.post_sanitizer_extended" in top_imports
+
+
+def test_h14_scan_does_not_mark_composite_glyphs_empty() -> None:
+    font_path = Path("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
+    if not font_path.is_file():
+        pytest.skip("DejaVu Sans Mono is not available")
+    from tools.h14_mechanism_scan import load_dejavu_metrics
+
+    try:
+        metrics = load_dejavu_metrics(font_path)["glyphs"]
+    except SystemExit:
+        pytest.skip("fonttools is not available")
+    composites = [row for row in metrics.values() if int(row["contours"]) < 0]
+    empties = [row for row in metrics.values() if row["empty"] is True]
+    assert composites
+    assert empties
+    assert all(row["empty"] is False for row in composites)
+    assert all(int(row["contours"]) == TRUE_TYPE_SIMPLE_EMPTY_CONTOUR_COUNT for row in empties)
+
