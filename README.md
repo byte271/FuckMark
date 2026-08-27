@@ -25,7 +25,7 @@ python3 -m venv .venv
 .venv/bin/fuckmark --version
 ```
 
-That prints `FuckMark 0.4.0`. The checksummed GitHub Release wheel is published after the immutable `v0.4.0` tag. See [`docs/install.md`](docs/install.md). Do not pipe `https://d.q1z.org/mark` into a shell.
+That prints `FuckMark 0.4.0`. v0.4.0 wheel SHA-256: `5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f`. See [`docs/install.md`](docs/install.md). Do not pipe `https://d.q1z.org/mark` into a shell.
 
 ## Use
 

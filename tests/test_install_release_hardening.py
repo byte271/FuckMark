@@ -133,3 +133,6 @@ def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
     assert "releases/download/v0.4.0" in install
     assert "fuckmark-0.4.0-py3-none-any.whl" in install
     assert "SHA256SUMS" in install
+    assert "5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f" in readme
+    assert "5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f" in install
+    assert "cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325" in install

@@ -14,11 +14,17 @@ python3 -m venv .venv
 
 On Windows, create the venv with `py -3.12 -m venv .venv` and use `.venv\Scripts\python.exe`.
 
-After this tree is on `main`, `python3 -m pip install git+https://github.com/byte271/FuckMark.git` installs the same product. Until then, install from a clone.
+`python3 -m pip install git+https://github.com/byte271/FuckMark.git` installs the same product from `main`.
 
-## Tagged wheel (after `v0.4.0` is published)
+## Tagged wheel
 
-The GitHub Release wheel is the checksummed install. It does not exist until the immutable `v0.4.0` tag and `workflow_dispatch` publication in [`release.md`](release.md).
+v0.4.0 wheel SHA-256:
+
+```text
+5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f  fuckmark-0.4.0-py3-none-any.whl
+```
+
+The GitHub Release wheel is the checksummed install.
 
 ```text
 python3 -m venv .venv
@@ -41,7 +47,7 @@ That tag is not retagged.
 
 ## In-repo installer (tagged wheel + checksum)
 
-These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.4.0` and 404 until that release exists.
+These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.4.0`.
 
 Linux / macOS, from a clone:
 
