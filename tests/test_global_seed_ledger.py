@@ -33,6 +33,8 @@ from fuckmark.seeds.ledger import (
     CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC,
     CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE,
     CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
+    CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,
+    CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC,
     CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
     CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
     CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
@@ -49,6 +51,7 @@ from fuckmark.seeds.ledger import (
     assert_new_cycle8_mix_generation_seed,
     assert_new_cycle8_deepmind_transfer_generation_seed,
     assert_new_cycle8_second_model_transfer_generation_seed,
+    assert_new_cycle8_control_mix_generation_seed,
     assert_new_cycle8_scale_generation_seed,
     assert_seed_not_confirmation_content,
     global_seed_ledger_hash,
@@ -118,6 +121,7 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
     assert 1020000 in bases and 1030000 in bases
     assert 1040000 in bases and 1050000 in bases
     assert 1060000 in bases and 1070000 in bases and 1080000 in bases and 1090000 in bases
+    assert 1100000 in bases
     density = row_for_seed_base(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
     assert density["generated"] is True
     assert density["scored"] is True
@@ -222,3 +226,15 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
         assert_new_cycle8_second_model_transfer_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)
     with pytest.raises(ValueError, match="confirmation"):
         assert_new_cycle8_second_model_transfer_generation_seed(830000)
+    control_mix = row_for_seed_base(CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE)
+    assert control_mix["generation_topic"] == CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC == "control mix sanitizer exploratory"
+    assert control_mix["generated"] is True
+    assert control_mix["scored"] is True
+    assert control_mix["eligible_for_confirmation"] is False
+    assert_new_cycle8_control_mix_generation_seed(CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE)
+    with pytest.raises(ValueError, match="control-mix"):
+        assert_new_cycle8_control_mix_generation_seed(CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE)
+    with pytest.raises(ValueError, match="frozen"):
+        assert_new_cycle8_control_mix_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)
+    with pytest.raises(ValueError, match="confirmation"):
+        assert_new_cycle8_control_mix_generation_seed(830000)

@@ -31,6 +31,8 @@ from ..seeds.ledger import (
     CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC,
     CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE,
     CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
+    CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,
+    CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC,
     CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
     CYCLE8_LETTER_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
@@ -64,6 +66,7 @@ CYCLE8_DEEPMIND_TRANSFER_PRIMARY_ROLE = "deepmind_transfer_primary"
 CYCLE8_DEEPMIND_TRANSFER_REPLICATION_ROLE = "deepmind_transfer_replication"
 CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_ROLE = "deepmind_transfer_holdout"
 CYCLE8_SECOND_MODEL_TRANSFER_ROLE = "second_model_transfer"
+CYCLE8_CONTROL_MIX_EXPLORATORY_ROLE = "control_mix_exploratory_development"
 CYCLE8_CONFIRMATION_RESERVED_ROLE = "confirmation_reserved"
 
 CYCLE8_EXPLORATORY_SEED_BASE = 890_000
@@ -90,6 +93,7 @@ CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASES = (CYCLE8_DEEPMIND_TRANSFER_PRIMARY_
 CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASES = (CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASE,)
 CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASES = (CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE,)
 CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASES = (CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE,)
+CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASES = (CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,)
 CYCLE8_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
 CYCLE8_EXPLORATORY_TOPIC = "invisible carrier development"
 CYCLE8_REPLICATION_TOPIC = "invisible carrier replication"
@@ -173,6 +177,8 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
         "deepmind_transfer_holdout_topic": CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC,
         "second_model_transfer_seed_base": CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE,
         "second_model_transfer_topic": CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
+        "control_mix_exploratory_seed_base": CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,
+        "control_mix_exploratory_topic": CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC,
         "scale_pair_count": CYCLE8_SCALE_PAIR_COUNT,
         "letter_benchmark_pair_count": CYCLE8_LETTER_BENCHMARK_PAIR_COUNT,
         "confirmation_reserved_seed_bases": list(CYCLE8_CONFIRMATION_RESERVED_SEED_BASES),
@@ -207,6 +213,9 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
             "before DeepMind transfer generation. Second-model mix transfer seed "
             "1090000 and topic 'second model mix transfer' were reserved in "
             "global-seed-ledger-v1 before second-model transfer generation. "
+            "Control-mix exploratory seed 1100000 and topic 'control mix sanitizer "
+            "exploratory' were reserved in global-seed-ledger-v1 before control-mix "
+            "generation. "
             "cycle8-mix-freeze-v1 confirmation of 830000, 840000, and 850000 was "
             "generated once under the freeze; those bases are spent. Do not rerun "
             "looking for zero, and do not retune on Cycle 6 formal residuals."
@@ -260,6 +269,8 @@ def role_for_seed_base(seed_base: int) -> str | None:
         return CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_ROLE
     if seed_base in CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASES:
         return CYCLE8_SECOND_MODEL_TRANSFER_ROLE
+    if seed_base in CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASES:
+        return CYCLE8_CONTROL_MIX_EXPLORATORY_ROLE
     if seed_base in CYCLE8_CONFIRMATION_RESERVED_SEED_BASES:
         return CYCLE8_CONFIRMATION_RESERVED_ROLE
     return None
@@ -304,5 +315,6 @@ def ledger_roles() -> Mapping[str, Sequence[int]]:
         CYCLE8_DEEPMIND_TRANSFER_REPLICATION_ROLE: CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASES,
         CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_ROLE: CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASES,
         CYCLE8_SECOND_MODEL_TRANSFER_ROLE: CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASES,
+        CYCLE8_CONTROL_MIX_EXPLORATORY_ROLE: CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASES,
         CYCLE8_CONFIRMATION_RESERVED_ROLE: CYCLE8_CONFIRMATION_RESERVED_SEED_BASES,
     }

@@ -51,7 +51,34 @@ Placement geometry, Cycle 6 scheduler reuse, and root-window correlation remain 
 
 Mix carriers U+034F and U+FE00 are Mn and default-ignorable, so Mn-strip and default-ignorable-strip restore the source. Cf dies to frozen Cf-strip. The 13 enclosing marks (Me, probe U+20DD) survive those stress sanitizers and have display width 0, but they change rendered pixels and are `REJECTED`. Other non-Mn/Cf assigned characters: 0.
 
-Cycle 8 freezes that boundary rather than weaken Priority Zero. There is no stronger invisible Unicode product mechanism under the current contract. Closed set `cycle8-invisible-carrier-closed-set-v1` repeats the width-0 partition: Mn, Me, or Cf only; 32 non-default-ignorable Cf die to frozen Cf-strip; 13 Me survive sanitizers and change pixels.
+Cycle 8 freezes that width-0 assigned boundary rather than weaken Priority Zero. Mix sanitizer robustness stays FAIL. The H9 scan skipped general category `Cc` as control risk and did not treat it as a width-0 assigned insertion.
+
+## H12. Sanitizer-surviving control-code insertion
+
+`HYPOTHESIS` / `PROMISING_DEVELOPMENT`. A new class, not a rewrite of mix and not a reopening of the width-0 closed set. Assigned width-0 insertions remain Mn, Me, or Cf. Mix still dies to Mn-strip and default-ignorable-strip.
+
+The next insertion class is Unicode general category `Cc`. Layout controls (TAB, LF, VT, FF, CR, NEXT LINE, line/paragraph separators) stay excluded. NUL is Chromium-pixel-equal on `pre`/textarea/contenteditable but is hostile to ordinary C-string text and is excluded. Most other C0 controls survive the required sanitizers and are Chromium-`REJECTED` (tofu). Braille blank, Ogham space, replacement character, noncharacters, and BMP private-use probes also survive some sanitizers and change Chromium `pre` pixels.
+
+DEL (U+007F) and C1 (U+0080..U+009F except U+0085) are 32 code points that:
+
+- are `Cc`, not default-ignorable, not Mn, not Cf;
+- survive Mn-strip, default-ignorable-strip, Cf-strip, NFC, NFKC, NFKD, frozen Cycle 6/7 sanitizers, and the combination of those arms;
+- keep exact `project_visible_v1` when used as approved insertion carriers;
+- keep Chromium `pre`, textarea, and contenteditable PNG bytes on single-insert probes and on a full letter-alternating apply of the short paragraph and the GPT-2 fixture;
+- keep Chromium `window.find` HIT for `do not` on the short paragraph;
+- disrupt GPT-2 BPE (`ids_equal=false`, token-count delta positive);
+- round-trip through UTF-8, JSON, and latin-1;
+- fail the v1 product display-width proxy, which still counts `Cc` as width 1. Research width skips the eligible set. That is a proxy gap, not a visible-text change.
+
+The apply path `cc-del-c1-letter-alt-v1` uses the same letter sites as mix, cycling the 32 eligible controls instead of U+034F / U+FE00. Hard machine spans stay blocked. Quote interiors stay eligible. Cap 192. Public CLI remains empty. `product_approved_carriers_v1()` remains empty. Mix confirmation 0/192 is not transferred. Mix publishability sanitizer stays FAIL. Do not generate `950000`.
+
+Seen-corpus DeepMind 30-key diagnostic rescore of seed `920000` n=16: identity WM **16/16**, control-mix WM **0/16**, mix WM **0/16**, all UW **0/16**, visible pass, required sanitizers keep every control-mix row, control-mix max `0.505337`. That look is `HYPOTHESIS`, seen, not independent generation, and not confirmation.
+
+Independent reserved seed `1100000` n=16: identity WM **15/16**, control-mix WM **0/16**, all UW **0/16**, visible pass, required sanitizers keep every control-mix row, control-mix max `0.505851`. The identity miss is one structured-instructional watermarked row at `0.556873` versus threshold `0.557099`. Do not rewrite 15/16 as 16/16. This n=16 is `HYPOTHESIS`, not confirmation, and does not transfer mix-freeze 0/192.
+
+ISO-6429 C1 device controls including CSI (U+009B) remain in the measured 32-codepoint eligible set. Product `display_column_width` still counts `Cc` as width 1. Terminal pixels stay UNKNOWN. Those ordinary-text and terminal risks block product authorization. They do not rewrite mix sanitizer FAIL.
+
+Spec: `cycle8-control-carrier-scan-v1`.
 
 ## Rejected as product mechanisms
 
@@ -62,6 +89,10 @@ Cycle 8 freezes that boundary rather than weaken Priority Zero. There is no stro
 | U+200C / other Cf | `REJECTED` as durable; diagnostic only | Cf-strip restores the original string |
 | Enclosing marks (Me, probe U+20DD) | `REJECTED` | survive Mn/DI/Cf-strip but change Chromium `pre` pixels |
 | NBSP / hair spaces / dashes / homoglyphs | `REJECTED` | visible or NFKC-mapped layout/glyph change |
+| C0 tofu (U+0001..U+0008, U+000E..U+001F) | `REJECTED` | survive the required sanitizers; Chromium `pre` pixels change |
+| NUL (U+0000) | `REJECTED` as product-ordinary text | Chromium pixels match; C-string / ordinary-text hazard |
+| FF / VT / NEXT LINE / CR / TAB / LF | `REJECTED` | newline or layout change even when some Chromium surfaces ignore them |
+| Braille blank / Ogham space / PUA / noncharacters | `REJECTED` | sanitizer-survive in some cases; Chromium `pre` pixels change |
 
 ## Baseline
 

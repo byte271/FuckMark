@@ -52,6 +52,8 @@ Assigned-Unicode feasibility `cycle8-invisible-carrier-feasibility-v1` found no 
 
 Enclosing marks are not product-safe. Cycle 8 freezes that H9 / closed-set boundary rather than changing visible English text.
 
+H12 is a **different class**: general category `Cc`, which H9 skipped as control risk. DEL and C1 except NEXT LINE survive the required sanitizers and were Chromium-pixel-equal on this host. Independent reserved seed `1100000` n=16 is control-mix **0/16** WM with identity **15/16**. That does **not** rewrite this mix sanitizer FAIL. Mix still uses U+034F / U+FE00. Control-mix is not product-authorized and is not mix-freeze confirmation. See `docs/cycle8/carrier-research.md`.
+
 ## Cross-detector generalization
 
 PASS. Mix-freeze confirmation used GPT-2 / Hugging Face SynthID Weighted Mean at threshold `0.5570987654320988` and remains **0/192**.

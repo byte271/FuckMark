@@ -74,6 +74,8 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert payload["deepmind_transfer_replication_seed_base"] == 1_070_000
     assert payload["deepmind_transfer_holdout_seed_base"] == 1_080_000
     assert payload["second_model_transfer_seed_base"] == 1_090_000
+    assert payload["control_mix_exploratory_seed_base"] == 1_100_000
+    assert payload["control_mix_exploratory_topic"] == "control mix sanitizer exploratory"
     assert payload["deepmind_transfer_primary_topic"] == "deepmind mix transfer primary"
     assert payload["second_model_transfer_topic"] == "second model mix transfer"
     assert payload["confirmation_reserved_seed_bases"] == [830_000, 840_000, 850_000]
@@ -95,6 +97,7 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert_cycle8_development_seed(1_070_000, role="deepmind_transfer_replication")
     assert_cycle8_development_seed(1_080_000, role="deepmind_transfer_holdout")
     assert_cycle8_development_seed(1_090_000, role="second_model_transfer")
+    assert_cycle8_development_seed(1_100_000, role="control_mix_exploratory_development")
     with pytest.raises(ValueError):
         assert_cycle8_development_seed(760_000, role="exploratory_development")
     with pytest.raises(ValueError, match="publicly exposed|spent or reserved"):

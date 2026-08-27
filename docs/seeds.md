@@ -18,6 +18,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 - Seeds `1040000` and `1050000` are reserved for letter-mix scale follow-up. Combined with `1020000`+`1030000`, mix is 0/256. That 0/256 is development scale, not confirmation.
 - Seeds `1060000`, `1070000`, and `1080000` are reserved for independent DeepMind synthid-text 30-key mix transfer. Combined mix is 0/192. That transfer is HYPOTHESIS, not mix-freeze confirmation.
 - Seed `1090000` is reserved for DistilGPT2 second-model mix transfer. n=16 is HYPOTHESIS, not confirmation-scale.
+- Seed `1100000` is reserved for independent H12 control-mix sanitizer exploratory n=16. Generated and scored: identity WM 15/16, control-mix WM 0/16. Do not treat the seen `920000` diagnostic as this corpus. Not confirmation.
 
 ## Cycle 8 scale reservation (before generation)
 
@@ -43,6 +44,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 1070000 | DeepMind transfer replication | `deepmind mix transfer replication` | reserved before generation; identity 63/64, mix 0/64; combined mix 0/192; HYPOTHESIS |
 | 1080000 | DeepMind transfer holdout | `deepmind mix transfer holdout` | reserved before generation; identity 63/64, mix 0/64; combined mix 0/192; HYPOTHESIS |
 | 1090000 | second-model transfer | `second model mix transfer` | reserved before generation; DistilGPT2 n=16 HYPOTHESIS identity 16/16 mix 0/16; not confirmation-scale |
+| 1100000 | control-mix exploratory | `control mix sanitizer exploratory` | reserved before generation; independent H12 Cc control-mix n=16: identity 15/16, control-mix 0/16; seen 920000 diagnostic is not this corpus |
 
 ## Historical v1 Cycle 8 ledger
 
