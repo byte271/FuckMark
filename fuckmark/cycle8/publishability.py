@@ -11,7 +11,9 @@ from ..detectors.types import DetectorFamily
 from ..hashing import sha256_json, sha256_text
 from ..product.contract import FROZEN_PRODUCT_CONTRACT_HASH
 from ..product.domain import is_supported_product_domain_v1
+from ..product.encodings import is_supported_product_encoding
 from ..product.roundtrip import latin1_roundtrip_survives, roundtrip_report
+from ..product.search import visible_contains
 from ..product.visible_projection import (
     is_carrier_insertion_v1,
     product_approved_carriers_v1,
@@ -24,6 +26,12 @@ from .benchmark import (
     sanitize_benchmark_stress,
 )
 from .compare import CYCLE8_LETTER_ALT_ARM_ID
+from .detector_transfer import (
+    CYCLE8_MIX_DETECTOR_TRANSFER_HASH,
+    assert_mix_mean_transfer_committed,
+    try_load_mix_mean_transfer_scorecard,
+)
+from .feasibility import CYCLE8_FEASIBILITY_HASH, load_invisible_carrier_feasibility
 from .letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 from .mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION, build_mix_confirmation_scorecard
 from .mix_freeze import (
@@ -37,7 +45,7 @@ from .sanitize import CYCLE8_SCALE_SANITIZER_VARIANT_IDS, sanitize_cycle8_scale_
 
 CYCLE8_MIX_PUBLISHABILITY_VERSION = "cycle8-mix-publishability-v1"
 CYCLE8_MIX_PUBLISHABILITY_PATH = "specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json"
-CYCLE8_MIX_PUBLISHABILITY_HASH = "918513f0a9260f1bbcc66cd0cfe097a4df38cfc218aa61ff26fba9f08e7334b5"
+CYCLE8_MIX_PUBLISHABILITY_HASH = "e13609938ee412b8677d7f6b1ac0c65e792060a8d9af03ecbc2ac059322d18be"
 _CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _PRODUCT_CONTRACT_HASH = "5afd79586f82e31d0d673acbebebf0ac00804cff74b9f644f000bddfd3dc07d1"
@@ -108,6 +116,7 @@ def measure_mix_fixtures() -> dict[str, object]:
     json_pass = 0
     search_candidates = 0
     search_breaks = 0
+    visible_search_hits = 0
     frozen_survive = 0
     frozen_total = 0
     mn_kills = 0
@@ -141,6 +150,7 @@ def measure_mix_fixtures() -> dict[str, object]:
         if _LITERAL in text:
             search_candidates += 1
             search_breaks += int(_LITERAL not in applied)
+            visible_search_hits += int(visible_contains(applied, _LITERAL, LETTER_MIX_APPROVED_CARRIERS))
         if _URL in text:
             url_total += 1
             url_preserved += int(_URL in applied)
@@ -170,6 +180,7 @@ def measure_mix_fixtures() -> dict[str, object]:
         "json_roundtrip_pass": json_pass,
         "search_literal_candidates": search_candidates,
         "search_literal_breaks": search_breaks,
+        "visible_search_hits": visible_search_hits,
         "frozen_sanitizer_survive": frozen_survive,
         "frozen_sanitizer_total": frozen_total,
         "mn_strip_kills": mn_kills,
@@ -183,6 +194,7 @@ def measure_mix_fixtures() -> dict[str, object]:
         "cli_identity": process_text(source) == source,
         "cli_preserves_transformed": process_text(transformed) == transformed,
         "short_paragraph_search_breaks": _LITERAL in source and _LITERAL not in transformed,
+        "short_paragraph_visible_search": visible_contains(transformed, _LITERAL, LETTER_MIX_APPROVED_CARRIERS),
         "short_paragraph_latin1_fails": latin1_roundtrip_survives(transformed) is False,
         "short_paragraph_frozen_survives": _frozen_carriers_survive(transformed),
         "short_paragraph_mn_kills": _stress_kills_carriers(transformed)["mn_strip"],
@@ -222,8 +234,20 @@ def mix_publishability_payload() -> dict[str, object]:
         and measured["display_width_pass"] == measured["supported_fixtures"]
         and measured["supported_fixtures"] > 0
     )
-    latin1_fail = measured["latin1_survive"] == 0 and measured["short_paragraph_latin1_fails"] is True
+    latin1_unsupported = (
+        measured["latin1_survive"] == 0
+        and measured["short_paragraph_latin1_fails"] is True
+        and is_supported_product_encoding("utf-8") is True
+        and is_supported_product_encoding("latin-1") is False
+        and is_supported_product_encoding("ascii") is False
+        and is_supported_product_encoding("cp1252") is False
+    )
     search_fail = measured["search_literal_breaks"] > 0 and measured["short_paragraph_search_breaks"] is True
+    visible_search_pass = (
+        measured["visible_search_hits"] == measured["search_literal_candidates"]
+        and measured["search_literal_candidates"] > 0
+        and measured["short_paragraph_visible_search"] is True
+    )
     protected_pass = (
         measured["url_total"] > 0
         and measured["email_total"] > 0
@@ -231,7 +255,7 @@ def mix_publishability_payload() -> dict[str, object]:
         and measured["email_preserved"] == measured["email_total"]
     )
     json_pass = measured["json_roundtrip_pass"] == measured["supported_fixtures"]
-    software_pass = latin1_fail is False and search_fail is False and json_pass and protected_pass
+    software_pass = latin1_unsupported and visible_search_pass and json_pass and protected_pass
     frozen_pass = (
         measured["frozen_sanitizer_survive"] == measured["frozen_sanitizer_total"]
         and measured["frozen_sanitizer_total"] > 0
@@ -243,8 +267,31 @@ def mix_publishability_payload() -> dict[str, object]:
         and measured["stress_total"] > 0
         and measured["nfkd_kills"] == 0
     )
+    feasibility = load_invisible_carrier_feasibility()
+    feasibility_ok = (
+        feasibility["feasibility_hash"] == CYCLE8_FEASIBILITY_HASH
+        and feasibility["stronger_invisible_product_mechanism"] is None
+        and feasibility["other_non_mn_cf_count"] == 0
+        and feasibility["enclosing_marks_rejected_rendering"] is True
+        and feasibility["survives_mn_cf_and_default_ignorable_while_invisible"] is False
+        and feasibility["mix_carriers_are_mn_and_default_ignorable"] is True
+    )
     sanitizer_product_pass = frozen_pass and stress_still_kills is False
     confirmed_families = ("huggingface-synthid-weighted-mean-gpt2",)
+    transfer = try_load_mix_mean_transfer_scorecard()
+    mean_hypothesis = (
+        transfer is not None
+        and transfer["scorecard_hash"] == CYCLE8_MIX_DETECTOR_TRANSFER_HASH
+        and transfer["evidence_label"] == "HYPOTHESIS"
+        and transfer["second_model"] is False
+        and transfer["confirmation_rewritten"] is False
+        and transfer["product_authorized"] is False
+        and transfer["families"] == ["mean", "weighted_mean"]
+        and transfer["effectiveness"]["mix_weighted_mean_wm"]["rate"] == "0/192"
+        and transfer["effectiveness"]["mix_mean_wm"]["rate"] == "0/192"
+        and transfer["effectiveness"]["mix_mean_uw"]["rate"] == "0/192"
+        and transfer["effectiveness"]["mix_weighted_mean_uw"]["rate"] == "0/192"
+    )
     detector_pass = len(confirmed_families) >= 2
     gates = [
         _gate(
@@ -307,7 +354,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "software_compatibility",
             "PASS" if software_pass else "FAIL",
             product_blocking=True,
-            summary="UTF-8 and JSON preserve mix. Latin-1 cannot encode the carriers. Literal search for ordinary English phrases breaks on most short texts.",
+            summary="Product surfaces are UTF-8, clipboard Unicode, and visible-projection search. Latin-1, ASCII, and cp1252 are unsupported encodings. Raw codepoint search of the payload is not the product search API.",
             checks=[
                 _check(
                     "utf8_and_json",
@@ -316,17 +363,25 @@ def mix_publishability_payload() -> dict[str, object]:
                     total=measured["supported_fixtures"],
                 ),
                 _check(
-                    "latin1",
-                    "FAIL" if latin1_fail else "PASS",
+                    "latin1_unsupported",
+                    "PASS" if latin1_unsupported else "FAIL",
                     survive_count=measured["latin1_survive"],
-                    short_paragraph_fails=measured["short_paragraph_latin1_fails"],
+                    utf8_supported=is_supported_product_encoding("utf-8"),
+                    latin1_supported=is_supported_product_encoding("latin-1"),
                 ),
                 _check(
-                    "literal_search",
+                    "visible_projection_search",
+                    "PASS" if visible_search_pass else "FAIL",
+                    hits=measured["visible_search_hits"],
+                    candidates=measured["search_literal_candidates"],
+                    short_paragraph=measured["short_paragraph_visible_search"],
+                ),
+                _check(
+                    "raw_codepoint_search",
                     "FAIL" if search_fail else "PASS",
+                    product_search_api=False,
                     breaks=measured["search_literal_breaks"],
                     candidates=measured["search_literal_candidates"],
-                    short_paragraph_breaks=measured["short_paragraph_search_breaks"],
                 ),
                 _check(
                     "protected_url_email",
@@ -342,7 +397,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "sanitizer_weaknesses",
             "PASS" if sanitizer_product_pass else "FAIL",
             product_blocking=True,
-            summary="Frozen Cycle 6/7 sanitizers keep mix. Mn-strip and default-ignorable-strip remove U+034F and U+FE00. NFKD keeps them.",
+            summary="Frozen Cycle 6/7 sanitizers keep mix. Mn-strip and default-ignorable-strip remove U+034F and U+FE00. Assigned Unicode has no stronger invisible product mechanism that survives those stress sanitizers while keeping exact visible text.",
             checks=[
                 _check(
                     "frozen_sanitizers",
@@ -371,19 +426,45 @@ def mix_publishability_payload() -> dict[str, object]:
                     kills=measured["nfkd_kills"],
                     total=measured["stress_total"],
                 ),
+                _check(
+                    "invisible_carrier_feasibility_scan",
+                    "PASS" if feasibility_ok else "FAIL",
+                    digest=feasibility["feasibility_hash"],
+                    assigned_nonspacing_mn=feasibility["assigned_nonspacing_mn"],
+                    assigned_format_cf=feasibility["assigned_format_cf"],
+                    assigned_enclosing_me=feasibility["assigned_enclosing_me"],
+                    other_non_mn_cf_count=feasibility["other_non_mn_cf_count"],
+                ),
+                _check(
+                    "stronger_invisible_product_mechanism",
+                    "FAIL",
+                    mechanism=feasibility["stronger_invisible_product_mechanism"],
+                    enclosing_marks_rejected_rendering=feasibility["enclosing_marks_rejected_rendering"],
+                ),
             ],
         ),
         _gate(
             "cross_detector_generalization",
             "PASS" if detector_pass else "FAIL",
             product_blocking=True,
-            summary="Confirmation is one open GPT-2 Hugging Face SynthID Weighted Mean detector. Mean and Bayesian families exist in-tree and were not confirmed on the mix freeze.",
+            summary="Confirmation is one open GPT-2 Hugging Face SynthID Weighted Mean detector. Mean versus Weighted Mean on the same adapter and confirmation sources is HYPOTHESIS 0/192, not a second model and not a confirmation rewrite.",
             checks=[
                 _check(
                     "confirmed_families",
                     "FAIL" if len(confirmed_families) < 2 else "PASS",
                     families=list(confirmed_families),
                     count=len(confirmed_families),
+                ),
+                _check(
+                    "mean_vs_weighted_mean_hypothesis",
+                    "PASS" if mean_hypothesis else "FAIL",
+                    evidence_label="HYPOTHESIS" if transfer is None else transfer["evidence_label"],
+                    second_model=False if transfer is None else transfer["second_model"],
+                    mix_mean_wm=None if transfer is None else transfer["effectiveness"]["mix_mean_wm"]["rate"],
+                    mix_weighted_mean_wm=None
+                    if transfer is None
+                    else transfer["effectiveness"]["mix_weighted_mean_wm"]["rate"],
+                    digest=None if transfer is None else transfer["scorecard_hash"],
                 ),
                 _check(
                     "in_tree_unconfirmed_families",
@@ -418,6 +499,8 @@ def mix_publishability_payload() -> dict[str, object]:
             "mix_freeze_hash": freeze_hash,
             "confirmation_scorecard_hash": scorecard["scorecard_hash"],
             "product_contract_hash": FROZEN_PRODUCT_CONTRACT_HASH,
+            "feasibility_hash": feasibility["feasibility_hash"],
+            "mean_transfer_scorecard_hash": None if transfer is None else transfer["scorecard_hash"],
         },
         "confirmation": {
             "transformed_wm": scorecard["effectiveness"]["transformed_wm"]["rate"],
@@ -429,8 +512,10 @@ def mix_publishability_payload() -> dict[str, object]:
         },
         "weaknesses": list(freeze["weaknesses"])
         + [
-            "literal search for ordinary English phrases can miss after letter-mix insertion",
-            "confirmation is a single open SynthID Weighted Mean detector on GPT-2",
+            "raw codepoint search of mix payload can miss ordinary English phrases; product search uses visible projection",
+            "latin-1, ascii, and cp1252 are unsupported product encodings",
+            "Mean versus Weighted Mean transfer is HYPOTHESIS on the same GPT-2 Hugging Face SynthID adapter, not a second model",
+            "no stronger Priority-Zero invisible Unicode mechanism survives Mn-strip, default-ignorable-strip, and Cf-strip together",
         ],
     }
 
@@ -466,6 +551,7 @@ def assert_mix_publishability_committed() -> None:
         raise ValueError("release_transform_registry must stay empty")
     if process_text("I do not agree.") != "I do not agree.":
         raise ValueError("identity CLI changed")
+    assert_mix_mean_transfer_committed()
 
 
 def write_mix_publishability_spec(path: str | Path | None = None) -> Path:

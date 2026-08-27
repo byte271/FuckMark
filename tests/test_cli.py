@@ -147,6 +147,21 @@ def test_cli_noninteractive_mode_writes_only_transformed_text(option) -> None:
     assert copied == []
 
 
+def test_cli_rejects_latin1_and_keeps_visible_projection_identity() -> None:
+    source = StringIO("I do not agree.\n")
+    output = StringIO()
+    errors = StringIO()
+    assert main(source, output, error_stream=errors, argv=("--stdin", "--encoding", "latin-1")) == 1
+    assert output.getvalue() == ""
+    assert "unsupported product encoding" in errors.getvalue()
+    copied: list[str] = []
+    visible_out = StringIO()
+    status = main(StringIO("I do not agree.\n"), visible_out, copied.append, argv=("--stdin", "--visible"))
+    assert status == 0
+    assert visible_out.getvalue() == "I do not agree.\n"
+    assert copied == []
+
+
 def test_cli_noninteractive_mode_rejects_empty_input() -> None:
     source = StringIO("")
     output = StringIO()
@@ -197,8 +212,11 @@ def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> 
     assert "FILE" in rendered
     assert "--stdin" in rendered
     assert "--copy" in rendered
+    assert "--visible" in rendered
+    assert "--encoding" in rendered
     assert "--output" in rendered
     assert "user-visible" in rendered
+    assert "latin-1" in rendered
 
 
 def test_release_registry_contains_no_visible_edit_transforms() -> None:

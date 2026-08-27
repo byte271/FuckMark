@@ -12,7 +12,7 @@ The five gates are the bar for calling mix a publishable FuckMark product. Passi
 | --- | --- | --- |
 | Reproducibility | PASS | yes |
 | Cross-environment visibility invariance | PASS | yes |
-| Real-world software compatibility | FAIL | yes |
+| Real-world software compatibility | PASS | yes |
 | Known sanitizer weaknesses | FAIL | yes |
 | Cross-detector generalization | FAIL | yes |
 
@@ -28,15 +28,42 @@ PASS on measured Unicode-capable surfaces: exact visible projection, NFC, UTF-8 
 
 ## Software compatibility
 
-FAIL. UTF-8 and JSON roundtrips preserve mix. Protected URL and email spans stay intact. Latin-1 cannot encode U+034F or U+FE00. Literal search for `do not` misses after letter-mix insertion on short English text.
+PASS on the product surface:
+
+- UTF-8 is the only supported product encoding. JSON roundtrips preserve mix.
+- Latin-1, ASCII, and cp1252 are **unsupported**. Mix cannot encode there; the CLI rejects `--encoding latin-1` instead of claiming a roundtrip.
+- Product search is visible-projection search (`visible_contains`). After letter-mix, `do not` is found on the visible projection and missed by raw codepoint `in`.
+- Raw codepoint search is **not** the product search API. Many editors that search UTF-16 code units will miss intra-letter carriers. That is a payload limitation, not a claimed editor Ctrl+F guarantee.
+- Chromium `window.find` HIT for `do not` on mix text was measured on a host with Chrome. That measurement is host-dependent and is **not** hashed into this spec. CI without Chrome reports UNKNOWN.
+- Protected URL and email spans stay intact. Clipboard copies Unicode text. `--visible` writes the product-authorized visible projection (currently identity, because no carrier is authorized).
 
 ## Sanitizer weaknesses
 
-FAIL as a product gate. Frozen Cycle 6/7 sanitizers (raw, NFKC, Cf-strip, whitespace-collapse, combined, NFC) keep mix, matching confirmation zeros. Mn-strip and default-ignorable-strip remove both carriers. NFKD keeps them. Those stress sanitizers are documented, not frozen product assumptions, and they still kill the mechanism.
+FAIL as a product gate. Frozen Cycle 6/7 sanitizers (raw, NFKC, Cf-strip, whitespace-collapse, combined, NFC) keep mix, matching confirmation zeros. Mn-strip and default-ignorable-strip remove both carriers because U+034F and U+FE00 are Mn and default-ignorable. NFKD keeps them.
+
+Assigned-Unicode feasibility `cycle8-invisible-carrier-feasibility-v1` found no stronger Priority-Zero invisible mechanism:
+
+- visible/control: 140882
+- Cf: 161 (dies to frozen Cf-strip)
+- Mn: 1985 (dies to Mn-strip; mix lives here)
+- Me enclosing marks: 13 (survive Mn/DI/Cf-strip, display width 0, Chromium `pre` pixels change; rejected)
+- other non-Mn/Cf: 0
+
+Enclosing marks are not product-safe. Cycle 8 freezes that H9 boundary rather than changing visible English text.
 
 ## Cross-detector generalization
 
-FAIL. Confirmation used one open detector: GPT-2 / Hugging Face SynthID Weighted Mean at threshold `0.5570987654320988`. In-tree Mean and Bayesian families were not confirmed on the mix freeze. No second model. Closed detectors are UNKNOWN.
+FAIL. Confirmation used one open detector: GPT-2 / Hugging Face SynthID Weighted Mean at threshold `0.5570987654320988`.
+
+Independent Mean-family scoring on the **same** adapter, model, threshold, and spent confirmation *source* texts is `HYPOTHESIS`:
+
+- mix Mean WM **0/192**, mix Mean UW **0/192**, max 0.520947
+- mix Weighted Mean WM **0/192**, mix Weighted Mean UW **0/192**, max 0.524300 (matches confirmation)
+- identity Weighted Mean 185/192 WM and 2/192 UW match confirmation identity counts
+
+That is not a second model. It is not proprietary-detector transfer. It is not a confirmation rewrite. Bayesian-family evidence was not collected. Closed detectors stay UNKNOWN.
+
+See `evidence/cycle8-mix-mean-transfer-2026-08-26/`.
 
 ## What this does not do
 
@@ -45,4 +72,4 @@ FAIL. Confirmation used one open detector: GPT-2 / Hugging Face SynthID Weighted
 - It does not generate `950000`.
 - It does not rewrite the 0/128, 0/256, or 0/192 mix scorecards.
 
-See `docs/cycle8/mix-freeze.md` and `docs/product-contract.md`.
+See `docs/cycle8/mix-freeze.md`, `docs/cycle8/carrier-research.md`, and `docs/product-contract.md`.

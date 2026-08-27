@@ -12,7 +12,12 @@ from pathlib import Path
 from typing import TextIO
 
 from . import __project_name__, __version__
-from .product.visible_projection import is_carrier_insertion_v1, product_approved_carriers_v1
+from .product.encodings import require_supported_product_encoding
+from .product.visible_projection import (
+    is_carrier_insertion_v1,
+    product_approved_carriers_v1,
+    project_visible_v1,
+)
 from .transforms import TRANSFORM_REGISTRY_ALGORITHM_VERSION, release_transform_registry
 
 
@@ -123,6 +128,17 @@ def _parser() -> argparse.ArgumentParser:
         "--copy",
         action="store_true",
         help="also copy the transformed text to the system clipboard",
+    )
+    parser.add_argument(
+        "--visible",
+        action="store_true",
+        help="write the user-visible projection instead of the raw Unicode payload",
+    )
+    parser.add_argument(
+        "--encoding",
+        default="utf-8",
+        metavar="NAME",
+        help="output encoding; only utf-8 is supported (latin-1, ascii, and cp1252 are rejected)",
     )
     parser.add_argument(
         "-q",
@@ -253,6 +269,10 @@ def main(
     output = sys.stdout if output_stream is None else output_stream
     errors = sys.stderr if error_stream is None else error_stream
 
+    try:
+        require_supported_product_encoding(arguments.encoding)
+    except ValueError as error:
+        return _error(errors, str(error))
     if arguments.stdin_mode and arguments.input_file not in (None, "-"):
         return _error(errors, "FILE cannot be combined with --stdin")
     if (
@@ -293,18 +313,22 @@ def main(
     except (KeyError, TypeError, ValueError) as error:
         return _error(errors, f"transformation failed: {error}")
 
+    output_text = result.output_text
+    if arguments.visible:
+        output_text = project_visible_v1(output_text, product_approved_carriers_v1())
+
     should_copy = arguments.copy
     copy_failed: Exception | None = None
     if should_copy:
         writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
         try:
-            writer(result.output_text)
+            writer(output_text)
         except Exception as error:
             copy_failed = error
 
     try:
         if batch_mode or arguments.output is not None or copy_failed is not None or (interactive and not should_copy):
-            _write_result(result.output_text, arguments.output, output)
+            _write_result(output_text, arguments.output, output)
             if interactive and (arguments.output is None or arguments.output == "-"):
                 output.write("\n")
                 output.flush()

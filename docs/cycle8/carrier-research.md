@@ -39,7 +39,7 @@ Intra-word insertion is no longer treated as tokenizer-diagnostic-only. Letter-x
 
 Seeds `1020000` and `1030000` were reserved before generation. Fresh mix is **0/128** raw transformed WM, mix UW **0/128**, visible 256/256 on the detector rows, frozen sanitizers matching raw zeros. Worst fresh mix score is 0.513691 versus threshold 0.557099 (gap 0.043407). Letter-x1 on the same corpora is also 0/128 with worst max 0.527389. Letter-space on `1000000`+`1010000` remains **1/128**. Chromium `pre`/textarea/contenteditable were pixel-equal on the measured mix fixtures.
 
-Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. One-shot confirmation on seeds `830000` / `840000` / `850000` is **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those confirmation seeds are spent. It is not product-authorized. Five publishability gates fail-close product promotion. See `docs/cycle8/mix-freeze.md` and `docs/cycle8/mix-publishability.md`.
+Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. One-shot confirmation on seeds `830000` / `840000` / `850000` is **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those confirmation seeds are spent. It is not product-authorized. Publishability: software compatibility PASS on the UTF-8 / visible-search product surface; sanitizer and cross-detector still FAIL. See `docs/cycle8/mix-freeze.md` and `docs/cycle8/mix-publishability.md`.
 
 ## H3-H8
 
@@ -47,7 +47,11 @@ Placement geometry, Cycle 6 scheduler reuse, and root-window correlation remain 
 
 ## H9. Feasibility boundary
 
-Still `HYPOTHESIS`. If every tokenizer-disruptive invisible carrier is removed by ordinary sanitizers, Cycle 8 will freeze that boundary rather than weaken Priority Zero.
+`VERIFIED` as a negative result for product-safe stronger carriers. Assigned Unicode scalar values were scanned in `cycle8-invisible-carrier-feasibility-v1`. No code point is simultaneously invisible, not Mn, not Cf, not default-ignorable, and pixel-equal on Chromium `pre`.
+
+Mix carriers U+034F and U+FE00 are Mn and default-ignorable, so Mn-strip and default-ignorable-strip restore the source. Cf dies to frozen Cf-strip. The 13 enclosing marks (Me, probe U+20DD) survive those stress sanitizers and have display width 0, but they change rendered pixels and are `REJECTED`. Other non-Mn/Cf assigned characters: 0.
+
+Cycle 8 freezes that boundary rather than weaken Priority Zero. There is no stronger invisible Unicode product mechanism under the current contract.
 
 ## Rejected as product mechanisms
 
@@ -56,6 +60,7 @@ Still `HYPOTHESIS`. If every tokenizer-disruptive invisible carrier is removed b
 | Contractions / Cycle 7 durable edits | `PRODUCT_DISQUALIFIED` | visible words or punctuation change |
 | Cycle 6 U+0020 runs | `PRODUCT_DISQUALIFIED` | visible spacing change |
 | U+200C / other Cf | `REJECTED` as durable; diagnostic only | Cf-strip restores the original string |
+| Enclosing marks (Me, probe U+20DD) | `REJECTED` | survive Mn/DI/Cf-strip but change Chromium `pre` pixels |
 | NBSP / hair spaces / dashes / homoglyphs | `REJECTED` | visible or NFKC-mapped layout/glyph change |
 
 ## Baseline

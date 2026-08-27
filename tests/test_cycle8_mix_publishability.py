@@ -64,7 +64,7 @@ def test_mix_publishability_gates_match_measured_evidence() -> None:
     )
     assert gates["reproducibility"]["verdict"] == "PASS"
     assert gates["visibility_invariance"]["verdict"] == "PASS"
-    assert gates["software_compatibility"]["verdict"] == "FAIL"
+    assert gates["software_compatibility"]["verdict"] == "PASS"
     assert gates["sanitizer_weaknesses"]["verdict"] == "FAIL"
     assert gates["cross_detector_generalization"]["verdict"] == "FAIL"
     assert all(gate["product_blocking"] is True for gate in payload["gates"])
@@ -73,18 +73,24 @@ def test_mix_publishability_gates_match_measured_evidence() -> None:
     assert checks["visibility_invariance"]["visible_projection"] == "PASS"
     assert checks["visibility_invariance"]["webkit_safari"] == "UNKNOWN"
     assert checks["software_compatibility"]["utf8_and_json"] == "PASS"
-    assert checks["software_compatibility"]["latin1"] == "FAIL"
-    assert checks["software_compatibility"]["literal_search"] == "FAIL"
+    assert checks["software_compatibility"]["latin1_unsupported"] == "PASS"
+    assert checks["software_compatibility"]["visible_projection_search"] == "PASS"
+    assert checks["software_compatibility"]["raw_codepoint_search"] == "FAIL"
     assert checks["software_compatibility"]["protected_url_email"] == "PASS"
     assert checks["sanitizer_weaknesses"]["frozen_sanitizers"] == "PASS"
     assert checks["sanitizer_weaknesses"]["mn_strip"] == "FAIL"
     assert checks["sanitizer_weaknesses"]["default_ignorable_strip"] == "FAIL"
     assert checks["sanitizer_weaknesses"]["nfkd"] == "PASS"
+    assert checks["sanitizer_weaknesses"]["invisible_carrier_feasibility_scan"] == "PASS"
+    assert checks["sanitizer_weaknesses"]["stronger_invisible_product_mechanism"] == "FAIL"
     assert checks["cross_detector_generalization"]["confirmed_families"] == "FAIL"
+    assert checks["cross_detector_generalization"]["mean_vs_weighted_mean_hypothesis"] == "PASS"
     assert checks["cross_detector_generalization"]["second_model"] == "FAIL"
     assert payload["identities"]["mix_freeze_hash"] == mix_freeze_hash() == _FREEZE_HASH
     assert payload["identities"]["confirmation_scorecard_hash"] == _SCORECARD_HASH
     assert payload["identities"]["product_contract_hash"] == FROZEN_PRODUCT_CONTRACT_HASH
+    assert payload["identities"]["feasibility_hash"] == "edaa10a576def25a4e0edcdd23b74fecc97dca650835e538ad5c7ff14eb31483"
+    assert payload["identities"]["mean_transfer_scorecard_hash"] == "1b13209f53dcb18e1e93938f22c39bcb510eb4292c1d841db6fbe51052d8e620"
     assert payload["confirmation"]["transformed_wm"] == "0/192"
     assert payload["confirmation"]["transformed_uw"] == "0/192"
     assert payload["confirmation"]["visible"] == "192/192"

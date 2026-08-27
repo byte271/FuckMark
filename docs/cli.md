@@ -34,12 +34,13 @@ Use `--stdin` or `--non-interactive` to request the same mode explicitly. Standa
 
 ## File use
 
-The positional input path is decoded strictly as UTF-8:
+The positional input path is decoded strictly as UTF-8. Latin-1, ASCII, and Windows-1252 are unsupported product encodings:
 
 ```text
 FuckMark input.txt
 FuckMark input.txt --output output.txt
 FuckMark input.txt --copy
+FuckMark --stdin --encoding latin-1   # rejected
 ```
 
 Without `--output`, file-mode output is written to standard output. `--output -` also selects standard output. Named output files are written through an fsynced temporary file and atomically replaced. Input and output paths must differ.
@@ -52,6 +53,8 @@ Without `--output`, file-mode output is written to standard output. `--output -`
 | `--stdin`, `--non-interactive` | Read all standard input in explicit stream mode. |
 | `-o FILE`, `--output FILE` | Atomically write transformed UTF-8 text to a file. |
 | `--copy` | Also copy transformed text to the platform clipboard. |
+| `--visible` | Write the user-visible projection of the product-authorized payload. With zero approved carriers this is identity. |
+| `--encoding NAME` | Output encoding. Only `utf-8` is supported. `latin-1`, `ascii`, and `cp1252` are rejected. |
 | `-q`, `--quiet` | Hide interactive processing and completion messages. |
 | `--no-color` | Disable ANSI terminal color. |
 

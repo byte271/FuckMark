@@ -45,8 +45,8 @@ Letter-x1 on those same confirmation corpora is also 0/192 (worst max 0.524425).
 
 ## Weaknesses
 
-Mn-strip and default-ignorable-strip remove the carriers. Latin-1 cannot encode them. Low-site rows remain closer to the threshold than high-site rows. Token expansion remains large.
+Mn-strip and default-ignorable-strip remove the carriers. Assigned Unicode has no stronger invisible product mechanism that survives those sanitizers while keeping exact visible text. Latin-1 cannot encode the carriers and is an unsupported product encoding. Low-site rows remain closer to the threshold than high-site rows. Token expansion remains large.
 
-The five publishability gates in `docs/cycle8/mix-publishability.md` fail-close product promotion: mix is not product-publishable.
+The five publishability gates in `docs/cycle8/mix-publishability.md` fail-close product promotion: mix is not product-publishable. Software compatibility now PASSes on the UTF-8 / visible-search product surface. Sanitizer and cross-detector gates still FAIL.
 
 Do not generate `950000`. The public CLI remains empty.

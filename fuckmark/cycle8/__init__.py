@@ -32,6 +32,11 @@ from .registry import (
 )
 from .scoreboard import CYCLE8_SCOREBOARD_VERSION, EvidenceLabel, ProductGate, product_scoreboard_payload
 from .tokenizer_screen import GPT2_FIXTURE, load_gpt2_encoder, require_gpt2_encoder, screen_carrier_tokenizer
+from .feasibility import (
+    CYCLE8_FEASIBILITY_HASH,
+    CYCLE8_FEASIBILITY_VERSION,
+    scan_invisible_carrier_feasibility,
+)
 from .unicode_meta import (
     UNICODE_PROPERTY_SCAN_VERSION,
     audit_codepoints,
@@ -45,6 +50,8 @@ __all__ = [
     "CYCLE8_DECISION_VERSION",
     "CYCLE8_DETECTOR_ARM_IDS",
     "CYCLE8_EXPLORATORY_SEED_BASE",
+    "CYCLE8_FEASIBILITY_HASH",
+    "CYCLE8_FEASIBILITY_VERSION",
     "CYCLE8_FIXTURE_COMPARE_VERSION",
     "CYCLE8_LEDGER_VERSION",
     "CYCLE8_REPLICATION_SEED_BASE",
@@ -80,6 +87,7 @@ __all__ = [
     "measure_carrier_arm",
     "product_scoreboard_payload",
     "run_fixture_compare",
+    "scan_invisible_carrier_feasibility",
     "screen_carrier_tokenizer",
     "select_letter_mix_sites",
 ]
