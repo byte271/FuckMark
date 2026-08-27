@@ -1,21 +1,31 @@
 # Installation
 
-Python 3.11 or newer is required. The public CLI applies frozen letter-mix `u034f-ufe00-letter-alt-v1` (`release-cli-v5`).
+Python 3.11 or newer. The public CLI is `fuckmark` / `FuckMark` / `Fuckmark` (`release-cli-v5`).
 
-Install only a GitHub Release wheel and check `SHA256SUMS.txt` from that same release. Do not pipe `https://d.q1z.org/mark` into a shell. That endpoint still installs live `main` without a checksum.
+Do not pipe `https://d.q1z.org/mark` into a shell.
 
-## Tagged wheel (recommended)
+## From this repository (works now)
 
-After tag `v0.4.0` is published, install:
+```text
+python3 -m venv .venv
+.venv/bin/python -m pip install .
+.venv/bin/fuckmark --version
+```
+
+On Windows, create the venv with `py -3.12 -m venv .venv` and use `.venv\Scripts\python.exe`.
+
+After this tree is on `main`, `python3 -m pip install git+https://github.com/byte271/FuckMark.git` installs the same product. Until then, install from a clone.
+
+## Tagged wheel (after `v0.4.0` is published)
+
+The GitHub Release wheel is the checksummed install. It does not exist until the immutable `v0.4.0` tag and `workflow_dispatch` publication in [`release.md`](release.md).
 
 ```text
 python3 -m venv .venv
 .venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.4.0/fuckmark-0.4.0-py3-none-any.whl
 ```
 
-On Windows, create the venv with `py -3.12 -m venv .venv` and use `.venv\Scripts\python.exe`.
-
-Download `SHA256SUMS.txt` from the same release and confirm the installed wheel digest before trusting the environment:
+Download `SHA256SUMS.txt` from the same release and confirm the wheel digest before trusting the environment:
 
 ```text
 https://github.com/byte271/FuckMark/releases/download/v0.4.0/SHA256SUMS.txt
@@ -31,17 +41,17 @@ That tag is not retagged.
 
 ## In-repo installer (tagged wheel + checksum)
 
-These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.4.0`.
+These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.4.0` and 404 until that release exists.
 
 Linux / macOS, from a clone:
 
-```sh
+```text
 sh tools/install/unix.sh
 ```
 
 Windows PowerShell, from a clone:
 
-```powershell
+```text
 powershell -ExecutionPolicy Bypass -File tools/install/windows.ps1
 ```
 
@@ -51,42 +61,29 @@ Optional override: `FUCKMARK_RELEASE_TAG=v0.4.0`.
 
 ```text
 fuckmark --version
+printf 'I do not agree.\n' | fuckmark --visible
 ```
 
-For v0.4.0 the command must begin with:
+`--version` must begin with `FuckMark 0.4.0` and mention `release-cli-v5`. `--visible` must print `I do not agree.`
 
-```text
-FuckMark 0.4.0
-```
-
-It also reports `release-cli-v5`. Transforming ordinary English ASCII inserts U+034F / U+FE00. `--visible` prints the original visible text.
-
-## Install from a local clone
-
-```text
-python -m pip install .
-```
-
-For development and tests:
+## Development
 
 ```text
 python -m pip install -e ".[dev]"
+python -m pytest
 ```
 
-The core package has no runtime dependencies. Research workflows that reproduce open SynthID experiments install pinned model/runtime dependencies through `requirements-smoke.txt`. The H14 DejaVu font-metric scan, the H16 HarfBuzz shaping closure scan, and the H16 tokenizer probe use optional extra `research` (`fonttools`, `uharfbuzz`, `tokenizers`), none of which is a runtime dependency:
+Research extras (not required to run the CLI):
 
 ```text
 python -m pip install -e ".[research]"
+python -m pip install -r requirements-smoke.txt
 ```
-
-## Update
-
-Install a newer tagged wheel the same way and verify `FuckMark --version` against that tag. Do not follow a moving `main.zip`.
 
 ## Troubleshooting
 
 If the command is not found, open a new terminal so PATH updates load.
 
-On Linux, clipboard copying with `--copy` requires one of `wl-copy`, `xclip`, `xsel`, or `clip.exe`. The CLI still prints output if clipboard transfer is unavailable.
+On Linux, `--copy` needs `wl-copy`, `xclip`, `xsel`, or `clip.exe`. The CLI still prints the text if clipboard copy fails (exit 2).
 
-Website: [mark.q1z.org](https://mark.q1z.org). The website one-click installer is not the source of truth for this repository.
+Website: [mark.q1z.org](https://mark.q1z.org).

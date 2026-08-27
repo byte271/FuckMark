@@ -74,7 +74,7 @@ def process_text(text: str) -> str:
 
 
 def read_pasted_text(input_stream: TextIO, output_stream: TextIO) -> str:
-    output_stream.write("Paste text below. Finish with :done on its own line.\n\n")
+    output_stream.write("Paste text, then a line with only :done\n\n")
     output_stream.flush()
     lines: list[str] = []
     for raw_line in input_stream:
@@ -87,22 +87,30 @@ def read_pasted_text(input_stream: TextIO, output_stream: TextIO) -> str:
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog=__project_name__,
-        description="Apply FuckMark product-authorized invisible transforms without changing user-visible text.",
+        prog="fuckmark",
+        description=(
+            "FuckMark inserts hidden Unicode into ordinary English ASCII text "
+            "without changing the visible words."
+        ),
         epilog=(
             "Examples:\n"
-            "  FuckMark\n"
-            "  FuckMark --stdin < input.txt > output.txt\n"
-            "  FuckMark input.txt --output output.txt\n"
-            "  FuckMark input.txt --copy"
+            "  printf 'I do not agree.\\n' | fuckmark\n"
+            "  fuckmark \"I do not agree.\"\n"
+            "  fuckmark notes.txt -o notes.fm.txt\n"
+            "  fuckmark --stdin --copy < notes.txt\n"
+            "  fuckmark --stdin --visible < notes.fm.txt\n"
+            "\n"
+            "Supported input: tab, newline, carriage return, and ASCII space through tilde.\n"
+            "Other Unicode is returned unchanged. Only UTF-8 is supported.\n"
+            "Visible text stays the same. Use --visible to print that visible text."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
-        "input_file",
+        "source",
         nargs="?",
-        metavar="FILE",
-        help="read UTF-8 text from FILE; use - for standard input",
+        metavar="TEXT_OR_FILE",
+        help="quoted text, or a UTF-8 file path; omit to read standard input; use - for stdin",
     )
     parser.add_argument(
         "--version",
@@ -117,23 +125,23 @@ def _parser() -> argparse.ArgumentParser:
         "--non-interactive",
         dest="stdin_mode",
         action="store_true",
-        help="read standard input and write only transformed text to standard output",
+        help="read all of standard input",
     )
     parser.add_argument(
         "-o",
         "--output",
         metavar="FILE",
-        help="atomically write UTF-8 output to FILE instead of standard output",
+        help="write UTF-8 output to FILE instead of standard output",
     )
     parser.add_argument(
         "--copy",
         action="store_true",
-        help="also copy the transformed text to the system clipboard",
+        help="also copy the output to the clipboard",
     )
     parser.add_argument(
         "--visible",
         action="store_true",
-        help="write the user-visible projection instead of the raw Unicode payload",
+        help="print the visible text (no hidden characters)",
     )
     parser.add_argument(
         "--encoding",
@@ -145,14 +153,50 @@ def _parser() -> argparse.ArgumentParser:
         "-q",
         "--quiet",
         action="store_true",
-        help="hide interactive status messages",
+        help="hide status messages on stderr",
     )
     parser.add_argument(
         "--no-color",
         action="store_true",
-        help="disable ANSI color in interactive output",
+        help="disable color on stderr",
     )
     return parser
+
+
+def _looks_like_missing_file(value: str) -> bool:
+    expanded = Path(value).expanduser()
+    if expanded.exists():
+        return False
+    separators = [os.sep]
+    if os.altsep:
+        separators.append(os.altsep)
+    if any(separator in value for separator in separators) or value.startswith("~"):
+        return True
+    suffix = expanded.suffix
+    return len(suffix) >= 2
+
+
+def _load_source_argument(value: str) -> str:
+    expanded = Path(value).expanduser()
+    if expanded.is_dir():
+        raise ValueError(f"{value} is a directory. Pass a UTF-8 text file or quote the text.")
+    if expanded.is_file():
+        return _read_file(str(expanded))
+    if _looks_like_missing_file(value):
+        raise ValueError(
+            f"file not found: {value}. Pass an existing UTF-8 file, or quote the text: fuckmark \"...\""
+        )
+    return value
+
+
+def _clipboard_hint(*, tool_failed: bool) -> str:
+    if sys.platform == "win32":
+        return "Windows clip.exe could not receive the Unicode payload."
+    if sys.platform == "darwin":
+        return "macOS pbcopy is missing or failed."
+    if tool_failed:
+        return "A clipboard tool ran but failed. On a desktop session retry --copy."
+    return "Install wl-copy, xclip, or xsel, then retry --copy."
 
 
 def _clipboard_commands() -> tuple[tuple[str, ...], ...]:
@@ -220,8 +264,10 @@ def _styled(text: str, code: str, *, enabled: bool) -> str:
 def _read_file(path_value: str) -> str:
     try:
         return Path(path_value).expanduser().read_text(encoding="utf-8")
-    except (OSError, UnicodeError) as error:
-        raise ValueError(f"cannot read UTF-8 input file {path_value!r}: {error}") from error
+    except UnicodeError as error:
+        raise ValueError(f"cannot decode {path_value!r} as UTF-8: {error}") from error
+    except OSError as error:
+        raise ValueError(f"cannot read {path_value!r}: {error}") from error
 
 
 def _same_path(left: str, right: str) -> bool:
@@ -299,6 +345,11 @@ def _error(errors: TextIO, message: str) -> int:
     return 1
 
 
+def _status(errors: TextIO, message: str, *, enabled: bool, code: str) -> None:
+    errors.write(_styled(message, code, enabled=enabled) + "\n")
+    errors.flush()
+
+
 def main(
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
@@ -320,47 +371,58 @@ def main(
 
     try:
         require_supported_product_encoding(arguments.encoding)
-    except ValueError as error:
-        return _error(errors, str(error))
-    if arguments.stdin_mode and arguments.input_file not in (None, "-"):
-        return _error(errors, "FILE cannot be combined with --stdin")
+    except ValueError:
+        return _error(
+            errors,
+            "only UTF-8 is supported; latin-1, ascii, and cp1252 are rejected",
+        )
+
+    source_arg = arguments.source
+    wants_stdin = arguments.stdin_mode or source_arg == "-"
+    if wants_stdin and source_arg not in (None, "-"):
+        return _error(errors, "pass quoted text, a file, or --stdin, not both")
     if (
         arguments.output not in (None, "-")
-        and arguments.input_file not in (None, "-")
-        and _same_path(arguments.input_file, arguments.output)
+        and source_arg not in (None, "-")
+        and Path(source_arg).expanduser().is_file()
+        and _same_path(source_arg, arguments.output)
     ):
-        return _error(errors, "input and output paths must be different")
+        return _error(errors, "input and output files must be different")
 
     automatic_pipe = input_stream is None and not _is_tty(source)
-    batch_mode = arguments.stdin_mode or arguments.input_file is not None or automatic_pipe
+    literal_or_file = source_arg not in (None, "-") and not arguments.stdin_mode
+    batch_mode = wants_stdin or literal_or_file or automatic_pipe
     interactive = not batch_mode
-    color = interactive and _is_tty(output) and not arguments.no_color and "NO_COLOR" not in os.environ
+    color = _is_tty(errors) and not arguments.no_color and "NO_COLOR" not in os.environ
+    talk = interactive and not arguments.quiet
 
-    if interactive and not arguments.quiet:
-        output.write(_styled(f"{__project_name__} {__version__}", _ANSI_BOLD + _ANSI_BLUE, enabled=color))
-        output.write("\nProduct path: exact user-visible text preservation.\n\n")
-        output.flush()
+    if talk:
+        _status(errors, f"{__project_name__} {__version__}", enabled=color, code=_ANSI_BOLD + _ANSI_BLUE)
 
     try:
-        if arguments.input_file not in (None, "-"):
-            text = _read_file(arguments.input_file)
+        if literal_or_file:
+            text = _load_source_argument(str(source_arg))
         elif batch_mode:
             text = source.read()
         else:
-            text = read_pasted_text(source, output)
-    except (OSError, UnicodeError, ValueError) as error:
+            text = read_pasted_text(source, errors)
+    except UnicodeError:
+        return _error(errors, "input is not valid UTF-8. Only UTF-8 is supported.")
+    except (OSError, ValueError) as error:
         return _error(errors, str(error))
 
     if not text:
-        return _error(errors, "no input text received")
+        return _error(
+            errors,
+            "no input. Pipe text, pass a file, or quote a string. Example: printf 'I do not agree.\\n' | fuckmark",
+        )
 
-    if interactive and not arguments.quiet:
-        output.write(_styled("Processing...", _ANSI_BLUE, enabled=color) + "\n")
-        output.flush()
+    if talk:
+        _status(errors, "Working...", enabled=color, code=_ANSI_BLUE)
     try:
         result = transform_text(text)
     except (KeyError, TypeError, ValueError) as error:
-        return _error(errors, f"transformation failed: {error}")
+        return _error(errors, f"could not transform the text: {error}")
 
     output_text = result.output_text
     if arguments.visible:
@@ -376,37 +438,34 @@ def main(
             copy_failed = error
 
     try:
-        if batch_mode or arguments.output is not None or copy_failed is not None or (interactive and not should_copy):
-            _write_result(output_text, arguments.output, output)
-            if interactive and (arguments.output is None or arguments.output == "-"):
-                output.write("\n")
-                output.flush()
+        _write_result(output_text, arguments.output, output)
     except ValueError as error:
         return _error(errors, str(error))
 
-    if interactive and not arguments.quiet:
+    if talk:
         if result.changed:
-            noun = "change" if result.change_count == 1 else "changes"
-            message = f"Done — {result.change_count} product-authorized invisible {noun} applied."
+            noun = "character" if result.change_count == 1 else "characters"
+            message = f"Done. Inserted {result.change_count} hidden {noun}."
         else:
-            message = "Done — no product-authorized invisible transform; visible text left unchanged."
-        output.write(_styled(message, _ANSI_GREEN, enabled=color) + "\n")
+            message = (
+                "Left the text unchanged "
+                "(unsupported characters, no eligible letters, or already transformed)."
+            )
+        _status(errors, message, enabled=color, code=_ANSI_GREEN)
         if arguments.output not in (None, "-"):
-            output.write(f"Saved to {arguments.output}\n")
+            _status(errors, f"Wrote {arguments.output}", enabled=color, code=_ANSI_GREEN)
         if should_copy and copy_failed is None:
-            output.write("Copied to clipboard.\n")
-        output.flush()
+            _status(errors, "Copied to the clipboard.", enabled=color, code=_ANSI_GREEN)
 
     if copy_failed is not None:
-        errors.write(
-            _styled(
-                f"FuckMark: clipboard copy failed: {copy_failed}",
-                _ANSI_YELLOW,
-                enabled=color,
-            )
-            + "\n"
+        tool_failed = "no supported clipboard command found" not in str(copy_failed)
+        _status(
+            errors,
+            f"FuckMark: clipboard copy failed ({copy_failed}). {_clipboard_hint(tool_failed=tool_failed)} "
+            "The transformed text was still written.",
+            enabled=color,
+            code=_ANSI_YELLOW,
         )
-        errors.flush()
         return 2
     return 0
 

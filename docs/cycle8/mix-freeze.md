@@ -49,4 +49,4 @@ Mn-strip and default-ignorable-strip remove the carriers. Assigned Unicode has n
 
 The five publishability gates in `docs/cycle8/mix-publishability.md` fail-close product promotion: mix is not product-publishable. Software compatibility now PASSes on the UTF-8 / visible-search product surface. Sanitizer and cross-detector gates still FAIL.
 
-Do not generate `950000`. The public CLI remains empty.
+Do not generate `950000`. Freeze-time public CLI remained empty. Live CLI is `release-cli-v5`.

@@ -1,5 +1,7 @@
 # Cycle 8 carrier research
 
+Live product (v0.4.0): the public CLI applies frozen letter-mix (`release-cli-v5`). This file is the Cycle 8 research record. Historical sections keep the labels they had when that work landed. See [`gate-v2.md`](gate-v2.md) for authorization.
+
 Labels: `VERIFIED`, `HYPOTHESIS`, `REJECTED`, `PRODUCT_DISQUALIFIED`, `HISTORICAL_ONLY`, `UNKNOWN`.
 
 ## H1. Normalization-stable non-Cf carrier
@@ -13,7 +15,7 @@ Labels: `VERIFIED`, `HYPOTHESIS`, `REJECTED`, `PRODUCT_DISQUALIFIED`, `HISTORICA
 
 GPT-2 tokenizer screen `VERIFIED` on the Cycle 8 fixture (tiktoken `gpt2`): inserting U+034F after ASCII word spaces changed token IDs (`ids_equal=false`, token-count delta +40) with suffix realignment of only one token. An 8-copy space run produced delta +208. U+200C also disrupts GPT-2 (delta +28) but remains Cf-fragile.
 
-Not product-authorized. Fixture compare on four ASCII texts is `VERIFIED` for visible projection (`20/20`) and for U+034F / U+FE00 survival under Cf-strip, NFKC, and `whitespace-collapse-v1`. Chromium `pre` screenshots: U+034F and U+FE00 are `VERIFIED` pixel-equal to the original; U+200C is `REJECTED` (PNG bytes differ). Detector-blind GPT-2 / SynthID looks on seeds `890000`, `900000`, and `910000` are `PROMISING_DEVELOPMENT` / `HYPOTHESIS` only (four watermarked pairs per seed). Prefer U+034F x1: x8 overflowed GPT-2's 1024-token context on seed `900000`. The public CLI still authorizes zero carriers.
+Not product-authorized as a space-carrier CLI. Fixture compare on four ASCII texts is `VERIFIED` for visible projection (`20/20`) and for U+034F / U+FE00 survival under Cf-strip, NFKC, and `whitespace-collapse-v1`. Chromium `pre` screenshots: U+034F and U+FE00 are `VERIFIED` pixel-equal to the original; U+200C is `REJECTED` (PNG bytes differ). Detector-blind GPT-2 / SynthID looks on seeds `890000`, `900000`, and `910000` are `PROMISING_DEVELOPMENT` / `HYPOTHESIS` only (four watermarked pairs per seed). Prefer U+034F x1: x8 overflowed GPT-2's 1024-token context on seed `900000`. This H1 arm is not the live CLI.
 
 ## H2. Carrier runs at space boundaries
 
@@ -29,17 +31,17 @@ Diagnostic rescore of seen corpora (not unseen): `960000` n=16 **0/16**, `930000
 
 A later system benchmark reserved seeds `980000` and `990000` before generation. Fresh letter-x1 is **0/128** raw transformed WM on those two independent 64-pair corpora, with space-x1 **1/128** on the same texts. Maximum fresh letter score is 0.554066 versus threshold 0.557099. That 0/128 is measurement, not confirmation, and must not be collapsed into the experimental 0/192. Formal confirmation readiness is `NOT_READY`. See `docs/cycle8/letter-system-benchmark.md`.
 
-Still `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Not confirmation. Not a freeze. Public CLI remains empty. Do not generate `950000`.
+Still `PROMISING_DEVELOPMENT` / `HYPOTHESIS`. Not confirmation. Not a freeze. Letter-x1 is not the live CLI. Do not generate `950000`.
 
 Intra-word insertion is no longer treated as tokenizer-diagnostic-only. Letter-x1 was the previous strongest visible-invariant U+034F arm. The later mix arm below is stronger on fresh independent corpora.
 
 ## H11. Alternating U+034F / U+FE00 letter mix
 
-`VERIFIED` for one-shot mix confirmation 0/192 on the frozen GPT-2 / SynthID protocol. Still not product-authorized. Uniform CGJ repeats are masked by SynthID `valid_mask` on repeated 5-gram contexts. The mix arm places U+034F on even selected-site indexes and U+FE00 on odd indexes after ASCII letters, using raw unmerged hard machine spans instead of merged MATH+NUMBER protection. Quote interiors are allowed. URLs, numbers, code, and paths stay blocked.
+`VERIFIED` for one-shot mix confirmation 0/192 on the frozen GPT-2 / SynthID protocol. This H11 record is the freeze/confirmation history; Gate v2 later authorized the frozen mix. Uniform CGJ repeats are masked by SynthID `valid_mask` on repeated 5-gram contexts. The mix arm places U+034F on even selected-site indexes and U+FE00 on odd indexes after ASCII letters, using raw unmerged hard machine spans instead of merged MATH+NUMBER protection. Quote interiors are allowed. URLs, numbers, code, and paths stay blocked.
 
 Seeds `1020000` and `1030000` were reserved before generation. Fresh mix is **0/128** raw transformed WM, mix UW **0/128**, visible 256/256 on the detector rows, frozen sanitizers matching raw zeros. Worst fresh mix score is 0.513691 versus threshold 0.557099 (gap 0.043407). Letter-x1 on the same corpora is also 0/128 with worst max 0.527389. Letter-space on `1000000`+`1010000` remains **1/128**. Chromium `pre`/textarea/contenteditable were pixel-equal on the measured mix fixtures.
 
-Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. One-shot confirmation on seeds `830000` / `840000` / `850000` is **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those confirmation seeds are spent. It is not product-authorized. Publishability: software compatibility PASS on the UTF-8 / visible-search product surface; sanitizer FAIL; cross-detector PASS on Hugging Face nine-key GPT-2 Weighted Mean plus independent DeepMind 30-key GPT-2 mix **0/192**. DistilGPT2 n=16 is `HYPOTHESIS` second-model transfer, not confirmation-scale. See `docs/cycle8/mix-freeze.md` and `docs/cycle8/mix-publishability.md`.
+Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. One-shot confirmation on seeds `830000` / `840000` / `850000` is **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those confirmation seeds are spent. This H11 record is not itself product authorization. Gate v2 later authorized the frozen mix. Publishability: software compatibility PASS on the UTF-8 / visible-search product surface; sanitizer FAIL; cross-detector PASS on Hugging Face nine-key GPT-2 Weighted Mean plus independent DeepMind 30-key GPT-2 mix **0/192**. DistilGPT2 n=16 is `HYPOTHESIS` second-model transfer, not confirmation-scale. See `docs/cycle8/mix-freeze.md`, `docs/cycle8/mix-publishability.md`, and `docs/cycle8/gate-v2.md`.
 
 ## H3-H8
 
@@ -70,7 +72,7 @@ DEL (U+007F) and C1 (U+0080..U+009F except U+0085) are 32 code points that:
 - round-trip through UTF-8, JSON, and latin-1;
 - fail the v1 product display-width proxy, which still counts `Cc` as width 1. Research width skips the eligible set. That is a proxy gap, not a visible-text change.
 
-The apply path `cc-del-c1-letter-alt-v1` uses the same letter sites as mix, cycling the 32 eligible controls instead of U+034F / U+FE00. Hard machine spans stay blocked. Quote interiors stay eligible. Cap 192. Public CLI remains empty. `product_approved_carriers_v1()` remains empty. Mix confirmation 0/192 is not transferred. Mix publishability sanitizer stays FAIL. Do not generate `950000`.
+The apply path `cc-del-c1-letter-alt-v1` uses the same letter sites as mix, cycling the 32 eligible controls instead of U+034F / U+FE00. Hard machine spans stay blocked. Quote interiors stay eligible. Cap 192. H12 is not authorized. Live approved carriers stay the mix pair, not this control set. Mix confirmation 0/192 is not transferred. Mix publishability sanitizer stays FAIL. Do not generate `950000`.
 
 Seen-corpus DeepMind 30-key diagnostic rescore of seed `920000` n=16: identity WM **16/16**, control-mix WM **0/16**, mix WM **0/16**, all UW **0/16**, visible pass, required sanitizers keep every control-mix row, control-mix max `0.505337`. That look is `HYPOTHESIS`, seen, not independent generation, and not confirmation.
 

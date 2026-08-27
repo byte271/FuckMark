@@ -15,7 +15,7 @@ FuckMark v0.4.0 is the Gate v2 product-authorization release. The public CLI alg
 
 ## Required release sequence
 
-1. Merge this v0.4.0 branch to green `main`.
+1. Merge this v0.4.0 branch to green `main`. Clone install (`python -m pip install .`) already runs the product CLI from that tree. The GitHub Release wheel URL is valid only after the next two steps.
 2. On the resulting `main` push, rerun the cross-platform package matrix. That push must **not** create tags, publish a GitHub Release, or delete branches.
 3. Create and push the immutable `v0.4.0` tag on that merge commit yourself. The workflow never runs `git tag`. Do not tag a pull-request SHA if `main` will be a squash merge.
 4. Publish with `workflow_dispatch` and `publish_github_release=true` on that same commit. The job refuses to run unless `v0.4.0` already exists and points at the dispatch SHA. If the GitHub Release is missing, it uploads the verified wheel and sdist. It does not delete merged branches.

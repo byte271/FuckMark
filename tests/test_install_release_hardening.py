@@ -119,13 +119,17 @@ def test_verify_release_install_imports_under_isolated_interpreter() -> None:
 
 
 def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
-    for relative in ("README.md", "docs/install.md"):
-        text = (ROOT / relative).read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    install = (ROOT / "docs/install.md").read_text(encoding="utf-8")
+    for text in (readme, install):
         assert "archive/refs/heads/main.zip" not in text
         assert "| sh" not in text
         assert "|sh" not in text
         assert "| iex" not in text
         assert "irm https" not in text
-        assert "releases/download/v0.4.0" in text
-        assert "fuckmark-0.4.0-py3-none-any.whl" in text
-        assert "SHA256SUMS" in text
+        assert "SHA256SUMS" in text or "pip install ." in text
+    assert "python3 -m pip install ." in readme or ".venv/bin/python -m pip install ." in readme
+    assert "releases/download/v0.4.0" not in readme
+    assert "releases/download/v0.4.0" in install
+    assert "fuckmark-0.4.0-py3-none-any.whl" in install
+    assert "SHA256SUMS" in install

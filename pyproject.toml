@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fuckmark"
 version = "0.4.0"
-description = "FuckMark deterministic research infrastructure for statistical text watermark robustness"
+description = "CLI that inserts a frozen invisible Unicode payload into English ASCII text without changing what you see"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
@@ -14,8 +14,9 @@ license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["watermark", "text", "robustness", "research", "synthid"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",

@@ -62,6 +62,9 @@ jobs:
           done
           test "$(printf 'I do not agree.\n' | FuckMark)" = "$expected_short"
           test "$(printf 'I do not agree.\n' | FuckMark --stdin --visible)" = "I do not agree."
+          expected_arg="$(python -c "from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix; import sys; sys.stdout.write(apply_letter_alternating_mix('I do not agree.'))")"
+          test "$(FuckMark 'I do not agree.')" = "$expected_arg"
+          FuckMark --help >/dev/null
 
   calibration-readiness:
     name: Frozen calibration readiness

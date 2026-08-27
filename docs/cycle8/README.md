@@ -1,5 +1,7 @@
 # Cycle 8 — exact visible projection
 
+Product documentation is the repository README. This directory is research provenance: protocols, hashes, seed ledgers, and historical cycles.
+
 Cycle 7 is frozen as **visible-edit durability research**. It is **PRODUCT_DISQUALIFIED** even where detector snapshots looked interesting.
 
 Cycle 8 is a new scientific generation. The mechanism class is hidden Unicode representation that leaves `VISIBLE(original)` identical to `VISIBLE(transformed)`.

@@ -1,92 +1,67 @@
 # FuckMark CLI
 
-FuckMark v0.4.0 exposes the same command under `FuckMark`, `Fuckmark`, and `fuckmark`. The public CLI uses `release-cli-v5` and applies frozen letter-mix `u034f-ufe00-letter-alt-v1`.
+The same command is installed as `fuckmark`, `FuckMark`, and `Fuckmark`.
 
-The public CLI is intentionally smaller than the research harness. It does not load detector code, watermark keys, model weights, network services, Cycle 4/6/7 visible-edit schedulers, or quarantined U+200C diagnostics. It also does not apply contractions. `release_transform_registry()` stays empty; mix is not selected from a greedy rule catalog.
-
-**Priority Zero:** the CLI must not change user-visible text. The authorized transform only inserts U+034F and U+FE00 after eligible ASCII letters. `--visible` writes that projection.
-
-Install instructions for Windows, macOS, and Linux are in [`install.md`](install.md). The official website is [mark.q1z.org](https://mark.q1z.org). The product contract is [`product-contract.md`](product-contract.md).
-
-## Interactive use
-
-Run:
+It inserts hidden Unicode into ordinary English ASCII text. The words on screen do not change. Standard output is the transformed text so pipes stay script-friendly. Status and errors go to stderr.
 
 ```text
-FuckMark
+fuckmark --help
 ```
 
-Paste the source text and finish with `:done` on its own line. The legacy `ok` terminator remains accepted.
-
-Interactive mode reports the exact project version, processes the text deterministically, prints the raw mix payload, and reports how many product-authorized invisible insertions were applied. It does not copy to the clipboard unless `--copy` is passed. Color is emitted only when standard output is an interactive terminal. `--no-color` and the `NO_COLOR` environment variable disable ANSI output.
-
-## Stream use
-
-Piped input automatically selects stream mode:
-
-```sh
-printf 'I do not agree.\n' | FuckMark
-```
-
-Standard output is the raw mix payload, not `I don't agree.` Use `--visible` when you want the original visible line.
-
-Use `--stdin` or `--non-interactive` to request the same mode explicitly. Clipboard access is disabled unless `--copy` is provided.
-
-## File use
-
-The positional input path is decoded strictly as UTF-8. Latin-1, ASCII, and Windows-1252 are unsupported product encodings:
+## Examples
 
 ```text
-FuckMark input.txt
-FuckMark input.txt --output output.txt
-FuckMark input.txt --copy
-FuckMark --stdin --encoding latin-1   # rejected
+printf 'I do not agree.\n' | fuckmark
+fuckmark "I do not agree."
+fuckmark notes.txt
+fuckmark notes.txt -o notes.fm.txt
+printf 'I do not agree.\n' | fuckmark --copy
+printf 'I do not agree.\n' | fuckmark --visible
 ```
 
-Without `--output`, file-mode output is written to standard output. `--output -` also selects standard output. Named output files are written through an fsynced temporary file and atomically replaced. Input and output paths must differ.
+Piped or quoted input writes the hidden payload. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard.
+
+Interactive mode (a TTY with no file, quoted text, or pipe): paste text, then a line with only `:done`. The payload still goes to stdout. The `ok` terminator still works.
 
 ## Options
 
 | Option | Behavior |
 | --- | --- |
-| `--version` | Print project, CLI, and release-registry identities. |
-| `--stdin`, `--non-interactive` | Read all standard input in explicit stream mode. |
-| `-o FILE`, `--output FILE` | Atomically write transformed UTF-8 text to a file. |
-| `--copy` | Also copy the written text to the platform clipboard. |
-| `--visible` | Write the user-visible projection of the product-authorized payload. |
-| `--encoding NAME` | Output encoding. Only `utf-8` is supported. `latin-1`, `ascii`, and `cp1252` are rejected. |
-| `-q`, `--quiet` | Hide interactive processing and completion messages. |
-| `--no-color` | Disable ANSI terminal color. |
+| `--version` | Print `FuckMark 0.4.0` plus internal algorithm ids. |
+| `--stdin` | Read all of standard input. |
+| `-o FILE`, `--output FILE` | Write UTF-8 output to FILE. |
+| `--copy` | Also copy the output to the clipboard. |
+| `--visible` | Print the visible text (no hidden characters). |
+| `--encoding NAME` | Only `utf-8`. `latin-1`, `ascii`, and `cp1252` are rejected. |
+| `-q`, `--quiet` | Hide stderr status in interactive mode. |
+| `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |
 
-## Fail-closed identity
+`--non-interactive` is an alias of `--stdin`.
 
-The CLI returns the original text unchanged when:
+Quoted text that is not an existing file is transformed as a string. Existing files are read as UTF-8. A path-like argument that is missing (for example `notes.txt`) is an error, not a string. Invalid UTF-8 input is rejected.
 
-- the input is outside ordinary English ASCII v1 (tab / LF / CR / U+0020..U+007E);
-- no eligible ASCII letter sites remain after hard machine spans;
-- the source already contains U+034F or U+FE00;
-- apply, carrier-insertion, or visible-projection checks fail.
+## Supported input
 
-Hard machine spans: fenced/inline code, markdown destinations, URLs, emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths, CLI flags. Quote interiors are eligible. Selected-site cap 192.
+Tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged (exit 0). Only UTF-8 files.
+
+Machine spans stay intact: fenced/inline code, markdown destinations, URLs, emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths, CLI flags. Quote interiors are eligible. Cap 192 insertion sites.
+
+If the text is already transformed, or has no eligible letters, the CLI returns it unchanged.
 
 ## Exit status
 
 | Status | Meaning |
 | ---: | ---: |
-| 0 | Transformation and requested outputs succeeded. |
-| 1 | Input, transformation, or output validation failed. |
-| 2 | Transformation succeeded, but clipboard transfer failed. The transformed text is still written to the requested non-clipboard destination or printed as fallback output. |
+| 0 | Output was written. Unsupported input is returned unchanged. |
+| 1 | No input, bad file, unsupported encoding, or output could not be written. |
+| 2 | Transform succeeded, but clipboard copy failed. The text was still written. |
 
-Errors are written to standard error. Empty input is rejected. Clipboard commands are resolved locally and time out after ten seconds.
-
-## Platform clipboard commands
+## Clipboard
 
 - macOS: `pbcopy`
-- Windows: `clip`
+- Windows: `clip` (UTF-16)
 - Linux: `wl-copy`, then `xclip`, then `xsel`, then `clip.exe`
 
-`--copy` copies the same bytes that are written (raw mix unless `--visible`). Windows `clip` / `clip.exe` receive UTF-16 so U+034F and U+FE00 survive cp1252 locales. Other clipboard tools receive UTF-8.
+## Install
 
-## Release boundary
-
-Historical contraction, Cycle 6 spacing, Cycle 7 durable visible edits, detector scoring, experimental search, H12 control-mix, and the U+200C diagnostic registry remain outside automatic release behavior. The v1 mix sanitizer gate stays FAIL. Mn-strip and default-ignorable-strip remain recorded stress tests.
+See [`install.md`](install.md). Product contract: [`product-contract.md`](product-contract.md).

@@ -108,9 +108,9 @@ def test_cli_respects_selected_site_cap() -> None:
 
 def test_cli_reads_multiline_paste_until_ok_line() -> None:
     source = StringIO("First line\nSecond line\nok\nIgnored line\n")
-    output = StringIO()
-    assert read_pasted_text(source, output) == "First line\nSecond line"
-    assert "Finish with :done on its own line" in output.getvalue()
+    prompt = StringIO()
+    assert read_pasted_text(source, prompt) == "First line\nSecond line"
+    assert ":done" in prompt.getvalue()
 
 
 def test_copy_to_clipboard_sends_utf16_to_windows_clip(monkeypatch) -> None:
@@ -158,45 +158,46 @@ def test_copy_to_clipboard_sends_utf8_to_unix_tools(monkeypatch) -> None:
 def test_cli_main_applies_mix_without_copying() -> None:
     source = StringIO("I do not agree.\nok\n")
     output = StringIO()
+    errors = StringIO()
     copied: list[str] = []
-    status = main(source, output, copied.append)
+    status = main(source, output, copied.append, error_stream=errors)
     assert status == 0
     assert copied == []
-    rendered = output.getvalue()
     expected = apply_letter_alternating_mix("I do not agree.")
-    assert f"FuckMark {__version__}" in rendered
-    assert "Processing..." in rendered
-    assert "product-authorized invisible" in rendered
-    assert "Copied to clipboard." not in rendered
-    assert expected in rendered
-    assert "I don't agree." not in rendered
+    assert output.getvalue() == expected
+    status_text = errors.getvalue()
+    assert f"FuckMark {__version__}" in status_text
+    assert "Done." in status_text
+    assert "Copied" not in status_text
+    assert "I don't agree." not in output.getvalue()
     assert project_visible_v1(expected, APPROVED) == "I do not agree."
 
 
 def test_cli_main_leaves_original_when_no_letter_site_is_eligible() -> None:
     source = StringIO("123.\nok\n")
     output = StringIO()
+    errors = StringIO()
     copied: list[str] = []
-    status = main(source, output, copied.append)
+    status = main(source, output, copied.append, error_stream=errors)
     assert status == 0
     assert copied == []
-    rendered = output.getvalue()
-    assert "123." in rendered
-    assert "visible text left unchanged" in rendered
-    assert "Copied to clipboard." not in rendered
+    assert output.getvalue() == "123."
+    assert "unchanged" in errors.getvalue()
+    assert "Copied" not in errors.getvalue()
 
 
 def test_cli_main_copies_raw_mix_payload_with_copy_flag() -> None:
     source = StringIO("I do not agree.\nok\n")
     output = StringIO()
+    errors = StringIO()
     copied: list[str] = []
-    status = main(source, output, copied.append, argv=("--copy",))
+    status = main(source, output, copied.append, error_stream=errors, argv=("--copy",))
     assert status == 0
     expected = apply_letter_alternating_mix("I do not agree.")
     assert copied == [expected]
-    rendered = output.getvalue()
-    assert "Copied to clipboard." in rendered
-    assert "I don't agree." not in rendered
+    assert output.getvalue() == expected
+    assert "Copied to the clipboard." in errors.getvalue()
+    assert "I don't agree." not in output.getvalue()
 
 
 def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
@@ -214,6 +215,7 @@ def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
     assert expected in rendered
     assert "I don't agree." not in rendered
     assert "clipboard copy failed" in errors.getvalue()
+    assert output.getvalue().count(expected) == 1
 
 
 def test_cli_version_reports_project_and_algorithm_identity(capsys) -> None:
@@ -244,7 +246,7 @@ def test_cli_rejects_latin1_and_visible_flag_strips_to_source() -> None:
     errors = StringIO()
     assert main(source, output, error_stream=errors, argv=("--stdin", "--encoding", "latin-1")) == 1
     assert output.getvalue() == ""
-    assert "unsupported product encoding" in errors.getvalue()
+    assert "only UTF-8 is supported" in errors.getvalue()
     copied: list[str] = []
     visible_out = StringIO()
     status = main(StringIO("I do not agree.\n"), visible_out, copied.append, argv=("--stdin", "--visible"))
@@ -259,7 +261,7 @@ def test_cli_noninteractive_mode_rejects_empty_input() -> None:
     errors = StringIO()
     assert main(source, output, argv=("--stdin",), error_stream=errors) == 1
     assert output.getvalue() == ""
-    assert errors.getvalue() == "FuckMark: no input text received\n"
+    assert "no input" in errors.getvalue()
 
 
 def test_cli_reads_file_and_atomically_writes_output(tmp_path: Path) -> None:
@@ -279,7 +281,7 @@ def test_cli_refuses_to_overwrite_its_input_file(tmp_path: Path) -> None:
     source.write_text("I do not agree.\n", encoding="utf-8")
     errors = StringIO()
     assert main(error_stream=errors, argv=(str(source), "--output", str(source))) == 1
-    assert "input and output paths must be different" in errors.getvalue()
+    assert "input and output files must be different" in errors.getvalue()
     assert source.read_text(encoding="utf-8") == "I do not agree.\n"
 
 
@@ -312,14 +314,108 @@ def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> 
         main(argv=("--help",))
     assert result.value.code == 0
     rendered = capsys.readouterr().out
-    assert "FILE" in rendered
+    assert "TEXT_OR_FILE" in rendered
     assert "--stdin" in rendered
     assert "--copy" in rendered
     assert "--visible" in rendered
     assert "--encoding" in rendered
     assert "--output" in rendered
-    assert "user-visible" in rendered
+    assert "visible" in rendered
     assert "latin-1" in rendered
+    assert "printf" in rendered
+    assert "fuckmark \"I do not agree.\"" in rendered
+    assert "standard input" in rendered.casefold() or "--stdin" in rendered
+
+
+def test_cli_quoted_text_argument_transforms_without_a_file() -> None:
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO(""), output, error_stream=errors, argv=("I do not agree.",))
+    assert status == 0
+    assert output.getvalue() == apply_letter_alternating_mix("I do not agree.")
+    assert errors.getvalue() == ""
+
+
+def test_cli_missing_path_like_argument_is_an_error(tmp_path: Path) -> None:
+    missing = tmp_path / "notes.txt"
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO(""), output, error_stream=errors, argv=(str(missing),))
+    assert status == 1
+    assert output.getvalue() == ""
+    assert "file not found" in errors.getvalue()
+
+
+def test_cli_directory_argument_is_an_error(tmp_path: Path) -> None:
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO(""), output, error_stream=errors, argv=(str(tmp_path),))
+    assert status == 1
+    assert output.getvalue() == ""
+    assert "directory" in errors.getvalue()
+
+
+def test_cli_rejects_stdin_flag_with_a_source() -> None:
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO("I do not agree.\n"), output, error_stream=errors, argv=("--stdin", "I do not agree."))
+    assert status == 1
+    assert output.getvalue() == ""
+    assert "not both" in errors.getvalue()
+
+
+def test_cli_stdin_returns_unsupported_unicode_unchanged() -> None:
+    source_text = "I do not agree " + chr(0x00E9) + ".\n"
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin",))
+    assert status == 0
+    assert output.getvalue() == source_text
+    assert errors.getvalue() == ""
+
+
+def test_cli_stdin_keeps_multiline_visible_text() -> None:
+    source_text = "I do not agree.\nYou should not do that.\n"
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin",))
+    assert status == 0
+    applied = apply_letter_alternating_mix(source_text)
+    assert output.getvalue() == applied
+    assert project_visible_v1(applied, APPROVED) == source_text
+    assert errors.getvalue() == ""
+
+
+def test_cli_stdin_respects_selected_site_cap() -> None:
+    source_text = "abcdefghijklmnopqrstuvwxyz" * 12
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin",))
+    assert status == 0
+    applied = output.getvalue()
+    assert applied.count("\u034f") + applied.count("\ufe00") == 192
+    assert project_visible_v1(applied, APPROVED) == source_text
+    assert errors.getvalue() == ""
+
+
+def test_cli_rejects_invalid_utf8_stdin() -> None:
+    source = TextIOWrapper(BytesIO(b"\xff\xfe not utf-8"), encoding="utf-8", errors="strict")
+    output = StringIO()
+    errors = StringIO()
+    status = main(source, output, error_stream=errors, argv=("--stdin",))
+    assert status == 1
+    assert output.getvalue() == ""
+    assert "UTF-8" in errors.getvalue()
+
+
+def test_cli_help_stays_product_facing(capsys) -> None:
+    with pytest.raises(SystemExit) as result:
+        main(argv=("--help",))
+    assert result.value.code == 0
+    rendered = capsys.readouterr().out
+    assert "Cycle 8" not in rendered
+    assert "Gate v2" not in rendered
+    assert "carrier" not in rendered.casefold()
 
 
 def test_release_registry_contains_no_visible_edit_transforms() -> None:

@@ -87,6 +87,29 @@ def _verify_artifact(artifact: Path) -> None:
                 raise RuntimeError(
                     f"installed CLI failed for {command.name}: stdout={transformed.stdout!r} stderr={transformed.stderr!r}"
                 )
+            visible = _run(
+                [str(command), "--stdin", "--visible"],
+                input=EXPECTED_INPUT,
+                capture_output=True,
+                env=environment,
+            )
+            if visible.stdout != EXPECTED_INPUT or visible.stderr:
+                raise RuntimeError(
+                    f"installed CLI --visible failed for {command.name}: stdout={visible.stdout!r} stderr={visible.stderr!r}"
+                )
+            quoted = _run(
+                [str(command), "I do not agree."],
+                capture_output=True,
+                env=environment,
+            )
+            expected_arg = apply_letter_alternating_mix("I do not agree.")
+            if quoted.stdout != expected_arg or quoted.stderr:
+                raise RuntimeError(
+                    f"installed CLI quoted argument failed for {command.name}: stdout={quoted.stdout!r} stderr={quoted.stderr!r}"
+                )
+            help_text = _run([str(command), "--help"], capture_output=True, env=environment).stdout
+            if "fuckmark" not in help_text.casefold() or "--visible" not in help_text:
+                raise RuntimeError(f"installed CLI --help failed for {command.name}: {help_text!r}")
 
 
 def main() -> int:
