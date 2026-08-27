@@ -21,6 +21,7 @@ from fuckmark.cycle8.threat_model_audit import (
     lm_watermarking_unicode_sanitizer,
     load_threat_model_audit,
     proposed_gate_status_on_existing_evidence,
+    real_sanitizer_detector_observations,
     real_world_sanitizer_observations,
     render_identical_ascii_substitutes,
     sanitizer_deployability_damage,
@@ -174,8 +175,34 @@ def test_frozen_gate_conditions_are_met_by_existing_evidence():
 def test_proposed_gate_is_not_claimed_fully_satisfied():
     status = proposed_gate_status_on_existing_evidence()
     assert status["proposed_gate_v2_fully_satisfied"] is False
-    assert status["lm_watermarking_unicode_sanitizer_condition"] == "UNMEASURED"
-    assert "outstanding_measurement" in status
+    assert status["all_conditions_measured"] is True
+    assert status["confirmation_grade"] is False
+    assert "why_not_fully_satisfied" in status
+
+
+def test_mix_still_evades_the_real_sanitizer():
+    detector = real_sanitizer_detector_observations()
+    assert detector["watermarked_rows"] == 48
+    assert detector["pristine_watermarked_detected"] == 47
+    assert detector["real_sanitizer_watermarked_detected"] == 0
+
+
+def test_required_bundle_defeats_mix_only_by_restoring_the_source():
+    detector = real_sanitizer_detector_observations()
+    assert detector["required_bundle_watermarked_detected"] == 47
+    assert detector["required_bundle_restores_source_rows"] == 96
+    by_variant = {row["variant"]: row for row in detector["per_variant"]}
+    for variant in ("raw", "nfkc", "cf_strip", "lm_watermarking_unicode_sanitizer"):
+        assert by_variant[variant]["watermarked_detected"] == 0
+        assert by_variant[variant]["restores_source"] == 0
+
+
+def test_detector_measurement_is_exploratory_and_uses_no_spent_seed():
+    detector = real_sanitizer_detector_observations()
+    assert detector["role"] == "exploratory_only_not_confirmation"
+    assert detector["confirmation_grade"] is False
+    assert detector["seed_base"] == 890000
+    assert detector["seed_base"] not in (830000, 840000, 850000, 950000)
 
 
 def test_real_sanitizer_does_not_restore_the_unwatermarked_source():
@@ -184,7 +211,7 @@ def test_real_sanitizer_does_not_restore_the_unwatermarked_source():
     assert observations["restores_the_unwatermarked_source"] is False
     assert observations["output_differs_from_source"] is True
     assert observations["injects_spurious_visible_spaces"] is True
-    assert observations["detection_after_this_sanitizer"] == "UNMEASURED"
+    assert observations["detection_after_this_sanitizer"]["real_sanitizer_watermarked_detected"] == 0
 
 
 def test_real_sanitizer_keeps_cgj_and_most_invisible_codepoints():

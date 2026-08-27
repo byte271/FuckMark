@@ -1,0 +1,3778 @@
+{
+  "algorithm_version": "cycle8-h16-real-sanitizer-exploratory-v1",
+  "role": "exploratory_only_not_confirmation",
+  "seed_base": 890000,
+  "pair_count": 48,
+  "threshold": 0.5570987654320988,
+  "variants": [
+    "raw",
+    "nfkc",
+    "cf_strip",
+    "lm_watermarking_unicode_sanitizer",
+    "required_bundle"
+  ],
+  "summary": {
+    "watermarked_rows": 48,
+    "unwatermarked_rows": 48,
+    "pristine_watermarked_detected": 47,
+    "pristine_unwatermarked_detected": 2,
+    "raw_watermarked_detected": 0,
+    "raw_restores_source": 0,
+    "nfkc_watermarked_detected": 0,
+    "nfkc_restores_source": 0,
+    "cf_strip_watermarked_detected": 0,
+    "cf_strip_restores_source": 0,
+    "lm_watermarking_unicode_sanitizer_watermarked_detected": 0,
+    "lm_watermarking_unicode_sanitizer_restores_source": 0,
+    "required_bundle_watermarked_detected": 47,
+    "required_bundle_restores_source": 96
+  },
+  "rows": [
+    {
+      "sample_id": "cycle8-890000-00-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5291245791245791,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4841709780734171,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c5ef4728227779c3e41f19a4f03925398b8b7aaae68e5bee495c9996bedb228"
+        },
+        "nfkc": {
+          "score": 0.4841709780734171,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c5ef4728227779c3e41f19a4f03925398b8b7aaae68e5bee495c9996bedb228"
+        },
+        "cf_strip": {
+          "score": 0.4841709780734171,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c5ef4728227779c3e41f19a4f03925398b8b7aaae68e5bee495c9996bedb228"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5025424311138597,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9a223acb049d428025a13e4c166de755fa1ca87721d8e6ea5a0caac41d510a87"
+        },
+        "required_bundle": {
+          "score": 0.5291245791245791,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "b864dcf507146625da4b5113b24ab0eecd87ec5be11f8c89105d5781b51def0a"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-00-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.6411195286195286,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4878523800092428,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9e1ecc1935c805457fc06ea6d5266b34779a767c4dffc699cd3c9688c90e66cf"
+        },
+        "nfkc": {
+          "score": 0.4878523800092428,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9e1ecc1935c805457fc06ea6d5266b34779a767c4dffc699cd3c9688c90e66cf"
+        },
+        "cf_strip": {
+          "score": 0.4878523800092428,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9e1ecc1935c805457fc06ea6d5266b34779a767c4dffc699cd3c9688c90e66cf"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5027102232516245,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "41ac61023065232786ea27fcedbbd0681ffe6665edcf83acfa8b62dd895c2e62"
+        },
+        "required_bundle": {
+          "score": 0.6411195286195286,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "b55aa3f2449c498a8f002befdfa10682efe58f553f255042ef4e26865c920ecc"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-01-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5172558922558922,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49974264942417806,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ab853922a4f15ea78d5595aec3a0eabb57c311ee2f1568f7ee9f20dd49b6344e"
+        },
+        "nfkc": {
+          "score": 0.49974264942417806,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ab853922a4f15ea78d5595aec3a0eabb57c311ee2f1568f7ee9f20dd49b6344e"
+        },
+        "cf_strip": {
+          "score": 0.49974264942417806,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ab853922a4f15ea78d5595aec3a0eabb57c311ee2f1568f7ee9f20dd49b6344e"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5118936276343683,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cad71ba239bd3fe2e20367216fe5be2331f6ec3ab7c4f1f5ebde1bca3a24f810"
+        },
+        "required_bundle": {
+          "score": 0.5172558922558922,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "3e4a27852505b20846c919f091541050fad3882097e58a254d88a7892856893d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-01-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5160123966942148,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4966514966514966,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d6f8088be273e02c3ae7e74dde02b78d958a122f80f8d718c16a2ac1d86907df"
+        },
+        "nfkc": {
+          "score": 0.4966514966514966,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d6f8088be273e02c3ae7e74dde02b78d958a122f80f8d718c16a2ac1d86907df"
+        },
+        "cf_strip": {
+          "score": 0.4966514966514966,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d6f8088be273e02c3ae7e74dde02b78d958a122f80f8d718c16a2ac1d86907df"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49567593745675936,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7bb8229771c323a17ab7f300e648a62896602d72abec738bb93f2691d0930ee6"
+        },
+        "required_bundle": {
+          "score": 0.5160123966942148,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "4d1056fa48a7be2995ccb52e93b844159adf3b622d3af4700a489f89840f2fa5"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-02-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.4983585858585859,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4963468013468013,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "153f0120f92469f237a9091c010affa94206d052b73860edd4e2f5bd8f811fc9"
+        },
+        "nfkc": {
+          "score": 0.4963468013468013,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "153f0120f92469f237a9091c010affa94206d052b73860edd4e2f5bd8f811fc9"
+        },
+        "cf_strip": {
+          "score": 0.4963468013468013,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "153f0120f92469f237a9091c010affa94206d052b73860edd4e2f5bd8f811fc9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5062445541678768,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "919865e5bd8a073b254ed395b775a580a0cbc40537f47d6b617028963e755357"
+        },
+        "required_bundle": {
+          "score": 0.4983585858585859,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "9437a0e41728f7b61fd04921765110a9f46a1d30dbac79cdf7667752db606d4f"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-02-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.647053872053872,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4980221798403616,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "16ac0528bbbcd7fd7af9ec6b1896c4b155aef09bc705b8d3f538913ba8cd9b1d"
+        },
+        "nfkc": {
+          "score": 0.4980221798403616,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "16ac0528bbbcd7fd7af9ec6b1896c4b155aef09bc705b8d3f538913ba8cd9b1d"
+        },
+        "cf_strip": {
+          "score": 0.4980221798403616,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "16ac0528bbbcd7fd7af9ec6b1896c4b155aef09bc705b8d3f538913ba8cd9b1d"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5106379408704991,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3477d54033a44fdbfc882e63284d686f55ff87b6d41c8bdc2b91bc1acac743b8"
+        },
+        "required_bundle": {
+          "score": 0.647053872053872,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "2d76ca56feddb9aea9fb9b9d4157761fa4f1df2889aff5afe6b8a32380a3df97"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-03-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5450487012987012,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4918694520967248,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "388ae7dcb770766fcb2d23ede79cf39961ae30ee859c9297fa8a0016ed4e6943"
+        },
+        "nfkc": {
+          "score": 0.4918694520967248,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "388ae7dcb770766fcb2d23ede79cf39961ae30ee859c9297fa8a0016ed4e6943"
+        },
+        "cf_strip": {
+          "score": 0.4918694520967248,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "388ae7dcb770766fcb2d23ede79cf39961ae30ee859c9297fa8a0016ed4e6943"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5016034873449322,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e5069b1e185d6228e49485f54a6b474992668e0a6929dd1edf067169eb9a07a7"
+        },
+        "required_bundle": {
+          "score": 0.5450487012987012,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "944c3f4e2d4b01c115bf1d535ebf8b2cdb80ef9f6c2e5a6cf3aabed7455bff57"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-03-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5882575757575758,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4949494949494949,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c635c214b58f4b346b58ea1f04e022a6a254234d6ce58be2385d978d706127a5"
+        },
+        "nfkc": {
+          "score": 0.4949494949494949,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c635c214b58f4b346b58ea1f04e022a6a254234d6ce58be2385d978d706127a5"
+        },
+        "cf_strip": {
+          "score": 0.4949494949494949,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c635c214b58f4b346b58ea1f04e022a6a254234d6ce58be2385d978d706127a5"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4820131135920609,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "84355ecd691a8237e16344d658bca1685229ebdb04298720e1ec1ac26a8fc600"
+        },
+        "required_bundle": {
+          "score": 0.5882575757575758,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "a0b0d5d636db80f68d2ad5b268045cd1869c97d76d5834c828977348ad9840fe"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-04-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.4805976430976431,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.47978872978872983,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "86e6cfcc26091bd7250b36a6c75a8ac7c069696cac6487a32593eeb8ab77f985"
+        },
+        "nfkc": {
+          "score": 0.47978872978872983,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "86e6cfcc26091bd7250b36a6c75a8ac7c069696cac6487a32593eeb8ab77f985"
+        },
+        "cf_strip": {
+          "score": 0.47978872978872983,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "86e6cfcc26091bd7250b36a6c75a8ac7c069696cac6487a32593eeb8ab77f985"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5062489299777435,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "fc29b49d47f6528dc3606db80bc3684c2eb7f6c50c1fdb9a189c58a0903df232"
+        },
+        "required_bundle": {
+          "score": 0.4805976430976431,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "ef2d73d900ea9c05b7290ea8767452e00279e5b1517f514f74e434ed0931ce8f"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-04-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.6590481082006505,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4992762015055009,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "01f9e4ea36662bf52ac46018c977d44f9d04516b19693cfe0a19ad1fc245deac"
+        },
+        "nfkc": {
+          "score": 0.4992762015055009,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "01f9e4ea36662bf52ac46018c977d44f9d04516b19693cfe0a19ad1fc245deac"
+        },
+        "cf_strip": {
+          "score": 0.4992762015055009,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "01f9e4ea36662bf52ac46018c977d44f9d04516b19693cfe0a19ad1fc245deac"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5114505712866368,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "71135f4d982261163c7a1b05aab4eb0974c60992fbc1927d2ec8e13f7861a7c6"
+        },
+        "required_bundle": {
+          "score": 0.6590481082006505,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "ca1c4fefcff541d1ca76c15110f399a62844e0eb16a3ebc7168c0637af544597"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-05-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.49756493506493504,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4961942116197435,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c6c02381fce7ce67e915a7c6df9998f1c967df1e45b3669e1bcb82d2e749c31"
+        },
+        "nfkc": {
+          "score": 0.4961942116197435,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c6c02381fce7ce67e915a7c6df9998f1c967df1e45b3669e1bcb82d2e749c31"
+        },
+        "cf_strip": {
+          "score": 0.4961942116197435,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c6c02381fce7ce67e915a7c6df9998f1c967df1e45b3669e1bcb82d2e749c31"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5005508101145685,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3084f7fbd13fb856873970f7bd12d352781c97548c0b887794700273163446a5"
+        },
+        "required_bundle": {
+          "score": 0.49756493506493504,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "ebfe2f61120fa148c05e32248afc6625d99b6c24fe50e072c24dbeb2e4a6d78d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-05-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.661026936026936,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4858190445379057,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "aa1c41ba3ed5479c8ef4253ec800723b05061753f1dba70986e2ec500735fedd"
+        },
+        "nfkc": {
+          "score": 0.4858190445379057,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "aa1c41ba3ed5479c8ef4253ec800723b05061753f1dba70986e2ec500735fedd"
+        },
+        "cf_strip": {
+          "score": 0.4858190445379057,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "aa1c41ba3ed5479c8ef4253ec800723b05061753f1dba70986e2ec500735fedd"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5007472686044114,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a5d070385a6d1c6c8fe1f23a6a1a4b82bf4a0a09f8d307dc43c15ee047b03170"
+        },
+        "required_bundle": {
+          "score": 0.661026936026936,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "4ed137b45a39859a8253e8227bf261f278641c0c2e6dd44686f1fa25934e4d2b"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-06-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5044940934771444,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49585326953748005,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a1447847630401712b34fdc88f0f1dd12cb276761fcaf2cf830bb70b89746122"
+        },
+        "nfkc": {
+          "score": 0.49585326953748005,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a1447847630401712b34fdc88f0f1dd12cb276761fcaf2cf830bb70b89746122"
+        },
+        "cf_strip": {
+          "score": 0.49585326953748005,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a1447847630401712b34fdc88f0f1dd12cb276761fcaf2cf830bb70b89746122"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.47510687398327844,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e3d5b6af1ad6ffdec17a599a6ad383d635f8940dc63639ad2c428422fea58668"
+        },
+        "required_bundle": {
+          "score": 0.5044940934771444,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "e1c00cb574bf28f4cc393ae9bc70136cfdc932e3b3431539c8974933b271cb8d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-06-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.634469696969697,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4862433862433862,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c43827b7d41f0c2679f82f926b0393e8468cd713a5d5e6c3ad1d3ca617a77f4d"
+        },
+        "nfkc": {
+          "score": 0.4862433862433862,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c43827b7d41f0c2679f82f926b0393e8468cd713a5d5e6c3ad1d3ca617a77f4d"
+        },
+        "cf_strip": {
+          "score": 0.4862433862433862,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c43827b7d41f0c2679f82f926b0393e8468cd713a5d5e6c3ad1d3ca617a77f4d"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4935064935064935,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3e10ed7aff12b236449c8b36b34fc7d20c51cd55ec3f65b996a8ad6c6e30ee4c"
+        },
+        "required_bundle": {
+          "score": 0.634469696969697,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "31a59a05d69e8f6e725f5a968ca8fe297480646a2db42630fbc23a158dd0a816"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-07-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.464983164983165,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.48238356258834075,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "65218cb7e79952d4f55beeb680f967d64726c4c8384f03373276d3ee87d20cf3"
+        },
+        "nfkc": {
+          "score": 0.48238356258834075,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "65218cb7e79952d4f55beeb680f967d64726c4c8384f03373276d3ee87d20cf3"
+        },
+        "cf_strip": {
+          "score": 0.48238356258834075,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "65218cb7e79952d4f55beeb680f967d64726c4c8384f03373276d3ee87d20cf3"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5166633439659755,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "83c7f04d1e8f5a6371796b8fbb704d62b0a1ab760f44a0918335f80df92383a6"
+        },
+        "required_bundle": {
+          "score": 0.464983164983165,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "eebba8426f46e8a0db9c8cfb4b061e67ebe0c1d32ad691392886c3ad71d96806"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-07-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6413299663299663,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.49333781501016993,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "22892a09ae3150bc598ba6061518e6ba85104fe92a4603300555ac391593c4f2"
+        },
+        "nfkc": {
+          "score": 0.49333781501016993,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "22892a09ae3150bc598ba6061518e6ba85104fe92a4603300555ac391593c4f2"
+        },
+        "cf_strip": {
+          "score": 0.49333781501016993,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "22892a09ae3150bc598ba6061518e6ba85104fe92a4603300555ac391593c4f2"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.504392458789853,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4a9e3127a5043684626cb1f3734fcd431bd03b2bcc0fa19214b979d38f74465e"
+        },
+        "required_bundle": {
+          "score": 0.6413299663299663,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "cf91bcd28a472fd05fa28ecc339ef3022f9087ce913698c990bc57a692d97516"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-08-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5206300291046053,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.5043669175834781,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8693518984210091b453c9006b9a3bcb3c37c771e2394ff5218f7012cccdd823"
+        },
+        "nfkc": {
+          "score": 0.5043669175834781,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8693518984210091b453c9006b9a3bcb3c37c771e2394ff5218f7012cccdd823"
+        },
+        "cf_strip": {
+          "score": 0.5043669175834781,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8693518984210091b453c9006b9a3bcb3c37c771e2394ff5218f7012cccdd823"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49546870574907953,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e82870f18dc7885f987e32fda38f5a6684864385e4457d637a1499ab892a104e"
+        },
+        "required_bundle": {
+          "score": 0.5206300291046053,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "662fd38578efca1b0736573a45838e5c722ced357b5d02707c699715be207049"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-08-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5917260843731432,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.49129852744310576,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "07e9a71153cc04bfd684bb0e456ea3b3f4213f6e0c307d6139ffbbc78aab3f06"
+        },
+        "nfkc": {
+          "score": 0.49129852744310576,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "07e9a71153cc04bfd684bb0e456ea3b3f4213f6e0c307d6139ffbbc78aab3f06"
+        },
+        "cf_strip": {
+          "score": 0.49129852744310576,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "07e9a71153cc04bfd684bb0e456ea3b3f4213f6e0c307d6139ffbbc78aab3f06"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49862945696279026,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "98c64136945829efa6f3eb78c98ee5c89e59f288a528b8f9c60f48cb1e01a430"
+        },
+        "required_bundle": {
+          "score": 0.5917260843731432,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "ff84b3690e4f3da536bdfdda8a7b0eb211a8142fa21a8d188ae6a9e141b908c3"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-09-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5358679386457164,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.496796477168378,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c8c8db0c0af2b8e645ec7b8c6ba7e4ec3143fc72d34214906b91c19474c737e4"
+        },
+        "nfkc": {
+          "score": 0.496796477168378,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c8c8db0c0af2b8e645ec7b8c6ba7e4ec3143fc72d34214906b91c19474c737e4"
+        },
+        "cf_strip": {
+          "score": 0.496796477168378,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c8c8db0c0af2b8e645ec7b8c6ba7e4ec3143fc72d34214906b91c19474c737e4"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5001907968574635,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "dfc36d05eb0c2b574058835c5a06d3f0f3e9137d70637d017cfa37ae40b22aa3"
+        },
+        "required_bundle": {
+          "score": 0.5358679386457164,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "fbd4390160e7be845c5e1890432fec3dd86057a31bd84b3f6082d7e4c8bf355c"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-09-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6369731800766283,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.48882481531735256,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "125e6d80c67f6f7a5de1fec0fb7a6403c2e1c1c4b5c915d7d281580f1007ef90"
+        },
+        "nfkc": {
+          "score": 0.48882481531735256,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "125e6d80c67f6f7a5de1fec0fb7a6403c2e1c1c4b5c915d7d281580f1007ef90"
+        },
+        "cf_strip": {
+          "score": 0.48882481531735256,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "125e6d80c67f6f7a5de1fec0fb7a6403c2e1c1c4b5c915d7d281580f1007ef90"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5099551471392626,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d0f0a41cfc33c604319ad6b7dcb59dfad26843f28580108f9cdf331f8f1129eb"
+        },
+        "required_bundle": {
+          "score": 0.6369731800766283,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "1c60d89f0804df4642a4c7197e88741242dcb4da47e1cb5c7f17ce6918a43c09"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-10-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5120167189132706,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4979946524064171,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f5b32622d4f1e4e9611d82ccf0f64dd48dba9b84456ceed92d41c734f16ba949"
+        },
+        "nfkc": {
+          "score": 0.4979946524064171,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f5b32622d4f1e4e9611d82ccf0f64dd48dba9b84456ceed92d41c734f16ba949"
+        },
+        "cf_strip": {
+          "score": 0.4979946524064171,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f5b32622d4f1e4e9611d82ccf0f64dd48dba9b84456ceed92d41c734f16ba949"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49005733906724,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "489475895848a5c9a4bcd276cc5930744bc03abde1983a47b75cacd3ba319694"
+        },
+        "required_bundle": {
+          "score": 0.5120167189132706,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "92606b4da3ab80da354fcb469186cbde590b69b36e48428390653563980bf4c5"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-10-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6388453500522466,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5065200499983109,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3e3ec75a6688c17c6c6204e9fd4b3840b6b5aa3762314ff6a28554512730e8d9"
+        },
+        "nfkc": {
+          "score": 0.5065200499983109,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3e3ec75a6688c17c6c6204e9fd4b3840b6b5aa3762314ff6a28554512730e8d9"
+        },
+        "cf_strip": {
+          "score": 0.5065200499983109,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3e3ec75a6688c17c6c6204e9fd4b3840b6b5aa3762314ff6a28554512730e8d9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49510085077908417,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8cac14a4685288408d599fd8903f7141d347a18ac6b5be1b0738f4cb9a9e5d29"
+        },
+        "required_bundle": {
+          "score": 0.6388453500522466,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "4884252c7e887a1310a6c7089b614aba69e55dafd4c9e86aa1840556f2ccaa88"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-11-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.54246632996633,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49821990395760885,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "12e8adbb8d2c7ee94edd5c958d2fc1f0d039032fa753be052844ef4d90ff312c"
+        },
+        "nfkc": {
+          "score": 0.49821990395760885,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "12e8adbb8d2c7ee94edd5c958d2fc1f0d039032fa753be052844ef4d90ff312c"
+        },
+        "cf_strip": {
+          "score": 0.49821990395760885,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "12e8adbb8d2c7ee94edd5c958d2fc1f0d039032fa753be052844ef4d90ff312c"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5026268880758045,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7458058cbc899a136cb402e92ef60fdbbe74a42ad3509def318e4a5848dede17"
+        },
+        "required_bundle": {
+          "score": 0.54246632996633,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "174b518f64d34643b3a1591d14eb5049de11ec870dfc04dc88460ed24edec9d6"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-11-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6295454545454545,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4996249624962496,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3a618197351d67af8bc79c48f95921cefe6c5bea99c807c83ece496b846782bc"
+        },
+        "nfkc": {
+          "score": 0.4996249624962496,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3a618197351d67af8bc79c48f95921cefe6c5bea99c807c83ece496b846782bc"
+        },
+        "cf_strip": {
+          "score": 0.4996249624962496,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3a618197351d67af8bc79c48f95921cefe6c5bea99c807c83ece496b846782bc"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5019770069112175,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c76e97cc765f35a6eba5c0f6af83bc31f394b425d699f9e31c8105010347c9ed"
+        },
+        "required_bundle": {
+          "score": 0.6295454545454545,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "47411cb1143e2251fe709903b6bb04e7a6494b9dc85bb708caaf5d44c4fbb854"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-12-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.4887005649717514,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4912785260007482,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0ab359d85b01e58759f2d7ce6ccae0b58c9176d592d2154c94ea5b0cc1b6c537"
+        },
+        "nfkc": {
+          "score": 0.4912785260007482,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0ab359d85b01e58759f2d7ce6ccae0b58c9176d592d2154c94ea5b0cc1b6c537"
+        },
+        "cf_strip": {
+          "score": 0.4912785260007482,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0ab359d85b01e58759f2d7ce6ccae0b58c9176d592d2154c94ea5b0cc1b6c537"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5002710723049706,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "471ba250cd82bea53f6c65e2c0dadc40fa21bf518b349a39591de5490178542d"
+        },
+        "required_bundle": {
+          "score": 0.4887005649717514,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "87c0e1bccdaa66fd17b04f6b0eaee1deeae410eb40a6f9c586e395872e524953"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-12-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.6452234206471495,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4924076833912899,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ae6410c45e6a5f084cc8ae770c639124597a95b5820a54553d5b333c43aef5ae"
+        },
+        "nfkc": {
+          "score": 0.4924076833912899,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ae6410c45e6a5f084cc8ae770c639124597a95b5820a54553d5b333c43aef5ae"
+        },
+        "cf_strip": {
+          "score": 0.4924076833912899,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ae6410c45e6a5f084cc8ae770c639124597a95b5820a54553d5b333c43aef5ae"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4897481100311289,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "5b115670ab489b921a8131db5cfc09df20adbfd4a20ab608ba67d15b32a66cd3"
+        },
+        "required_bundle": {
+          "score": 0.6452234206471495,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "73d6be34cd7cb92f1467d144748f78b01782a845c988a86f83cdfcbacb724c78"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-13-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.47613636363636364,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.47529523172905525,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0f13df4b128bea9bcc8f4050fc98f8eb3670be7c113610dfd7ac177935f910f8"
+        },
+        "nfkc": {
+          "score": 0.47529523172905525,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0f13df4b128bea9bcc8f4050fc98f8eb3670be7c113610dfd7ac177935f910f8"
+        },
+        "cf_strip": {
+          "score": 0.47529523172905525,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0f13df4b128bea9bcc8f4050fc98f8eb3670be7c113610dfd7ac177935f910f8"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4976195648238659,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "80bb74f7c54e3979646221af7837e889c27c2d8024b03c8a6cb0cecd09ac26cf"
+        },
+        "required_bundle": {
+          "score": 0.47613636363636364,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "4e3322924f14c30e78e95be82b5804db1348c21cb551c7b2dca8dd02ed6f175d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-13-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6137626262626263,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.49957355007023885,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "5ba776f4eeb473fe091f097f1fbf8b3f66e26a05b7f5b4dfe19cb6fa69efcffd"
+        },
+        "nfkc": {
+          "score": 0.49957355007023885,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "5ba776f4eeb473fe091f097f1fbf8b3f66e26a05b7f5b4dfe19cb6fa69efcffd"
+        },
+        "cf_strip": {
+          "score": 0.49957355007023885,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "5ba776f4eeb473fe091f097f1fbf8b3f66e26a05b7f5b4dfe19cb6fa69efcffd"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5041742344581461,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "157d8f4ce90f604a1cffed404d8e1fee907b66288fdd04747e73cb896cdac585"
+        },
+        "required_bundle": {
+          "score": 0.6137626262626263,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "417b1cf06b1d5967c9fdddcd22cf11808d25fe7531f6b06c6ab443a82ec8ab55"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-14-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.49532828282828284,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.5042929292929293,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "306e8bd794559e75a40f7717ed224d3a704d8813fbcb81a5db329f120807972f"
+        },
+        "nfkc": {
+          "score": 0.5042929292929293,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "306e8bd794559e75a40f7717ed224d3a704d8813fbcb81a5db329f120807972f"
+        },
+        "cf_strip": {
+          "score": 0.5042929292929293,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "306e8bd794559e75a40f7717ed224d3a704d8813fbcb81a5db329f120807972f"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5089461690071446,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "79a67841790f3f4cb9064285fd4eb6325237f1bf7e2d9f881d2b6b54ad1e0f09"
+        },
+        "required_bundle": {
+          "score": 0.49532828282828284,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "0fc7912ba2c4dd2875771b3efcb6e91f3dfcb202b451ef5c0c9f652bab69fd2f"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-14-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6390993265993266,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.490167807103291,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e28d1fa5cfecc89085cabab2eddcf438b844d451bb9bc649054d0601da2883bb"
+        },
+        "nfkc": {
+          "score": 0.490167807103291,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e28d1fa5cfecc89085cabab2eddcf438b844d451bb9bc649054d0601da2883bb"
+        },
+        "cf_strip": {
+          "score": 0.490167807103291,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e28d1fa5cfecc89085cabab2eddcf438b844d451bb9bc649054d0601da2883bb"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5044910644910645,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "01b81d20283f259130bd6012086e2c3f887c6e64413c7ae5258c55c4fe628f7f"
+        },
+        "required_bundle": {
+          "score": 0.6390993265993266,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "7a17f506343931bd6424d8022beeccad49e5c4d41a755254ba4311bab4935187"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-15-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5067866161616161,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4958352178501432,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "93cad7f8ee092a302245b542ae629e6571c84c032102b6b7367a00f79804fcb6"
+        },
+        "nfkc": {
+          "score": 0.4958352178501432,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "93cad7f8ee092a302245b542ae629e6571c84c032102b6b7367a00f79804fcb6"
+        },
+        "cf_strip": {
+          "score": 0.4958352178501432,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "93cad7f8ee092a302245b542ae629e6571c84c032102b6b7367a00f79804fcb6"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5133721557209101,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3ebbfeed57b41f41c31505e7a396005436f3540d7076befd48ca2656484f1f37"
+        },
+        "required_bundle": {
+          "score": 0.5067866161616161,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "e84182d9008d13e647fbdc9cd44c647f49384e2a73254b3646007397d5c9333d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-15-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6033359914938862,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4870529061102832,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e762f9296f84fa44c6cef106751f0c598991df6b8527d77fcc3583e71b67f11e"
+        },
+        "nfkc": {
+          "score": 0.4870529061102832,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e762f9296f84fa44c6cef106751f0c598991df6b8527d77fcc3583e71b67f11e"
+        },
+        "cf_strip": {
+          "score": 0.4870529061102832,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e762f9296f84fa44c6cef106751f0c598991df6b8527d77fcc3583e71b67f11e"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5214646464646464,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "5e8c775b9a81e4031865000e0400e0bb4e3f3c82b57bd68b95c431a699ef276d"
+        },
+        "required_bundle": {
+          "score": 0.6033359914938862,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "d44919871af9404a779265daea8587b8707d37af73f901faa563547499e02b0e"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-16-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.48973063973063974,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4781873219373219,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cad498a2d4d0cd29423e5f8974d250f55a4224cebee07ee32a25e0c6d8b1f464"
+        },
+        "nfkc": {
+          "score": 0.4781873219373219,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cad498a2d4d0cd29423e5f8974d250f55a4224cebee07ee32a25e0c6d8b1f464"
+        },
+        "cf_strip": {
+          "score": 0.4781873219373219,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cad498a2d4d0cd29423e5f8974d250f55a4224cebee07ee32a25e0c6d8b1f464"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5016173822820348,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b08c498672727906b7b196a2673be293f123e9f9b2c0e13d50e28c928995d839"
+        },
+        "required_bundle": {
+          "score": 0.48973063973063974,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "c93771eecae53014dd00b68f57e3093ac587a8914c6031b0881527be68c7f9f5"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-16-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.649537037037037,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5181096681096681,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "665cf47dba5de4a20f0b02702cb25ad29a0bfa1deaec3e604d948c7fd90427c9"
+        },
+        "nfkc": {
+          "score": 0.5181096681096681,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "665cf47dba5de4a20f0b02702cb25ad29a0bfa1deaec3e604d948c7fd90427c9"
+        },
+        "cf_strip": {
+          "score": 0.5181096681096681,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "665cf47dba5de4a20f0b02702cb25ad29a0bfa1deaec3e604d948c7fd90427c9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5032737555192645,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "927dccbb92d0c4fea46b3e46a47ddae56e61a14308d7f7256fa378eff51a40df"
+        },
+        "required_bundle": {
+          "score": 0.649537037037037,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "da8ffc49fd3ba5dc84a494332710365c25efef0054fb537f24516bc64f8a9042"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-17-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5365740740740741,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.5087577906726843,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "40be6f30281c030df9d731b46c9903dcce978b547714572044f46a126548a3f5"
+        },
+        "nfkc": {
+          "score": 0.5087577906726843,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "40be6f30281c030df9d731b46c9903dcce978b547714572044f46a126548a3f5"
+        },
+        "cf_strip": {
+          "score": 0.5087577906726843,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "40be6f30281c030df9d731b46c9903dcce978b547714572044f46a126548a3f5"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4792631172839506,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "342961ad09bb394abc3450cdc8c16ceed148ab4e281eef08514d9e1a47f7f7d8"
+        },
+        "required_bundle": {
+          "score": 0.5365740740740741,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "a332bb972d62b03442c0fb8f615544b6e4dd443dff238cbecb5a9105c46b9fe4"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-17-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6978114478114478,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4818272005772006,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f824246e58d571565fff20b3641d6e1a8feda99e836bc022e8f8902942d093de"
+        },
+        "nfkc": {
+          "score": 0.4818272005772006,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f824246e58d571565fff20b3641d6e1a8feda99e836bc022e8f8902942d093de"
+        },
+        "cf_strip": {
+          "score": 0.4818272005772006,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f824246e58d571565fff20b3641d6e1a8feda99e836bc022e8f8902942d093de"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5072590011614402,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4560dac6cf30dc9f79d212b474b4ade91978512c14d18e3f651c77e382ab06cc"
+        },
+        "required_bundle": {
+          "score": 0.6978114478114478,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "d7c16d468c4aa2f4ef6a0778f649a0ba6ddd71d18dd56f60e9626fb2e0aee317"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-18-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5374357611199716,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.5051752088789125,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2d935d17500ad83388d50a5e9f4bde6e050ce00e934fa5f318a4e41d773464f3"
+        },
+        "nfkc": {
+          "score": 0.5051752088789125,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2d935d17500ad83388d50a5e9f4bde6e050ce00e934fa5f318a4e41d773464f3"
+        },
+        "cf_strip": {
+          "score": 0.5051752088789125,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2d935d17500ad83388d50a5e9f4bde6e050ce00e934fa5f318a4e41d773464f3"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5198498933558695,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "fda830f4018d24f05d45873eb5213c942b338b28712c262e9c4453bc68503a08"
+        },
+        "required_bundle": {
+          "score": 0.5374357611199716,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "c5a89a5059b9de843dec30344f94f62a9c34039196a53057f05eae8f2574159e"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-18-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6075409265064438,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.48866112101406217,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "896f419d622a0a1848b1addac86d299eed88bde731d3fcfa72de5a396f1edea1"
+        },
+        "nfkc": {
+          "score": 0.48866112101406217,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "896f419d622a0a1848b1addac86d299eed88bde731d3fcfa72de5a396f1edea1"
+        },
+        "cf_strip": {
+          "score": 0.48866112101406217,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "896f419d622a0a1848b1addac86d299eed88bde731d3fcfa72de5a396f1edea1"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49511838126487806,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6743dec834a0dfc6eab893be20e34846c8957961a0533a21e94e240724f6c99d"
+        },
+        "required_bundle": {
+          "score": 0.6075409265064438,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "e0caf0619b35ba022d524ed2caee18881a3f1219a6ead123387ce878cd09f583"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-19-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5284511784511784,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4920515114242051,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ab09e4bda0818327bec2869d09c817fb2e2d5d514603bf2204d4d22a8749224a"
+        },
+        "nfkc": {
+          "score": 0.4920515114242051,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ab09e4bda0818327bec2869d09c817fb2e2d5d514603bf2204d4d22a8749224a"
+        },
+        "cf_strip": {
+          "score": 0.4920515114242051,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ab09e4bda0818327bec2869d09c817fb2e2d5d514603bf2204d4d22a8749224a"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4969824599788498,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e1889b27cf8f666014b9633e52d7e332a2705e0be7e4ba5fe98c1aa63172ec63"
+        },
+        "required_bundle": {
+          "score": 0.5284511784511784,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "343fcf5f365e87007589891987bf0f2e2939e6b1b20ee0659cd13ed2bae3688f"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-19-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6044536271808999,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4930606060606061,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "41c37ea3b91648e5f996f21ba8de2a8624e39d357db57f5b2db371fadb9311ae"
+        },
+        "nfkc": {
+          "score": 0.4930606060606061,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "41c37ea3b91648e5f996f21ba8de2a8624e39d357db57f5b2db371fadb9311ae"
+        },
+        "cf_strip": {
+          "score": 0.4930606060606061,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "41c37ea3b91648e5f996f21ba8de2a8624e39d357db57f5b2db371fadb9311ae"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5120254969045291,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "15b9932a77f807d7761122fad53a4352270a16487e6579d1936eee9d9e1e3893"
+        },
+        "required_bundle": {
+          "score": 0.6044536271808999,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "24a06ff2c2a92568fc08b6bd77e0788f316645dfb770c5a9e4e0bb3708e3f8cd"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-20-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.47920875420875414,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4953879068462402,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a6050b9504f1bf34143c54acf8ee95cf7dee6f9c06c8d58ae03199ee58bf941a"
+        },
+        "nfkc": {
+          "score": 0.4953879068462402,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a6050b9504f1bf34143c54acf8ee95cf7dee6f9c06c8d58ae03199ee58bf941a"
+        },
+        "cf_strip": {
+          "score": 0.4953879068462402,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a6050b9504f1bf34143c54acf8ee95cf7dee6f9c06c8d58ae03199ee58bf941a"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.48930211202938473,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "92d32b0c690a62a04c5e7ae5a32f7fd332d5d4fb6047c738e67e81adadbb3904"
+        },
+        "required_bundle": {
+          "score": 0.47920875420875414,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "fe1d03c3d5fe2ee54f82253962e55d19cc0b9d552ae1bbdb24d82c57e40ac9d3"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-20-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.630628317068995,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5114185331576636,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4b3e3a0c044836462b28a405a09aa57615561282c96a0c042a7bf981a38bdf7b"
+        },
+        "nfkc": {
+          "score": 0.5114185331576636,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4b3e3a0c044836462b28a405a09aa57615561282c96a0c042a7bf981a38bdf7b"
+        },
+        "cf_strip": {
+          "score": 0.5114185331576636,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4b3e3a0c044836462b28a405a09aa57615561282c96a0c042a7bf981a38bdf7b"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5141217135897987,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c7890e9d829be9a71e5e878b2a8755c5d7a5c641aeb44665b09c37538f312411"
+        },
+        "required_bundle": {
+          "score": 0.630628317068995,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "db914fddc727c1d5ba20dc514c1f5abd064b1cd4e6e4915cb7366df7c9edf307"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-21-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.4841470258136924,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49410353535353535,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d1f7906e447def1a33db9155c12bddb0fb27287145bcb6158f9bc5d86e3c5ad4"
+        },
+        "nfkc": {
+          "score": 0.49410353535353535,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d1f7906e447def1a33db9155c12bddb0fb27287145bcb6158f9bc5d86e3c5ad4"
+        },
+        "cf_strip": {
+          "score": 0.49410353535353535,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d1f7906e447def1a33db9155c12bddb0fb27287145bcb6158f9bc5d86e3c5ad4"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4726127251900447,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e12df57d852743997373f51d30cac50277bb20dad6286cc5494151722aa09af2"
+        },
+        "required_bundle": {
+          "score": 0.4841470258136924,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "2cd2eb4afd958e2535c21c97d09dc6455f00cf8fea10200b4ee20fc6d358bfdd"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-21-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6303117380703588,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5001147842056933,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0b9d7705b6b86ac4f64c19c6325922fe9b26ba367c52c4c4f3ea73db86cbb2a9"
+        },
+        "nfkc": {
+          "score": 0.5001147842056933,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0b9d7705b6b86ac4f64c19c6325922fe9b26ba367c52c4c4f3ea73db86cbb2a9"
+        },
+        "cf_strip": {
+          "score": 0.5001147842056933,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0b9d7705b6b86ac4f64c19c6325922fe9b26ba367c52c4c4f3ea73db86cbb2a9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5094123048668503,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3243530d3c0fa7fef1478362a1df3790b08966e838c773fb32e33e77d58d0475"
+        },
+        "required_bundle": {
+          "score": 0.6303117380703588,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "a9578ac7133ac93a9ea75a668aefa4188ee8db3bad526ac36e1337d3c8197edf"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-22-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.4880952380952381,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.5114907463900752,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8cb6f035a016e3fcf3c552afbe4cac87e1e39c753eb3d0da47b8468b6acd2f66"
+        },
+        "nfkc": {
+          "score": 0.5114907463900752,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8cb6f035a016e3fcf3c552afbe4cac87e1e39c753eb3d0da47b8468b6acd2f66"
+        },
+        "cf_strip": {
+          "score": 0.5114907463900752,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8cb6f035a016e3fcf3c552afbe4cac87e1e39c753eb3d0da47b8468b6acd2f66"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5042845117845117,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ad68e26532db9d4f8de0a10f20f1dae6d5de9b8e9d9438deb961e288f4ee897c"
+        },
+        "required_bundle": {
+          "score": 0.4880952380952381,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "fe0f1d200087ca604f135798c69df96df584d8a63a4aa0b91f9117956923dd39"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-22-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6444444444444444,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.49789283564118,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1eb8417b0e602f3b596c751e61848a5573f006af0f25d75944434da08ebb9030"
+        },
+        "nfkc": {
+          "score": 0.49789283564118,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1eb8417b0e602f3b596c751e61848a5573f006af0f25d75944434da08ebb9030"
+        },
+        "cf_strip": {
+          "score": 0.49789283564118,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1eb8417b0e602f3b596c751e61848a5573f006af0f25d75944434da08ebb9030"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5103946441155743,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e82b69ab11c0c7b0510760ba40b341b391ee33746e6f85b635a1e5a2673bc624"
+        },
+        "required_bundle": {
+          "score": 0.6444444444444444,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "e2c04cd2c833e35bcff62d19cb2a56f29702160a8ab0c080f552d1fc49a53111"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-23-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.523709315375982,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.471780303030303,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8e319c8dde89a1197d81919a7ecd5d82c0650f89d162a0335c5015631a653f75"
+        },
+        "nfkc": {
+          "score": 0.471780303030303,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8e319c8dde89a1197d81919a7ecd5d82c0650f89d162a0335c5015631a653f75"
+        },
+        "cf_strip": {
+          "score": 0.471780303030303,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8e319c8dde89a1197d81919a7ecd5d82c0650f89d162a0335c5015631a653f75"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49595727921415994,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1648e56318cdbbe9d44f49e65f2bd9ccf0cbbdf3650f9610b6261787186f2fc9"
+        },
+        "required_bundle": {
+          "score": 0.523709315375982,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "c1ad83fbdd4311499f3e324f7935eee049c08085fd0d41659f28d56beb1cefb8"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-23-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6361531986531986,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4997128475389344,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2eccabd3bb1ee15f08f64d4adc1839b80cc0cdec0afaf1b9af6194f5b98a4ab6"
+        },
+        "nfkc": {
+          "score": 0.4997128475389344,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2eccabd3bb1ee15f08f64d4adc1839b80cc0cdec0afaf1b9af6194f5b98a4ab6"
+        },
+        "cf_strip": {
+          "score": 0.4997128475389344,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2eccabd3bb1ee15f08f64d4adc1839b80cc0cdec0afaf1b9af6194f5b98a4ab6"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5129369403817353,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "ff6fbedee0b30181062100dd0078e9d7f9ab38097e5f0cf15f3d187fdeeb0c67"
+        },
+        "required_bundle": {
+          "score": 0.6361531986531986,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "23f5a3ded324d35b4af912e17aa811396455ec8a37b10d988994dbb6cbe11d2a"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-24-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5680415263748597,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.48924627632254747,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "29a7662881645b6385142f2225fa385106b003851b370a69e1e980d5b695a19f"
+        },
+        "nfkc": {
+          "score": 0.48924627632254747,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "29a7662881645b6385142f2225fa385106b003851b370a69e1e980d5b695a19f"
+        },
+        "cf_strip": {
+          "score": 0.48924627632254747,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "29a7662881645b6385142f2225fa385106b003851b370a69e1e980d5b695a19f"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5038303200067905,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0d2e4e057bddd1db409beb89a50d8fdd9bd73d8b3c7080860360abd74625f666"
+        },
+        "required_bundle": {
+          "score": 0.5680415263748597,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "43463fc768cca1fdd6fe92bf7a17e6b32917c371aecb791c77ac92f3e0090b11"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-24-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.6257215007215008,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5103260326032603,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b048dafd3b19b18954a58d7639931bd617e48b0b39f15c197e9d0cdfa7cf4050"
+        },
+        "nfkc": {
+          "score": 0.5103260326032603,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b048dafd3b19b18954a58d7639931bd617e48b0b39f15c197e9d0cdfa7cf4050"
+        },
+        "cf_strip": {
+          "score": 0.5103260326032603,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b048dafd3b19b18954a58d7639931bd617e48b0b39f15c197e9d0cdfa7cf4050"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5010239591032274,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7447f79adad7c84b32b2e7a314a4aca647c02e167036c9b467174d2264e5f786"
+        },
+        "required_bundle": {
+          "score": 0.6257215007215008,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "7ba162d92796d19ca5fd40067aec47a4585add1651d5ac26e7f0a3d20c26e78e"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-25-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5537037037037037,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49326176336226585,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "940a37d168b3a0434417b6e66c1ad39663c0a86743776d19668b5d4eeba12eee"
+        },
+        "nfkc": {
+          "score": 0.49326176336226585,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "940a37d168b3a0434417b6e66c1ad39663c0a86743776d19668b5d4eeba12eee"
+        },
+        "cf_strip": {
+          "score": 0.49326176336226585,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "940a37d168b3a0434417b6e66c1ad39663c0a86743776d19668b5d4eeba12eee"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5053018335008856,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "44c5034da6b17b21e63b4b3b90f47cfcdb3be8338bc49a746b83bfbe3db6726b"
+        },
+        "required_bundle": {
+          "score": 0.5537037037037037,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "8bb2fc5abfcbde13c1580c048459e3e604098dc6efe180b9fd507d22119ef0e3"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-25-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6173172401985961,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4988654662567706,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4e25a601af2f3570bd81d5e7b87dd6594ba502487e7ba7794c2c3a6209fb08ed"
+        },
+        "nfkc": {
+          "score": 0.4988654662567706,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4e25a601af2f3570bd81d5e7b87dd6594ba502487e7ba7794c2c3a6209fb08ed"
+        },
+        "cf_strip": {
+          "score": 0.4988654662567706,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4e25a601af2f3570bd81d5e7b87dd6594ba502487e7ba7794c2c3a6209fb08ed"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4934135166093929,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0ddddf647f56f955ef4b8df70ee37f31590a5e5a138ba7eb4e9e95b1ab65d228"
+        },
+        "required_bundle": {
+          "score": 0.6173172401985961,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "8538545521ea855b03b39c123f0b81ad29a53a3be01bd04d8444a85fef26aefa"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-26-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.4386363636363636,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.50772238514174,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "199ae05ef07b0b458dc49d66a721b8b42dc51d41ccdc6a804e8c0ba12e5586a3"
+        },
+        "nfkc": {
+          "score": 0.50772238514174,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "199ae05ef07b0b458dc49d66a721b8b42dc51d41ccdc6a804e8c0ba12e5586a3"
+        },
+        "cf_strip": {
+          "score": 0.50772238514174,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "199ae05ef07b0b458dc49d66a721b8b42dc51d41ccdc6a804e8c0ba12e5586a3"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5003388517765515,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d47ce3cdf8971a6b8b35c997eeb2b9f9b1056ae28aec168c29ffad5358967579"
+        },
+        "required_bundle": {
+          "score": 0.4386363636363636,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "d223a6a49753c26c9dcca43672cf9048ed54110ce4e0b741ea6734a2c2595e5b"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-26-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6196548821548821,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4939243924392439,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "993ee9d89177360b027d59d369da22faa6585ec339ad73fe67f45075721a9cd9"
+        },
+        "nfkc": {
+          "score": 0.4939243924392439,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "993ee9d89177360b027d59d369da22faa6585ec339ad73fe67f45075721a9cd9"
+        },
+        "cf_strip": {
+          "score": 0.4939243924392439,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "993ee9d89177360b027d59d369da22faa6585ec339ad73fe67f45075721a9cd9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5019801186467853,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9f19ffa4b1045ae3f2ba6b6e5598431a2c938f2a078ca69918519d31a5a0be51"
+        },
+        "required_bundle": {
+          "score": 0.6196548821548821,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "b45b96fa2a085634cee4b2800b6bae6ae11cb4693ae73ae6b561ff5f15272c29"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-27-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5111952861952862,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4796005659197841,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6eb9819906c7fcabbd5709aa8fc8dc928f140f245490858379e3d995bbe4aeff"
+        },
+        "nfkc": {
+          "score": 0.4796005659197841,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6eb9819906c7fcabbd5709aa8fc8dc928f140f245490858379e3d995bbe4aeff"
+        },
+        "cf_strip": {
+          "score": 0.4796005659197841,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6eb9819906c7fcabbd5709aa8fc8dc928f140f245490858379e3d995bbe4aeff"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4990293817655381,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "16c9fde9160d061c05ccb1384503c1d8d45a6a0ed9d132dc5138c59a291ed997"
+        },
+        "required_bundle": {
+          "score": 0.5111952861952862,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "1551bf0e84cb979dd3d36608a715b788975c0aea1d93aa5b8bec6ca4bf70a2d0"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-27-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6384680134680135,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4781013257575758,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c8d14cd2aa887daef445aface63883005c68ecb07b30ea381fa0daf954b4d0d"
+        },
+        "nfkc": {
+          "score": 0.4781013257575758,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c8d14cd2aa887daef445aface63883005c68ecb07b30ea381fa0daf954b4d0d"
+        },
+        "cf_strip": {
+          "score": 0.4781013257575758,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1c8d14cd2aa887daef445aface63883005c68ecb07b30ea381fa0daf954b4d0d"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5085858585858586,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "444a94dc391a76d591ed273262c0aaa03f0748d27b64278a397e57d008cc6072"
+        },
+        "required_bundle": {
+          "score": 0.6384680134680135,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "e84d682ecb550b0a23d27ac56161cd5dff42f79645b8c624888bc069cfb7b680"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-28-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.512497859955487,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4846661561463006,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4d22ccf0076d9e11ec552080c2ab4c4be0767bf09ed2012b3c81fd6650cf625d"
+        },
+        "nfkc": {
+          "score": 0.4846661561463006,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4d22ccf0076d9e11ec552080c2ab4c4be0767bf09ed2012b3c81fd6650cf625d"
+        },
+        "cf_strip": {
+          "score": 0.4846661561463006,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4d22ccf0076d9e11ec552080c2ab4c4be0767bf09ed2012b3c81fd6650cf625d"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.47615838096265145,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "904d10a48a794304fe2c5925a049c1ff1257a5b14d21bd911be380d76592a787"
+        },
+        "required_bundle": {
+          "score": 0.512497859955487,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "b7c1d8fedd0b59760da817f03269aff33f524fc04aca7f1a9f5a1fbcec254e98"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-28-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5946748183590288,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4774400152949049,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b04c279b70eb9e02be7c96aafe54a710be958e8a4bad26b3ed494956f7ed5470"
+        },
+        "nfkc": {
+          "score": 0.4774400152949049,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b04c279b70eb9e02be7c96aafe54a710be958e8a4bad26b3ed494956f7ed5470"
+        },
+        "cf_strip": {
+          "score": 0.4774400152949049,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b04c279b70eb9e02be7c96aafe54a710be958e8a4bad26b3ed494956f7ed5470"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5057762374477917,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c275079be8f52a858a4b26c5aca5d783cde766b3e34822375427131bc6be6c82"
+        },
+        "required_bundle": {
+          "score": 0.5946748183590288,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "dbe4c6e61ce6897a529e9caa31383296803b3d6362f2e249252c3d879fb28d0f"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-29-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5645202020202019,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.49647221276434755,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "fa9bf914a9be4cd1197388eb7f1511e27e1019c84aee9db634043111ced06660"
+        },
+        "nfkc": {
+          "score": 0.49647221276434755,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "fa9bf914a9be4cd1197388eb7f1511e27e1019c84aee9db634043111ced06660"
+        },
+        "cf_strip": {
+          "score": 0.49647221276434755,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "fa9bf914a9be4cd1197388eb7f1511e27e1019c84aee9db634043111ced06660"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49601611785727306,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6b914f9614e1c5fbd4ca3d17099acede13c44e1f894d12787ab1db50a23701fe"
+        },
+        "required_bundle": {
+          "score": 0.5645202020202019,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "96c44425f48fe39b29102431e49c8a0b82250851d83274594cbd6c86c39f786d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-29-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6225168350168351,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4957223480355153,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "830b8aa308183e17fec29baa1ace06e4e27b1f32b35deea0d76ac045dcb49157"
+        },
+        "nfkc": {
+          "score": 0.4957223480355153,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "830b8aa308183e17fec29baa1ace06e4e27b1f32b35deea0d76ac045dcb49157"
+        },
+        "cf_strip": {
+          "score": 0.4957223480355153,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "830b8aa308183e17fec29baa1ace06e4e27b1f32b35deea0d76ac045dcb49157"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49299056743909686,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d5b74f339d40dfc0dec9a38beb707fbf9018359b64c9d07debb9182d0a01185d"
+        },
+        "required_bundle": {
+          "score": 0.6225168350168351,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "f53daaea08edeb6154e12a6451c2945635319250c72736ea87c02c117a4a0ed0"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-30-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5049634273772204,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4821731299004026,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "852532c6677536a3ec24d7fbc6113b4e70c19d90c9125cdd34b3cc868bc5bba0"
+        },
+        "nfkc": {
+          "score": 0.4821731299004026,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "852532c6677536a3ec24d7fbc6113b4e70c19d90c9125cdd34b3cc868bc5bba0"
+        },
+        "cf_strip": {
+          "score": 0.4821731299004026,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "852532c6677536a3ec24d7fbc6113b4e70c19d90c9125cdd34b3cc868bc5bba0"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5090224276664955,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "5ab954f534b951e138611d8ad8a19c5e9d75b9a0a66eadc0f93926652d89a508"
+        },
+        "required_bundle": {
+          "score": 0.5049634273772204,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "30acdd0738ee4356feba6d2218471f69652422ecc5297bef9f069acaf2ff986c"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-30-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6433080808080808,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5004451566951567,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6f6f75cb1817078c3769d1e27e99e05e85e9e59316e2885ce3df53fbd033861e"
+        },
+        "nfkc": {
+          "score": 0.5004451566951567,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6f6f75cb1817078c3769d1e27e99e05e85e9e59316e2885ce3df53fbd033861e"
+        },
+        "cf_strip": {
+          "score": 0.5004451566951567,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6f6f75cb1817078c3769d1e27e99e05e85e9e59316e2885ce3df53fbd033861e"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5058218844392478,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6cc9bfcceb64c6a65b960da0ba01ed87ae210f3a43185af55f02c6ae24f983e7"
+        },
+        "required_bundle": {
+          "score": 0.6433080808080808,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "5ffb0b8b2eb121881a1f373e37f139c05fd36febee2c950674de141dc031cff4"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-31-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.4802188552188552,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4970195148766577,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b0bb1545e562f56bd102f96e729455208f11eade6d956e8f1a747f041a0bd839"
+        },
+        "nfkc": {
+          "score": 0.4970195148766577,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b0bb1545e562f56bd102f96e729455208f11eade6d956e8f1a747f041a0bd839"
+        },
+        "cf_strip": {
+          "score": 0.4970195148766577,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b0bb1545e562f56bd102f96e729455208f11eade6d956e8f1a747f041a0bd839"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4925440849169663,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "09618b44ab4bf760afdd2e56404611f4bbc32ec20c655d5267ef7735446ffbe5"
+        },
+        "required_bundle": {
+          "score": 0.4802188552188552,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "7c989da8370eda1241dd6a31b10acbc762ddef9b798c165f6ce87c5914f4c0d1"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-31-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.634351994521486,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4985342382818723,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9a680f09657d8a509a3b6eea94ac53fa86ee45926d0a7adbb9f84efa5a6a2153"
+        },
+        "nfkc": {
+          "score": 0.4985342382818723,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9a680f09657d8a509a3b6eea94ac53fa86ee45926d0a7adbb9f84efa5a6a2153"
+        },
+        "cf_strip": {
+          "score": 0.4985342382818723,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9a680f09657d8a509a3b6eea94ac53fa86ee45926d0a7adbb9f84efa5a6a2153"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5124584210686929,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "1383e23886c7fc3a5208596c6b669300e48a6f0795e1f37b03925e85c69e0ce2"
+        },
+        "required_bundle": {
+          "score": 0.634351994521486,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "f34c90f4183f829556275fdb7a0a47b36ad0fdeba74681a736a7219251133e2d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-32-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.49790275637733267,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4938464063012799,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8031da56f08ba1c559d47fca7a9ae6cebd13ad311791b5351ada46e5186512c9"
+        },
+        "nfkc": {
+          "score": 0.4938464063012799,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8031da56f08ba1c559d47fca7a9ae6cebd13ad311791b5351ada46e5186512c9"
+        },
+        "cf_strip": {
+          "score": 0.4938464063012799,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8031da56f08ba1c559d47fca7a9ae6cebd13ad311791b5351ada46e5186512c9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5059599491417672,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "742737e32ef6aa81c196c224d074d8633b971a866efd44519369356ecd720c4e"
+        },
+        "required_bundle": {
+          "score": 0.49790275637733267,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "c4db32f1f9452eda7601fd5a199a50c829fb41ad8c89e3785fe3c15aa894ff96"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-32-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.6351430976430976,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.48480257116620756,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f284fd66f9e725301d4ba3655927dd9d062bc45a808ab1853d7f42eb7dc458c8"
+        },
+        "nfkc": {
+          "score": 0.48480257116620756,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f284fd66f9e725301d4ba3655927dd9d062bc45a808ab1853d7f42eb7dc458c8"
+        },
+        "cf_strip": {
+          "score": 0.48480257116620756,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f284fd66f9e725301d4ba3655927dd9d062bc45a808ab1853d7f42eb7dc458c8"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5071823305518958,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c7a7a1adbbf42c92332b4c7456b2e47d55d466554b200479659d025056caf306"
+        },
+        "required_bundle": {
+          "score": 0.6351430976430976,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "0074613b81f78129bb25ab8b2482018aef5652b8a5c99d65e564882e01ed6057"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-33-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.4948638931689779,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.48727925513639797,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8869244e1b45679d97edb15b16f6c68480c50e56a6f7233c5ab579f20a73017e"
+        },
+        "nfkc": {
+          "score": 0.48727925513639797,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8869244e1b45679d97edb15b16f6c68480c50e56a6f7233c5ab579f20a73017e"
+        },
+        "cf_strip": {
+          "score": 0.48727925513639797,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8869244e1b45679d97edb15b16f6c68480c50e56a6f7233c5ab579f20a73017e"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5045069904341427,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "617d187de6917b8cb375dc7f526bca033a2327aa60d97d9d6a44634114b5c36e"
+        },
+        "required_bundle": {
+          "score": 0.4948638931689779,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "6dc5767beb6b3a55c9247b4b38effdebffe7c4273aabfad39e8b99002014c85b"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-33-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6337809917355371,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4977346999405822,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4e16570b8fd4dc2b7dfd20457d00f0b5b70b502d9a4fdef68148d7fe5bb47e05"
+        },
+        "nfkc": {
+          "score": 0.4977346999405822,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4e16570b8fd4dc2b7dfd20457d00f0b5b70b502d9a4fdef68148d7fe5bb47e05"
+        },
+        "cf_strip": {
+          "score": 0.4977346999405822,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4e16570b8fd4dc2b7dfd20457d00f0b5b70b502d9a4fdef68148d7fe5bb47e05"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4982042648709315,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "fb9c9792096420b897acaf300b2e9ca59a179861a27778570f25db0cd3d7874b"
+        },
+        "required_bundle": {
+          "score": 0.6337809917355371,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "564be0d3351b1a918ed9afb05846c89170aa4bcc3e119dfdabe212a8b75b636d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-34-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5094696969696969,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4841889687250512,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a97d13cac05364cca755a8e287220ddb6c54dbd96ea8601a7468078e35d4dc39"
+        },
+        "nfkc": {
+          "score": 0.4841889687250512,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a97d13cac05364cca755a8e287220ddb6c54dbd96ea8601a7468078e35d4dc39"
+        },
+        "cf_strip": {
+          "score": 0.4841889687250512,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "a97d13cac05364cca755a8e287220ddb6c54dbd96ea8601a7468078e35d4dc39"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5123001538564452,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6990faaf26e3cd7749c3c1ff2e0266878ad5fa50082e59a8d27157fb2f05b003"
+        },
+        "required_bundle": {
+          "score": 0.5094696969696969,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "66a75b29104100773c36fc821332f8973969a55ec058e0e2b81447df764e60a8"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-34-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6821969696969696,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4997308508280295,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "88ae44d7a94808047023d36acc90e9afd1edfbce3feca60b14b42ce44f035ce3"
+        },
+        "nfkc": {
+          "score": 0.4997308508280295,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "88ae44d7a94808047023d36acc90e9afd1edfbce3feca60b14b42ce44f035ce3"
+        },
+        "cf_strip": {
+          "score": 0.4997308508280295,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "88ae44d7a94808047023d36acc90e9afd1edfbce3feca60b14b42ce44f035ce3"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.510529679511161,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "90bcbdd315c3c137ea84b8d096c4936505f8285b8c006247831861274126a3e6"
+        },
+        "required_bundle": {
+          "score": 0.6821969696969696,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "aa3d9b837ade6f4a204d46d19afd916c01b46605202fee39dc478aab1b11b239"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-35-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5353956228956228,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4903343782654127,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "09000c05af6d85b9cd1b61bc91d4cab4c3d8c5a49e393d156369c60da2479885"
+        },
+        "nfkc": {
+          "score": 0.4903343782654127,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "09000c05af6d85b9cd1b61bc91d4cab4c3d8c5a49e393d156369c60da2479885"
+        },
+        "cf_strip": {
+          "score": 0.4903343782654127,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "09000c05af6d85b9cd1b61bc91d4cab4c3d8c5a49e393d156369c60da2479885"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5101683501683502,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e07e1720201e31beb67282537b33157d3da3091df2f3ac66dbb8c7038e2155da"
+        },
+        "required_bundle": {
+          "score": 0.5353956228956228,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "3a993ddd2f92cb8b1f0c0f552bfa3673513a10785bf34017ab05f451418a629d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-35-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6290926506443748,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5011070853462157,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6ad7d51d24ed5e54321ec3a455ca23ecfa6eabea3bad18bc93c216eae1178c24"
+        },
+        "nfkc": {
+          "score": 0.5011070853462157,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6ad7d51d24ed5e54321ec3a455ca23ecfa6eabea3bad18bc93c216eae1178c24"
+        },
+        "cf_strip": {
+          "score": 0.5011070853462157,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6ad7d51d24ed5e54321ec3a455ca23ecfa6eabea3bad18bc93c216eae1178c24"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4938073312631616,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "f6d8feb19e304793ef8f477714e594a7b1bd57adda4b7c634a453343e6353df6"
+        },
+        "required_bundle": {
+          "score": 0.6290926506443748,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "bb796d7797b4bcf9b2d496883b5b1c9e79f3400146c15d81804bd80e2fabec10"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-36-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5142954973463448,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4866338544682494,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cd4cbfdb0cfd8f203b89966fa2883fad1ced0f2566cd12a5cfd593aa4426afb1"
+        },
+        "nfkc": {
+          "score": 0.4866338544682494,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cd4cbfdb0cfd8f203b89966fa2883fad1ced0f2566cd12a5cfd593aa4426afb1"
+        },
+        "cf_strip": {
+          "score": 0.4866338544682494,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cd4cbfdb0cfd8f203b89966fa2883fad1ced0f2566cd12a5cfd593aa4426afb1"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.48654254140147557,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4594c8c57a69a805a0d339d64c72d42cbc39a0500ee562c1d194511c3035b8dd"
+        },
+        "required_bundle": {
+          "score": 0.5142954973463448,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "5576802564a33339571672bc80212dcaca34456aeb6f650b8e319c58ca36534b"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-36-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.6119107744107743,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4967891978201256,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "afaf1960f3886e2fdf692ab805899f3762095aec194225f32d6eddbe0dbfc9d6"
+        },
+        "nfkc": {
+          "score": 0.4967891978201256,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "afaf1960f3886e2fdf692ab805899f3762095aec194225f32d6eddbe0dbfc9d6"
+        },
+        "cf_strip": {
+          "score": 0.4967891978201256,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "afaf1960f3886e2fdf692ab805899f3762095aec194225f32d6eddbe0dbfc9d6"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49642981539533265,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "718c6b48eb0c5b888f678742e7e610ee8b392d62aa191bec19c3cb58bff49105"
+        },
+        "required_bundle": {
+          "score": 0.6119107744107743,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "fc80a8e6bec2923d128bffa968d4343138559555c226bfd09c5c2cb0226abcca"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-37-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.47268518518518515,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49592641745926413,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "668b5fc5028682666eff7a753e5b2dae5486b52b7a5fa0336204340b5cb9e010"
+        },
+        "nfkc": {
+          "score": 0.49592641745926413,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "668b5fc5028682666eff7a753e5b2dae5486b52b7a5fa0336204340b5cb9e010"
+        },
+        "cf_strip": {
+          "score": 0.49592641745926413,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "668b5fc5028682666eff7a753e5b2dae5486b52b7a5fa0336204340b5cb9e010"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4929327403730134,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "5eb1b450ee9f434ec7ae77bc95aecd4a61f2fe2b34b670e44372bb2074321533"
+        },
+        "required_bundle": {
+          "score": 0.47268518518518515,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "dfad50937aa1598eba206d4fdf2beec31b2a11cac7d884995f6868e35b019d72"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-37-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6453946242081836,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5059638942617666,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d82b2241e63fa9d16d63f895f373b5d4754e850b60ff369ee78b84ab5e6216ba"
+        },
+        "nfkc": {
+          "score": 0.5059638942617666,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d82b2241e63fa9d16d63f895f373b5d4754e850b60ff369ee78b84ab5e6216ba"
+        },
+        "cf_strip": {
+          "score": 0.5059638942617666,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "d82b2241e63fa9d16d63f895f373b5d4754e850b60ff369ee78b84ab5e6216ba"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5274145565241455,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4f5c3de5cd4e444076b94ced752a69c347d2f9ac24a979a7aa8132914bd26420"
+        },
+        "required_bundle": {
+          "score": 0.6453946242081836,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "74d14a6ff47f99843051705debb6ec7719718575ad3c9bf6ed49f9465e1f806b"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-38-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5181397306397306,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49580509037745873,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "66e58b1b87dfb53d96b89ccf779b614389ce7e6eed9898a4290add94cfd35061"
+        },
+        "nfkc": {
+          "score": 0.49580509037745873,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "66e58b1b87dfb53d96b89ccf779b614389ce7e6eed9898a4290add94cfd35061"
+        },
+        "cf_strip": {
+          "score": 0.49580509037745873,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "66e58b1b87dfb53d96b89ccf779b614389ce7e6eed9898a4290add94cfd35061"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5083157862614056,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "3cb98100f35ad61e6c83666ccd9be09704035c91d29b61bb5648778630bc611f"
+        },
+        "required_bundle": {
+          "score": 0.5181397306397306,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "efc9e6068bcb83af2af4131ffac5db937d470b44e9bfe4239a6502d80e4e1716"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-38-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6509392167286904,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.48988186954288643,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e9ef5acd14067cb3d912e6e6099e3a53b3abd4ff33e39d3e4a115ebbeb9ef8bd"
+        },
+        "nfkc": {
+          "score": 0.48988186954288643,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e9ef5acd14067cb3d912e6e6099e3a53b3abd4ff33e39d3e4a115ebbeb9ef8bd"
+        },
+        "cf_strip": {
+          "score": 0.48988186954288643,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e9ef5acd14067cb3d912e6e6099e3a53b3abd4ff33e39d3e4a115ebbeb9ef8bd"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5079237605739373,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "df93cea111698fcf559cdbe221244d4c8ab74bdc737b314e1a7fed00f214df6b"
+        },
+        "required_bundle": {
+          "score": 0.6509392167286904,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "409e40753f782543c747c7fac79eda1178489107cb517d4ecda4809e776024c5"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-39-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5233585858585859,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.5008190008190009,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9382980f0d6b12423386f03b82ecb9e8ac955b55b132b5678dd58715b19bf31b"
+        },
+        "nfkc": {
+          "score": 0.5008190008190009,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9382980f0d6b12423386f03b82ecb9e8ac955b55b132b5678dd58715b19bf31b"
+        },
+        "cf_strip": {
+          "score": 0.5008190008190009,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9382980f0d6b12423386f03b82ecb9e8ac955b55b132b5678dd58715b19bf31b"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.512594696969697,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "9b4474de9f11f7de3bcc7ce4fc9fe65e5412c33846daa2c3488a7ddd232fb597"
+        },
+        "required_bundle": {
+          "score": 0.5233585858585859,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "306475a65cf3ef779ba4c1fb30bc537a8a205556f50f406beb82ebfbe3da4ca5"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-39-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6662878787878788,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4902546592687438,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "acba0d96de8d8b9580291506a58d5b964421633f642096e001a7aa4e7ebc0cba"
+        },
+        "nfkc": {
+          "score": 0.4902546592687438,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "acba0d96de8d8b9580291506a58d5b964421633f642096e001a7aa4e7ebc0cba"
+        },
+        "cf_strip": {
+          "score": 0.4902546592687438,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "acba0d96de8d8b9580291506a58d5b964421633f642096e001a7aa4e7ebc0cba"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.48526483472720033,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2dd364b9f20074774a4fbc0e024d48f35a6f6d90e69a4cddfc49a995d508730a"
+        },
+        "required_bundle": {
+          "score": 0.6662878787878788,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "0f84efba7dcdd32df91fce272c51faaeb21ce95859a5a81913eb118e1e4f5731"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-40-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5313552188552189,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49292087542087537,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "795d497271dc85749d590853650e86207ed1c4e7d63fd328bfa398ad34aa55a9"
+        },
+        "nfkc": {
+          "score": 0.49292087542087537,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "795d497271dc85749d590853650e86207ed1c4e7d63fd328bfa398ad34aa55a9"
+        },
+        "cf_strip": {
+          "score": 0.49292087542087537,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "795d497271dc85749d590853650e86207ed1c4e7d63fd328bfa398ad34aa55a9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.48876179008629334,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "85d5a0906cb8463377d20f166bb411afbc97b609a2aced9926041cace8b510ab"
+        },
+        "required_bundle": {
+          "score": 0.5313552188552189,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "f87ca8531d684605c6e2225fcdfbd7a99f947ff8a3f3c29196f274fc5193eec5"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-40-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.6143765238592824,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4892493778363344,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "579220b1dd33d1c07e33c79453bca1d545c2abe5eb50632153b668bff0fa0fa4"
+        },
+        "nfkc": {
+          "score": 0.4892493778363344,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "579220b1dd33d1c07e33c79453bca1d545c2abe5eb50632153b668bff0fa0fa4"
+        },
+        "cf_strip": {
+          "score": 0.4892493778363344,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "579220b1dd33d1c07e33c79453bca1d545c2abe5eb50632153b668bff0fa0fa4"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5129521016617791,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "fd76cb0cf5140847233e09c2dde9c1ded4ee366bb0b796516124241c0afbbcb5"
+        },
+        "required_bundle": {
+          "score": 0.6143765238592824,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "4f2a88ad24592001d21550705de9a19db46a39302fc82a410123e367a443e6f8"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-41-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5077441077441077,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4868070140347368,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "344848b7be1d928be9e2edc7f611874d60d9a4fcb241995175d86ce6a7ed888d"
+        },
+        "nfkc": {
+          "score": 0.4868070140347368,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "344848b7be1d928be9e2edc7f611874d60d9a4fcb241995175d86ce6a7ed888d"
+        },
+        "cf_strip": {
+          "score": 0.4868070140347368,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "344848b7be1d928be9e2edc7f611874d60d9a4fcb241995175d86ce6a7ed888d"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5059133656312339,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7ef19ab560ef0a2b7862610af1988566db507aef6ef00569e0f1c91cfce442fb"
+        },
+        "required_bundle": {
+          "score": 0.5077441077441077,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "af777fc20bd3cfe5282db69d3a2a5c672b1fcacadf44f85b27c272c4f30d530b"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-41-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6238259790891371,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5106283720741551,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "38b9ef17702b42ad61f4fa0be3d131ff47f0fa1bf16c60de24860bc0ce3cb2ac"
+        },
+        "nfkc": {
+          "score": 0.5106283720741551,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "38b9ef17702b42ad61f4fa0be3d131ff47f0fa1bf16c60de24860bc0ce3cb2ac"
+        },
+        "cf_strip": {
+          "score": 0.5106283720741551,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "38b9ef17702b42ad61f4fa0be3d131ff47f0fa1bf16c60de24860bc0ce3cb2ac"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5074137602439489,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6fb5dda6c2a87a221f2794be2951e68d8523fc29c053c2b85c479261b0ead957"
+        },
+        "required_bundle": {
+          "score": 0.6238259790891371,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "42bd6c39733925bb67a1b08181c383842cb1250ff75293183f4f922599704b54"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-42-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5022727272727273,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.48816187351219203,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e8c33cb0439fc3c0d0758b851a85a33f9fc79a5034f98917575ca01bb4c83b25"
+        },
+        "nfkc": {
+          "score": 0.48816187351219203,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e8c33cb0439fc3c0d0758b851a85a33f9fc79a5034f98917575ca01bb4c83b25"
+        },
+        "cf_strip": {
+          "score": 0.48816187351219203,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e8c33cb0439fc3c0d0758b851a85a33f9fc79a5034f98917575ca01bb4c83b25"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4881073734284744,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "0d81efc09050b485557990a527e15ab889a7868546f6a2f44f0f28c041cef690"
+        },
+        "required_bundle": {
+          "score": 0.5022727272727273,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "2b6567f129e233f3b568aea064d093e8b432426fcba6354e1c2022c943498931"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-42-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6637562061290875,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.4859628026294693,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8232a67d672ea947d118d78790df4f50f513cb930b8feb1ef253f7c0e841da8b"
+        },
+        "nfkc": {
+          "score": 0.4859628026294693,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8232a67d672ea947d118d78790df4f50f513cb930b8feb1ef253f7c0e841da8b"
+        },
+        "cf_strip": {
+          "score": 0.4859628026294693,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8232a67d672ea947d118d78790df4f50f513cb930b8feb1ef253f7c0e841da8b"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5030364063596692,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "08b29bd34e47cdd5496a3c40c837894d36fadf79f2c87e30d0d193872405c8e2"
+        },
+        "required_bundle": {
+          "score": 0.6637562061290875,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "f36a6399461ae862a90d9cdef4bb3641b0cb96ebe8a694c47bbc292511197e19"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-43-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.4922530388632083,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49252712308267865,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "aea305f19b5847def38a1fa247b0448798dadf4069e96ef6522a11e856be797d"
+        },
+        "nfkc": {
+          "score": 0.49252712308267865,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "aea305f19b5847def38a1fa247b0448798dadf4069e96ef6522a11e856be797d"
+        },
+        "cf_strip": {
+          "score": 0.49252712308267865,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "aea305f19b5847def38a1fa247b0448798dadf4069e96ef6522a11e856be797d"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4931083745824782,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c71429486a18fae88c932509c278e64b446698e3e1a61b48f13227fd345c77be"
+        },
+        "required_bundle": {
+          "score": 0.4922530388632083,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "2cde25944450f15671dd315252567d0a994d46fcf3dbf22217c48ebd02e5fada"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-43-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6543771043771044,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.49183953630262356,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7dcc4ff3228efbc737d96101dd5562da538815500b94da513c05b4841192c85c"
+        },
+        "nfkc": {
+          "score": 0.49183953630262356,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7dcc4ff3228efbc737d96101dd5562da538815500b94da513c05b4841192c85c"
+        },
+        "cf_strip": {
+          "score": 0.49183953630262356,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7dcc4ff3228efbc737d96101dd5562da538815500b94da513c05b4841192c85c"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5259920073004185,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2509df23addb32a0d0dd105d51c67cad946a2eb04cd4fa5a92f513b54c46abe2"
+        },
+        "required_bundle": {
+          "score": 0.6543771043771044,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "35dbd8d5b023926088cae0e13b8521d6e479da82ce714a4a58cd053a555c5302"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-44-general_explanatory-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5235840548340548,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.49263153927333025,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2723ea5eef9ae4948ab1605ce098b41537c63cf2336b5e8bd0ae43be70842583"
+        },
+        "nfkc": {
+          "score": 0.49263153927333025,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2723ea5eef9ae4948ab1605ce098b41537c63cf2336b5e8bd0ae43be70842583"
+        },
+        "cf_strip": {
+          "score": 0.49263153927333025,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "2723ea5eef9ae4948ab1605ce098b41537c63cf2336b5e8bd0ae43be70842583"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4998126137702109,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "98d40bd73ceaa51dd0fc2c6fbe20c615d25bd899df00ecea5c8e04bf487853ea"
+        },
+        "required_bundle": {
+          "score": 0.5235840548340548,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "d7eb6f20165dd1633daf2898d4d66a09e347a4599c57c43d6d06ea7e00ba6a79"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-44-general_explanatory-watermarked",
+      "label": "watermarked",
+      "domain": "general_explanatory",
+      "pristine_score": 0.5750643691820162,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.49072423582227503,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c9a85dca04d84dc31a58a3ee50963e8b0c9263d38883c5ffbaeecfc56ea8afa9"
+        },
+        "nfkc": {
+          "score": 0.49072423582227503,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c9a85dca04d84dc31a58a3ee50963e8b0c9263d38883c5ffbaeecfc56ea8afa9"
+        },
+        "cf_strip": {
+          "score": 0.49072423582227503,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "c9a85dca04d84dc31a58a3ee50963e8b0c9263d38883c5ffbaeecfc56ea8afa9"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.524340852615613,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6c26f2dd02a66c676679cf4e39c4e3e9840c6e6d6612de729fabb92ab9c604bc"
+        },
+        "required_bundle": {
+          "score": 0.5750643691820162,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "cc0604ba4f08d7fa2961e9d54732d29553e6f2888e2a29d9e223493d3521ff00"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-45-technical_explanation-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.5466329966329967,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.486320863356694,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b223165b7a194535799d044b7165dcf4d8f9860c40cd72d94ff337d3a06b0208"
+        },
+        "nfkc": {
+          "score": 0.486320863356694,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b223165b7a194535799d044b7165dcf4d8f9860c40cd72d94ff337d3a06b0208"
+        },
+        "cf_strip": {
+          "score": 0.486320863356694,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "b223165b7a194535799d044b7165dcf4d8f9860c40cd72d94ff337d3a06b0208"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49912468240689095,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "e1d5291fbc8c658e030cd32371e9edbc84a5edeb500548fba7bb68942a6fba7d"
+        },
+        "required_bundle": {
+          "score": 0.5466329966329967,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "577cf475c50a867f5282dbe38e0279eba3af0e2dfedf1be3b89d7e52c3502dec"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-45-technical_explanation-watermarked",
+      "label": "watermarked",
+      "domain": "technical_explanation",
+      "pristine_score": 0.6153499278499278,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.506964664437974,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cebdb5e2578a50d5316c897233b1f33d4c6ebcd548fd3e7fa05e2dd45f394ca3"
+        },
+        "nfkc": {
+          "score": 0.506964664437974,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cebdb5e2578a50d5316c897233b1f33d4c6ebcd548fd3e7fa05e2dd45f394ca3"
+        },
+        "cf_strip": {
+          "score": 0.506964664437974,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "cebdb5e2578a50d5316c897233b1f33d4c6ebcd548fd3e7fa05e2dd45f394ca3"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4841934705415934,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "58997bb4f86faf4a5c08309efdeec6608aeb7ec0d7b200c55cf0369eb9e26e8a"
+        },
+        "required_bundle": {
+          "score": 0.6153499278499278,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "9bfcea4cd6012a04f66354210a6e3f6b1ae1175fd1fe2f8b7ebdc0ef31e9f24d"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-46-conversational_prose-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.5103535353535353,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.5007239057239057,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "673d2120879da96168090dc686bfc24f62e20b36faec179ca6884836b19d55f0"
+        },
+        "nfkc": {
+          "score": 0.5007239057239057,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "673d2120879da96168090dc686bfc24f62e20b36faec179ca6884836b19d55f0"
+        },
+        "cf_strip": {
+          "score": 0.5007239057239057,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "673d2120879da96168090dc686bfc24f62e20b36faec179ca6884836b19d55f0"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4818247196887973,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "56052ec1752bd9c25f07e06a70b1fd1d2af9609b8d3f05cbcd8ee37e0ba2b235"
+        },
+        "required_bundle": {
+          "score": 0.5103535353535353,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "54ce15f0f2bd350ecf815ec75a8310ef1ddedc51b21cfa7f8a155617391d132b"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-46-conversational_prose-watermarked",
+      "label": "watermarked",
+      "domain": "conversational_prose",
+      "pristine_score": 0.6028077384009588,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.47830494728304945,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4272908e6044364e9ff6451e4c76888dbe3aff3724197b77af36a6e6b58553e3"
+        },
+        "nfkc": {
+          "score": 0.47830494728304945,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4272908e6044364e9ff6451e4c76888dbe3aff3724197b77af36a6e6b58553e3"
+        },
+        "cf_strip": {
+          "score": 0.47830494728304945,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "4272908e6044364e9ff6451e4c76888dbe3aff3724197b77af36a6e6b58553e3"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5057289311020654,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "23eb44566bae3f82a6926e51e86f979e88d56aae6d7ab6b31c3ac6abde608d00"
+        },
+        "required_bundle": {
+          "score": 0.6028077384009588,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "1679929e1c9e71cd3ee7ee864c79c7e4b6f51295c66707adcc6d7488287bc093"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-47-structured_instructional-unwatermarked",
+      "label": "unwatermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.5558979626776237,
+      "pristine_detected": false,
+      "variants": {
+        "raw": {
+          "score": 0.4917027417027417,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "72b8a64b0a692d670864ce2167c00ce59afd15879b0d36e79fcec2dc8f4f8754"
+        },
+        "nfkc": {
+          "score": 0.4917027417027417,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "72b8a64b0a692d670864ce2167c00ce59afd15879b0d36e79fcec2dc8f4f8754"
+        },
+        "cf_strip": {
+          "score": 0.4917027417027417,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "72b8a64b0a692d670864ce2167c00ce59afd15879b0d36e79fcec2dc8f4f8754"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4983444719094266,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "6db8072f96f06ce65fed9d4ecb69014f8fabe36a903175c7d84c63c564438d6e"
+        },
+        "required_bundle": {
+          "score": 0.5558979626776237,
+          "detected": false,
+          "restores_source": true,
+          "text_hash": "60c907ac0e67fb71fa49395d95497db26606cb217da6a10346bd7443ae692af5"
+        }
+      }
+    },
+    {
+      "sample_id": "cycle8-890000-47-structured_instructional-watermarked",
+      "label": "watermarked",
+      "domain": "structured_instructional",
+      "pristine_score": 0.6535669191919192,
+      "pristine_detected": true,
+      "variants": {
+        "raw": {
+          "score": 0.5013478839845399,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8ea9eeed1187d2cf52f1d08f73e9115b3f2abc35800e7bf230fc63c15b6e0c93"
+        },
+        "nfkc": {
+          "score": 0.5013478839845399,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8ea9eeed1187d2cf52f1d08f73e9115b3f2abc35800e7bf230fc63c15b6e0c93"
+        },
+        "cf_strip": {
+          "score": 0.5013478839845399,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "8ea9eeed1187d2cf52f1d08f73e9115b3f2abc35800e7bf230fc63c15b6e0c93"
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.50072271536918,
+          "detected": false,
+          "restores_source": false,
+          "text_hash": "7bde508ade07b70509edb583b1009019d209e4df9235f6919e2c12adfe7eb992"
+        },
+        "required_bundle": {
+          "score": 0.6535669191919192,
+          "detected": true,
+          "restores_source": true,
+          "text_hash": "4d3ba8d175626d61368c8310bfb4161411af4f29904d1183fb581401d3fb9db7"
+        }
+      }
+    }
+  ],
+  "product_authorized": false,
+  "spent_confirmation_corpora_not_reused": true
+}

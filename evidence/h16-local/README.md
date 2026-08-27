@@ -72,7 +72,22 @@ Measured against it:
 
 Because matches are replaced with a space rather than deleted, running it on mixed text turns `I do not agree with that.` into `I͏ d o͏ n o͏t a͏g r͏e e͏ w i͏t h͏ t h͏a t͏.` — the CGJ survives, `U+FE00` becomes a space, and word boundaries move. The sanitizer does not recover the original string; it produces mangled text. It is also lossy on ordinary input, splitting `👨‍👩‍👧` into three people separated by spaces and breaking the Persian ZWNJ and the Devanagari conjunct.
 
-Because this sanitizer is real, `proposed_gate_v2` **requires** it. Whether the detector fires on its output is not measured here and is recorded as `UNMEASURED`.
+Because this sanitizer is real, `proposed_gate_v2` **requires** it.
+
+`tools/h16_real_sanitizer_detector.py` then measures whether the detector actually fires on its output, on the exploratory lane (seed 890000, GPT-2, 48 watermarked rows). Seed 890000 is the lane CI already runs on every PR; it is not a confirmation corpus, and none of the spent seeds `830000` / `840000` / `850000` or the forbidden `950000` is touched.
+
+| variant applied to mixed text | watermarked detected | rows where the source is restored |
+| --- | --- | --- |
+| pristine, no transform | 47/48 | — |
+| mix, raw | 0/48 | 0/96 |
+| mix + nfkc | 0/48 | 0/96 |
+| mix + cf_strip | 0/48 | 0/96 |
+| **mix + lm-watermarking UnicodeSanitizer** | **0/48** | 0/96 |
+| mix + required bundle | 47/48 | **96/96** |
+
+Mix evades the real sanitizer exactly as well as it evades raw. The one variant that restores detection is the required bundle, and the last column says why: it reconstructs the original string on every single row. That is the mechanism behind the whole H12-H15 blockage — the bundle does not defeat the carrier, it deletes it and hands the detector back the untouched watermarked text.
+
+This is an exploratory measurement, not a confirmation run, and it is labelled `exploratory_only_not_confirmation` with `confirmation_grade: false`.
 
 ## 3. The stress sanitizers are not deployable
 
@@ -117,9 +132,9 @@ Reading the already-recorded frozen confirmation evidence against `proposed_gate
 | detected after `nfc` / `nfkc` / `cf_strip` / `nfkc_cf_strip` / `ws_collapse` / `ws_collapse_nfkc_cf_strip` | 0 each |
 | frozen sanitizer fixture survival | 21/21 |
 
-One condition is **not** satisfied and is recorded as `UNMEASURED`: detection after the lm-watermarking `UnicodeSanitizer`. That sanitizer removes `U+FE00`, keeps `U+034F`, and injects spaces, so mix reaches the detector in a materially different form than under the frozen sanitizers. Answering it needs a detector run, which this record does not perform.
+The remaining condition, detection after the lm-watermarking `UnicodeSanitizer`, is met too: 0 of 48 on the exploratory lane, against 47 of 48 pristine.
 
-So `proposed_gate_v2` is **not** claimed to be satisfied. What the evidence does show is that the remaining work is one measurement plus a decision about which sanitizers the gate should require — not a further carrier search, which the closure result rules out entirely.
+So every condition of `proposed_gate_v2` now has a measurement behind it. It is still **not** claimed satisfied: the real-sanitizer condition rests on an exploratory run rather than a confirmation one, so `proposed_gate_v2_fully_satisfied` is `false` and `confirmation_grade` is `false`. What remains is a product decision plus a confirmation-grade run — not a further carrier search, which the closure result rules out entirely.
 
 ## What this does not do
 
@@ -137,6 +152,14 @@ python tools/h16_shaping_closure_scan.py --out evidence/h16-local/shaping-closur
 python tools/h16_oracle_validation.py
 python tools/h16_tokenizer_threat_model.py
 python tools/h16_sanitizer_deployability.py
+```
+
+The detector measurement additionally needs the SynthID runtime:
+
+```text
+python -m pip install "torch==2.13.0" --index-url https://download.pytorch.org/whl/cpu
+python -m pip install -r requirements-smoke.txt
+python tools/h16_real_sanitizer_detector.py --pair-count 48
 ```
 
 Do not generate `950000`. Do not retune spent confirmation seeds `830000` / `840000` / `850000`.

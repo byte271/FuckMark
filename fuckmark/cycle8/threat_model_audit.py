@@ -21,7 +21,7 @@ from .publishability import (
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "980f4ae6f17b7e6c2f86ed08236f63cab06e7fd1233612a7ee01cc3075472c06"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "9658d3df80de0f134a2fb37f8b9ba0f66288fe12f1572cd33f732d8000ad916d"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -92,6 +92,18 @@ DEPLOYABILITY_CORPUS: tuple[tuple[str, str], ...] = (
     ("devanagari_zwj_conjunct", "\u0915\u094d\u200d\u0937 \u0938\u0939\u0940 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964"),
 )
 
+REAL_SANITIZER_DETECTOR_ROLE = "exploratory_only_not_confirmation"
+REAL_SANITIZER_DETECTOR_SEED_BASE = 890000
+REAL_SANITIZER_DETECTOR_MODEL = "openai-community/gpt2"
+REAL_SANITIZER_DETECTOR_WATERMARKED_ROWS = 48
+REAL_SANITIZER_DETECTOR_PRISTINE_DETECTED = 47
+REAL_SANITIZER_DETECTOR_OBSERVATIONS: tuple[dict[str, object], ...] = (
+    {"variant": "raw", "watermarked_detected": 0, "restores_source": 0},
+    {"variant": "nfkc", "watermarked_detected": 0, "restores_source": 0},
+    {"variant": "cf_strip", "watermarked_detected": 0, "restores_source": 0},
+    {"variant": "lm_watermarking_unicode_sanitizer", "watermarked_detected": 0, "restores_source": 0},
+    {"variant": "required_bundle", "watermarked_detected": 47, "restores_source": 96},
+)
 TOKENIZER_OBSERVATIONS: tuple[dict[str, object], ...] = (
     {"model": "gemma-2-2b-it", "normalizer": "Replace", "carriers_reaching_token_stream": 9, "carriers_probed": 9},
     {"model": "gemma-3-1b-it", "normalizer": "Replace", "carriers_reaching_token_stream": 9, "carriers_probed": 9},
@@ -223,7 +235,31 @@ def real_world_sanitizer_observations() -> dict[str, object]:
         "ordinary_text_corrupted": len(corrupted),
         "ordinary_text_corpus_size": len(DEPLOYABILITY_CORPUS),
         "ordinary_text_corrupted_sample_ids": corrupted,
-        "detection_after_this_sanitizer": "UNMEASURED",
+        "detection_after_this_sanitizer": real_sanitizer_detector_observations(),
+    }
+
+
+def real_sanitizer_detector_observations() -> dict[str, object]:
+    by_variant = {row["variant"]: row for row in REAL_SANITIZER_DETECTOR_OBSERVATIONS}
+    real = by_variant["lm_watermarking_unicode_sanitizer"]
+    bundle = by_variant["required_bundle"]
+    rows = REAL_SANITIZER_DETECTOR_WATERMARKED_ROWS
+    return {
+        "role": REAL_SANITIZER_DETECTOR_ROLE,
+        "seed_base": REAL_SANITIZER_DETECTOR_SEED_BASE,
+        "model": REAL_SANITIZER_DETECTOR_MODEL,
+        "watermarked_rows": rows,
+        "pristine_watermarked_detected": REAL_SANITIZER_DETECTOR_PRISTINE_DETECTED,
+        "per_variant": [dict(row) for row in REAL_SANITIZER_DETECTOR_OBSERVATIONS],
+        "real_sanitizer_watermarked_detected": real["watermarked_detected"],
+        "required_bundle_watermarked_detected": bundle["watermarked_detected"],
+        "required_bundle_restores_source_rows": bundle["restores_source"],
+        "reading": (
+            "Mix evades at 0 of 48 after the real sanitizer, the same as raw. The required "
+            "bundle is the only variant that restores detection, and it does so only because "
+            "it reconstructs the original string on every row."
+        ),
+        "confirmation_grade": False,
     }
 
 
@@ -267,13 +303,15 @@ def proposed_gate_status_on_existing_evidence() -> dict[str, object]:
             and scorecard["visibility"]["watermarked_pass_rate"] == "192/192"
             and measured["frozen_sanitizer_survive"] == measured["frozen_sanitizer_total"]
         ),
-        "lm_watermarking_unicode_sanitizer_condition": "UNMEASURED",
+        "lm_watermarking_unicode_sanitizer_condition": "0/48 watermarked detected, exploratory",
+        "all_conditions_measured": True,
+        "confirmation_grade": False,
         "proposed_gate_v2_fully_satisfied": False,
-        "outstanding_measurement": (
-            "detection after the lm-watermarking UnicodeSanitizer, which removes U+FE00, keeps "
-            "U+034F, and injects spurious spaces; it does not restore the unwatermarked source"
+        "why_not_fully_satisfied": (
+            "the real-sanitizer condition is met on the exploratory lane only; a confirmation "
+            "run on an unspent corpus remains the product-authorization standard"
         ),
-        "adoption_still_blocked_on": "explicit product decision plus the outstanding measurement",
+        "adoption_still_blocked_on": "explicit product decision plus a confirmation-grade run",
     }
 
 
@@ -431,14 +469,18 @@ def threat_model_audit_payload() -> dict[str, object]:
             "UnicodeSanitizer, and it is NFC plus a fixed BMP regex plus Cc-strip: it keeps 366 "
             "of the 396 invisible code points including U+034F, removes U+FE00, injects spurious "
             "spaces, corrupts 5 of 7 ordinary samples, and does not restore the unwatermarked "
-            "source. Read against the already recorded frozen confirmation evidence, and without "
-            "running any new corpus, the frozen conditions of the proposed gate are already met: "
-            "identity detects 185 of 192, mix detects 0 of 192, every frozen sanitizer still "
-            "detects 0, and visible text passes 192 of 192. Detection after the real sanitizer is "
-            "the one condition still unmeasured, so the proposed gate is not yet fully satisfied. "
-            "The correct next step is a product decision on the gate plus that single measurement, "
-            "not a further carrier search. This record makes neither: the required bundle is "
-            "unchanged, the proposal stays inactive, and mix stays FAIL."
+            "source. Measured on the exploratory lane, seed 890000, mix still evades it at 0 of 48 "
+            "watermarked rows against 47 of 48 pristine, exactly as under raw. The one variant "
+            "that restores detection is the required bundle itself, at 47 of 48, and it does so "
+            "only because it reconstructs the original string on all 96 rows. Read against the "
+            "already recorded frozen confirmation evidence, the frozen conditions of the proposed "
+            "gate are also met: identity detects 185 of 192, mix detects 0 of 192, every frozen "
+            "sanitizer still detects 0, and visible text passes 192 of 192. Every condition of the "
+            "proposed gate now has a measurement, but the real-sanitizer one is exploratory, so "
+            "the gate is not claimed satisfied at confirmation grade. What remains is a product "
+            "decision plus a confirmation run, not a further carrier search. This record makes "
+            "neither: the required bundle is unchanged, the proposal stays inactive, and mix "
+            "stays FAIL."
         ),
     }
     return {**payload, "audit_hash": sha256_json(payload)}
@@ -493,13 +535,18 @@ def assert_threat_model_audit_committed() -> None:
         raise ValueError("the proposed gate reading must not consume a fresh corpus")
     if status["proposed_gate_v2_fully_satisfied"] is not False:
         raise ValueError("the proposed gate must not be reported as fully satisfied")
-    if status["lm_watermarking_unicode_sanitizer_condition"] != "UNMEASURED":
-        raise ValueError("detection after the real sanitizer must stay honestly unmeasured")
+    if status["confirmation_grade"] is not False:
+        raise ValueError("an exploratory measurement must not be labelled confirmation grade")
     real = disk["real_world_sanitizer"]
     if real["restores_the_unwatermarked_source"] is not False:
         raise ValueError("the real sanitizer measurement must record whether the source is restored")
-    if real["detection_after_this_sanitizer"] != "UNMEASURED":
-        raise ValueError("detection after the real sanitizer must stay honestly unmeasured")
+    detector = real["detection_after_this_sanitizer"]
+    if detector["role"] != "exploratory_only_not_confirmation":
+        raise ValueError("the detector measurement must stay exploratory")
+    if detector["seed_base"] in (830000, 840000, 850000, 950000):
+        raise ValueError("the detector measurement must not use a spent or forbidden seed")
+    if detector["confirmation_grade"] is not False:
+        raise ValueError("an exploratory detector run must not be labelled confirmation grade")
     live = threat_model_audit_payload()
     if live != disk:
         raise ValueError("threat model audit spec does not match the live payload")
