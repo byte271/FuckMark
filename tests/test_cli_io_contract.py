@@ -109,12 +109,13 @@ def test_explicit_file_mode_rejects_missing_files(tmp_path: Path) -> None:
 
 def test_file_mode_reads_names_with_spaces_and_rejects_directories(tmp_path: Path) -> None:
     named = tmp_path / "my notes.txt"
-    named.write_text("I do not agree.\n", encoding="utf-8")
+    original = b"I do not agree.\n"
+    named.write_bytes(original)
     output = StringIO()
     errors = StringIO()
     status = main(StringIO(""), output, error_stream=errors, argv=("--file", str(named)))
     assert status == 0
-    assert output.getvalue() == apply_letter_alternating_mix("I do not agree.\n")
+    assert output.getvalue() == apply_letter_alternating_mix(original.decode("utf-8"))
     status = main(StringIO(""), StringIO(), error_stream=errors, argv=("--file", str(tmp_path)))
     assert status == 1
     assert "directory" in errors.getvalue()
