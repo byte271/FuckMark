@@ -70,6 +70,12 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert payload["mix_scale_primary_seed_base"] == 1_040_000
     assert payload["mix_scale_replication_seed_base"] == 1_050_000
     assert payload["mix_scale_primary_topic"] == "letter mix scale development"
+    assert payload["deepmind_transfer_primary_seed_base"] == 1_060_000
+    assert payload["deepmind_transfer_replication_seed_base"] == 1_070_000
+    assert payload["deepmind_transfer_holdout_seed_base"] == 1_080_000
+    assert payload["second_model_transfer_seed_base"] == 1_090_000
+    assert payload["deepmind_transfer_primary_topic"] == "deepmind mix transfer primary"
+    assert payload["second_model_transfer_topic"] == "second model mix transfer"
     assert payload["confirmation_reserved_seed_bases"] == [830_000, 840_000, 850_000]
     assert payload["cycle7_publicly_exposed_validation_seed_base"] == 880_000
     assert cycle8_seed_ledger_hash()
@@ -85,6 +91,10 @@ def test_cycle8_ledger_freezes_new_seeds_and_blocks_spent_history() -> None:
     assert_cycle8_development_seed(1_030_000, role="mix_margin_replication")
     assert_cycle8_development_seed(1_040_000, role="mix_scale_primary")
     assert_cycle8_development_seed(1_050_000, role="mix_scale_replication")
+    assert_cycle8_development_seed(1_060_000, role="deepmind_transfer_primary")
+    assert_cycle8_development_seed(1_070_000, role="deepmind_transfer_replication")
+    assert_cycle8_development_seed(1_080_000, role="deepmind_transfer_holdout")
+    assert_cycle8_development_seed(1_090_000, role="second_model_transfer")
     with pytest.raises(ValueError):
         assert_cycle8_development_seed(760_000, role="exploratory_development")
     with pytest.raises(ValueError, match="publicly exposed|spent or reserved"):

@@ -55,7 +55,7 @@ Cycle 8 mix freeze confirmation is not enough. A carrier is product-publishable 
 4. known sanitizer weaknesses no longer kill the carriers, or an explicit product decision to accept those sanitizers as out of scope;
 5. cross-detector generalization beyond one open GPT-2 SynthID Weighted Mean detector.
 
-`cycle8-mix-publishability-v1` currently fail-closes. Software compatibility now PASSes on that product surface. Sanitizer weaknesses and cross-detector generalization still FAIL. See `docs/cycle8/mix-publishability.md`.
+`cycle8-mix-publishability-v1` currently fail-closes. Software compatibility now PASSes on that product surface. Cross-detector generalization PASSes on Hugging Face nine-key GPT-2 Weighted Mean plus independent DeepMind 30-key GPT-2. Sanitizer weaknesses still FAIL: Mn-strip and default-ignorable-strip remove the mix carriers, and the assigned-Unicode closed set found no Priority-Zero-safe survivor. See `docs/cycle8/mix-publishability.md`.
 
 U+200C is not authorized. It is a diagnostic baseline and is removed by Cf stripping.
 

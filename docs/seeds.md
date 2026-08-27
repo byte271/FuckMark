@@ -16,6 +16,8 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 - Seeds `1000000` and `1010000` are reserved for letter-space margin follow-up. Combined letter-space is 1/128.
 - Seeds `1020000` and `1030000` are reserved for U+034F/U+FE00 letter-mix margin follow-up. Combined mix is 0/128.
 - Seeds `1040000` and `1050000` are reserved for letter-mix scale follow-up. Combined with `1020000`+`1030000`, mix is 0/256. That 0/256 is development scale, not confirmation.
+- Seeds `1060000`, `1070000`, and `1080000` are reserved for independent DeepMind synthid-text 30-key mix transfer. Combined mix is 0/192. That transfer is HYPOTHESIS, not mix-freeze confirmation.
+- Seed `1090000` is reserved for DistilGPT2 second-model mix transfer. n=16 is HYPOTHESIS, not confirmation-scale.
 
 ## Cycle 8 scale reservation (before generation)
 
@@ -37,6 +39,10 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 830000 | mix freeze confirmation primary | `mix formal confirmation primary` | generated once under cycle8-mix-freeze-v1; mix 0/64; combined 0/192; spent |
 | 840000 | mix freeze confirmation replication | `mix formal confirmation replication` | generated once; mix 0/64, max 0.524300; combined 0/192; spent |
 | 850000 | mix freeze confirmation holdout | `mix formal confirmation holdout` | generated once; mix 0/64; combined 0/192; spent |
+| 1060000 | DeepMind transfer primary | `deepmind mix transfer primary` | reserved before generation; identity 63/64, mix 0/64; combined mix 0/192; HYPOTHESIS |
+| 1070000 | DeepMind transfer replication | `deepmind mix transfer replication` | reserved before generation; identity 63/64, mix 0/64; combined mix 0/192; HYPOTHESIS |
+| 1080000 | DeepMind transfer holdout | `deepmind mix transfer holdout` | reserved before generation; identity 63/64, mix 0/64; combined mix 0/192; HYPOTHESIS |
+| 1090000 | second-model transfer | `second model mix transfer` | reserved before generation; DistilGPT2 n=16 HYPOTHESIS identity 16/16 mix 0/16; not confirmation-scale |
 
 ## Historical v1 Cycle 8 ledger
 

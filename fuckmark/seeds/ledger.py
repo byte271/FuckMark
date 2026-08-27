@@ -24,6 +24,10 @@ CYCLE8_MIX_PRIMARY_SEED_BASE = 1_020_000
 CYCLE8_MIX_REPLICATION_SEED_BASE = 1_030_000
 CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE = 1_040_000
 CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE = 1_050_000
+CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASE = 1_060_000
+CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASE = 1_070_000
+CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE = 1_080_000
+CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE = 1_090_000
 CYCLE8_SCALE_EXPLORATORY_TOPIC = "carrier scaling"
 CYCLE8_SCALE_REPLICATION_TOPIC = "independent scale replication"
 CYCLE8_SCALE_VALIDATION_TOPIC = "clean scale validation"
@@ -37,6 +41,10 @@ CYCLE8_MIX_PRIMARY_TOPIC = "letter mix margin development"
 CYCLE8_MIX_REPLICATION_TOPIC = "letter mix margin replication"
 CYCLE8_MIX_SCALE_PRIMARY_TOPIC = "letter mix scale development"
 CYCLE8_MIX_SCALE_REPLICATION_TOPIC = "letter mix scale replication"
+CYCLE8_DEEPMIND_TRANSFER_PRIMARY_TOPIC = "deepmind mix transfer primary"
+CYCLE8_DEEPMIND_TRANSFER_REPLICATION_TOPIC = "deepmind mix transfer replication"
+CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC = "deepmind mix transfer holdout"
+CYCLE8_SECOND_MODEL_TRANSFER_TOPIC = "second model mix transfer"
 CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC = "mix formal confirmation primary"
 CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC = "mix formal confirmation replication"
 CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC = "mix formal confirmation holdout"
@@ -103,7 +111,7 @@ def global_seed_rows() -> tuple[dict[str, object], ...]:
         _row(890000, "cycle8", "exploratory_development", "invisible carrier development", "cycle8-seed-ledger-v1", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 tiny n=4 on main. Identifier was also used on unmerged PR #98 Cycle 7 Stage D. Do not treat as unseen validation."),
         _row(900000, "cycle8", "exploratory_replication", "invisible carrier replication", "cycle8-seed-ledger-v1", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 tiny n=4 replication. Spent as unseen validation."),
         _row(910000, "cycle8", "validation_development", "invisible carrier validation", "cycle8-seed-ledger-v1", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 tiny n=4 validation. Spent. Do not reuse as future clean validation."),
-        _row(920000, "cycle8", "exploratory_development", "invisible carrier development", "cycle8-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 secondary exploratory. Unused. Not a confirmation reserve."),
+        _row(920000, "cycle8", "exploratory_development", "invisible carrier development", "cycle8-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Cycle 8 secondary exploratory. DeepMind synthid-text 30-key GPT-2 mix transfer n=16 HYPOTHESIS: identity WM 16/16, mix WM 0/16, mix UW 0/16, visible pass. Not confirmation. Not a second model."),
         _row(930000, "cycle8", "scale_exploratory_development", CYCLE8_SCALE_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. U+034F space x1 scale exploratory: 0/16, 0/32, then 1/64 raw transformed WM. Letter-x1 diagnostic rescore of this seen corpus is 0/64. Do not rewrite space 1/64 as zero. Not confirmation."),
         _row(940000, "cycle8", "scale_replication", CYCLE8_SCALE_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F space x1 n=64 replication: 0/64 raw transformed WM. Max score 0.557052 vs threshold 0.557099. Letter-x1 diagnostic rescore of this seen corpus is 0/64. Does not erase space-x1 930000 1/64. Not confirmation."),
         _row(950000, "cycle8", "scale_validation", CYCLE8_SCALE_VALIDATION_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=True, notes="Reserved before generation. Clean unseen validation after mechanism freeze. Do not generate until U+034F x1 is frozen."),
@@ -117,6 +125,10 @@ def global_seed_rows() -> tuple[dict[str, object], ...]:
         _row(1030000, "cycle8", "mix_margin_replication", CYCLE8_MIX_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F/U+FE00 letter-alt n=64: mix 0/64 raw WM, letter-x1 0/64, identity 64/64, mix UW 0/64. Mix max 0.51307. Combined with 1020000: mix 0/128, worst max 0.51369, gap 0.04341. Not confirmation. Do not generate 950000."),
         _row(1040000, "cycle8", "mix_scale_primary", CYCLE8_MIX_SCALE_PRIMARY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F/U+FE00 letter-alt n=64: mix 0/64 raw WM, letter-x1 0/64, identity 62/64, visible 128/128. Mix max 0.51952 versus threshold 0.55710 (gap 0.03758). Closest row had 31 insertions. Not confirmation. Do not generate 950000."),
         _row(1050000, "cycle8", "mix_scale_replication", CYCLE8_MIX_SCALE_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent U+034F/U+FE00 letter-alt n=64: mix 0/64 raw WM, letter-x1 0/64, identity 60/64, mix UW 0/64. Mix max 0.51051. Combined with 1020000+1030000+1040000: mix 0/256, worst max 0.51952, gap 0.03758. Not confirmation. Do not generate 950000."),
+        _row(1060000, "cycle8", "deepmind_transfer_primary", CYCLE8_DEEPMIND_TRANSFER_PRIMARY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DeepMind synthid-text 30-key GPT-2 mix transfer n=64: identity WM 63/64, mix WM 0/64, mix UW 0/64, visible pass, mix max 0.505630. Combined with 1070000+1080000: mix 0/192. Not mix-freeze confirmation. Do not generate 950000."),
+        _row(1070000, "cycle8", "deepmind_transfer_replication", CYCLE8_DEEPMIND_TRANSFER_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DeepMind synthid-text 30-key GPT-2 mix transfer n=64: identity WM 63/64, mix WM 0/64, mix UW 0/64, visible pass, mix max 0.502999. Combined with 1060000+1080000: mix 0/192. Not mix-freeze confirmation. Do not generate 950000."),
+        _row(1080000, "cycle8", "deepmind_transfer_holdout", CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DeepMind synthid-text 30-key GPT-2 mix transfer n=64: identity WM 63/64, mix WM 0/64, mix UW 0/64, visible pass, mix max 0.506760. Combined with 1060000+1070000: mix 0/192. Not mix-freeze confirmation. Do not generate 950000."),
+        _row(1090000, "cycle8", "second_model_transfer", CYCLE8_SECOND_MODEL_TRANSFER_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DistilGPT2 DeepMind 30-key mix transfer n=16 HYPOTHESIS: identity WM 16/16, mix WM 0/16, mix UW 0/16, visible pass, mix max 0.504800. Different weights from openai-community/gpt2, same GPT-2 BPE tokenizer (vocab 50257). Not mix-freeze confirmation. Not confirmation-scale. Do not generate 950000."),
         _row(1120000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1130000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1140000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
@@ -147,7 +159,10 @@ def global_seed_ledger_payload() -> dict[str, object]:
             "Seeds 1020000 and 1030000 are reserved for detector-blind U+034F/U+FE00 "
             "letter-mix margin follow-up. "
             "Seeds 1040000 and 1050000 are reserved for detector-blind letter-mix "
-            "scale follow-up."
+            "scale follow-up. "
+            "Seeds 1060000, 1070000, and 1080000 are reserved for independent "
+            "DeepMind synthid-text 30-key mix transfer. "
+            "Seed 1090000 is reserved for independent second-model mix transfer."
         ),
         "confirmation_content_forbidden_seed_bases": list(CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES),
         "publicly_exposed_unseen_invalid_seed_bases": list(PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES),
@@ -177,6 +192,14 @@ def global_seed_ledger_payload() -> dict[str, object]:
         "cycle8_mix_scale_primary_topic": CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
         "cycle8_mix_scale_replication_seed_base": CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
         "cycle8_mix_scale_replication_topic": CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
+        "cycle8_deepmind_transfer_primary_seed_base": CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASE,
+        "cycle8_deepmind_transfer_primary_topic": CYCLE8_DEEPMIND_TRANSFER_PRIMARY_TOPIC,
+        "cycle8_deepmind_transfer_replication_seed_base": CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASE,
+        "cycle8_deepmind_transfer_replication_topic": CYCLE8_DEEPMIND_TRANSFER_REPLICATION_TOPIC,
+        "cycle8_deepmind_transfer_holdout_seed_base": CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE,
+        "cycle8_deepmind_transfer_holdout_topic": CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC,
+        "cycle8_second_model_transfer_seed_base": CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE,
+        "cycle8_second_model_transfer_topic": CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
         "cycle8_mix_confirmation_primary_topic": CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
         "cycle8_mix_confirmation_replication_topic": CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
         "cycle8_mix_confirmation_hold_topic": CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
@@ -285,6 +308,38 @@ def assert_new_cycle8_mix_generation_seed(seed_base: int) -> None:
         CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
     }:
         raise ValueError("seed_base is not a Cycle 8 letter-mix generation seed")
+    if row["eligible_for_confirmation"] is True:
+        raise ValueError("confirmation-reserved seeds must not be used for development")
+    if row["eligible_as_unseen_validation"] is True:
+        raise ValueError("unseen validation seeds must not be used for development generation")
+
+
+def assert_new_cycle8_deepmind_transfer_generation_seed(seed_base: int) -> None:
+    require_int("seed_base", seed_base)
+    assert_seed_not_confirmation_content(seed_base)
+    row = row_for_seed_base(seed_base)
+    if seed_base == CYCLE8_SCALE_VALIDATION_SEED_BASE:
+        raise ValueError("scale validation seed is reserved until the U+034F x1 mechanism is frozen")
+    if seed_base not in {
+        CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASE,
+        CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASE,
+        CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE,
+    }:
+        raise ValueError("seed_base is not a Cycle 8 DeepMind mix transfer generation seed")
+    if row["eligible_for_confirmation"] is True:
+        raise ValueError("confirmation-reserved seeds must not be used for development")
+    if row["eligible_as_unseen_validation"] is True:
+        raise ValueError("unseen validation seeds must not be used for development generation")
+
+
+def assert_new_cycle8_second_model_transfer_generation_seed(seed_base: int) -> None:
+    require_int("seed_base", seed_base)
+    assert_seed_not_confirmation_content(seed_base)
+    row = row_for_seed_base(seed_base)
+    if seed_base == CYCLE8_SCALE_VALIDATION_SEED_BASE:
+        raise ValueError("scale validation seed is reserved until the U+034F x1 mechanism is frozen")
+    if seed_base != CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE:
+        raise ValueError("seed_base is not a Cycle 8 second-model mix transfer generation seed")
     if row["eligible_for_confirmation"] is True:
         raise ValueError("confirmation-reserved seeds must not be used for development")
     if row["eligible_as_unseen_validation"] is True:

@@ -39,7 +39,7 @@ Intra-word insertion is no longer treated as tokenizer-diagnostic-only. Letter-x
 
 Seeds `1020000` and `1030000` were reserved before generation. Fresh mix is **0/128** raw transformed WM, mix UW **0/128**, visible 256/256 on the detector rows, frozen sanitizers matching raw zeros. Worst fresh mix score is 0.513691 versus threshold 0.557099 (gap 0.043407). Letter-x1 on the same corpora is also 0/128 with worst max 0.527389. Letter-space on `1000000`+`1010000` remains **1/128**. Chromium `pre`/textarea/contenteditable were pixel-equal on the measured mix fixtures.
 
-Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. One-shot confirmation on seeds `830000` / `840000` / `850000` is **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those confirmation seeds are spent. It is not product-authorized. Publishability: software compatibility PASS on the UTF-8 / visible-search product surface; sanitizer and cross-detector still FAIL. See `docs/cycle8/mix-freeze.md` and `docs/cycle8/mix-publishability.md`.
+Independent scale seeds `1040000` and `1050000` were reserved before generation. Combined with `1020000`+`1030000`, mix is **0/256** raw transformed WM, mix UW **0/256**, worst mix max 0.519522 (gap 0.037577). The two-corpus 0/128 scorecard is not rewritten. This 0/256 is development scale. The mechanism is frozen as `cycle8-mix-freeze-v1`. One-shot confirmation on seeds `830000` / `840000` / `850000` is **0/192**, mix UW **0/192**, visible **192/192**, worst max 0.524300 (gap 0.032798). Those confirmation seeds are spent. It is not product-authorized. Publishability: software compatibility PASS on the UTF-8 / visible-search product surface; sanitizer FAIL; cross-detector PASS on Hugging Face nine-key GPT-2 Weighted Mean plus independent DeepMind 30-key GPT-2 mix **0/192**. DistilGPT2 n=16 is `HYPOTHESIS` second-model transfer, not confirmation-scale. See `docs/cycle8/mix-freeze.md` and `docs/cycle8/mix-publishability.md`.
 
 ## H3-H8
 
@@ -51,7 +51,7 @@ Placement geometry, Cycle 6 scheduler reuse, and root-window correlation remain 
 
 Mix carriers U+034F and U+FE00 are Mn and default-ignorable, so Mn-strip and default-ignorable-strip restore the source. Cf dies to frozen Cf-strip. The 13 enclosing marks (Me, probe U+20DD) survive those stress sanitizers and have display width 0, but they change rendered pixels and are `REJECTED`. Other non-Mn/Cf assigned characters: 0.
 
-Cycle 8 freezes that boundary rather than weaken Priority Zero. There is no stronger invisible Unicode product mechanism under the current contract.
+Cycle 8 freezes that boundary rather than weaken Priority Zero. There is no stronger invisible Unicode product mechanism under the current contract. Closed set `cycle8-invisible-carrier-closed-set-v1` repeats the width-0 partition: Mn, Me, or Cf only; 32 non-default-ignorable Cf die to frozen Cf-strip; 13 Me survive sanitizers and change pixels.
 
 ## Rejected as product mechanisms
 

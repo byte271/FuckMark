@@ -25,6 +25,14 @@ from fuckmark.seeds.ledger import (
     CYCLE8_MIX_SCALE_PRIMARY_TOPIC,
     CYCLE8_MIX_SCALE_REPLICATION_SEED_BASE,
     CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
+    CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASE,
+    CYCLE8_DEEPMIND_TRANSFER_PRIMARY_TOPIC,
+    CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASE,
+    CYCLE8_DEEPMIND_TRANSFER_REPLICATION_TOPIC,
+    CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE,
+    CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC,
+    CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE,
+    CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
     CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
     CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
     CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
@@ -39,6 +47,8 @@ from fuckmark.seeds.ledger import (
     assert_new_cycle8_letter_benchmark_generation_seed,
     assert_new_cycle8_margin_generation_seed,
     assert_new_cycle8_mix_generation_seed,
+    assert_new_cycle8_deepmind_transfer_generation_seed,
+    assert_new_cycle8_second_model_transfer_generation_seed,
     assert_new_cycle8_scale_generation_seed,
     assert_seed_not_confirmation_content,
     global_seed_ledger_hash,
@@ -107,6 +117,7 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
     assert 1000000 in bases and 1010000 in bases
     assert 1020000 in bases and 1030000 in bases
     assert 1040000 in bases and 1050000 in bases
+    assert 1060000 in bases and 1070000 in bases and 1080000 in bases and 1090000 in bases
     density = row_for_seed_base(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
     assert density["generated"] is True
     assert density["scored"] is True
@@ -185,3 +196,29 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
         assert_new_cycle8_mix_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)
     with pytest.raises(ValueError, match="confirmation"):
         assert_new_cycle8_mix_generation_seed(830000)
+    deepmind_primary = row_for_seed_base(CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASE)
+    assert deepmind_primary["generation_topic"] == CYCLE8_DEEPMIND_TRANSFER_PRIMARY_TOPIC == "deepmind mix transfer primary"
+    assert deepmind_primary["generated"] is True
+    assert deepmind_primary["scored"] is True
+    assert deepmind_primary["eligible_for_confirmation"] is False
+    assert_new_cycle8_deepmind_transfer_generation_seed(CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASE)
+    assert_new_cycle8_deepmind_transfer_generation_seed(CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASE)
+    assert_new_cycle8_deepmind_transfer_generation_seed(CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE)
+    with pytest.raises(ValueError, match="DeepMind"):
+        assert_new_cycle8_deepmind_transfer_generation_seed(CYCLE8_MIX_SCALE_PRIMARY_SEED_BASE)
+    with pytest.raises(ValueError, match="frozen"):
+        assert_new_cycle8_deepmind_transfer_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)
+    with pytest.raises(ValueError, match="confirmation"):
+        assert_new_cycle8_deepmind_transfer_generation_seed(830000)
+    second_model = row_for_seed_base(CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE)
+    assert second_model["generation_topic"] == CYCLE8_SECOND_MODEL_TRANSFER_TOPIC == "second model mix transfer"
+    assert second_model["generated"] is True
+    assert second_model["scored"] is True
+    assert second_model["eligible_for_confirmation"] is False
+    assert_new_cycle8_second_model_transfer_generation_seed(CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE)
+    with pytest.raises(ValueError, match="second-model"):
+        assert_new_cycle8_second_model_transfer_generation_seed(CYCLE8_DEEPMIND_TRANSFER_PRIMARY_SEED_BASE)
+    with pytest.raises(ValueError, match="frozen"):
+        assert_new_cycle8_second_model_transfer_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)
+    with pytest.raises(ValueError, match="confirmation"):
+        assert_new_cycle8_second_model_transfer_generation_seed(830000)

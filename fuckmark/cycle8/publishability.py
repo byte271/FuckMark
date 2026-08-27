@@ -26,6 +26,21 @@ from .benchmark import (
     sanitize_benchmark_stress,
 )
 from .compare import CYCLE8_LETTER_ALT_ARM_ID
+from .closed_set import (
+    CYCLE8_CLOSED_SET_HASH,
+    assert_invisible_carrier_closed_set_committed,
+    load_invisible_carrier_closed_set,
+)
+from .deepmind_transfer import (
+    CYCLE8_MIX_DEEPMIND_TRANSFER_HASH,
+    assert_mix_deepmind_transfer_committed,
+    try_load_mix_deepmind_transfer_scorecard,
+)
+from .second_model_transfer import (
+    CYCLE8_MIX_SECOND_MODEL_TRANSFER_HASH,
+    assert_mix_second_model_transfer_committed,
+    try_load_mix_second_model_transfer_scorecard,
+)
 from .detector_transfer import (
     CYCLE8_MIX_DETECTOR_TRANSFER_HASH,
     assert_mix_mean_transfer_committed,
@@ -45,7 +60,7 @@ from .sanitize import CYCLE8_SCALE_SANITIZER_VARIANT_IDS, sanitize_cycle8_scale_
 
 CYCLE8_MIX_PUBLISHABILITY_VERSION = "cycle8-mix-publishability-v1"
 CYCLE8_MIX_PUBLISHABILITY_PATH = "specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json"
-CYCLE8_MIX_PUBLISHABILITY_HASH = "e13609938ee412b8677d7f6b1ac0c65e792060a8d9af03ecbc2ac059322d18be"
+CYCLE8_MIX_PUBLISHABILITY_HASH = "1149940b64e9617af12cb1e8e89448043edc235bdfd127cda5e163cfe03bc5c8"
 _CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _PRODUCT_CONTRACT_HASH = "5afd79586f82e31d0d673acbebebf0ac00804cff74b9f644f000bddfd3dc07d1"
@@ -268,6 +283,7 @@ def mix_publishability_payload() -> dict[str, object]:
         and measured["nfkd_kills"] == 0
     )
     feasibility = load_invisible_carrier_feasibility()
+    closed = load_invisible_carrier_closed_set()
     feasibility_ok = (
         feasibility["feasibility_hash"] == CYCLE8_FEASIBILITY_HASH
         and feasibility["stronger_invisible_product_mechanism"] is None
@@ -275,9 +291,20 @@ def mix_publishability_payload() -> dict[str, object]:
         and feasibility["enclosing_marks_rejected_rendering"] is True
         and feasibility["survives_mn_cf_and_default_ignorable_while_invisible"] is False
         and feasibility["mix_carriers_are_mn_and_default_ignorable"] is True
+        and closed["closed_set_hash"] == CYCLE8_CLOSED_SET_HASH
+        and closed["stronger_priority_zero_safe_mechanism"] is None
+        and closed["width0_assigned_other"] == []
+        and closed["width0_assigned_me"] == 13
+        and closed["non_di_cf_die_to_frozen_cf_strip"] is True
+        and closed["me_survives_mn_strip"] is True
+        and closed["me_survives_default_ignorable_strip"] is True
+        and closed["mix_carriers_are_width0_mn_default_ignorable"] is True
     )
     sanitizer_product_pass = frozen_pass and stress_still_kills is False
-    confirmed_families = ("huggingface-synthid-weighted-mean-gpt2",)
+    confirmed_families = (
+        "huggingface-synthid-weighted-mean-gpt2",
+        "deepmind-synthid-text-30key-weighted-mean-gpt2",
+    )
     transfer = try_load_mix_mean_transfer_scorecard()
     mean_hypothesis = (
         transfer is not None
@@ -292,7 +319,46 @@ def mix_publishability_payload() -> dict[str, object]:
         and transfer["effectiveness"]["mix_mean_uw"]["rate"] == "0/192"
         and transfer["effectiveness"]["mix_weighted_mean_uw"]["rate"] == "0/192"
     )
-    detector_pass = len(confirmed_families) >= 2
+    deepmind = try_load_mix_deepmind_transfer_scorecard()
+    deepmind_hypothesis = (
+        deepmind is not None
+        and deepmind["scorecard_hash"] == CYCLE8_MIX_DEEPMIND_TRANSFER_HASH
+        and deepmind["evidence_label"] == "HYPOTHESIS"
+        and deepmind["second_model"] is False
+        and deepmind["second_configuration"] is True
+        and deepmind["keys_depth"] == 30
+        and deepmind["confirmation_rewritten"] is False
+        and deepmind["mix_freeze_confirmation"] is False
+        and deepmind["product_authorized"] is False
+        and deepmind["visible_pass"] is True
+        and deepmind["effectiveness"]["mix_wm"]["rate"] == "0/192"
+        and deepmind["effectiveness"]["mix_uw"]["rate"] == "0/192"
+        and deepmind["effectiveness"]["identity_wm"]["rate"] == "189/192"
+        and deepmind["effectiveness"]["identity_uw"]["rate"] == "0/192"
+        and float(deepmind["effectiveness"]["mix_wm_max_score"]) == 0.5067599700507657
+    )
+    second_model = try_load_mix_second_model_transfer_scorecard()
+    second_model_hypothesis = (
+        second_model is not None
+        and second_model["scorecard_hash"] == CYCLE8_MIX_SECOND_MODEL_TRANSFER_HASH
+        and second_model["evidence_label"] == "HYPOTHESIS"
+        and second_model["second_model"] is True
+        and second_model["second_configuration"] is False
+        and second_model["model"] == "distilbert/distilgpt2"
+        and second_model["tokenizer_vocab_size"] == 50257
+        and second_model["pair_count"] == 16
+        and second_model["keys_depth"] == 30
+        and second_model["confirmation_rewritten"] is False
+        and second_model["mix_freeze_confirmation"] is False
+        and second_model["product_authorized"] is False
+        and second_model["visible_pass"] is True
+        and second_model["effectiveness"]["mix_wm"]["rate"] == "0/16"
+        and second_model["effectiveness"]["mix_uw"]["rate"] == "0/16"
+        and second_model["effectiveness"]["identity_wm"]["rate"] == "16/16"
+        and second_model["effectiveness"]["identity_uw"]["rate"] == "0/16"
+        and float(second_model["effectiveness"]["mix_wm_max_score"]) == 0.5047997827277791
+    )
+    detector_pass = len(confirmed_families) >= 2 and deepmind_hypothesis
     gates = [
         _gate(
             "reproducibility",
@@ -397,7 +463,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "sanitizer_weaknesses",
             "PASS" if sanitizer_product_pass else "FAIL",
             product_blocking=True,
-            summary="Frozen Cycle 6/7 sanitizers keep mix. Mn-strip and default-ignorable-strip remove U+034F and U+FE00. Assigned Unicode has no stronger invisible product mechanism that survives those stress sanitizers while keeping exact visible text.",
+            summary="Frozen Cycle 6/7 sanitizers keep mix. Mn-strip and default-ignorable-strip remove U+034F and U+FE00. Assigned Unicode width-0 insertions are Mn, Me, or Cf. Non-default-ignorable Cf die to frozen Cf-strip. Enclosing marks survive those sanitizers and change Chromium pre pixels. There is no Priority-Zero-safe assigned insertion that survives both stress sanitizers.",
             checks=[
                 _check(
                     "frozen_sanitizers",
@@ -436,10 +502,20 @@ def mix_publishability_payload() -> dict[str, object]:
                     other_non_mn_cf_count=feasibility["other_non_mn_cf_count"],
                 ),
                 _check(
+                    "invisible_carrier_closed_set",
+                    "PASS" if feasibility_ok else "FAIL",
+                    digest=closed["closed_set_hash"],
+                    width0_assigned_mn=closed["width0_assigned_mn"],
+                    width0_assigned_me=closed["width0_assigned_me"],
+                    width0_assigned_cf_not_default_ignorable=closed["width0_assigned_cf_not_default_ignorable"],
+                    width0_assigned_other=closed["width0_assigned_other"],
+                ),
+                _check(
                     "stronger_invisible_product_mechanism",
                     "FAIL",
                     mechanism=feasibility["stronger_invisible_product_mechanism"],
                     enclosing_marks_rejected_rendering=feasibility["enclosing_marks_rejected_rendering"],
+                    closed_set_mechanism=closed["stronger_priority_zero_safe_mechanism"],
                 ),
             ],
         ),
@@ -447,7 +523,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "cross_detector_generalization",
             "PASS" if detector_pass else "FAIL",
             product_blocking=True,
-            summary="Confirmation is one open GPT-2 Hugging Face SynthID Weighted Mean detector. Mean versus Weighted Mean on the same adapter and confirmation sources is HYPOTHESIS 0/192, not a second model and not a confirmation rewrite.",
+            summary="Mix-freeze confirmation is Hugging Face GPT-2 SynthID Weighted Mean 0/192. Independent Google synthid-text 30-key mixin generation and official logits processor is confirmation-scale mix 0/192, identity WM 189/192, still GPT-2. DistilGPT2 n=16 on the same 30-key stack is HYPOTHESIS second-model transfer, not confirmation-scale. Mean versus Weighted Mean on the Hugging Face adapter remains HYPOTHESIS, not a second model.",
             checks=[
                 _check(
                     "confirmed_families",
@@ -467,6 +543,17 @@ def mix_publishability_payload() -> dict[str, object]:
                     digest=None if transfer is None else transfer["scorecard_hash"],
                 ),
                 _check(
+                    "deepmind_30key_hypothesis",
+                    "PASS" if deepmind_hypothesis else "FAIL",
+                    evidence_label="HYPOTHESIS" if deepmind is None else deepmind["evidence_label"],
+                    second_model=False if deepmind is None else deepmind["second_model"],
+                    second_configuration=False if deepmind is None else deepmind["second_configuration"],
+                    keys_depth=None if deepmind is None else deepmind["keys_depth"],
+                    mix_wm=None if deepmind is None else deepmind["effectiveness"]["mix_wm"]["rate"],
+                    identity_wm=None if deepmind is None else deepmind["effectiveness"]["identity_wm"]["rate"],
+                    digest=None if deepmind is None else deepmind["scorecard_hash"],
+                ),
+                _check(
                     "in_tree_unconfirmed_families",
                     "FAIL",
                     families=[item.value for item in DetectorFamily],
@@ -476,7 +563,18 @@ def mix_publishability_payload() -> dict[str, object]:
                     confirmation_implementation=freeze["detector"]["implementation"],
                     confirmation_model=freeze["detector"]["model"],
                 ),
-                _check("second_model", "FAIL"),
+                _check(
+                    "second_model",
+                    "PASS" if second_model_hypothesis else "FAIL",
+                    evidence_label="HYPOTHESIS" if second_model is None else second_model["evidence_label"],
+                    confirmation_scale=False,
+                    second_model=False if second_model is None else second_model["second_model"],
+                    second_configuration=False if second_model is None else second_model["second_configuration"],
+                    model=None if second_model is None else second_model["model"],
+                    mix_wm=None if second_model is None else second_model["effectiveness"]["mix_wm"]["rate"],
+                    identity_wm=None if second_model is None else second_model["effectiveness"]["identity_wm"]["rate"],
+                    digest=None if second_model is None else second_model["scorecard_hash"],
+                ),
                 _check("closed_or_proprietary_detector", "UNKNOWN"),
             ],
         ),
@@ -500,7 +598,10 @@ def mix_publishability_payload() -> dict[str, object]:
             "confirmation_scorecard_hash": scorecard["scorecard_hash"],
             "product_contract_hash": FROZEN_PRODUCT_CONTRACT_HASH,
             "feasibility_hash": feasibility["feasibility_hash"],
+            "closed_set_hash": closed["closed_set_hash"],
             "mean_transfer_scorecard_hash": None if transfer is None else transfer["scorecard_hash"],
+            "deepmind_transfer_scorecard_hash": None if deepmind is None else deepmind["scorecard_hash"],
+            "second_model_transfer_scorecard_hash": None if second_model is None else second_model["scorecard_hash"],
         },
         "confirmation": {
             "transformed_wm": scorecard["effectiveness"]["transformed_wm"]["rate"],
@@ -515,6 +616,8 @@ def mix_publishability_payload() -> dict[str, object]:
             "raw codepoint search of mix payload can miss ordinary English phrases; product search uses visible projection",
             "latin-1, ascii, and cp1252 are unsupported product encodings",
             "Mean versus Weighted Mean transfer is HYPOTHESIS on the same GPT-2 Hugging Face SynthID adapter, not a second model",
+            "DeepMind synthid-text 30-key transfer is confirmation-scale mix 0/192 on GPT-2 and is not mix-freeze confirmation",
+            "DistilGPT2 n=16 second-model transfer is HYPOTHESIS, same GPT-2 BPE tokenizer, not confirmation-scale",
             "no stronger Priority-Zero invisible Unicode mechanism survives Mn-strip, default-ignorable-strip, and Cf-strip together",
         ],
     }
@@ -552,6 +655,9 @@ def assert_mix_publishability_committed() -> None:
     if process_text("I do not agree.") != "I do not agree.":
         raise ValueError("identity CLI changed")
     assert_mix_mean_transfer_committed()
+    assert_mix_deepmind_transfer_committed()
+    assert_mix_second_model_transfer_committed()
+    assert_invisible_carrier_closed_set_committed()
 
 
 def write_mix_publishability_spec(path: str | Path | None = None) -> Path:

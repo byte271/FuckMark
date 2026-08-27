@@ -66,7 +66,7 @@ def test_mix_publishability_gates_match_measured_evidence() -> None:
     assert gates["visibility_invariance"]["verdict"] == "PASS"
     assert gates["software_compatibility"]["verdict"] == "PASS"
     assert gates["sanitizer_weaknesses"]["verdict"] == "FAIL"
-    assert gates["cross_detector_generalization"]["verdict"] == "FAIL"
+    assert gates["cross_detector_generalization"]["verdict"] == "PASS"
     assert all(gate["product_blocking"] is True for gate in payload["gates"])
     checks = {gate["id"]: {check["id"]: check["verdict"] for check in gate["checks"]} for gate in payload["gates"]}
     assert checks["reproducibility"]["confirmation_zero_of_192"] == "PASS"
@@ -82,15 +82,36 @@ def test_mix_publishability_gates_match_measured_evidence() -> None:
     assert checks["sanitizer_weaknesses"]["default_ignorable_strip"] == "FAIL"
     assert checks["sanitizer_weaknesses"]["nfkd"] == "PASS"
     assert checks["sanitizer_weaknesses"]["invisible_carrier_feasibility_scan"] == "PASS"
+    assert checks["sanitizer_weaknesses"]["invisible_carrier_closed_set"] == "PASS"
     assert checks["sanitizer_weaknesses"]["stronger_invisible_product_mechanism"] == "FAIL"
-    assert checks["cross_detector_generalization"]["confirmed_families"] == "FAIL"
+    assert checks["cross_detector_generalization"]["confirmed_families"] == "PASS"
     assert checks["cross_detector_generalization"]["mean_vs_weighted_mean_hypothesis"] == "PASS"
-    assert checks["cross_detector_generalization"]["second_model"] == "FAIL"
+    assert checks["cross_detector_generalization"]["deepmind_30key_hypothesis"] == "PASS"
+    assert checks["cross_detector_generalization"]["second_model"] == "PASS"
+    families = next(
+        check["families"]
+        for check in gates["cross_detector_generalization"]["checks"]
+        if check["id"] == "confirmed_families"
+    )
+    assert families == [
+        "huggingface-synthid-weighted-mean-gpt2",
+        "deepmind-synthid-text-30key-weighted-mean-gpt2",
+    ]
+    second_model = next(
+        check
+        for check in gates["cross_detector_generalization"]["checks"]
+        if check["id"] == "second_model"
+    )
+    assert second_model["confirmation_scale"] is False
+    assert second_model["model"] == "distilbert/distilgpt2"
     assert payload["identities"]["mix_freeze_hash"] == mix_freeze_hash() == _FREEZE_HASH
     assert payload["identities"]["confirmation_scorecard_hash"] == _SCORECARD_HASH
     assert payload["identities"]["product_contract_hash"] == FROZEN_PRODUCT_CONTRACT_HASH
     assert payload["identities"]["feasibility_hash"] == "edaa10a576def25a4e0edcdd23b74fecc97dca650835e538ad5c7ff14eb31483"
+    assert payload["identities"]["closed_set_hash"] == "425f85e5e91c1513750e5a3da08a45f537a5b2e5c07f47854dc2c9f6420f794d"
     assert payload["identities"]["mean_transfer_scorecard_hash"] == "1b13209f53dcb18e1e93938f22c39bcb510eb4292c1d841db6fbe51052d8e620"
+    assert payload["identities"]["deepmind_transfer_scorecard_hash"] == "ed61939e164e4c39277bf385961a95eb239178db84e63959f72948fab7df25e5"
+    assert payload["identities"]["second_model_transfer_scorecard_hash"] == "1f6c9a6af58e9dd547940a393c7e4115713d6333ab4d5162ad382bf5a91d5156"
     assert payload["confirmation"]["transformed_wm"] == "0/192"
     assert payload["confirmation"]["transformed_uw"] == "0/192"
     assert payload["confirmation"]["visible"] == "192/192"

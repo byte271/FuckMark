@@ -14,7 +14,7 @@ The five gates are the bar for calling mix a publishable FuckMark product. Passi
 | Cross-environment visibility invariance | PASS | yes |
 | Real-world software compatibility | PASS | yes |
 | Known sanitizer weaknesses | FAIL | yes |
-| Cross-detector generalization | FAIL | yes |
+| Cross-detector generalization | PASS | yes |
 
 `product_publishable` is false. `product_authorized` is false. `product_approved_carriers_v1()` is empty. `process_text("I do not agree.")` is unchanged.
 
@@ -41,29 +41,34 @@ PASS on the product surface:
 
 FAIL as a product gate. Frozen Cycle 6/7 sanitizers (raw, NFKC, Cf-strip, whitespace-collapse, combined, NFC) keep mix, matching confirmation zeros. Mn-strip and default-ignorable-strip remove both carriers because U+034F and U+FE00 are Mn and default-ignorable. NFKD keeps them.
 
-Assigned-Unicode feasibility `cycle8-invisible-carrier-feasibility-v1` found no stronger Priority-Zero invisible mechanism:
+Assigned-Unicode feasibility `cycle8-invisible-carrier-feasibility-v1` found no stronger Priority-Zero invisible mechanism. Closed set `cycle8-invisible-carrier-closed-set-v1` confirms display-width-0 assigned insertions are only Mn, Me, or Cf:
 
 - visible/control: 140882
 - Cf: 161 (dies to frozen Cf-strip)
 - Mn: 1985 (dies to Mn-strip; mix lives here)
 - Me enclosing marks: 13 (survive Mn/DI/Cf-strip, display width 0, Chromium `pre` pixels change; rejected)
 - other non-Mn/Cf: 0
+- width-0 Cf that are not default-ignorable: 32 (die to frozen Cf-strip)
 
-Enclosing marks are not product-safe. Cycle 8 freezes that H9 boundary rather than changing visible English text.
+Enclosing marks are not product-safe. Cycle 8 freezes that H9 / closed-set boundary rather than changing visible English text.
 
 ## Cross-detector generalization
 
-FAIL. Confirmation used one open detector: GPT-2 / Hugging Face SynthID Weighted Mean at threshold `0.5570987654320988`.
+PASS. Mix-freeze confirmation used GPT-2 / Hugging Face SynthID Weighted Mean at threshold `0.5570987654320988` and remains **0/192**.
 
-Independent Mean-family scoring on the **same** adapter, model, threshold, and spent confirmation *source* texts is `HYPOTHESIS`:
+Independent Google `synthid-text` 30-key mixin generation and official logits-processor detection on fresh reserved seeds `1060000` / `1070000` / `1080000` is confirmation-scale mix **0/192**, mix UW **0/192**, identity WM **189/192**, identity UW **0/192**, visible pass, mix max `0.506760`. That stack is not the Hugging Face nine-key adapter. It is still GPT-2. The transfer scorecard stays `HYPOTHESIS` and does not rewrite mix-freeze confirmation.
+
+A DistilGPT2 n=16 look on the same DeepMind 30-key stack is `HYPOTHESIS` second-model transfer, not confirmation-scale: identity WM **16/16**, mix WM **0/16**, mix UW **0/16**, mix max `0.504800`. Weights differ from GPT-2. The tokenizer is still GPT-2 BPE. DistilGPT2 is not added to confirmation-scale families.
+
+Independent Mean-family scoring on the **same** Hugging Face adapter, model, threshold, and spent confirmation *source* texts remains `HYPOTHESIS`:
 
 - mix Mean WM **0/192**, mix Mean UW **0/192**, max 0.520947
 - mix Weighted Mean WM **0/192**, mix Weighted Mean UW **0/192**, max 0.524300 (matches confirmation)
 - identity Weighted Mean 185/192 WM and 2/192 UW match confirmation identity counts
 
-That is not a second model. It is not proprietary-detector transfer. It is not a confirmation rewrite. Bayesian-family evidence was not collected. Closed detectors stay UNKNOWN.
+That Mean look is not a second model. Bayesian-family evidence was not collected. Closed detectors stay UNKNOWN. DistilGPT2 n=16 is extra second-model evidence and is not required for this gate once two confirmation-scale detector stacks are present.
 
-See `evidence/cycle8-mix-mean-transfer-2026-08-26/`.
+See `evidence/cycle8-mix-mean-transfer-2026-08-26/`, `docs/cycle8/mix-deepmind-transfer.md`, and `docs/cycle8/mix-second-model-transfer.md`.
 
 ## What this does not do
 
