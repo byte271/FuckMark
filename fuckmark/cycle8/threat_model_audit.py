@@ -21,7 +21,7 @@ from .publishability import (
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "f482e0fcabe42e2d2aef5a736828e0ff551241861e7fe8d3afb14846c346dde5"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "e9d178969cb8b99f2ab35a89d73b24dded81379f7be6e9b1c08f037805011e57"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -113,7 +113,7 @@ TOKENIZER_OBSERVATIONS: tuple[dict[str, object], ...] = (
     {"model": "gemma-2-2b-it", "normalizer": "Replace", "carriers_reaching_token_stream": 9, "carriers_probed": 9},
     {"model": "gemma-3-1b-it", "normalizer": "Replace", "carriers_reaching_token_stream": 9, "carriers_probed": 9},
     {"model": "gpt2", "normalizer": None, "carriers_reaching_token_stream": 9, "carriers_probed": 9},
-    {"model": "llama-2-7b", "normalizer": "Sequence[Prepend,Replace]", "carriers_reaching_token_stream": 9, "carriers_probed": 9},
+    {"model": "llama-2-7b", "normalizer": "Sequence[Prepend, Replace]", "carriers_reaching_token_stream": 9, "carriers_probed": 9},
     {"model": "llama-3-8b", "normalizer": None, "carriers_reaching_token_stream": 9, "carriers_probed": 9},
     {"model": "mistral-7b-v0.2", "normalizer": None, "carriers_reaching_token_stream": 9, "carriers_probed": 9},
     {"model": "xlm-roberta-base", "normalizer": "Precompiled", "carriers_reaching_token_stream": 8, "carriers_probed": 9},

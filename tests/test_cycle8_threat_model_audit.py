@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import unicodedata
 from pathlib import Path
 
@@ -295,3 +296,59 @@ def test_proposed_gate_excludes_only_the_stress_only_sanitizers():
     assert "cf_strip" in proposal["required_sanitizers"]
     assert "exact_user_visible_text_preservation" in proposal["still_requires"]
     assert "fresh_unspent_confirmation_corpus" in proposal["still_requires"]
+
+
+def _artifact(name):
+    path = Path("evidence/h16-local") / f"{name}.json"
+    if not path.is_file():
+        pytest.skip(f"{path} is not present")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def test_multi_context_constants_match_the_committed_scan():
+    scan = _artifact("shaping-closure-12-context")
+    multi = multi_context_closure()
+    assert multi["invisible_in_all_contexts_count"] == scan["shaping_invisible_count"]
+    assert multi["invisible_in_all_contexts_categories"] == scan["shaping_invisible_categories"]
+    assert multi["invisible_in_any_context_count"] == scan["any_context_invisible_count"]
+    assert multi["invisible_in_any_context_categories"] == scan["any_context_invisible_categories"]
+    assert multi["per_context_invisible_counts"] == scan["per_context_invisible_counts"]
+    assert multi["intersection_invisible_in_any_context"] == scan["any_context_intersection_count"]
+    assert multi["intersection_invisible_in_all_contexts"] == scan["intersection_count"]
+    assert multi["contexts_scanned"] == scan["shaping_contexts_scanned"]
+
+
+def test_oracle_validation_constants_match_the_committed_run():
+    run = _artifact("oracle-validation")
+    disk = load_threat_model_audit()["closure"]
+    assert disk["oracle_validation_sample"] == run["sample_size"]
+    assert disk["oracle_validation_agreement"] == run["agreement"]
+    assert sorted(disk["oracle_validation_disagreements"]) == sorted(run["disagreement_ids"])
+
+
+def test_tokenizer_constants_match_the_committed_probe():
+    probe = _artifact("tokenizer-threat-model")
+    for row in TOKENIZER_OBSERVATIONS:
+        measured = probe[row["model"]]
+        assert row["carriers_reaching_token_stream"] == measured["carriers_reaching_token_stream"]
+        assert row["carriers_probed"] == measured["carriers_probed"]
+        assert row["normalizer"] == measured["normalizer"]
+
+
+def test_deployability_constants_match_the_committed_run():
+    run = _artifact("sanitizer-deployability")
+    for name, record in sanitizer_deployability_damage().items():
+        assert record["corrupted"] == run["sanitizer_damage"][name]["corrupted_samples"]
+        assert record["of"] == run["sanitizer_damage"][name]["of"]
+
+
+def test_detector_constants_match_the_committed_run():
+    summary = _artifact("real-sanitizer-detector")["summary"]
+    detector = real_sanitizer_detector_observations()
+    assert detector["watermarked_rows"] == summary["watermarked_rows"]
+    assert detector["pristine_watermarked_detected"] == summary["pristine_watermarked_detected"]
+    for row in detector["per_variant"]:
+        variant = row["variant"]
+        assert row["watermarked_detected"] == summary[f"{variant}_watermarked_detected"]
+        assert row["carrier_free_detected"] == summary[f"{variant}_carrier_free_watermarked_detected"]
+        assert row["restores_source"] == summary[f"{variant}_restores_source"]
