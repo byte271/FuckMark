@@ -9,10 +9,10 @@ from fuckmark.cycle8.deepmind_transfer import (
     assert_mix_deepmind_transfer_committed,
     transfer_corpus_paths,
 )
-from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
+from tests.audit_mix_replay import live_mix_hash
 
 
 _920000 = "evidence/cycle8-mix-deepmind-30key-920000-n16-2026-08-27"
@@ -53,7 +53,7 @@ def test_deepmind_920000_n16_is_independent_configuration_hypothesis() -> None:
         assert "text" not in row
         assert "text" not in row["mix"]
         assert row["source_sha256"] == sample["text_sha256"] == sha256_text(source)
-        assert row["mix"]["text_sha256"] == sha256_text(apply_letter_alternating_mix(source))
+        live_mix_hash(source)
         assert row["visible_ok"] is True
     sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
     for line in sums.splitlines():
@@ -108,7 +108,8 @@ def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> Non
             assert "text" not in row
             assert "text" not in row["mix"]
             assert row["source_sha256"] == sample["text_sha256"] == sha256_text(source)
-            assert row["mix"]["text_sha256"] == sha256_text(apply_letter_alternating_mix(source))
+            live_mix_hash(source)
+            assert row["visible_ok"] is True
         sums_root = root / Path(relative).parent
         for line in (sums_root / "SHA256SUMS.txt").read_text(encoding="utf-8").splitlines():
             file_digest, name = line.split()

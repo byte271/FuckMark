@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -111,14 +112,19 @@ def _parser() -> argparse.ArgumentParser:
             "Examples:\n"
             "  fuckmark\n"
             "  printf 'I do not agree.\\n' | fuckmark\n"
+            "  fuckmark --text \"I do not agree.\"\n"
             "  fuckmark \"I do not agree.\"\n"
+            "  fuckmark --text \"I agree. You are right\"\n"
+            "  fuckmark --file notes.txt -o notes.fm.txt\n"
             "  fuckmark notes.txt -o notes.fm.txt\n"
             "  fuckmark --stdin --copy < notes.txt\n"
             "  fuckmark --stdin --visible < notes.fm.txt\n"
             "\n"
             "Supported input: tab, newline, carriage return, and ASCII space through tilde.\n"
-            "Other Unicode is returned unchanged. Only UTF-8 is supported.\n"
-            "Visible text stays the same. Use --visible to print that visible text."
+            "Other Unicode is returned unchanged with exit 0. That status means I/O\n"
+            "succeeded, not that a transformation occurred. Only UTF-8 is supported.\n"
+            "Visible text stays the same. Use --visible to print that visible text.\n"
+            "Use --text for literal strings and --file for existing UTF-8 files."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -127,6 +133,18 @@ def _parser() -> argparse.ArgumentParser:
         nargs="?",
         metavar="TEXT_OR_FILE",
         help="quoted text or UTF-8 file; omit in a terminal to paste; - reads stdin",
+    )
+    parser.add_argument(
+        "--text",
+        dest="text_literal",
+        metavar="TEXT",
+        help="transform TEXT as a literal string (not a filename)",
+    )
+    parser.add_argument(
+        "--file",
+        dest="file_explicit",
+        metavar="FILE",
+        help="read UTF-8 bytes from FILE without newline conversion",
     )
     parser.add_argument(
         "--version",
@@ -186,18 +204,20 @@ def _looks_like_missing_file(value: str) -> bool:
     if any(separator in value for separator in separators) or value.startswith("~"):
         return True
     suffix = expanded.suffix
-    return len(suffix) >= 2
+    if " " in suffix or "\t" in suffix:
+        return False
+    return re.fullmatch(r"\.[A-Za-z][A-Za-z0-9]{0,11}", suffix) is not None
 
 
 def _load_source_argument(value: str) -> str:
     expanded = Path(value).expanduser()
     if expanded.is_dir():
-        raise ValueError(f"{value} is a directory. Pass a UTF-8 text file or quote the text.")
+        raise ValueError(f"{value} is a directory. Pass a UTF-8 text file or --text.")
     if expanded.is_file():
         return _read_file(str(expanded))
     if _looks_like_missing_file(value):
         raise ValueError(
-            f"file not found: {value}. Pass an existing UTF-8 file, or quote the text: fuckmark \"...\""
+            f"file not found: {value}. Pass an existing UTF-8 file with --file, or a literal string with --text."
         )
     return value
 
@@ -274,13 +294,33 @@ def _styled(text: str, code: str, *, enabled: bool) -> str:
     return f"{code}{text}{_ANSI_RESET}" if enabled else text
 
 
-def _read_file(path_value: str) -> str:
+def _decode_utf8_bytes(data: bytes, origin: str) -> str:
     try:
-        return Path(path_value).expanduser().read_text(encoding="utf-8")
-    except UnicodeError as error:
-        raise ValueError(f"cannot decode {path_value!r} as UTF-8: {error}") from error
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError(f"{origin} is not valid UTF-8. Only UTF-8 is supported.") from error
+    if any(0xD800 <= ord(character) <= 0xDFFF for character in text):
+        raise ValueError(f"{origin} is not valid UTF-8. Only UTF-8 is supported.")
+    return text
+
+
+def _read_file(path_value: str) -> str:
+    path = Path(path_value).expanduser()
+    try:
+        data = path.read_bytes()
     except OSError as error:
         raise ValueError(f"cannot read {path_value!r}: {error}") from error
+    return _decode_utf8_bytes(data, path_value)
+
+
+def _read_stream_text(source: TextIO) -> str:
+    buffer = getattr(source, "buffer", None)
+    if buffer is not None:
+        return _decode_utf8_bytes(buffer.read(), "input")
+    text = source.read()
+    if any(0xD800 <= ord(character) <= 0xDFFF for character in text):
+        raise ValueError("input is not valid UTF-8. Only UTF-8 is supported.")
+    return text
 
 
 def _same_path(left: str, right: str) -> bool:
@@ -291,31 +331,30 @@ def _ensure_utf8(stream: TextIO) -> None:
     reconfigure = getattr(stream, "reconfigure", None)
     if reconfigure is None:
         return
-    encoding = getattr(stream, "encoding", None)
-    if isinstance(encoding, str) and encoding.replace("-", "").casefold() == "utf8":
-        return
     try:
-        reconfigure(encoding="utf-8", errors="strict")
-    except (OSError, ValueError, AttributeError):
-        return
+        reconfigure(encoding="utf-8", errors="strict", newline="")
+    except (OSError, ValueError, AttributeError, TypeError):
+        try:
+            reconfigure(encoding="utf-8", errors="strict")
+        except (OSError, ValueError, AttributeError):
+            return
 
 
 def _write_stdout_utf8(output_stream: TextIO, text: str) -> None:
+    buffer = getattr(output_stream, "buffer", None)
+    if buffer is not None:
+        try:
+            output_stream.flush()
+        except UnicodeError:
+            pass
+        buffer.write(text.encode("utf-8"))
+        buffer.flush()
+        return
     try:
         output_stream.write(text)
         output_stream.flush()
-        return
-    except UnicodeError:
-        pass
-    buffer = getattr(output_stream, "buffer", None)
-    if buffer is None:
-        raise ValueError("standard output cannot encode UTF-8 product payload")
-    try:
-        output_stream.flush()
-    except UnicodeError:
-        pass
-    buffer.write(text.encode("utf-8"))
-    buffer.flush()
+    except UnicodeError as error:
+        raise ValueError("standard output cannot encode UTF-8 product payload") from error
 
 
 def _write_file_atomic(path_value: str, text: str) -> None:
@@ -420,23 +459,47 @@ def _run(
         )
 
     source_arg = arguments.source
+    text_literal = arguments.text_literal
+    file_explicit = arguments.file_explicit
     wants_stdin = arguments.stdin_mode or source_arg == "-"
+    if text_literal is not None and file_explicit is not None:
+        return _error(errors, "pass --text or --file, not both")
+    if wants_stdin and (text_literal is not None or file_explicit is not None):
+        return _error(errors, "pass --text, --file, or --stdin, not both")
     if wants_stdin and source_arg not in (None, "-"):
         return _error(errors, "pass quoted text, a file, or --stdin, not both")
+    if text_literal is not None and source_arg is not None:
+        return _error(errors, "pass --text or a positional operand, not both")
+    if file_explicit is not None and source_arg is not None:
+        return _error(errors, "pass --file or a positional operand, not both")
+    file_for_overwrite = file_explicit if file_explicit is not None else source_arg
     if (
         arguments.output not in (None, "-")
-        and source_arg not in (None, "-")
-        and Path(source_arg).expanduser().is_file()
-        and _same_path(source_arg, arguments.output)
+        and file_for_overwrite not in (None, "-")
+        and Path(str(file_for_overwrite)).expanduser().is_file()
+        and _same_path(str(file_for_overwrite), arguments.output)
     ):
         return _error(errors, "input and output files must be different")
 
-    literal_or_file = source_arg not in (None, "-") and not arguments.stdin_mode
+    literal_or_file = (
+        text_literal is not None
+        or file_explicit is not None
+        or (source_arg not in (None, "-") and not arguments.stdin_mode)
+    )
     interactive = (not wants_stdin) and (not literal_or_file) and _is_tty(source)
     color = _is_tty(errors) and not arguments.no_color and "NO_COLOR" not in os.environ
 
     try:
-        if literal_or_file:
+        if text_literal is not None:
+            text = text_literal
+        elif file_explicit is not None:
+            expanded = Path(file_explicit).expanduser()
+            if expanded.is_dir():
+                raise ValueError(f"{file_explicit} is a directory. Pass a UTF-8 text file.")
+            if not expanded.is_file():
+                raise ValueError(f"file not found: {file_explicit}")
+            text = _read_file(str(expanded))
+        elif literal_or_file:
             text = _load_source_argument(str(source_arg))
         elif interactive:
             captured = read_interactive_text(source, errors, color=color)
@@ -446,7 +509,7 @@ def _run(
                 return _error(errors, "no input. Paste or type text, then :done.")
             text = "\n".join(captured)
         else:
-            text = source.read()
+            text = _read_stream_text(source)
     except UnicodeError:
         return _error(errors, "input is not valid UTF-8. Only UTF-8 is supported.")
     except (OSError, ValueError) as error:

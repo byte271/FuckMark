@@ -417,6 +417,8 @@ def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> 
     assert "latin-1" in rendered
     assert "printf" in rendered
     assert "fuckmark \"I do not agree.\"" in rendered
+    assert "--text" in rendered
+    assert "--file" in rendered
     assert "standard input" in rendered.casefold() or "--stdin" in rendered
     assert ":done" in rendered
     assert "clipboard" in rendered.casefold()

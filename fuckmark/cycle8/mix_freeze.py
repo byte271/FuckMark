@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .._validation import require_int
 from ..experiments.cycle6_confirmation import CYCLE6_THRESHOLD
-from ..hashing import sha256_file, sha256_json
+from ..hashing import sha256_json
 from ..seeds.ledger import (
     CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES,
     CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
@@ -23,7 +23,7 @@ CYCLE8_MIX_FREEZE_VERSION = "cycle8-mix-freeze-v1"
 CYCLE8_MIX_FREEZE_PATH = "specs/cycle8/fuckmark-cycle8-mix-freeze-v1.json"
 CYCLE8_MIX_CONFIRMATION_DETECTOR_VERSION = "cycle8-mix-confirmation-detector-compare-v1"
 CYCLE8_MIX_CONFIRMATION_PAIR_COUNT = 64
-_LETTER_MIX_PATH = Path(__file__).resolve().parent / "letter_mix.py"
+CYCLE8_MIX_FREEZE_LETTER_MIX_SHA256 = "b1ceec24e584c0e9e7135ef0c89a3bd249b0bda4a45e07aa7190b1b010ba56d4"
 _DEVELOPMENT_ARTIFACTS = (
     ("1020000", "evidence/cycle8-mix-1020000-n64-2026-08-26/detector-compare.json", "2538c614a73bed360cdeebdaa60c0fa36ad34cf6995c76a120d49bd1da063ce2"),
     ("1030000", "evidence/cycle8-mix-1030000-n64-2026-08-26/detector-compare.json", "142809783554a890cfd68b80b560295605e068b8e0deede8ea81e3e75358eb95"),
@@ -85,7 +85,7 @@ def mix_freeze_payload() -> dict[str, object]:
         "carrier_insertion": "is_carrier_insertion_v1",
         "user_visible_invariants": "validate_user_visible_invariants",
         "supported_input_domain": "is_supported_product_domain_v1",
-        "letter_mix_source_sha256": sha256_file(_LETTER_MIX_PATH),
+        "letter_mix_source_sha256": CYCLE8_MIX_FREEZE_LETTER_MIX_SHA256,
         "detector": {
             "model": "openai-community/gpt2",
             "model_revision": "607a30d783dfa663caf39e06633721c8d4cfcd7e",

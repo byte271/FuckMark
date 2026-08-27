@@ -1,0 +1,129 @@
+{
+  "algorithm_version": "cycle8-benchmark-render-v2",
+  "artifact_hash": "7c9079653379e16b77331f1acccba4bdb72f923c7a4c4cbe28f2dbc71b07461a",
+  "browser_version": "Google Chrome 148.0.7778.96",
+  "chrome_executable": "/usr/local/bin/google-chrome",
+  "commit": "be6ae7645fda8b39d1d308722ac249f519e68de5",
+  "font": "DejaVu Sans Mono",
+  "historical_evidence_invalid_because": "cycle8-benchmark-render-v1 assigned element.value for every surface, then checked 'value' in element. That created a value property on contenteditable divs, skipped textContent, and screenshot-compared two blank divs as VERIFIED.",
+  "historical_files_not_rewritten": true,
+  "measurement_scope": "contenteditable and textarea AAAA/BBBB positive, negative, and nonempty-vs-empty controls on this host",
+  "rows": [
+    {
+      "original": "AAAA",
+      "pair": "negative",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "7363f35290941fe43459f5250fa09a1cfc0cc6870522fee1d032661c743ce45e",
+        "detail": "png_bytes_differ",
+        "environment": "chromium_contenteditable",
+        "equal": false,
+        "font": "DejaVu Sans Mono",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "status": "REJECTED",
+        "transformed_sha256": "4a8d8134f29b0b7b60c126f5532bc9f5d9bb73037373cf6fb872d81f1dcefdfd"
+      },
+      "surface": "contenteditable",
+      "transformed": "BBBB"
+    },
+    {
+      "original": "AAAA",
+      "pair": "positive",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "f69b8b92d51652f58fcdf30fbe89353c1b7f9a00c49b4dca050ae4001cda41cd",
+        "detail": "png_bytes_equal",
+        "environment": "chromium_contenteditable",
+        "equal": true,
+        "font": "DejaVu Sans Mono",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "status": "VERIFIED",
+        "transformed_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201"
+      },
+      "surface": "contenteditable",
+      "transformed": "AAAA"
+    },
+    {
+      "original": "AAAA",
+      "pair": "nonempty_vs_empty",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "c432290011d4d4e4590202997252341293136ecf5430425703a24841eb581a73",
+        "detail": "png_bytes_differ",
+        "environment": "chromium_contenteditable",
+        "equal": false,
+        "font": "DejaVu Sans Mono",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "status": "REJECTED",
+        "transformed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "surface": "contenteditable",
+      "transformed": ""
+    },
+    {
+      "original": "AAAA",
+      "pair": "negative",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "9b7ba94e863ad3c4b267aa59750ddc644b850110dccc4563dabb5eab2f390cb1",
+        "detail": "png_bytes_differ",
+        "environment": "chromium_textarea",
+        "equal": false,
+        "font": "DejaVu Sans Mono",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "status": "REJECTED",
+        "transformed_sha256": "4a8d8134f29b0b7b60c126f5532bc9f5d9bb73037373cf6fb872d81f1dcefdfd"
+      },
+      "surface": "textarea",
+      "transformed": "BBBB"
+    },
+    {
+      "original": "AAAA",
+      "pair": "positive",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "c8e0a881d1f514214edfa79d535bdce7de77e11c833bcf44e636c2c7246fb87b",
+        "detail": "png_bytes_equal",
+        "environment": "chromium_textarea",
+        "equal": true,
+        "font": "DejaVu Sans Mono",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "status": "VERIFIED",
+        "transformed_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201"
+      },
+      "surface": "textarea",
+      "transformed": "AAAA"
+    },
+    {
+      "original": "AAAA",
+      "pair": "nonempty_vs_empty",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "d27a138c9e29a039f318b7d4bd55e27c1fa6fe0fd1545cb4bbba6eb21f9a97c4",
+        "detail": "png_bytes_differ",
+        "environment": "chromium_textarea",
+        "equal": false,
+        "font": "DejaVu Sans Mono",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "status": "REJECTED",
+        "transformed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "surface": "textarea",
+      "transformed": ""
+    }
+  ],
+  "superseded_paths": [
+    "evidence/cycle8-letter-system-benchmark-2026-08-26/local-system.json",
+    "evidence/cycle8-letter-system-benchmark-2026-08-26/scorecard.json",
+    "evidence/cycle8-mix-margin-2026-08-26/local-system.json",
+    "evidence/cycle8-mix-margin-2026-08-26/scorecard.json"
+  ],
+  "terminal_pixels": "UNKNOWN",
+  "webkit_safari": "UNKNOWN"
+}
