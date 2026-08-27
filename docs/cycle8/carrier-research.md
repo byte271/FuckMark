@@ -64,8 +64,8 @@ DEL (U+007F) and C1 (U+0080..U+009F except U+0085) are 32 code points that:
 - are `Cc`, not default-ignorable, not Mn, not Cf;
 - survive Mn-strip, default-ignorable-strip, Cf-strip, NFC, NFKC, NFKD, frozen Cycle 6/7 sanitizers, and the combination of those arms;
 - keep exact `project_visible_v1` when used as approved insertion carriers;
-- keep Chromium `pre`, textarea, and contenteditable PNG bytes on single-insert probes and on a full letter-alternating apply of the short paragraph and the GPT-2 fixture;
-- keep Chromium `window.find` HIT for `do not` on the short paragraph;
+- are Chromium-pixel **host-dependent**: one research host matched `pre`/textarea/contenteditable PNG bytes on single-insert probes and a full apply; GitHub Actions Chromium `REJECTED` the same full apply (`png_bytes_differ`);
+- keep Chromium `window.find` HIT for `do not` on the short paragraph on the research host;
 - disrupt GPT-2 BPE (`ids_equal=false`, token-count delta positive);
 - round-trip through UTF-8, JSON, and latin-1;
 - fail the v1 product display-width proxy, which still counts `Cc` as width 1. Research width skips the eligible set. That is a proxy gap, not a visible-text change.
@@ -76,7 +76,7 @@ Seen-corpus DeepMind 30-key diagnostic rescore of seed `920000` n=16: identity W
 
 Independent reserved seed `1100000` n=16: identity WM **15/16**, control-mix WM **0/16**, all UW **0/16**, visible pass, required sanitizers keep every control-mix row, control-mix max `0.505851`. The identity miss is one structured-instructional watermarked row at `0.556873` versus threshold `0.557099`. Do not rewrite 15/16 as 16/16. This n=16 is `HYPOTHESIS`, not confirmation, and does not transfer mix-freeze 0/192.
 
-ISO-6429 C1 device controls including CSI (U+009B) remain in the measured 32-codepoint eligible set. Product `display_column_width` still counts `Cc` as width 1. Terminal pixels stay UNKNOWN. Those ordinary-text and terminal risks block product authorization. They do not rewrite mix sanitizer FAIL.
+ISO-6429 C1 device controls including CSI (U+009B) remain in the measured 32-codepoint eligible set. Product `display_column_width` still counts `Cc` as width 1. Terminal pixels stay UNKNOWN. Chromium `pre` pixels are host-dependent. Those ordinary-text, terminal, and cross-Chromium visibility risks block product authorization. They do not rewrite mix sanitizer FAIL.
 
 Spec: `cycle8-control-carrier-scan-v1`.
 

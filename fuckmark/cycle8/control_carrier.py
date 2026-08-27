@@ -17,7 +17,7 @@ from .unicode_meta import is_default_ignorable_v1
 
 CYCLE8_CONTROL_CARRIER_VERSION = "cycle8-control-carrier-scan-v1"
 CYCLE8_CONTROL_CARRIER_PATH = "specs/cycle8/fuckmark-cycle8-control-carrier-scan-v1.json"
-CYCLE8_CONTROL_CARRIER_HASH = "1e63bd5d39f04ba1f7d3634c60cea1f218e118590dd8d09b55ffb449908010e4"
+CYCLE8_CONTROL_CARRIER_HASH = "99785e6bbe4b32b1cb91a1616fd0c1620cb78e73270299dcb7d7f9b0ac5aaffd"
 LAYOUT_CONTROL_CODEPOINTS = (0x0009, 0x000A, 0x000B, 0x000C, 0x000D, 0x0085, 0x2028, 0x2029)
 HOSTILE_CONTROL_CODEPOINTS = (0x0000,)
 ISO6429_DEVICE_CONTROL_CODEPOINTS = (0x0084, 0x008D, 0x008E, 0x008F, 0x0090, 0x0098, 0x009B, 0x009C, 0x009D, 0x009E, 0x009F)
@@ -172,6 +172,7 @@ def scan_control_carrier_class() -> dict[str, object]:
             codepoint in CONTROL_MIX_ELIGIBLE_CODEPOINTS for codepoint in ISO6429_DEVICE_CONTROL_CODEPOINTS
         ),
         "product_display_width_proxy": "FAIL",
+        "chromium_pre_pixels": "HOST_DEPENDENT",
         "terminal_pixels": "UNKNOWN",
         "layout_control_labels": layout,
         "hostile_control_labels": hostile,
@@ -185,11 +186,13 @@ def scan_control_carrier_class() -> dict[str, object]:
             "are excluded. DEL and C1 except NEXT LINE survive Mn-strip, "
             "default-ignorable-strip, Cf-strip, NFC, NFKC, NFKD, frozen Cycle 6/7 "
             "sanitizers, and the combination of those arms. Product display width still "
-            "counts them. Research width skips the eligible set because Chromium pre, "
-            "textarea, and contenteditable pixels match the source. ISO-6429 C1 device "
-            "controls including CSI remain in the measured eligible set. That ordinary-text "
-            "and terminal risk blocks product authorization and does not rewrite mix "
-            "sanitizer FAIL. Terminal pixels stay UNKNOWN."
+            "counts them. Research width skips the eligible set. Chromium pre, "
+            "textarea, and contenteditable pixels are host-dependent for this class: "
+            "one research host matched the source, GitHub Actions Chromium rejected "
+            "the full apply. ISO-6429 C1 device "
+            "controls including CSI remain in the measured eligible set. Ordinary-text, "
+            "terminal, and cross-Chromium visibility risks block product authorization "
+            "and do not rewrite mix sanitizer FAIL. Terminal pixels stay UNKNOWN."
         ),
     }
     return {**payload, "control_carrier_hash": sha256_json(payload)}
@@ -234,5 +237,7 @@ def assert_control_carrier_scan_committed() -> None:
         raise ValueError("measured eligible set must keep ISO-6429 device controls")
     if live["product_display_width_proxy"] != "FAIL":
         raise ValueError("product display-width proxy must remain FAIL")
+    if live["chromium_pre_pixels"] != "HOST_DEPENDENT":
+        raise ValueError("control-mix Chromium pixels must remain host-dependent")
     if live["terminal_pixels"] != "UNKNOWN":
         raise ValueError("terminal pixels must remain UNKNOWN")
