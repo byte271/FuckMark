@@ -3,6 +3,7 @@
 This directory records measurements and invalidations for the F01-F07 audit fixes. It does not rewrite historical evidence files.
 
 Audited baseline commit: `be6ae7645fda8b39d1d308722ac249f519e68de5` (package 0.4.0).
+Fix commit: `1d686b6eb133c29479b2d9bc1b609f929b63e06e`.
 
 ## F01 contenteditable rendering
 
