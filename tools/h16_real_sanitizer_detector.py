@@ -50,6 +50,7 @@ def main() -> int:
         mixed = apply_letter_alternating_mix(source)
         pristine = _score_text(f"{sample['sample_id']}-pristine", source, tokenizer, adapter, eos)
         variants = {}
+        controls = {}
         for variant_id, function in VARIANTS:
             cleaned = function(mixed)
             score = _score_text(
@@ -61,6 +62,15 @@ def main() -> int:
                 "restores_source": cleaned == source,
                 "text_hash": sha256_text(cleaned),
             }
+            carrier_free = function(source)
+            carrier_free_score = _score_text(
+                f"{sample['sample_id']}-nomix-{variant_id}", carrier_free, tokenizer, adapter, eos
+            )
+            controls[variant_id] = {
+                "score": carrier_free_score,
+                "detected": carrier_free_score >= CYCLE6_THRESHOLD,
+                "changes_source": carrier_free != source,
+            }
         rows.append(
             {
                 "sample_id": sample["sample_id"],
@@ -69,6 +79,7 @@ def main() -> int:
                 "pristine_score": pristine,
                 "pristine_detected": pristine >= CYCLE6_THRESHOLD,
                 "variants": variants,
+                "carrier_free_controls": controls,
             }
         )
 
@@ -86,6 +97,12 @@ def main() -> int:
         )
         summary[f"{variant_id}_restores_source"] = sum(
             bool(row["variants"][variant_id]["restores_source"]) for row in rows
+        )
+        summary[f"{variant_id}_carrier_free_watermarked_detected"] = sum(
+            bool(row["carrier_free_controls"][variant_id]["detected"]) for row in watermarked
+        )
+        summary[f"{variant_id}_carrier_free_changes_source"] = sum(
+            bool(row["carrier_free_controls"][variant_id]["changes_source"]) for row in rows
         )
 
     payload = {
@@ -106,12 +123,16 @@ def main() -> int:
     print(f"threshold {CYCLE6_THRESHOLD}")
     print(f"watermarked rows {summary['watermarked_rows']}, unwatermarked rows {summary['unwatermarked_rows']}")
     print(f"pristine watermarked detected {summary['pristine_watermarked_detected']}/{summary['watermarked_rows']}")
+    rows_total = len(rows)
+    watermarked_total = summary["watermarked_rows"]
+    print(f"\n{'variant':38} {'mix detected':>13} {'no-mix control':>15} {'restores src':>13}")
     for variant_id, _ in VARIANTS:
         detected = summary[f"{variant_id}_watermarked_detected"]
+        control = summary[f"{variant_id}_carrier_free_watermarked_detected"]
         restores = summary[f"{variant_id}_restores_source"]
         print(
-            f"  mix + {variant_id:36} watermarked detected "
-            f"{detected}/{summary['watermarked_rows']}  restores source {restores}/{len(rows)}"
+            f"  {variant_id:36} {f'{detected}/{watermarked_total}':>13} "
+            f"{f'{control}/{watermarked_total}':>15} {f'{restores}/{rows_total}':>13}"
         )
     print("wrote", arguments.out)
     return 0

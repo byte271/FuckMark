@@ -18,14 +18,24 @@
     "pristine_unwatermarked_detected": 2,
     "raw_watermarked_detected": 0,
     "raw_restores_source": 0,
+    "raw_carrier_free_watermarked_detected": 47,
+    "raw_carrier_free_changes_source": 0,
     "nfkc_watermarked_detected": 0,
     "nfkc_restores_source": 0,
+    "nfkc_carrier_free_watermarked_detected": 47,
+    "nfkc_carrier_free_changes_source": 0,
     "cf_strip_watermarked_detected": 0,
     "cf_strip_restores_source": 0,
+    "cf_strip_carrier_free_watermarked_detected": 47,
+    "cf_strip_carrier_free_changes_source": 0,
     "lm_watermarking_unicode_sanitizer_watermarked_detected": 0,
     "lm_watermarking_unicode_sanitizer_restores_source": 0,
+    "lm_watermarking_unicode_sanitizer_carrier_free_watermarked_detected": 46,
+    "lm_watermarking_unicode_sanitizer_carrier_free_changes_source": 88,
     "required_bundle_watermarked_detected": 47,
-    "required_bundle_restores_source": 96
+    "required_bundle_restores_source": 96,
+    "required_bundle_carrier_free_watermarked_detected": 47,
+    "required_bundle_carrier_free_changes_source": 0
   },
   "rows": [
     {
@@ -64,6 +74,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "b864dcf507146625da4b5113b24ab0eecd87ec5be11f8c89105d5781b51def0a"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5291245791245791,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5291245791245791,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5291245791245791,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5227723665223666,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5291245791245791,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -104,6 +141,33 @@
           "restores_source": true,
           "text_hash": "b55aa3f2449c498a8f002befdfa10682efe58f553f255042ef4e26865c920ecc"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6411195286195286,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6411195286195286,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6411195286195286,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6197691197691197,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6411195286195286,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -142,6 +206,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "3e4a27852505b20846c919f091541050fad3882097e58a254d88a7892856893d"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5172558922558922,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5172558922558922,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5172558922558922,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5236415882967607,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5172558922558922,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -182,6 +273,33 @@
           "restores_source": true,
           "text_hash": "4d1056fa48a7be2995ccb52e93b844159adf3b622d3af4700a489f89840f2fa5"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5160123966942148,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5160123966942148,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5160123966942148,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.48208273208273206,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5160123966942148,
+          "detected": false,
+          "changes_source": false
+        }
       }
     },
     {
@@ -220,6 +338,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "9437a0e41728f7b61fd04921765110a9f46a1d30dbac79cdf7667752db606d4f"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4983585858585859,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4983585858585859,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4983585858585859,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49188311688311687,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.4983585858585859,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -260,6 +405,33 @@
           "restores_source": true,
           "text_hash": "2d76ca56feddb9aea9fb9b9d4157761fa4f1df2889aff5afe6b8a32380a3df97"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.647053872053872,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.647053872053872,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.647053872053872,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6364571642349419,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.647053872053872,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -298,6 +470,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "944c3f4e2d4b01c115bf1d535ebf8b2cdb80ef9f6c2e5a6cf3aabed7455bff57"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5450487012987012,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5450487012987012,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5450487012987012,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5334467120181405,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5450487012987012,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -338,6 +537,33 @@
           "restores_source": true,
           "text_hash": "a0b0d5d636db80f68d2ad5b268045cd1869c97d76d5834c828977348ad9840fe"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5882575757575758,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5882575757575758,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5882575757575758,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.546672077922078,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5882575757575758,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -376,6 +602,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "ef2d73d900ea9c05b7290ea8767452e00279e5b1517f514f74e434ed0931ce8f"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4805976430976431,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4805976430976431,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4805976430976431,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4805976430976431,
+          "detected": false,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.4805976430976431,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -416,6 +669,33 @@
           "restores_source": true,
           "text_hash": "ca1c4fefcff541d1ca76c15110f399a62844e0eb16a3ebc7168c0637af544597"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6590481082006505,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6590481082006505,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6590481082006505,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6251606978879706,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6590481082006505,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -454,6 +734,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "ebfe2f61120fa148c05e32248afc6625d99b6c24fe50e072c24dbeb2e4a6d78d"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.49756493506493504,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.49756493506493504,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.49756493506493504,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49756493506493504,
+          "detected": false,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.49756493506493504,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -494,6 +801,33 @@
           "restores_source": true,
           "text_hash": "4ed137b45a39859a8253e8227bf261f278641c0c2e6dd44686f1fa25934e4d2b"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.661026936026936,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.661026936026936,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.661026936026936,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6728056426332288,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.661026936026936,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -532,6 +866,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "e1c00cb574bf28f4cc393ae9bc70136cfdc932e3b3431539c8974933b271cb8d"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5044940934771444,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5044940934771444,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5044940934771444,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49590909090909085,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5044940934771444,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -572,6 +933,33 @@
           "restores_source": true,
           "text_hash": "31a59a05d69e8f6e725f5a968ca8fe297480646a2db42630fbc23a158dd0a816"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.634469696969697,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.634469696969697,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.634469696969697,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6238244514106582,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.634469696969697,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -610,6 +998,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "eebba8426f46e8a0db9c8cfb4b061e67ebe0c1d32ad691392886c3ad71d96806"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.464983164983165,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.464983164983165,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.464983164983165,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.45916057122953674,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.464983164983165,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -650,6 +1065,33 @@
           "restores_source": true,
           "text_hash": "cf91bcd28a472fd05fa28ecc339ef3022f9087ce913698c990bc57a692d97516"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6413299663299663,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6413299663299663,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6413299663299663,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6259578544061303,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6413299663299663,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -688,6 +1130,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "662fd38578efca1b0736573a45838e5c722ced357b5d02707c699715be207049"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5206300291046053,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5206300291046053,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5206300291046053,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5120752984389347,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5206300291046053,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -728,6 +1197,33 @@
           "restores_source": true,
           "text_hash": "ff84b3690e4f3da536bdfdda8a7b0eb211a8142fa21a8d188ae6a9e141b908c3"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5917260843731432,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5917260843731432,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5917260843731432,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5886205808080808,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5917260843731432,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -766,6 +1262,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "fbd4390160e7be845c5e1890432fec3dd86057a31bd84b3f6082d7e4c8bf355c"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5358679386457164,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5358679386457164,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5358679386457164,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5344258915687486,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5358679386457164,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -806,6 +1329,33 @@
           "restores_source": true,
           "text_hash": "1c60d89f0804df4642a4c7197e88741242dcb4da47e1cb5c7f17ce6918a43c09"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6369731800766283,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6369731800766283,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6369731800766283,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6369731800766283,
+          "detected": true,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.6369731800766283,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -844,6 +1394,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "92606b4da3ab80da354fcb469186cbde590b69b36e48428390653563980bf4c5"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5120167189132706,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5120167189132706,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5120167189132706,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.514069264069264,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5120167189132706,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -884,6 +1461,33 @@
           "restores_source": true,
           "text_hash": "4884252c7e887a1310a6c7089b614aba69e55dafd4c9e86aa1840556f2ccaa88"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6388453500522466,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6388453500522466,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6388453500522466,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6388453500522466,
+          "detected": true,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.6388453500522466,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -922,6 +1526,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "174b518f64d34643b3a1591d14eb5049de11ec870dfc04dc88460ed24edec9d6"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.54246632996633,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.54246632996633,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.54246632996633,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5481601731601732,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.54246632996633,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -962,6 +1593,33 @@
           "restores_source": true,
           "text_hash": "47411cb1143e2251fe709903b6bb04e7a6494b9dc85bb708caaf5d44c4fbb854"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6295454545454545,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6295454545454545,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6295454545454545,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6239986067572274,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6295454545454545,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1000,6 +1658,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "87c0e1bccdaa66fd17b04f6b0eaee1deeae410eb40a6f9c586e395872e524953"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4887005649717514,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4887005649717514,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4887005649717514,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4878167641325536,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.4887005649717514,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1040,6 +1725,33 @@
           "restores_source": true,
           "text_hash": "73d6be34cd7cb92f1467d144748f78b01782a845c988a86f83cdfcbacb724c78"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6452234206471495,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6452234206471495,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6452234206471495,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6037781662781663,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6452234206471495,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1078,6 +1790,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "4e3322924f14c30e78e95be82b5804db1348c21cb551c7b2dca8dd02ed6f175d"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.47613636363636364,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.47613636363636364,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.47613636363636364,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49233716475095785,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.47613636363636364,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1118,6 +1857,33 @@
           "restores_source": true,
           "text_hash": "417b1cf06b1d5967c9fdddcd22cf11808d25fe7531f6b06c6ab443a82ec8ab55"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6137626262626263,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6137626262626263,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6137626262626263,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5997474747474748,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6137626262626263,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1156,6 +1922,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "0fc7912ba2c4dd2875771b3efcb6e91f3dfcb202b451ef5c0c9f652bab69fd2f"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.49532828282828284,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.49532828282828284,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.49532828282828284,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.48632880529432254,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.49532828282828284,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1196,6 +1989,33 @@
           "restores_source": true,
           "text_hash": "7a17f506343931bd6424d8022beeccad49e5c4d41a755254ba4311bab4935187"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6390993265993266,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6390993265993266,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6390993265993266,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6440346864875166,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6390993265993266,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1234,6 +2054,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "e84182d9008d13e647fbdc9cd44c647f49384e2a73254b3646007397d5c9333d"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5067866161616161,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5067866161616161,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5067866161616161,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5049242424242424,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5067866161616161,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1274,6 +2121,33 @@
           "restores_source": true,
           "text_hash": "d44919871af9404a779265daea8587b8707d37af73f901faa563547499e02b0e"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6033359914938862,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6033359914938862,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6033359914938862,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5777629233511586,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6033359914938862,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1312,6 +2186,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "c93771eecae53014dd00b68f57e3093ac587a8914c6031b0881527be68c7f9f5"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.48973063973063974,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.48973063973063974,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.48973063973063974,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4897248345524207,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.48973063973063974,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1352,6 +2253,33 @@
           "restores_source": true,
           "text_hash": "da8ffc49fd3ba5dc84a494332710365c25efef0054fb537f24516bc64f8a9042"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.649537037037037,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.649537037037037,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.649537037037037,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6355363984674329,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.649537037037037,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1390,6 +2318,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "a332bb972d62b03442c0fb8f615544b6e4dd443dff238cbecb5a9105c46b9fe4"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5365740740740741,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5365740740740741,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5365740740740741,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5382706374085684,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5365740740740741,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1430,6 +2385,33 @@
           "restores_source": true,
           "text_hash": "d7c16d468c4aa2f4ef6a0778f649a0ba6ddd71d18dd56f60e9626fb2e0aee317"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6978114478114478,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6978114478114478,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6978114478114478,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6625180375180374,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6978114478114478,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1468,6 +2450,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "c5a89a5059b9de843dec30344f94f62a9c34039196a53057f05eae8f2574159e"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5374357611199716,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5374357611199716,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5374357611199716,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5075757575757576,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5374357611199716,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1508,6 +2517,33 @@
           "restores_source": true,
           "text_hash": "e0caf0619b35ba022d524ed2caee18881a3f1219a6ead123387ce878cd09f583"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6075409265064438,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6075409265064438,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6075409265064438,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6128558310376492,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6075409265064438,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1546,6 +2582,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "343fcf5f365e87007589891987bf0f2e2939e6b1b20ee0659cd13ed2bae3688f"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5284511784511784,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5284511784511784,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5284511784511784,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5274971941638609,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5284511784511784,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1586,6 +2649,33 @@
           "restores_source": true,
           "text_hash": "24a06ff2c2a92568fc08b6bd77e0788f316645dfb770c5a9e4e0bb3708e3f8cd"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6044536271808999,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6044536271808999,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6044536271808999,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6049382716049382,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6044536271808999,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1624,6 +2714,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "fe1d03c3d5fe2ee54f82253962e55d19cc0b9d552ae1bbdb24d82c57e40ac9d3"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.47920875420875414,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.47920875420875414,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.47920875420875414,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.501984126984127,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.47920875420875414,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1664,6 +2781,33 @@
           "restores_source": true,
           "text_hash": "db914fddc727c1d5ba20dc514c1f5abd064b1cd4e6e4915cb7366df7c9edf307"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.630628317068995,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.630628317068995,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.630628317068995,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6310425685425685,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.630628317068995,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1702,6 +2846,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "2cd2eb4afd958e2535c21c97d09dc6455f00cf8fea10200b4ee20fc6d358bfdd"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4841470258136924,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4841470258136924,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4841470258136924,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.50616458704694,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.4841470258136924,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1742,6 +2913,33 @@
           "restores_source": true,
           "text_hash": "a9578ac7133ac93a9ea75a668aefa4188ee8db3bad526ac36e1337d3c8197edf"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6303117380703588,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6303117380703588,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6303117380703588,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6303117380703588,
+          "detected": true,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.6303117380703588,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1780,6 +2978,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "fe0f1d200087ca604f135798c69df96df584d8a63a4aa0b91f9117956923dd39"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4880952380952381,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4880952380952381,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4880952380952381,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4867658062102507,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.4880952380952381,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1820,6 +3045,33 @@
           "restores_source": true,
           "text_hash": "e2c04cd2c833e35bcff62d19cb2a56f29702160a8ab0c080f552d1fc49a53111"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6444444444444444,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6444444444444444,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6444444444444444,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6472483455242076,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6444444444444444,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1858,6 +3110,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "c1ad83fbdd4311499f3e324f7935eee049c08085fd0d41659f28d56beb1cefb8"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.523709315375982,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.523709315375982,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.523709315375982,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.549681598594642,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.523709315375982,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -1898,6 +3177,33 @@
           "restores_source": true,
           "text_hash": "23f5a3ded324d35b4af912e17aa811396455ec8a37b10d988994dbb6cbe11d2a"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6361531986531986,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6361531986531986,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6361531986531986,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.621482683982684,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6361531986531986,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -1936,6 +3242,33 @@
           "detected": true,
           "restores_source": true,
           "text_hash": "43463fc768cca1fdd6fe92bf7a17e6b32917c371aecb791c77ac92f3e0090b11"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5680415263748597,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5680415263748597,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5680415263748597,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5270845712022183,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5680415263748597,
+          "detected": true,
+          "changes_source": false
         }
       }
     },
@@ -1976,6 +3309,33 @@
           "restores_source": true,
           "text_hash": "7ba162d92796d19ca5fd40067aec47a4585add1651d5ac26e7f0a3d20c26e78e"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6257215007215008,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6257215007215008,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6257215007215008,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6257215007215008,
+          "detected": true,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.6257215007215008,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2014,6 +3374,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "8bb2fc5abfcbde13c1580c048459e3e604098dc6efe180b9fd507d22119ef0e3"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5537037037037037,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5537037037037037,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5537037037037037,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5537037037037037,
+          "detected": false,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.5537037037037037,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2054,6 +3441,33 @@
           "restores_source": true,
           "text_hash": "8538545521ea855b03b39c123f0b81ad29a53a3be01bd04d8444a85fef26aefa"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6173172401985961,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6173172401985961,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6173172401985961,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6123048668503214,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6173172401985961,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2092,6 +3506,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "d223a6a49753c26c9dcca43672cf9048ed54110ce4e0b741ea6734a2c2595e5b"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4386363636363636,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4386363636363636,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4386363636363636,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4372895622895623,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.4386363636363636,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2132,6 +3573,33 @@
           "restores_source": true,
           "text_hash": "b45b96fa2a085634cee4b2800b6bae6ae11cb4693ae73ae6b561ff5f15272c29"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6196548821548821,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6196548821548821,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6196548821548821,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6201298701298701,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6196548821548821,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2170,6 +3638,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "1551bf0e84cb979dd3d36608a715b788975c0aea1d93aa5b8bec6ca4bf70a2d0"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5111952861952862,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5111952861952862,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5111952861952862,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5044677544677545,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5111952861952862,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2210,6 +3705,33 @@
           "restores_source": true,
           "text_hash": "e84d682ecb550b0a23d27ac56161cd5dff42f79645b8c624888bc069cfb7b680"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6384680134680135,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6384680134680135,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6384680134680135,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6038627010849232,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6384680134680135,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2248,6 +3770,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "b7c1d8fedd0b59760da817f03269aff33f524fc04aca7f1a9f5a1fbcec254e98"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.512497859955487,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.512497859955487,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.512497859955487,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.47736801982085,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.512497859955487,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2288,6 +3837,33 @@
           "restores_source": true,
           "text_hash": "dbe4c6e61ce6897a529e9caa31383296803b3d6362f2e249252c3d879fb28d0f"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5946748183590288,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5946748183590288,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5946748183590288,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5715170573661139,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5946748183590288,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2326,6 +3902,33 @@
           "detected": true,
           "restores_source": true,
           "text_hash": "96c44425f48fe39b29102431e49c8a0b82250851d83274594cbd6c86c39f786d"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5645202020202019,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5645202020202019,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5645202020202019,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5701846046673633,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5645202020202019,
+          "detected": true,
+          "changes_source": false
         }
       }
     },
@@ -2366,6 +3969,33 @@
           "restores_source": true,
           "text_hash": "f53daaea08edeb6154e12a6451c2945635319250c72736ea87c02c117a4a0ed0"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6225168350168351,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6225168350168351,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6225168350168351,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6284137673026562,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6225168350168351,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2404,6 +4034,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "30acdd0738ee4356feba6d2218471f69652422ecc5297bef9f069acaf2ff986c"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5049634273772204,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5049634273772204,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5049634273772204,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.46449792038027327,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5049634273772204,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2444,6 +4101,33 @@
           "restores_source": true,
           "text_hash": "5ffb0b8b2eb121881a1f373e37f139c05fd36febee2c950674de141dc031cff4"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6433080808080808,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6433080808080808,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6433080808080808,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6119678932178932,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6433080808080808,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2482,6 +4166,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "7c989da8370eda1241dd6a31b10acbc762ddef9b798c165f6ce87c5914f4c0d1"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4802188552188552,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4802188552188552,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4802188552188552,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4802188552188552,
+          "detected": false,
+          "changes_source": false
+        },
+        "required_bundle": {
+          "score": 0.4802188552188552,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2522,6 +4233,33 @@
           "restores_source": true,
           "text_hash": "f34c90f4183f829556275fdb7a0a47b36ad0fdeba74681a736a7219251133e2d"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.634351994521486,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.634351994521486,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.634351994521486,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.610651974288338,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.634351994521486,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2560,6 +4298,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "c4db32f1f9452eda7601fd5a199a50c829fb41ad8c89e3785fe3c15aa894ff96"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.49790275637733267,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.49790275637733267,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.49790275637733267,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.49162679425837313,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.49790275637733267,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2600,6 +4365,33 @@
           "restores_source": true,
           "text_hash": "0074613b81f78129bb25ab8b2482018aef5652b8a5c99d65e564882e01ed6057"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6351430976430976,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6351430976430976,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6351430976430976,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6269841269841269,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6351430976430976,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2638,6 +4430,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "6dc5767beb6b3a55c9247b4b38effdebffe7c4273aabfad39e8b99002014c85b"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4948638931689779,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4948638931689779,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4948638931689779,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4788927005908138,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.4948638931689779,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2678,6 +4497,33 @@
           "restores_source": true,
           "text_hash": "564be0d3351b1a918ed9afb05846c89170aa4bcc3e119dfdabe212a8b75b636d"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6337809917355371,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6337809917355371,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6337809917355371,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6573663463907367,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6337809917355371,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2716,6 +4562,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "66a75b29104100773c36fc821332f8973969a55ec058e0e2b81447df764e60a8"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5094696969696969,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5094696969696969,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5094696969696969,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5156739811912225,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5094696969696969,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2756,6 +4629,33 @@
           "restores_source": true,
           "text_hash": "aa3d9b837ade6f4a204d46d19afd916c01b46605202fee39dc478aab1b11b239"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6821969696969696,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6821969696969696,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6821969696969696,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6830808080808081,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6821969696969696,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2794,6 +4694,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "3a993ddd2f92cb8b1f0c0f552bfa3673513a10785bf34017ab05f451418a629d"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5353956228956228,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5353956228956228,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5353956228956228,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5179105873550318,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5353956228956228,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2834,6 +4761,33 @@
           "restores_source": true,
           "text_hash": "bb796d7797b4bcf9b2d496883b5b1c9e79f3400146c15d81804bd80e2fabec10"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6290926506443748,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6290926506443748,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6290926506443748,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.598970473970474,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6290926506443748,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2872,6 +4826,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "5576802564a33339571672bc80212dcaca34456aeb6f650b8e319c58ca36534b"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5142954973463448,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5142954973463448,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5142954973463448,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5130853994490358,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5142954973463448,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2912,6 +4893,33 @@
           "restores_source": true,
           "text_hash": "fc80a8e6bec2923d128bffa968d4343138559555c226bfd09c5c2cb0226abcca"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6119107744107743,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6119107744107743,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6119107744107743,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5948773448773449,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6119107744107743,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -2950,6 +4958,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "dfad50937aa1598eba206d4fdf2beec31b2a11cac7d884995f6868e35b019d72"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.47268518518518515,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.47268518518518515,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.47268518518518515,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.4706112852664576,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.47268518518518515,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -2990,6 +5025,33 @@
           "restores_source": true,
           "text_hash": "74d14a6ff47f99843051705debb6ec7719718575ad3c9bf6ed49f9465e1f806b"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6453946242081836,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6453946242081836,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6453946242081836,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.625465178096757,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6453946242081836,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3028,6 +5090,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "efc9e6068bcb83af2af4131ffac5db937d470b44e9bfe4239a6502d80e4e1716"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5181397306397306,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5181397306397306,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5181397306397306,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5047892720306514,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5181397306397306,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3068,6 +5157,33 @@
           "restores_source": true,
           "text_hash": "409e40753f782543c747c7fac79eda1178489107cb517d4ecda4809e776024c5"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6509392167286904,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6509392167286904,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6509392167286904,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.642056932966024,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6509392167286904,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3106,6 +5222,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "306475a65cf3ef779ba4c1fb30bc537a8a205556f50f406beb82ebfbe3da4ca5"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5233585858585859,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5233585858585859,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5233585858585859,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5241640543364682,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5233585858585859,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3146,6 +5289,33 @@
           "restores_source": true,
           "text_hash": "0f84efba7dcdd32df91fce272c51faaeb21ce95859a5a81913eb118e1e4f5731"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6662878787878788,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6662878787878788,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6662878787878788,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6638801811215604,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6662878787878788,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3184,6 +5354,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "f87ca8531d684605c6e2225fcdfbd7a99f947ff8a3f3c29196f274fc5193eec5"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5313552188552189,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5313552188552189,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5313552188552189,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5574261129816686,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5313552188552189,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3224,6 +5421,33 @@
           "restores_source": true,
           "text_hash": "4f2a88ad24592001d21550705de9a19db46a39302fc82a410123e367a443e6f8"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6143765238592824,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6143765238592824,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6143765238592824,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5952581369248036,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6143765238592824,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3262,6 +5486,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "af777fc20bd3cfe5282db69d3a2a5c672b1fcacadf44f85b27c272c4f30d530b"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5077441077441077,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5077441077441077,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5077441077441077,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.48942006269592475,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5077441077441077,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3302,6 +5553,33 @@
           "restores_source": true,
           "text_hash": "42bd6c39733925bb67a1b08181c383842cb1250ff75293183f4f922599704b54"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6238259790891371,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6238259790891371,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6238259790891371,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6235970819304152,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6238259790891371,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3340,6 +5618,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "2b6567f129e233f3b568aea064d093e8b432426fcba6354e1c2022c943498931"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5022727272727273,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5022727272727273,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5022727272727273,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5294612794612794,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5022727272727273,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3380,6 +5685,33 @@
           "restores_source": true,
           "text_hash": "f36a6399461ae862a90d9cdef4bb3641b0cb96ebe8a694c47bbc292511197e19"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6637562061290875,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6637562061290875,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6637562061290875,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6130751964085297,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6637562061290875,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3418,6 +5750,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "2cde25944450f15671dd315252567d0a994d46fcf3dbf22217c48ebd02e5fada"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.4922530388632083,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.4922530388632083,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.4922530388632083,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5019390331890332,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.4922530388632083,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3458,6 +5817,33 @@
           "restores_source": true,
           "text_hash": "35dbd8d5b023926088cae0e13b8521d6e479da82ce714a4a58cd053a555c5302"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6543771043771044,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6543771043771044,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6543771043771044,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6529083942877045,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6543771043771044,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3496,6 +5882,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "d7eb6f20165dd1633daf2898d4d66a09e347a4599c57c43d6d06ea7e00ba6a79"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5235840548340548,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5235840548340548,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5235840548340548,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5160922955040602,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5235840548340548,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3536,6 +5949,33 @@
           "restores_source": true,
           "text_hash": "cc0604ba4f08d7fa2961e9d54732d29553e6f2888e2a29d9e223493d3521ff00"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5750643691820162,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5750643691820162,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5750643691820162,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5635951350237064,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5750643691820162,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3574,6 +6014,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "577cf475c50a867f5282dbe38e0279eba3af0e2dfedf1be3b89d7e52c3502dec"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5466329966329967,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5466329966329967,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5466329966329967,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5369902731013843,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5466329966329967,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3614,6 +6081,33 @@
           "restores_source": true,
           "text_hash": "9bfcea4cd6012a04f66354210a6e3f6b1ae1175fd1fe2f8b7ebdc0ef31e9f24d"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6153499278499278,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6153499278499278,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6153499278499278,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6047979797979798,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6153499278499278,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3652,6 +6146,33 @@
           "detected": false,
           "restores_source": true,
           "text_hash": "54ce15f0f2bd350ecf815ec75a8310ef1ddedc51b21cfa7f8a155617391d132b"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5103535353535353,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5103535353535353,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5103535353535353,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5103715728715729,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5103535353535353,
+          "detected": false,
+          "changes_source": false
         }
       }
     },
@@ -3692,6 +6213,33 @@
           "restores_source": true,
           "text_hash": "1679929e1c9e71cd3ee7ee864c79c7e4b6f51295c66707adcc6d7488287bc093"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6028077384009588,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6028077384009588,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6028077384009588,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.6006359895248784,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6028077384009588,
+          "detected": true,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3731,6 +6279,33 @@
           "restores_source": true,
           "text_hash": "60c907ac0e67fb71fa49395d95497db26606cb217da6a10346bd7443ae692af5"
         }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.5558979626776237,
+          "detected": false,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.5558979626776237,
+          "detected": false,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.5558979626776237,
+          "detected": false,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.5531655844155844,
+          "detected": false,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.5558979626776237,
+          "detected": false,
+          "changes_source": false
+        }
       }
     },
     {
@@ -3769,6 +6344,33 @@
           "detected": true,
           "restores_source": true,
           "text_hash": "4d3ba8d175626d61368c8310bfb4161411af4f29904d1183fb581401d3fb9db7"
+        }
+      },
+      "carrier_free_controls": {
+        "raw": {
+          "score": 0.6535669191919192,
+          "detected": true,
+          "changes_source": false
+        },
+        "nfkc": {
+          "score": 0.6535669191919192,
+          "detected": true,
+          "changes_source": false
+        },
+        "cf_strip": {
+          "score": 0.6535669191919192,
+          "detected": true,
+          "changes_source": false
+        },
+        "lm_watermarking_unicode_sanitizer": {
+          "score": 0.632685551163812,
+          "detected": true,
+          "changes_source": true
+        },
+        "required_bundle": {
+          "score": 0.6535669191919192,
+          "detected": true,
+          "changes_source": false
         }
       }
     }

@@ -187,6 +187,15 @@ def test_mix_still_evades_the_real_sanitizer():
     assert detector["real_sanitizer_watermarked_detected"] == 0
 
 
+def test_the_real_sanitizer_does_not_suppress_detection_by_itself():
+    detector = real_sanitizer_detector_observations()
+    assert detector["real_sanitizer_carrier_free_detected"] == 46
+    assert detector["real_sanitizer_watermarked_detected"] == 0
+    assert "confound_ruled_out" in detector
+    for row in detector["per_variant"]:
+        assert row["carrier_free_detected"] >= 46
+
+
 def test_required_bundle_defeats_mix_only_by_restoring_the_source():
     detector = real_sanitizer_detector_observations()
     assert detector["required_bundle_watermarked_detected"] == 47

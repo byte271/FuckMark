@@ -21,7 +21,7 @@ from .publishability import (
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "9658d3df80de0f134a2fb37f8b9ba0f66288fe12f1572cd33f732d8000ad916d"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "702ee4613e8573823ecf45b0b74a0a112c9891e39a16a73f5d09023ddb4745d7"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -98,11 +98,16 @@ REAL_SANITIZER_DETECTOR_MODEL = "openai-community/gpt2"
 REAL_SANITIZER_DETECTOR_WATERMARKED_ROWS = 48
 REAL_SANITIZER_DETECTOR_PRISTINE_DETECTED = 47
 REAL_SANITIZER_DETECTOR_OBSERVATIONS: tuple[dict[str, object], ...] = (
-    {"variant": "raw", "watermarked_detected": 0, "restores_source": 0},
-    {"variant": "nfkc", "watermarked_detected": 0, "restores_source": 0},
-    {"variant": "cf_strip", "watermarked_detected": 0, "restores_source": 0},
-    {"variant": "lm_watermarking_unicode_sanitizer", "watermarked_detected": 0, "restores_source": 0},
-    {"variant": "required_bundle", "watermarked_detected": 47, "restores_source": 96},
+    {"variant": "raw", "watermarked_detected": 0, "carrier_free_detected": 47, "restores_source": 0},
+    {"variant": "nfkc", "watermarked_detected": 0, "carrier_free_detected": 47, "restores_source": 0},
+    {"variant": "cf_strip", "watermarked_detected": 0, "carrier_free_detected": 47, "restores_source": 0},
+    {
+        "variant": "lm_watermarking_unicode_sanitizer",
+        "watermarked_detected": 0,
+        "carrier_free_detected": 46,
+        "restores_source": 0,
+    },
+    {"variant": "required_bundle", "watermarked_detected": 47, "carrier_free_detected": 47, "restores_source": 96},
 )
 TOKENIZER_OBSERVATIONS: tuple[dict[str, object], ...] = (
     {"model": "gemma-2-2b-it", "normalizer": "Replace", "carriers_reaching_token_stream": 9, "carriers_probed": 9},
@@ -252,12 +257,19 @@ def real_sanitizer_detector_observations() -> dict[str, object]:
         "pristine_watermarked_detected": REAL_SANITIZER_DETECTOR_PRISTINE_DETECTED,
         "per_variant": [dict(row) for row in REAL_SANITIZER_DETECTOR_OBSERVATIONS],
         "real_sanitizer_watermarked_detected": real["watermarked_detected"],
+        "real_sanitizer_carrier_free_detected": real["carrier_free_detected"],
         "required_bundle_watermarked_detected": bundle["watermarked_detected"],
         "required_bundle_restores_source_rows": bundle["restores_source"],
+        "confound_ruled_out": (
+            "the real sanitizer collapses space runs and strips Cc, so it could have suppressed "
+            "detection by itself; run on carrier-free watermarked text it still detects 46 of 48 "
+            "against a 47 of 48 baseline, so the drop to 0 is attributable to the carrier"
+        ),
         "reading": (
-            "Mix evades at 0 of 48 after the real sanitizer, the same as raw. The required "
-            "bundle is the only variant that restores detection, and it does so only because "
-            "it reconstructs the original string on every row."
+            "Mix evades at 0 of 48 after the real sanitizer, the same as raw, while that "
+            "sanitizer costs only one row of detection power on its own. The required bundle is "
+            "the only variant that restores detection, and it does so only because it "
+            "reconstructs the original string on every row."
         ),
         "confirmation_grade": False,
     }
@@ -470,7 +482,10 @@ def threat_model_audit_payload() -> dict[str, object]:
             "of the 396 invisible code points including U+034F, removes U+FE00, injects spurious "
             "spaces, corrupts 5 of 7 ordinary samples, and does not restore the unwatermarked "
             "source. Measured on the exploratory lane, seed 890000, mix still evades it at 0 of 48 "
-            "watermarked rows against 47 of 48 pristine, exactly as under raw. The one variant "
+            "watermarked rows against 47 of 48 pristine, exactly as under raw. That sanitizer "
+            "collapses space runs and strips Cc, so it could have suppressed detection by itself, "
+            "but run on carrier-free watermarked text it still detects 46 of 48, which attributes "
+            "the drop to the carrier rather than to the sanitizer. The one variant "
             "that restores detection is the required bundle itself, at 47 of 48, and it does so "
             "only because it reconstructs the original string on all 96 rows. Read against the "
             "already recorded frozen confirmation evidence, the frozen conditions of the proposed "
@@ -547,6 +562,8 @@ def assert_threat_model_audit_committed() -> None:
         raise ValueError("the detector measurement must not use a spent or forbidden seed")
     if detector["confirmation_grade"] is not False:
         raise ValueError("an exploratory detector run must not be labelled confirmation grade")
+    if detector["real_sanitizer_carrier_free_detected"] <= detector["watermarked_rows"] // 2:
+        raise ValueError("the carrier-free control must show the real sanitizer preserves detection")
     live = threat_model_audit_payload()
     if live != disk:
         raise ValueError("threat model audit spec does not match the live payload")

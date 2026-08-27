@@ -76,16 +76,20 @@ Because this sanitizer is real, `proposed_gate_v2` **requires** it.
 
 `tools/h16_real_sanitizer_detector.py` then measures whether the detector actually fires on its output, on the exploratory lane (seed 890000, GPT-2, 48 watermarked rows). Seed 890000 is the lane CI already runs on every PR; it is not a confirmation corpus, and none of the spent seeds `830000` / `840000` / `850000` or the forbidden `950000` is touched.
 
-| variant applied to mixed text | watermarked detected | rows where the source is restored |
-| --- | --- | --- |
-| pristine, no transform | 47/48 | — |
-| mix, raw | 0/48 | 0/96 |
-| mix + nfkc | 0/48 | 0/96 |
-| mix + cf_strip | 0/48 | 0/96 |
-| **mix + lm-watermarking UnicodeSanitizer** | **0/48** | 0/96 |
-| mix + required bundle | 47/48 | **96/96** |
+| variant | detected, with mix | detected, no mix | rows where the source is restored |
+| --- | --- | --- | --- |
+| pristine, no transform | 47/48 | — | — |
+| raw | 0/48 | 47/48 | 0/96 |
+| nfkc | 0/48 | 47/48 | 0/96 |
+| cf_strip | 0/48 | 47/48 | 0/96 |
+| **lm-watermarking UnicodeSanitizer** | **0/48** | 46/48 | 0/96 |
+| required bundle | 47/48 | 47/48 | **96/96** |
 
-Mix evades the real sanitizer exactly as well as it evades raw. The one variant that restores detection is the required bundle, and the last column says why: it reconstructs the original string on every single row. That is the mechanism behind the whole H12-H15 blockage — the bundle does not defeat the carrier, it deletes it and hands the detector back the untouched watermarked text.
+Mix evades the real sanitizer exactly as well as it evades raw.
+
+The third column is a control, and it matters. This sanitizer collapses space runs and strips `Cc`, so it damages ordinary text on its own, and a 0/48 could have meant the sanitizer was suppressing detection rather than mix evading it. Applied to carrier-free watermarked text it still detects 46 of 48 against a 47 of 48 baseline. It costs one row of detection power by itself, so the drop to zero is attributable to the carrier.
+
+The fourth column explains the one variant that does restore detection. The required bundle reconstructs the original string on every single row. That is the mechanism behind the whole H12-H15 blockage — the bundle does not defeat the carrier, it deletes it and hands the detector back the untouched watermarked text.
 
 This is an exploratory measurement, not a confirmation run, and it is labelled `exploratory_only_not_confirmation` with `confirmation_grade: false`.
 
