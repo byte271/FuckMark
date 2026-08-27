@@ -29,6 +29,9 @@ CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASE = 1_070_000
 CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE = 1_080_000
 CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE = 1_090_000
 CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE = 1_100_000
+CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_SEED_BASE = 1_200_000
+CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_SEED_BASE = 1_210_000
+CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_SEED_BASE = 1_220_000
 CYCLE8_SCALE_EXPLORATORY_TOPIC = "carrier scaling"
 CYCLE8_SCALE_REPLICATION_TOPIC = "independent scale replication"
 CYCLE8_SCALE_VALIDATION_TOPIC = "clean scale validation"
@@ -50,6 +53,10 @@ CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC = "control mix sanitizer exploratory"
 CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC = "mix formal confirmation primary"
 CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC = "mix formal confirmation replication"
 CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC = "mix formal confirmation holdout"
+CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC = "gate v2 confirmation primary"
+CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC = "gate v2 confirmation replication"
+CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC = "gate v2 confirmation holdout"
+CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_TOPIC = CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC
 
 
 def _row(
@@ -132,6 +139,9 @@ def global_seed_rows() -> tuple[dict[str, object], ...]:
         _row(1080000, "cycle8", "deepmind_transfer_holdout", CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DeepMind synthid-text 30-key GPT-2 mix transfer n=64: identity WM 63/64, mix WM 0/64, mix UW 0/64, visible pass, mix max 0.506760. Combined with 1060000+1070000: mix 0/192. Not mix-freeze confirmation. Do not generate 950000."),
         _row(1090000, "cycle8", "second_model_transfer", CYCLE8_SECOND_MODEL_TRANSFER_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DistilGPT2 DeepMind 30-key mix transfer n=16 HYPOTHESIS: identity WM 16/16, mix WM 0/16, mix UW 0/16, visible pass, mix max 0.504800. Different weights from openai-community/gpt2, same GPT-2 BPE tokenizer (vocab 50257). Not mix-freeze confirmation. Not confirmation-scale. Do not generate 950000."),
         _row(1100000, "cycle8", "control_mix_exploratory_development", CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DeepMind 30-key GPT-2 control-mix exploratory n=16: identity WM 15/16, control-mix WM 0/16, UW 0/16, visible pass, required sanitizers keep, control-mix max 0.505851. Seen diagnostic on 920000 is not this corpus. Not confirmation. Do not generate 950000."),
+        _row(1200000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=True, notes="Reserved before generation. Gate v2 confirmation primary n=64. Detector-after-sanitizer protocol including lm-watermarking UnicodeSanitizer and carrier-free control. Do not inspect 830000/840000/850000. Do not generate 950000. Do not retune after looking at detector scores."),
+        _row(1210000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=True, notes="Reserved before generation. Gate v2 confirmation replication n=64. Independent of 1200000. Do not inspect 830000/840000/850000. Do not generate 950000. Do not retune after looking at detector scores."),
+        _row(1220000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=True, notes="Reserved before generation. Gate v2 confirmation holdout n=64. Independent of 1200000 and 1210000. Do not inspect 830000/840000/850000. Do not generate 950000. Do not retune after looking at detector scores."),
         _row(1120000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1130000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1140000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
@@ -166,7 +176,9 @@ def global_seed_ledger_payload() -> dict[str, object]:
             "Seeds 1060000, 1070000, and 1080000 are reserved for independent "
             "DeepMind synthid-text 30-key mix transfer. "
             "Seed 1090000 is reserved for independent second-model mix transfer. "
-            "Seed 1100000 is reserved for independent control-mix sanitizer exploratory."
+            "Seed 1100000 is reserved for independent control-mix sanitizer exploratory. "
+            "Seeds 1200000, 1210000, and 1220000 are reserved for Gate v2 confirmation "
+            "before generation. Do not reuse 830000, 840000, or 850000. Do not generate 950000."
         ),
         "confirmation_content_forbidden_seed_bases": list(CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES),
         "publicly_exposed_unseen_invalid_seed_bases": list(PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES),
@@ -206,6 +218,12 @@ def global_seed_ledger_payload() -> dict[str, object]:
         "cycle8_second_model_transfer_topic": CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
         "cycle8_control_mix_exploratory_seed_base": CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,
         "cycle8_control_mix_exploratory_topic": CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC,
+        "cycle8_gate_v2_confirmation_primary_seed_base": CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_SEED_BASE,
+        "cycle8_gate_v2_confirmation_primary_topic": CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC,
+        "cycle8_gate_v2_confirmation_replication_seed_base": CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_SEED_BASE,
+        "cycle8_gate_v2_confirmation_replication_topic": CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC,
+        "cycle8_gate_v2_confirmation_holdout_seed_base": CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_SEED_BASE,
+        "cycle8_gate_v2_confirmation_holdout_topic": CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC,
         "cycle8_mix_confirmation_primary_topic": CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
         "cycle8_mix_confirmation_replication_topic": CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
         "cycle8_mix_confirmation_hold_topic": CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
@@ -350,6 +368,26 @@ def assert_new_cycle8_second_model_transfer_generation_seed(seed_base: int) -> N
         raise ValueError("confirmation-reserved seeds must not be used for development")
     if row["eligible_as_unseen_validation"] is True:
         raise ValueError("unseen validation seeds must not be used for development generation")
+
+
+def assert_new_cycle8_gate_v2_confirmation_generation_seed(seed_base: int) -> None:
+    require_int("seed_base", seed_base)
+    assert_seed_not_confirmation_content(seed_base)
+    row = row_for_seed_base(seed_base)
+    if seed_base == CYCLE8_SCALE_VALIDATION_SEED_BASE:
+        raise ValueError("scale validation seed is reserved until the U+034F x1 mechanism is frozen")
+    if seed_base not in {
+        CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_SEED_BASE,
+        CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_SEED_BASE,
+        CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_SEED_BASE,
+    }:
+        raise ValueError("seed_base is not a Cycle 8 Gate v2 confirmation seed")
+    if row["eligible_for_confirmation"] is not True:
+        raise ValueError("Gate v2 confirmation seed is not eligible for confirmation")
+    if row["generated"] is True:
+        raise ValueError("Gate v2 confirmation seed already generated")
+    if row["scored"] is True:
+        raise ValueError("Gate v2 confirmation seed already scored")
 
 
 def assert_new_cycle8_control_mix_generation_seed(seed_base: int) -> None:

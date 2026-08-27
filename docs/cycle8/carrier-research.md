@@ -144,7 +144,7 @@ Spec: `cycle8-post-sanitizer-sequences-v1`. Evidence: `evidence/h15-local/`.
 
 `VERIFIED` as an audit of the gate itself, not another carrier search. H9-H15 all returned negatives; H16 asks whether the gate that produced them is correct. It is not.
 
-**The search space was empty by construction.** A HarfBuzz advance-and-ink oracle over 286719 assigned code points in 12 shaping contexts finds 396 invisible code points in the Chromium `pre` font. Every one is `Mn` or `Cf`, in 15 contiguous ranges. The required bundle strips exactly `Mn`, `Cf`, and default-ignorable, so invisibility and required-bundle survival are complementary sets. The intersection is 0 and no further enumeration can change that. The oracle agrees with real Chromium pixels on 20 of 23 stratified samples; all three disagreements are understood and none weakens the closure.
+**The search space was empty by construction on the executed A/B oracle.** A HarfBuzz advance-and-ink oracle over 286719 assigned code points finds 396 invisible code points in the Chromium `pre` font between latin `A` and `B`. Every one is `Mn` or `Cf`, in 15 contiguous ranges. The required bundle strips exactly `Mn`, `Cf`, and default-ignorable, so invisibility and required-bundle survival are complementary sets on that oracle. The intersection is 0. The original H16 write-up advertised 12 shaping contexts; the committed scan executed only latin `A`/`B` (Codex P1). That overclaim is recorded. The scan tool now iterates all 12 advertised contexts; the corrected 12-context measurement is pending and does not rewrite the frozen A/B artifact. The oracle agrees with real Chromium pixels on 20 of 23 stratified samples; all three disagreements are understood and none weakens the A/B closure.
 
 The other transformation classes close too. Substitution: 14 code points render as an ASCII space, all 14 NFKC-collapse to `U+0020`, none survives. Canonical re-encoding: the declared ASCII input domain is a fixed point of all four normalization forms. Deletion and reordering change visible text. The single remainder in all of Unicode is `Cc`, which ordinary-plain-text excludes — the H12 result, now shown to be unique rather than one option among many.
 
@@ -160,9 +160,9 @@ The other transformation classes close too. Substitution: 14 code points render 
 
 **Where the corrected gate stands.** Reading the existing frozen confirmation evidence against `proposed_gate_v2`: identity detects 185/192, mix detects 0/192 watermarked and 0/192 unwatermarked, visible text passes 192/192, and every frozen sanitizer still detects 0. Every condition of the proposed gate now has a measurement, but the real-sanitizer one is exploratory, so the gate is **not** claimed satisfied at confirmation grade. What remains is a product decision plus a confirmation run — not a further carrier search, which the closure result rules out.
 
-`proposed_gate_v2` records a corrected boundary but is marked `proposal_only_not_active`. This does **not** rewrite mix sanitizer FAIL, does not relax `required_sanitizers_keep`, and does not authorize a product mechanism. Adopting it needs an explicit product decision and a fresh confirmation run. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
+`proposed_gate_v2` records a corrected boundary but is marked `proposal_only_not_active`. Gate v2 is now formalized as `cycle8-publishability-gate-v2` and preregistered on unspent seeds `1200000` / `1210000` / `1220000`. It adds frozen Cycle 7 sanitizer `ws_collapse_nfkc_cf_strip` versus the H16 draft. This does **not** rewrite mix sanitizer FAIL, does not relax `required_sanitizers_keep`, and does not authorize a product mechanism. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
 
-Spec: `cycle8-threat-model-audit-v1`. Evidence: `evidence/h16-local/`.
+Spec: `cycle8-threat-model-audit-v1` and `cycle8-publishability-gate-v2`. Evidence: `evidence/h16-local/`. Protocol: `docs/cycle8/gate-v2.md`.
 
 ## Rejected as product mechanisms
 

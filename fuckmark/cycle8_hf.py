@@ -49,6 +49,7 @@ from .cycle8.ledger import (
     CYCLE8_MIX_SCALE_REPLICATION_ROLE,
     CYCLE8_MIX_SCALE_REPLICATION_TOPIC,
     CYCLE8_CONFIRMATION_RESERVED_ROLE,
+    CYCLE8_GATE_V2_CONFIRMATION_ROLE,
     CYCLE8_VALIDATION_ROLE,
     CYCLE8_VALIDATION_TOPIC,
     assert_cycle8_development_seed,
@@ -125,6 +126,16 @@ def _detector_arm_summary(rows: tuple[dict[str, object], ...], arm_id: str) -> d
         "nfc_watermarked_detected": (
             _count(watermarked, "nfc", "detected") if watermarked and "nfc" in watermarked[0]["sanitizers"] else None
         ),
+        "sanitizer_watermarked_detected": (
+            {variant: _count(watermarked, variant, "detected") for variant in watermarked[0]["sanitizers"]}
+            if watermarked
+            else {}
+        ),
+        "sanitizer_unwatermarked_detected": (
+            {variant: _count(unwatermarked, variant, "detected") for variant in unwatermarked[0]["sanitizers"]}
+            if unwatermarked
+            else {}
+        ),
         "raw_watermarked_mean_score": raw_wm["mean"],
         "raw_watermarked_median_score": raw_wm["median"],
         "raw_watermarked_min_score": raw_wm["min"],
@@ -197,7 +208,14 @@ def _topic_for_seed(seed_base: int) -> str:
         if not isinstance(topic, str) or not topic:
             raise ValueError("confirmation seed has no generation topic")
         return topic
-    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, density, letter, letter-benchmark, margin, mix, or mix-confirmation seeds")
+    if role == CYCLE8_GATE_V2_CONFIRMATION_ROLE:
+        from .seeds.ledger import row_for_seed_base
+
+        topic = row_for_seed_base(seed_base)["generation_topic"]
+        if not isinstance(topic, str) or not topic:
+            raise ValueError("Gate v2 confirmation seed has no generation topic")
+        return topic
+    raise ValueError("Cycle 8 detector compare only runs exploratory, replication, validation, scale, density, letter, letter-benchmark, margin, mix, mix-confirmation, or gate-v2-confirmation seeds")
 
 
 def _generate_cycle8_samples(
@@ -207,11 +225,18 @@ def _generate_cycle8_samples(
     *,
     pair_count: int | None = None,
     allow_confirmation: bool = False,
+    allow_gate_v2_confirmation: bool = False,
 ) -> tuple[dict[str, object], ...]:
     role = role_for_seed_base(seed_base)
     if role is None:
         raise ValueError("seed_base is not in the Cycle 8 ledger")
-    if allow_confirmation:
+    if allow_gate_v2_confirmation and allow_confirmation:
+        raise ValueError("mix-freeze confirmation and Gate v2 confirmation are distinct protocols")
+    if allow_gate_v2_confirmation:
+        from .cycle8.gate_v2 import assert_gate_v2_confirmation_generation_seed
+
+        assert_gate_v2_confirmation_generation_seed(seed_base)
+    elif allow_confirmation:
         from .cycle8.mix_freeze import assert_cycle8_mix_confirmation_generation_seed
 
         assert_cycle8_mix_confirmation_generation_seed(seed_base)
@@ -415,13 +440,20 @@ def run_cycle8_detector_compare(
     sanitize=sanitize_cycle7_variant,
     algorithm_version: str = CYCLE8_DETECTOR_VERSION,
     allow_confirmation: bool = False,
+    allow_gate_v2_confirmation: bool = False,
 ) -> dict[str, object]:
     from .cycle7_stage_a_hf import _adapter_and_tokenizer
 
     role = role_for_seed_base(seed_base)
     if role is None:
         raise ValueError("seed_base is not in the Cycle 8 ledger")
-    if allow_confirmation:
+    if allow_gate_v2_confirmation and allow_confirmation:
+        raise ValueError("mix-freeze confirmation and Gate v2 confirmation are distinct protocols")
+    if allow_gate_v2_confirmation:
+        from .cycle8.gate_v2 import assert_gate_v2_confirmation_generation_seed
+
+        assert_gate_v2_confirmation_generation_seed(seed_base)
+    elif allow_confirmation:
         from .cycle8.mix_freeze import assert_cycle8_mix_confirmation_generation_seed
 
         assert_cycle8_mix_confirmation_generation_seed(seed_base)
@@ -434,6 +466,7 @@ def run_cycle8_detector_compare(
         max_attempts,
         pair_count=pair_count,
         allow_confirmation=allow_confirmation,
+        allow_gate_v2_confirmation=allow_gate_v2_confirmation,
     )
     geometry_rows, scored_rows, summaries = _evaluate_samples(
         samples,

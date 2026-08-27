@@ -53,6 +53,10 @@ def test_audit_does_not_authorize_a_product_mechanism():
     assert disk["required_sanitizer_bundle_not_weakened"] is True
     assert disk["spent_confirmation_corpora_not_reused"] is True
     assert disk["proposed_gate_v2"]["status"] == "proposal_only_not_active"
+    assert disk["proposed_gate_v2"]["formalized_as"] == "cycle8-publishability-gate-v2"
+    assert disk["closure"]["original_h16_scan_overclaimed_twelve_contexts"] is True
+    assert disk["closure"]["shaping_contexts_scanned"] == 1
+    assert disk["closure"]["shaping_contexts_advertised"] == 12
 
 
 def test_required_sanitizer_bundle_is_unchanged_by_this_cycle():

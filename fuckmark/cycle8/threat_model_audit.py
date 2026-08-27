@@ -21,7 +21,7 @@ from .publishability import (
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "702ee4613e8573823ecf45b0b74a0a112c9891e39a16a73f5d09023ddb4745d7"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "32f30b69a07cf13a92c2c76b4242c54df103cf15de6818ae8b23d4a07e3eb83e"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -57,6 +57,9 @@ SHAPING_CONTEXTS: tuple[tuple[str, str, str], ...] = (
     ("hangul", "\uac00", "\ub098"),
     ("punct", ".", ","),
 )
+PRODUCT_SHAPING_CONTEXT_IDS = ("latin", "latin_lower", "digit", "space_left", "space_right", "start", "end", "punct")
+ORIGINAL_H16_SCAN_CONTEXT_IDS = ("latin",)
+TWELVE_CONTEXT_RESCAN_STATUS = "tool_corrected_measurement_pending"
 
 SHAPING_INVISIBLE_RANGES: tuple[tuple[int, int], ...] = (
     (0x00AD, 0x00AD),
@@ -77,7 +80,8 @@ SHAPING_INVISIBLE_RANGES: tuple[tuple[int, int], ...] = (
 )
 ASSIGNED_CODEPOINTS_SCANNED = 286719
 REQUIRED_SANITIZER_FIXED_POINT_COUNT = 267550
-SHAPING_CONTEXTS_SCANNED = 12
+SHAPING_CONTEXTS_ADVERTISED = 12
+SHAPING_CONTEXTS_SCANNED = 1
 ORACLE_VALIDATION_SAMPLE = 23
 ORACLE_VALIDATION_AGREEMENT = 20
 ORACLE_VALIDATION_DISAGREEMENTS = ("cf_zwnj", "cc_del", "cc_c1_pad")
@@ -381,12 +385,14 @@ def threat_model_audit_payload() -> dict[str, object]:
             "id": "q4_were_h9_h15_trapped",
             "question": "Did H9-H15 become trapped in one mechanism family or framing?",
             "answer": (
-                "The framing was not merely narrow, it was empty. Invisibility and required "
-                "sanitizer survival are complementary by construction: every one of the 396 "
-                "invisible code points in the Chromium pre font is Mn or Cf, and the required "
-                "bundle strips exactly Mn, Cf and default-ignorable. No enumeration of code "
-                "points, sequences or shaping contexts could have found a survivor, so the "
-                "H9-H15 negatives measure the gate rather than Unicode."
+                "The original H16 scan measured one context, latin A/B, not the advertised 12. "
+                "On that A/B measurement, invisibility and required-sanitizer survival are "
+                "complementary: every one of the 396 invisible code points in the Chromium pre "
+                "font is Mn or Cf, and the required bundle strips exactly Mn, Cf and "
+                "default-ignorable. The 12-context claim was an overclaim (Codex P1). The scan "
+                "tool now iterates all 12 advertised contexts; the corrected measurement is "
+                "pending. H9-H15 negatives still measure the fixed-point gate rather than a "
+                "missing English-ASCII product carrier on the A/B oracle."
             ),
             "evidence": "evidence/h16-local/shaping-closure.json",
         },
@@ -403,7 +409,12 @@ def threat_model_audit_payload() -> dict[str, object]:
         "product_contract_hash": FROZEN_PRODUCT_CONTRACT_HASH,
         "closure": {
             "assigned_codepoints_scanned": ASSIGNED_CODEPOINTS_SCANNED,
+            "shaping_contexts_advertised": SHAPING_CONTEXTS_ADVERTISED,
             "shaping_contexts_scanned": SHAPING_CONTEXTS_SCANNED,
+            "original_h16_scan_context_ids": list(ORIGINAL_H16_SCAN_CONTEXT_IDS),
+            "original_h16_scan_overclaimed_twelve_contexts": True,
+            "twelve_context_rescan_status": TWELVE_CONTEXT_RESCAN_STATUS,
+            "product_shaping_context_ids": list(PRODUCT_SHAPING_CONTEXT_IDS),
             "required_sanitizer_fixed_point_count": REQUIRED_SANITIZER_FIXED_POINT_COUNT,
             "shaping_invisible_count": shaping_invisible_codepoint_count(),
             "shaping_invisible_categories": invisible_categories,
@@ -456,6 +467,8 @@ def threat_model_audit_payload() -> dict[str, object]:
                 "fresh_unspent_confirmation_corpus",
             ],
             "adoption": "requires an explicit product decision and a fresh confirmation run",
+            "formalized_as": "cycle8-publishability-gate-v2",
+            "formalization_status": "preregistered_not_active",
         },
         "proposed_gate_status_on_existing_evidence": proposed_gate_status_on_existing_evidence(),
         "stronger_priority_zero_safe_mechanism": None,
@@ -465,37 +478,41 @@ def threat_model_audit_payload() -> dict[str, object]:
         "spent_confirmation_corpora_not_reused": True,
         "mix_sanitizer_gate": "FAIL",
         "boundary": (
-            "The H12-H15 sanitizer gate cannot be satisfied by any mechanism, and the reason is "
-            "structural rather than empirical. Across 286719 assigned code points and 12 shaping "
-            "contexts, the Chromium pre font renders 396 code points invisibly and every one is "
-            "Mn or Cf, which the required bundle strips by definition. Substitution adds nothing: "
-            "14 code points render as an ASCII space and none survives the bundle. Canonical "
-            "re-encoding adds nothing either, because the declared ASCII input domain is a fixed "
-            "point of all four normalization forms. Deletion and reordering change visible text. "
-            "The only remainder in the whole space is C0/C1, which the ordinary-plain-text "
-            "requirement excludes. Meanwhile the two sanitizers that close the space, Mn-strip "
-            "and default-ignorable-strip, are marked stress_only_not_frozen by the frozen product "
-            "contract, are applied by no production detector tokenizer measured here, and corrupt "
-            "ordinary Devanagari, Hebrew, Thai, Persian and emoji text. That does not mean no "
-            "sanitizer is real. Exactly one ships on by default, the lm-watermarking "
-            "UnicodeSanitizer, and it is NFC plus a fixed BMP regex plus Cc-strip: it keeps 366 "
-            "of the 396 invisible code points including U+034F, removes U+FE00, injects spurious "
-            "spaces, corrupts 5 of 7 ordinary samples, and does not restore the unwatermarked "
-            "source. Measured on the exploratory lane, seed 890000, mix still evades it at 0 of 48 "
-            "watermarked rows against 47 of 48 pristine, exactly as under raw. That sanitizer "
-            "collapses space runs and strips Cc, so it could have suppressed detection by itself, "
-            "but run on carrier-free watermarked text it still detects 46 of 48, which attributes "
-            "the drop to the carrier rather than to the sanitizer. The one variant "
-            "that restores detection is the required bundle itself, at 47 of 48, and it does so "
-            "only because it reconstructs the original string on all 96 rows. Read against the "
-            "already recorded frozen confirmation evidence, the frozen conditions of the proposed "
-            "gate are also met: identity detects 185 of 192, mix detects 0 of 192, every frozen "
-            "sanitizer still detects 0, and visible text passes 192 of 192. Every condition of the "
-            "proposed gate now has a measurement, but the real-sanitizer one is exploratory, so "
-            "the gate is not claimed satisfied at confirmation grade. What remains is a product "
-            "decision plus a confirmation run, not a further carrier search. This record makes "
-            "neither: the required bundle is unchanged, the proposal stays inactive, and mix "
-            "stays FAIL."
+            "The H12-H15 sanitizer gate cannot be satisfied by any mechanism that is both "
+            "shaping-invisible in the original H16 latin A/B oracle and a fixed point of the "
+            "required bundle, and that A/B measurement found 396 invisible code points, all "
+            "Mn or Cf. H16 advertised 12 shaping contexts but the committed scan executed "
+            "only latin A/B; that overclaim is recorded here and the scan tool now iterates "
+            "all 12 contexts. Substitution adds nothing: 14 code points render as an ASCII "
+            "space and none survives the bundle. Canonical re-encoding adds nothing either, "
+            "because the declared ASCII input domain is a fixed point of all four "
+            "normalization forms. Deletion and reordering change visible text. The only "
+            "remainder in the whole space on the A/B oracle is C0/C1, which the "
+            "ordinary-plain-text requirement excludes. Meanwhile the two sanitizers that "
+            "close the space, Mn-strip and default-ignorable-strip, are marked "
+            "stress_only_not_frozen by the frozen product contract, are applied by no "
+            "production detector tokenizer measured here, and corrupt ordinary Devanagari, "
+            "Hebrew, Thai, Persian and emoji text. That does not mean no sanitizer is real. "
+            "Exactly one ships on by default, the lm-watermarking UnicodeSanitizer, and it "
+            "is NFC plus a fixed BMP regex plus Cc-strip: it keeps 366 of the 396 invisible "
+            "code points including U+034F, removes U+FE00, injects spurious spaces, corrupts "
+            "5 of 7 ordinary samples, and does not restore the unwatermarked source. Measured "
+            "on the exploratory lane, seed 890000, mix still evades it at 0 of 48 watermarked "
+            "rows against 47 of 48 pristine, exactly as under raw. That sanitizer collapses "
+            "space runs and strips Cc, so it could have suppressed detection by itself, but "
+            "run on carrier-free watermarked text it still detects 46 of 48, which attributes "
+            "the drop to the carrier rather than to the sanitizer. The one variant that "
+            "restores detection is the required bundle itself, at 47 of 48, and it does so "
+            "only because it reconstructs the original string on all 96 rows. Read against "
+            "the already recorded frozen confirmation evidence, the frozen conditions of the "
+            "proposed gate are also met: identity detects 185 of 192, mix detects 0 of 192, "
+            "every frozen sanitizer still detects 0, and visible text passes 192 of 192. "
+            "The real-sanitizer condition is exploratory, so the gate is not claimed "
+            "satisfied at confirmation grade. Gate v2 is now formalized as "
+            "cycle8-publishability-gate-v2 and preregistered, not active. What remains is a "
+            "fresh confirmation run on unspent seeds 1200000/1210000/1220000. This record "
+            "does not product-authorize mix: the required bundle is unchanged, the v1 mix "
+            "sanitizer gate stays FAIL, and the public CLI stays empty."
         ),
     }
     return {**payload, "audit_hash": sha256_json(payload)}
@@ -537,6 +554,12 @@ def assert_threat_model_audit_committed() -> None:
         raise ValueError("threat model audit must not weaken the required sanitizer bundle")
     if disk["proposed_gate_v2"]["status"] != "proposal_only_not_active":
         raise ValueError("the proposed gate must remain a proposal")
+    if disk["closure"]["original_h16_scan_overclaimed_twelve_contexts"] is not True:
+        raise ValueError("the original H16 12-context overclaim must remain recorded")
+    if disk["closure"]["shaping_contexts_scanned"] != 1:
+        raise ValueError("the original H16 scan executed one context")
+    if disk["proposed_gate_v2"]["formalized_as"] != "cycle8-publishability-gate-v2":
+        raise ValueError("H16 must point at the formal Gate v2 spec")
     if disk["closure"]["intersection_count"] != 0:
         raise ValueError("closure intersection must be empty")
     if disk["closure"]["shaping_invisible_outside_mn_cf"] != []:

@@ -11,16 +11,19 @@ H9-H15 searched for a carrier that is invisible to the reader and also survives 
 | measurement | value |
 | --- | --- |
 | assigned code points scanned | 286719 |
-| shaping contexts per code point | 12 |
+| shaping contexts advertised | 12 |
+| shaping contexts executed in the original scan | 1 (latin `A`/`B`) |
 | code points that are a required-bundle fixed point | 267550 |
-| code points that are shaping-invisible | 396 |
+| code points that are shaping-invisible on that A/B oracle | 396 |
 | shaping-invisible categories | `Mn` 262, `Cf` 134 |
 | shaping-invisible outside `Mn`/`Cf` | none |
 | **intersection** | **0** |
 
+The original H16 write-up advertised 12 shaping contexts. Independent review (Codex P1) found that `tools/h16_shaping_closure_scan.py` called `primary.invisible(codepoint)` with the default latin `A`/`B` context and never iterated `SHAPING_CONTEXTS`. Artifact `shaping-closure.json` has no contexts-scanned field. The 286719 / 396 / intersection 0 numbers are therefore **VERIFIED** for latin `A`/`B` only. That overclaim is recorded in `cycle8-threat-model-audit-v1`. The scan tool now iterates all 12 advertised contexts. The corrected measurement writes `shaping-closure-12context.json` and must not overwrite the frozen A/B artifact.
+
 The 396 invisible code points occupy 15 contiguous ranges and are the familiar invisible set: soft hyphen, CGJ, ALM, Khmer inherent vowels, Mongolian free variation selectors, the zero-width and bidi marks, bidi embedding and isolate controls, word joiner and the invisible operators, variation selectors, BOM, musical combining marks, and the tag characters.
 
-Every one of them is `Mn` or `Cf`. The required bundle strips exactly `Mn`, `Cf`, and default-ignorable. Invisibility and required-bundle survival are therefore complementary by construction, not by coincidence. No further enumeration of code points, sequences, or shaping contexts can find a survivor, because the two sets partition the space.
+Every one of them is `Mn` or `Cf`. The required bundle strips exactly `Mn`, `Cf`, and default-ignorable. On the executed A/B oracle, invisibility and required-bundle survival are therefore complementary by construction, not by coincidence.
 
 The other transformation classes close as well:
 
@@ -138,21 +141,21 @@ Reading the already-recorded frozen confirmation evidence against `proposed_gate
 
 The remaining condition, detection after the lm-watermarking `UnicodeSanitizer`, is met too: 0 of 48 on the exploratory lane, against 47 of 48 pristine.
 
-So every condition of `proposed_gate_v2` now has a measurement behind it. It is still **not** claimed satisfied: the real-sanitizer condition rests on an exploratory run rather than a confirmation one, so `proposed_gate_v2_fully_satisfied` is `false` and `confirmation_grade` is `false`. What remains is a product decision plus a confirmation-grade run — not a further carrier search, which the closure result rules out entirely.
+So every frozen condition of `proposed_gate_v2` now has a measurement behind it. It is still **not** claimed satisfied: the real-sanitizer condition rests on an exploratory run rather than a confirmation one, so `proposed_gate_v2_fully_satisfied` is `false` and `confirmation_grade` is `false`. Gate v2 is formalized as `cycle8-publishability-gate-v2` and preregistered on unspent seeds `1200000` / `1210000` / `1220000`. It adds `ws_collapse_nfkc_cf_strip` versus the H16 draft. See `docs/cycle8/gate-v2.md`.
 
 ## What this does not do
 
-This record is an audit. It does not authorize a mechanism, does not relax `required_sanitizers_keep`, and does not rewrite the mix verdict. `proposed_gate_v2` in the spec is marked `proposal_only_not_active`; adopting it needs an explicit product decision and a fresh confirmation run on an unspent corpus.
+This record is an audit. It does not authorize a mechanism, does not relax `required_sanitizers_keep`, and does not rewrite the mix verdict. `proposed_gate_v2` in the spec is marked `proposal_only_not_active`. Formal Gate v2 is `preregistered_not_active` until the confirmation artifacts exist.
 
 Spec: `specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json`.
 
-Artifacts in this folder: `shaping-closure.json`, `oracle-validation.json`, `tokenizer-threat-model.json`, `sanitizer-deployability.json`.
+Artifacts in this folder: `shaping-closure.json` (frozen A/B scan), `oracle-validation.json`, `tokenizer-threat-model.json`, `sanitizer-deployability.json`, `real-sanitizer-detector.json`.
 
 Reproduce with the research extra:
 
 ```text
 python -m pip install -e ".[research]"
-python tools/h16_shaping_closure_scan.py --out evidence/h16-local/shaping-closure.json
+python tools/h16_shaping_closure_scan.py --out evidence/h16-local/shaping-closure-12context.json
 python tools/h16_oracle_validation.py
 python tools/h16_tokenizer_threat_model.py
 python tools/h16_sanitizer_deployability.py

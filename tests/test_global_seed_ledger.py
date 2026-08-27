@@ -35,6 +35,9 @@ from fuckmark.seeds.ledger import (
     CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
     CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,
     CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC,
+    CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC,
+    CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC,
+    CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC,
     CYCLE8_MIX_CONFIRMATION_HOLD_TOPIC,
     CYCLE8_MIX_CONFIRMATION_PRIMARY_TOPIC,
     CYCLE8_MIX_CONFIRMATION_REPLICATION_TOPIC,
@@ -52,6 +55,7 @@ from fuckmark.seeds.ledger import (
     assert_new_cycle8_deepmind_transfer_generation_seed,
     assert_new_cycle8_second_model_transfer_generation_seed,
     assert_new_cycle8_control_mix_generation_seed,
+    assert_new_cycle8_gate_v2_confirmation_generation_seed,
     assert_new_cycle8_scale_generation_seed,
     assert_seed_not_confirmation_content,
     global_seed_ledger_hash,
@@ -122,6 +126,7 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
     assert 1040000 in bases and 1050000 in bases
     assert 1060000 in bases and 1070000 in bases and 1080000 in bases and 1090000 in bases
     assert 1100000 in bases
+    assert 1200000 in bases and 1210000 in bases and 1220000 in bases
     density = row_for_seed_base(CYCLE8_DENSITY_EXPLORATORY_SEED_BASE)
     assert density["generated"] is True
     assert density["scored"] is True
@@ -238,3 +243,19 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
         assert_new_cycle8_control_mix_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)
     with pytest.raises(ValueError, match="confirmation"):
         assert_new_cycle8_control_mix_generation_seed(830000)
+    primary = row_for_seed_base(1200000)
+    assert primary["generation_topic"] == CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC == "gate v2 confirmation primary"
+    assert primary["generated"] is False
+    assert primary["scored"] is False
+    assert primary["eligible_for_confirmation"] is True
+    replica = row_for_seed_base(1210000)
+    assert replica["generation_topic"] == CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC
+    holdout = row_for_seed_base(1220000)
+    assert holdout["generation_topic"] == CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC
+    assert_new_cycle8_gate_v2_confirmation_generation_seed(1200000)
+    assert_new_cycle8_gate_v2_confirmation_generation_seed(1210000)
+    assert_new_cycle8_gate_v2_confirmation_generation_seed(1220000)
+    with pytest.raises(ValueError, match="confirmation"):
+        assert_new_cycle8_gate_v2_confirmation_generation_seed(830000)
+    with pytest.raises(ValueError, match="frozen"):
+        assert_new_cycle8_gate_v2_confirmation_generation_seed(CYCLE8_SCALE_VALIDATION_SEED_BASE)

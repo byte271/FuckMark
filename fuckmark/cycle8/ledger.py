@@ -33,6 +33,12 @@ from ..seeds.ledger import (
     CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
     CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,
     CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC,
+    CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_SEED_BASE,
+    CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC,
+    CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_SEED_BASE,
+    CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC,
+    CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_SEED_BASE,
+    CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_TOPIC,
     CYCLE8_LETTER_EXPLORATORY_SEED_BASE,
     CYCLE8_LETTER_EXPLORATORY_TOPIC,
     CYCLE8_SCALE_EXPLORATORY_SEED_BASE,
@@ -67,6 +73,7 @@ CYCLE8_DEEPMIND_TRANSFER_REPLICATION_ROLE = "deepmind_transfer_replication"
 CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_ROLE = "deepmind_transfer_holdout"
 CYCLE8_SECOND_MODEL_TRANSFER_ROLE = "second_model_transfer"
 CYCLE8_CONTROL_MIX_EXPLORATORY_ROLE = "control_mix_exploratory_development"
+CYCLE8_GATE_V2_CONFIRMATION_ROLE = "gate_v2_confirmation"
 CYCLE8_CONFIRMATION_RESERVED_ROLE = "confirmation_reserved"
 
 CYCLE8_EXPLORATORY_SEED_BASE = 890_000
@@ -94,6 +101,11 @@ CYCLE8_DEEPMIND_TRANSFER_REPLICATION_SEED_BASES = (CYCLE8_DEEPMIND_TRANSFER_REPL
 CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASES = (CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASE,)
 CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASES = (CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASE,)
 CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASES = (CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,)
+CYCLE8_GATE_V2_CONFIRMATION_SEED_BASES = (
+    CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_SEED_BASE,
+    CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_SEED_BASE,
+    CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_SEED_BASE,
+)
 CYCLE8_CONFIRMATION_RESERVED_SEED_BASES = (830_000, 840_000, 850_000)
 CYCLE8_EXPLORATORY_TOPIC = "invisible carrier development"
 CYCLE8_REPLICATION_TOPIC = "invisible carrier replication"
@@ -179,6 +191,13 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
         "second_model_transfer_topic": CYCLE8_SECOND_MODEL_TRANSFER_TOPIC,
         "control_mix_exploratory_seed_base": CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASE,
         "control_mix_exploratory_topic": CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC,
+        "gate_v2_confirmation_primary_seed_base": CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_SEED_BASE,
+        "gate_v2_confirmation_primary_topic": CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC,
+        "gate_v2_confirmation_replication_seed_base": CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_SEED_BASE,
+        "gate_v2_confirmation_replication_topic": CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC,
+        "gate_v2_confirmation_holdout_seed_base": CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_SEED_BASE,
+        "gate_v2_confirmation_holdout_topic": CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_TOPIC,
+        "gate_v2_confirmation_seed_bases": list(CYCLE8_GATE_V2_CONFIRMATION_SEED_BASES),
         "scale_pair_count": CYCLE8_SCALE_PAIR_COUNT,
         "letter_benchmark_pair_count": CYCLE8_LETTER_BENCHMARK_PAIR_COUNT,
         "confirmation_reserved_seed_bases": list(CYCLE8_CONFIRMATION_RESERVED_SEED_BASES),
@@ -216,6 +235,10 @@ def cycle8_seed_ledger_payload() -> dict[str, object]:
             "Control-mix exploratory seed 1100000 and topic 'control mix sanitizer "
             "exploratory' were reserved in global-seed-ledger-v1 before control-mix "
             "generation. "
+            "Gate v2 confirmation seeds 1200000, 1210000, and 1220000 and topics "
+            "'gate v2 confirmation primary', 'gate v2 confirmation replication', and "
+            "'gate v2 confirmation holdout' were reserved in global-seed-ledger-v1 "
+            "before Gate v2 confirmation generation. "
             "cycle8-mix-freeze-v1 confirmation of 830000, 840000, and 850000 was "
             "generated once under the freeze; those bases are spent. Do not rerun "
             "looking for zero, and do not retune on Cycle 6 formal residuals."
@@ -271,6 +294,8 @@ def role_for_seed_base(seed_base: int) -> str | None:
         return CYCLE8_SECOND_MODEL_TRANSFER_ROLE
     if seed_base in CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASES:
         return CYCLE8_CONTROL_MIX_EXPLORATORY_ROLE
+    if seed_base in CYCLE8_GATE_V2_CONFIRMATION_SEED_BASES:
+        return CYCLE8_GATE_V2_CONFIRMATION_ROLE
     if seed_base in CYCLE8_CONFIRMATION_RESERVED_SEED_BASES:
         return CYCLE8_CONFIRMATION_RESERVED_ROLE
     return None
@@ -284,6 +309,8 @@ def assert_cycle8_development_seed(seed_base: int, *, role: str) -> None:
         raise ValueError("seed_base is spent or reserved outside Cycle 8 development")
     if seed_base in CYCLE8_CONFIRMATION_RESERVED_SEED_BASES:
         raise ValueError("confirmation-reserved seeds must not be used for Cycle 8 development")
+    if seed_base in CYCLE8_GATE_V2_CONFIRMATION_SEED_BASES:
+        raise ValueError("Gate v2 confirmation seeds must not be used for Cycle 8 development")
     if seed_base == CYCLE8_SCALE_VALIDATION_SEED_BASE:
         raise ValueError("scale validation seed is reserved until the U+034F x1 mechanism is frozen")
     expected = role_for_seed_base(seed_base)
@@ -316,5 +343,6 @@ def ledger_roles() -> Mapping[str, Sequence[int]]:
         CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_ROLE: CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_SEED_BASES,
         CYCLE8_SECOND_MODEL_TRANSFER_ROLE: CYCLE8_SECOND_MODEL_TRANSFER_SEED_BASES,
         CYCLE8_CONTROL_MIX_EXPLORATORY_ROLE: CYCLE8_CONTROL_MIX_EXPLORATORY_SEED_BASES,
+        CYCLE8_GATE_V2_CONFIRMATION_ROLE: CYCLE8_GATE_V2_CONFIRMATION_SEED_BASES,
         CYCLE8_CONFIRMATION_RESERVED_ROLE: CYCLE8_CONFIRMATION_RESERVED_SEED_BASES,
     }
