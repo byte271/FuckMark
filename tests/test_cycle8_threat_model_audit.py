@@ -19,6 +19,7 @@ from fuckmark.cycle8.threat_model_audit import (
     gate_promotes_stress_only_sanitizers,
     iter_shaping_invisible_codepoints,
     load_threat_model_audit,
+    proposed_gate_status_on_existing_evidence,
     render_identical_ascii_substitutes,
     sanitizer_deployability_damage,
     shaping_invisible_all_stripped_by_required_bundle,
@@ -28,6 +29,8 @@ from fuckmark.cycle8.threat_model_audit import (
     threat_model_audit_payload,
 )
 from fuckmark.cycle8.publishability import measure_mix_fixtures
+from fuckmark.product.visible_projection import product_approved_carriers_v1
+from fuckmark.transforms.registry import release_transform_registry
 
 
 def test_threat_model_audit_spec_is_committed_and_frozen():
@@ -154,6 +157,26 @@ def test_audit_records_all_four_questions():
     for row in disk["findings"]:
         assert row["answer"]
         assert row["evidence"]
+
+
+def test_proposed_gate_is_already_met_by_existing_frozen_evidence():
+    status = proposed_gate_status_on_existing_evidence()
+    assert status["source"] == "already-run frozen confirmation evidence, no new corpus"
+    assert status["identity_watermarked_detected"] == 185
+    assert status["transformed_watermarked_rate"] == "0/192"
+    assert status["visible_pass_rate"] == "192/192"
+    assert all(value == 0 for value in status["detected_after_each_deployable_sanitizer"].values())
+    assert status["proposed_gate_v2_already_satisfied"] is True
+
+
+def test_gate_already_met_does_not_authorize_the_product():
+    disk = load_threat_model_audit()
+    assert disk["proposed_gate_status_on_existing_evidence"]["proposed_gate_v2_already_satisfied"] is True
+    assert disk["product_authorized"] is False
+    assert disk["mix_sanitizer_gate"] == "FAIL"
+    assert disk["proposed_gate_v2"]["status"] == "proposal_only_not_active"
+    assert product_approved_carriers_v1() == frozenset()
+    assert release_transform_registry().rules == ()
 
 
 def test_proposed_gate_excludes_only_the_stress_only_sanitizers():

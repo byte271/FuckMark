@@ -154,6 +154,8 @@ The other transformation classes close too. Substitution: 14 code points render 
 
 **The gate is wrong on scope and on form.** On scope, the frozen product contract classifies `default_ignorable_removal` and `nonspacing_mark_removal` as `stress_only_not_frozen`, yet `required_sanitizers_keep` treats both as hard requirements. That is the entire blockage: mix survives 21/21 frozen sanitizer fixtures and every other publishability gate passes, so `sanitizer_weaknesses` fails only on those two. On form, the gate asks for carrier fixed-point survival `S(T(x)) == T(x)`, which is strictly stronger than the product goal that detection fail after sanitization.
 
+**The corrected gate is already met by evidence on record.** Reading the existing frozen confirmation evidence against `proposed_gate_v2`, with no new corpus and no retuned seed: identity detects 185/192, mix detects 0/192 watermarked and 0/192 unwatermarked, visible text passes 192/192, and every deployable sanitizer still detects 0. The gap between the project and a shippable mechanism is a decision about which sanitizers the gate should require, not a missing carrier.
+
 `proposed_gate_v2` records a corrected boundary but is marked `proposal_only_not_active`. This does **not** rewrite mix sanitizer FAIL, does not relax `required_sanitizers_keep`, and does not authorize a product mechanism. Adopting it needs an explicit product decision and a fresh confirmation run. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
 
 Spec: `cycle8-threat-model-audit-v1`. Evidence: `evidence/h16-local/`.

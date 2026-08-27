@@ -86,6 +86,21 @@ This is the whole of the blockage. Mix survives 21/21 frozen sanitizer fixtures.
 
 **Form.** The gate asks whether the carrier is a fixed point of every sanitizer, `S(T(x)) == T(x)`. The product goal is that detection fail after sanitization. Fixed-point survival is sufficient for that but not necessary, so the gate is strictly stronger than the goal it stands in for.
 
+## 5. The corrected gate is already met by evidence on record
+
+Reading the already-recorded frozen confirmation evidence against `proposed_gate_v2` — without running any new corpus and without retuning any spent seed — the corrected gate is already satisfied:
+
+| measurement | value |
+| --- | --- |
+| watermarked detected at identity | 185/192 |
+| watermarked detected after the mix transform | 0/192 |
+| unwatermarked detected after the mix transform | 0/192 |
+| visible-text pass rate | 192/192 |
+| detected after `nfc` / `nfkc` / `cf_strip` / `nfkc_cf_strip` / `ws_collapse` / `ws_collapse_nfkc_cf_strip` | 0 each |
+| frozen sanitizer fixture survival | 21/21 |
+
+So the gap between the project and a shippable mechanism is not a missing carrier. It is a decision about which sanitizers the gate should require. That decision is a product call and this record does not make it.
+
 ## What this does not do
 
 This record is an audit. It does not authorize a mechanism, does not relax `required_sanitizers_keep`, and does not rewrite the mix verdict. `proposed_gate_v2` in the spec is marked `proposal_only_not_active`; adopting it needs an explicit product decision and a fresh confirmation run on an unspent corpus.

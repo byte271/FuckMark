@@ -11,11 +11,15 @@ from ..sanitizer_robustness import strip_unicode_format_characters
 from .benchmark import strip_default_ignorable, strip_nonspacing_marks
 from .control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_keep
 from .post_sanitizer_sequences import CYCLE8_POST_SANITIZER_SEQUENCES_HASH
-from .publishability import CYCLE8_MIX_PUBLISHABILITY_HASH
+from .publishability import (
+    CYCLE8_MIX_PUBLISHABILITY_HASH,
+    build_mix_confirmation_scorecard,
+    measure_mix_fixtures,
+)
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "0cab794c7fa85a5ba1f008157dd76b5279cb0a1c1413a0b3f9ca84a8317f6b34"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "8e96a5c26b3e0ddbb403bf89333074d298115a1288a0a992ced3f7f19b567cdb"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -182,6 +186,34 @@ def gate_promotes_stress_only_sanitizers() -> bool:
     )
 
 
+def proposed_gate_status_on_existing_evidence() -> dict[str, object]:
+    scorecard = build_mix_confirmation_scorecard()
+    measured = measure_mix_fixtures()
+    durability = scorecard["durability"]
+    detected = durability["sanitizer_watermarked_detected"]
+    return {
+        "source": "already-run frozen confirmation evidence, no new corpus",
+        "identity_watermarked_detected": scorecard["effectiveness"]["identity"]["raw_watermarked_detected"],
+        "transformed_watermarked_rate": scorecard["effectiveness"]["transformed_wm"]["rate"],
+        "transformed_unwatermarked_rate": scorecard["effectiveness"]["transformed_uw"]["rate"],
+        "visible_pass_rate": scorecard["visibility"]["watermarked_pass_rate"],
+        "detected_after_each_deployable_sanitizer": dict(sorted(detected.items())),
+        "frozen_sanitizers_match_raw": durability["frozen_sanitizers_match_raw"],
+        "frozen_sanitizer_fixture_survival": [
+            measured["frozen_sanitizer_survive"],
+            measured["frozen_sanitizer_total"],
+        ],
+        "proposed_gate_v2_already_satisfied": (
+            all(value == 0 for value in detected.values())
+            and durability["frozen_sanitizers_match_raw"] is True
+            and scorecard["effectiveness"]["transformed_wm"]["rate"] == "0/192"
+            and scorecard["visibility"]["watermarked_pass_rate"] == "192/192"
+            and measured["frozen_sanitizer_survive"] == measured["frozen_sanitizer_total"]
+        ),
+        "adoption_still_blocked_on": "explicit product decision, not further carrier research",
+    }
+
+
 def threat_model_audit_payload() -> dict[str, object]:
     invisible_categories = shaping_invisible_categories()
     control_survivors = control_required_sanitizer_fixed_points()
@@ -294,8 +326,9 @@ def threat_model_audit_payload() -> dict[str, object]:
                 "chromium_portability",
                 "fresh_unspent_confirmation_corpus",
             ],
-            "adoption": "requires explicit product decision and a fresh confirmation run",
+            "adoption": "requires an explicit product decision and a fresh confirmation run",
         },
+        "proposed_gate_status_on_existing_evidence": proposed_gate_status_on_existing_evidence(),
         "stronger_priority_zero_safe_mechanism": None,
         "product_authorized": False,
         "mix_gate_not_rewritten": True,
@@ -314,9 +347,13 @@ def threat_model_audit_payload() -> dict[str, object]:
             "requirement excludes. Meanwhile the two sanitizers that close the space, Mn-strip "
             "and default-ignorable-strip, are marked stress_only_not_frozen by the frozen product "
             "contract, are applied by no production detector tokenizer measured here, and corrupt "
-            "ordinary Devanagari, Hebrew, Thai, Persian and emoji text. The correct next step is a "
-            "product decision on the gate, not a further carrier search. This record does not make "
-            "that decision: the required bundle is unchanged and mix stays FAIL."
+            "ordinary Devanagari, Hebrew, Thai, Persian and emoji text. Read against the already "
+            "recorded frozen confirmation evidence, and without running any new corpus, the "
+            "proposed gate is already met: identity detects 185 of 192, mix detects 0 of 192, "
+            "every deployable sanitizer still detects 0, and visible text passes 192 of 192. The "
+            "correct next step is therefore a product decision on the gate, not a further carrier "
+            "search. This record does not make that decision: the required bundle is unchanged, "
+            "the proposal stays inactive, and mix stays FAIL."
         ),
     }
     return {**payload, "audit_hash": sha256_json(payload)}
@@ -366,6 +403,11 @@ def assert_threat_model_audit_committed() -> None:
         raise ValueError("every invisible code point must die to the required bundle")
     if disk["closure"]["substitution_class_survivor_count"] != 0:
         raise ValueError("substitution class must have no sanitizer survivor")
+    status = disk["proposed_gate_status_on_existing_evidence"]
+    if status["source"] != "already-run frozen confirmation evidence, no new corpus":
+        raise ValueError("the proposed gate reading must not consume a fresh corpus")
+    if status["adoption_still_blocked_on"] != "explicit product decision, not further carrier research":
+        raise ValueError("the audit must not treat the gate proposal as adopted")
     live = threat_model_audit_payload()
     if live != disk:
         raise ValueError("threat model audit spec does not match the live payload")
