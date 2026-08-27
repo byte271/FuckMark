@@ -1,0 +1,361 @@
+{
+  "source": "I do not agree.",
+  "rows": [
+    {
+      "id": "mc_hangul_tone_single",
+      "payload_labels": [
+        "U+302E"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "mc_hangul_tone_double",
+      "payload_labels": [
+        "U+302F"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "mc_devanagari_aa",
+      "payload_labels": [
+        "U+093E"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "mc_bengali_aa",
+      "payload_labels": [
+        "U+09BE"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "mc_tamil_aa",
+      "payload_labels": [
+        "U+0BBE"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "mc_balinese_tedung",
+      "payload_labels": [
+        "U+1B35"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "mc_bengali_au_length",
+      "payload_labels": [
+        "U+09D7"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "so_object_replacement",
+      "payload_labels": [
+        "U+FFFC"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "lo_egyptian_full_blank",
+      "payload_labels": [
+        "U+13441"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "lo_egyptian_half_blank",
+      "payload_labels": [
+        "U+13442"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "po_devanagari_gap_filler",
+      "payload_labels": [
+        "U+A8F9"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "po_newa_gap_filler",
+      "payload_labels": [
+        "U+1144E"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "po_kawi_space_filler",
+      "payload_labels": [
+        "U+11F48"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "po_bhaiksuki_gap_filler",
+      "payload_labels": [
+        "U+11C44"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "so_braille_blank",
+      "payload_labels": [
+        "U+2800"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "so_blank_symbol",
+      "payload_labels": [
+        "U+2422"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "me_enclosing_circle",
+      "payload_labels": [
+        "U+20DD"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 0,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "mn_cgj_control",
+      "payload_labels": [
+        "U+034F"
+      ],
+      "required_sanitizers_keep": false,
+      "payload_all_default_ignorable": true,
+      "width_delta": 0,
+      "chromium_pre": "VERIFIED",
+      "chromium_detail": "png_bytes_equal",
+      "equal": true
+    },
+    {
+      "id": "cc_del",
+      "payload_labels": [
+        "U+007F"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "VERIFIED",
+      "chromium_detail": "png_bytes_equal",
+      "equal": true
+    },
+    {
+      "id": "cc_nul",
+      "payload_labels": [
+        "U+0000"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "VERIFIED",
+      "chromium_detail": "png_bytes_equal",
+      "equal": true
+    },
+    {
+      "id": "co_pua_bmp",
+      "payload_labels": [
+        "U+E000"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "cn_noncharacter_fffe",
+      "payload_labels": [
+        "U+FFFE"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "lm_modifier_small_h",
+      "payload_labels": [
+        "U+02B0"
+      ],
+      "required_sanitizers_keep": false,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "zs_ogham_space",
+      "payload_labels": [
+        "U+1680"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "zs_nbsp",
+      "payload_labels": [
+        "U+00A0"
+      ],
+      "required_sanitizers_keep": false,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "zl_line_separator",
+      "payload_labels": [
+        "U+2028"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "lo_hangul_filler_di",
+      "payload_labels": [
+        "U+3164"
+      ],
+      "required_sanitizers_keep": false,
+      "payload_all_default_ignorable": true,
+      "width_delta": 11,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "seq_hangul_jamo_fillers",
+      "payload_labels": [
+        "U+115F",
+        "U+1160"
+      ],
+      "required_sanitizers_keep": false,
+      "payload_all_default_ignorable": true,
+      "width_delta": 22,
+      "chromium_pre": "REJECTED",
+      "chromium_detail": "png_bytes_differ",
+      "equal": false
+    },
+    {
+      "id": "cc_c1_no_device_csi_filtered",
+      "payload_labels": [
+        "U+007F",
+        "U+0080",
+        "U+0091"
+      ],
+      "required_sanitizers_keep": true,
+      "payload_all_default_ignorable": false,
+      "width_delta": 33,
+      "chromium_pre": "VERIFIED",
+      "chromium_detail": "png_bytes_equal",
+      "equal": true
+    }
+  ],
+  "pixel_equal_and_sanitizer_keep": [
+    "cc_del",
+    "cc_nul",
+    "cc_c1_no_device_csi_filtered"
+  ]
+}

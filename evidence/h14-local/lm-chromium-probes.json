@@ -1,0 +1,10 @@
+{
+  "source": "I do not agree.",
+  "rows": [
+    {"id": "lm_prime", "payload_labels": ["U+02B9"], "required_sanitizers_keep": true, "chromium_pre": "REJECTED", "chromium_detail": "png_bytes_differ", "equal": false},
+    {"id": "lm_apostrophe", "payload_labels": ["U+02BC"], "required_sanitizers_keep": true, "chromium_pre": "REJECTED", "chromium_detail": "png_bytes_differ", "equal": false},
+    {"id": "lm_glottal", "payload_labels": ["U+02C0"], "required_sanitizers_keep": true, "chromium_pre": "REJECTED", "chromium_detail": "png_bytes_differ", "equal": false},
+    {"id": "lm_raised_excl", "payload_labels": ["U+A71D"], "required_sanitizers_keep": true, "chromium_pre": "REJECTED", "chromium_detail": "png_bytes_differ", "equal": false},
+    {"id": "sk_arrowhead", "payload_labels": ["U+02C2"], "required_sanitizers_keep": true, "chromium_pre": "REJECTED", "chromium_detail": "png_bytes_differ", "equal": false}
+  ]
+}

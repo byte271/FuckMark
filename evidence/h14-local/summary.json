@@ -1,0 +1,53 @@
+{
+  "hypothesis": "H14",
+  "algorithm_version": "cycle8-post-sanitizer-extended-class-v1",
+  "mix_sanitizer_gate": "FAIL",
+  "product_authorized": false,
+  "stronger_priority_zero_safe_mechanism": null,
+  "di_list_complete_vs_ucd15": true,
+  "mc_sanitizer_survivor_count": 419,
+  "lm_sanitizer_survivor_count": 128,
+  "mc_width0_survivor_labels": [],
+  "lm_width0_survivor_labels": [],
+  "dejavu_sans_mono_zero_advance_empty_assigned_survivors": [],
+  "pixel_equal_and_sanitizer_keep": ["cc_del", "cc_nul", "cc_c1_no_device_csi_filtered"],
+  "chromium_rejected_sanitizer_keep": [
+    "mc_hangul_tone_single",
+    "mc_hangul_tone_double",
+    "mc_devanagari_aa",
+    "mc_bengali_aa",
+    "mc_tamil_aa",
+    "mc_balinese_tedung",
+    "mc_bengali_au_length",
+    "so_object_replacement",
+    "lo_egyptian_full_blank",
+    "lo_egyptian_half_blank",
+    "po_devanagari_gap_filler",
+    "po_newa_gap_filler",
+    "po_kawi_space_filler",
+    "po_bhaiksuki_gap_filler",
+    "so_braille_blank",
+    "so_blank_symbol",
+    "me_enclosing_circle",
+    "co_pua_bmp",
+    "cn_noncharacter_fffe",
+    "zs_ogham_space",
+    "zl_line_separator",
+    "lm_prime",
+    "lm_apostrophe",
+    "lm_glottal",
+    "lm_raised_excl",
+    "sk_arrowhead"
+  ],
+  "sanitizer_fail_pixel_notes": {
+    "mn_cgj_control": "VERIFIED pixels; Mn-strip and default-ignorable-strip restore the source",
+    "lo_hangul_filler_di": "REJECTED pixels; default-ignorable",
+    "seq_hangul_jamo_fillers": "REJECTED pixels; default-ignorable",
+    "zs_nbsp": "REJECTED pixels; NFKC maps to SPACE",
+    "lm_modifier_small_h": "REJECTED pixels; NFKC maps to Latin h"
+  },
+  "font_metric": {
+    "dejavu_sans_mono": "no sanitizer-surviving simple empty zero-advance glyph",
+    "system_fonts_zero_advance_empty_survivors": "Cc, U+2028, U+2029, and U+FFFC in DejaVu Sans (zero) versus Mono (full cell)"
+  }
+}

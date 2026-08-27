@@ -97,6 +97,28 @@ This does **not** rewrite mix sanitizer FAIL. It does not product-authorize any 
 
 Spec: `cycle8-post-sanitizer-mechanism-class-v1`.
 
+## H14. Extended post-sanitizer classes
+
+`VERIFIED` as a negative extension, not a product unlock. H13 classified insertion families after the required sanitizers. H14 does not re-scan assigned width-0 code points. It measures classes H9 skipped as "visible" and classes H13 only probed with a handful of empty glyphs.
+
+No measured class is simultaneously sanitizer-surviving, Chromium-portable, ordinary plain text, and Priority-Zero safe.
+
+Live Unicode 15.0 scan:
+
+- 419 `Mc` spacing combining marks survive the required sanitizers. Product display-width delta is not 0. Chromium `pre` rejects Hangul tone marks and Indic vowel-sign probes.
+- 128 NFKC-stable `Lm` modifier letters survive. Chromium `pre` rejects prime, apostrophe, glottal-stop, and raised-exclamation probes. U+02B0 and U+FF9E/U+FF9F die to NFKC.
+- Designed blanks and gap fillers (U+13441, U+13442, U+A8F9, U+1144E, U+11C44, U+11F48, U+2800, U+2422, U+1680, U+FFFC) survive and change Chromium `pre` pixels.
+- Hangul jamo fillers U+115F+U+1160 are default-ignorable. The sequence dies to default-ignorable-strip and changes Chromium pixels.
+- Project default-ignorable ranges match Unicode 15.0. That is not a cheat channel.
+- DejaVu Sans Mono, the Chromium `pre` font, has no sanitizer-surviving simple empty zero-advance glyph. U+FFFC is a full cell there. System-font zero-advance empties that survive sanitizers are `Cc` or layout separators, plus U+FFFC in DejaVu Sans.
+- A CSI-filtered C1 subset is still `Cc`. It is not a new class. Chromium remains host-dependent. Ordinary-text FAIL remains.
+
+The only sanitizer-surviving pixel-equal probes on the research host were control codes. H12 already closed that class for product use.
+
+This does **not** rewrite mix sanitizer FAIL. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
+
+Spec: `cycle8-post-sanitizer-extended-class-v1`. Evidence: `evidence/h14-local/`.
+
 ## Rejected as product mechanisms
 
 | Mechanism | Label | Why |
@@ -110,6 +132,11 @@ Spec: `cycle8-post-sanitizer-mechanism-class-v1`.
 | NUL (U+0000) | `REJECTED` as product-ordinary text | Chromium pixels match; C-string / ordinary-text hazard |
 | FF / VT / NEXT LINE / CR / TAB / LF | `REJECTED` | newline or layout change even when some Chromium surfaces ignore them |
 | Braille blank / Ogham space / PUA / noncharacters | `REJECTED` | sanitizer-survive in some cases; Chromium `pre` pixels change |
+| Spacing combining marks (`Mc`) | `REJECTED` | survive required sanitizers; Chromium `pre` pixels change |
+| NFKC-stable modifier letters (`Lm`) | `REJECTED` | survive required sanitizers; Chromium `pre` pixels change |
+| Egyptian blanks / Indic gap fillers / U+FFFC | `REJECTED` | sanitizer-survive with width; Chromium `pre` pixels change |
+| Hangul filler sequences | `REJECTED` | default-ignorable; DI-strip restores the source |
+| CSI-filtered C1 subset | `PRODUCT_DISQUALIFIED` | still `Cc`; Chromium host-dependent; not ordinary text |
 
 ## Baseline
 
