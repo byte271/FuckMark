@@ -85,7 +85,7 @@ Errors are written to standard error. Empty input is rejected. Clipboard command
 - Windows: `clip`
 - Linux: `wl-copy`, then `xclip`, then `xsel`, then `clip.exe`
 
-`--copy` copies the same bytes that are written (raw mix unless `--visible`).
+`--copy` copies the same bytes that are written (raw mix unless `--visible`). Windows `clip` / `clip.exe` receive UTF-16 so U+034F and U+FE00 survive cp1252 locales. Other clipboard tools receive UTF-8.
 
 ## Release boundary
 

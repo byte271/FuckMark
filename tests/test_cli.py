@@ -1,12 +1,20 @@
 from io import BytesIO, StringIO, TextIOWrapper
 from pathlib import Path
+import subprocess
 import sys
 import tomllib
 
 import pytest
 
 from fuckmark import __version__
-from fuckmark.cli import RELEASE_CLI_ALGORITHM_VERSION, main, process_text, read_pasted_text, transform_text
+from fuckmark.cli import (
+    RELEASE_CLI_ALGORITHM_VERSION,
+    copy_to_clipboard,
+    main,
+    process_text,
+    read_pasted_text,
+    transform_text,
+)
 from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 from fuckmark.product.invariants import validate_user_visible_invariants
 from fuckmark.product.visible_projection import is_carrier_insertion_v1, product_approved_carriers_v1, project_visible_v1
@@ -103,6 +111,48 @@ def test_cli_reads_multiline_paste_until_ok_line() -> None:
     output = StringIO()
     assert read_pasted_text(source, output) == "First line\nSecond line"
     assert "Finish with :done on its own line" in output.getvalue()
+
+
+def test_copy_to_clipboard_sends_utf16_to_windows_clip(monkeypatch) -> None:
+    seen: dict[str, object] = {}
+    payload = apply_letter_alternating_mix("I do not agree.")
+
+    def fake_run(command, **kwargs):
+        seen["command"] = command
+        seen["kwargs"] = kwargs
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr("fuckmark.cli._clipboard_commands", lambda: (("clip",),))
+    monkeypatch.setattr("fuckmark.cli.shutil.which", lambda name: "C:\\Windows\\System32\\clip.exe")
+    monkeypatch.setattr("fuckmark.cli.subprocess.run", fake_run)
+    copy_to_clipboard(payload)
+    assert seen["command"] == ("clip",)
+    kwargs = seen["kwargs"]
+    assert isinstance(kwargs, dict)
+    assert kwargs["input"] == payload.encode("utf-16")
+    assert "text" not in kwargs
+    assert "encoding" not in kwargs
+
+
+def test_copy_to_clipboard_sends_utf8_to_unix_tools(monkeypatch) -> None:
+    seen: dict[str, object] = {}
+    payload = apply_letter_alternating_mix("I do not agree.")
+
+    def fake_run(command, **kwargs):
+        seen["command"] = command
+        seen["kwargs"] = kwargs
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr("fuckmark.cli._clipboard_commands", lambda: (("wl-copy",),))
+    monkeypatch.setattr("fuckmark.cli.shutil.which", lambda name: "/usr/bin/wl-copy")
+    monkeypatch.setattr("fuckmark.cli.subprocess.run", fake_run)
+    copy_to_clipboard(payload)
+    assert seen["command"] == ("wl-copy",)
+    kwargs = seen["kwargs"]
+    assert isinstance(kwargs, dict)
+    assert kwargs["input"] == payload
+    assert kwargs["text"] is True
+    assert kwargs["encoding"] == "utf-8"
 
 
 def test_cli_main_applies_mix_without_copying() -> None:

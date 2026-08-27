@@ -168,6 +168,10 @@ def _clipboard_commands() -> tuple[tuple[str, ...], ...]:
     )
 
 
+def _clipboard_uses_utf16(command: tuple[str, ...]) -> bool:
+    return Path(command[0]).name.casefold() in {"clip", "clip.exe"}
+
+
 def copy_to_clipboard(text: str) -> None:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
@@ -177,17 +181,28 @@ def copy_to_clipboard(text: str) -> None:
         if shutil.which(executable) is None:
             continue
         try:
-            subprocess.run(
-                command,
-                input=text,
-                text=True,
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-                timeout=10,
-            )
+            if _clipboard_uses_utf16(command):
+                subprocess.run(
+                    command,
+                    input=text.encode("utf-16"),
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                    timeout=10,
+                )
+            else:
+                subprocess.run(
+                    command,
+                    input=text,
+                    text=True,
+                    encoding="utf-8",
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                    timeout=10,
+                )
             return
-        except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+        except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired, UnicodeError) as error:
             failures.append(f"{executable}:{type(error).__name__}")
     detail = ", ".join(failures) if failures else "no supported clipboard command found"
     raise ClipboardUnavailableError(detail)
