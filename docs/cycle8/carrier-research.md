@@ -80,6 +80,23 @@ ISO-6429 C1 device controls including CSI (U+009B) remain in the measured 32-cod
 
 Spec: `cycle8-control-carrier-scan-v1`.
 
+## H13. Post-sanitizer mechanism class
+
+`VERIFIED` as a negative classification, not a Unicode re-scan. Assigned width-0 insertions stay closed (H9). This classifies the broader transform families that remain after Mn-strip, default-ignorable-strip, Cf-strip, NFC/NFKC, and their combination.
+
+No measured class is simultaneously:
+
+- sanitizer-surviving on that required set,
+- Chromium-portable (`pre` pixels `VERIFIED` on every measured host),
+- ordinary plain text,
+- Priority-Zero safe.
+
+Mix (Mn + default-ignorable) dies to Mn-strip and default-ignorable-strip. Enclosing marks survive those sanitizers and change Chromium pixels. Control-code insertion survives those sanitizers and is Chromium host-dependent, with ISO-6429 device controls remaining in the measured set. Homoglyphs, whitespace edits, HTML/CSS, and custom fonts stay forbidden.
+
+This does **not** rewrite mix sanitizer FAIL. It does not product-authorize any carrier. Public CLI stays empty.
+
+Spec: `cycle8-post-sanitizer-mechanism-class-v1`.
+
 ## Rejected as product mechanisms
 
 | Mechanism | Label | Why |
