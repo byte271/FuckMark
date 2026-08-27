@@ -41,7 +41,7 @@ PASS on the product surface:
 
 FAIL as a product gate. Frozen Cycle 6/7 sanitizers (raw, NFKC, Cf-strip, whitespace-collapse, combined, NFC) keep mix, matching confirmation zeros. Mn-strip and default-ignorable-strip remove both carriers because U+034F and U+FE00 are Mn and default-ignorable. NFKD keeps them.
 
-Assigned-Unicode feasibility `cycle8-invisible-carrier-feasibility-v1` found no stronger Priority-Zero invisible mechanism. Closed set `cycle8-invisible-carrier-closed-set-v1` confirms display-width-0 assigned insertions are only Mn, Me, or Cf:
+Assigned-Unicode feasibility `cycle8-invisible-carrier-feasibility-v1` found no stronger Priority-Zero invisible mechanism. Closed set `cycle8-invisible-carrier-closed-set-v1` confirms display-width-0 assigned insertions are only Mn, Me, or Cf. Frozen counts are a CPython 3.12 Unicode snapshot. Live scans on other Python versions must still find zero width-0 assigned insertions outside Mn/Me/Cf and must not claim a stronger mechanism.
 
 - visible/control: 140882
 - Cf: 161 (dies to frozen Cf-strip)

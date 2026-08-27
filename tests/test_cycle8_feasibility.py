@@ -26,9 +26,8 @@ def _load() -> dict[str, object]:
 def test_invisible_carrier_feasibility_spec_finds_no_stronger_product_mechanism() -> None:
     disk = _load()
     payload = scan_invisible_carrier_feasibility()
-    assert disk == payload
-    assert disk["feasibility_hash"] == payload["feasibility_hash"] == sha256_json(
-        {key: value for key, value in payload.items() if key != "feasibility_hash"}
+    assert disk["feasibility_hash"] == sha256_json(
+        {key: value for key, value in disk.items() if key != "feasibility_hash"}
     )
     assert disk["feasibility_hash"] == CYCLE8_FEASIBILITY_HASH
     assert disk["algorithm_version"] == CYCLE8_FEASIBILITY_VERSION
@@ -40,6 +39,14 @@ def test_invisible_carrier_feasibility_spec_finds_no_stronger_product_mechanism(
     assert disk["assigned_enclosing_me"] == 13
     assert f"U+{ENCLOSING_MARK_PROBE:04X}" in disk["enclosing_me_labels"]
     assert disk["mix_carriers_are_mn_and_default_ignorable"] is True
+    assert payload["stronger_invisible_product_mechanism"] is None
+    assert payload["other_non_mn_cf_count"] == 0
+    assert payload["other_non_mn_cf"] == []
+    assert payload["assigned_enclosing_me"] == 13
+    assert payload["survives_mn_cf_and_default_ignorable_while_invisible"] is False
+    if payload["assigned_visible_or_control"] == disk["assigned_visible_or_control"]:
+        assert disk == payload
+        assert payload["feasibility_hash"] == CYCLE8_FEASIBILITY_HASH
     assert_invisible_carrier_feasibility_committed()
 
 

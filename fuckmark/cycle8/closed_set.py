@@ -111,18 +111,40 @@ def load_invisible_carrier_closed_set(path: str | Path | None = None) -> dict[st
     return json.loads(destination.read_text(encoding="utf-8"))
 
 
+def assert_live_closed_set_boundary(payload: dict[str, object] | None = None) -> dict[str, object]:
+    live = payload if payload is not None else scan_invisible_carrier_closed_set()
+    if live["stronger_priority_zero_safe_mechanism"] is not None:
+        raise ValueError("live closed-set scan must not claim a stronger Priority-Zero-safe mechanism")
+    if live["width0_assigned_other"]:
+        raise ValueError("live closed-set scan found unexpected width-0 assigned code points")
+    if live["width0_assigned_me"] != 13:
+        raise ValueError("live closed-set scan enclosing-mark count mismatch")
+    if live["mix_carriers_are_width0_mn_default_ignorable"] is not True:
+        raise ValueError("live closed-set scan mix-carrier classification mismatch")
+    if live["non_di_cf_die_to_frozen_cf_strip"] is not True:
+        raise ValueError("live closed-set scan non-default-ignorable Cf must die to Cf-strip")
+    if live["me_survives_mn_strip"] is not True:
+        raise ValueError("live closed-set scan enclosing marks must survive Mn-strip")
+    if live["me_survives_default_ignorable_strip"] is not True:
+        raise ValueError("live closed-set scan enclosing marks must survive default-ignorable-strip")
+    return live
+
+
 def assert_invisible_carrier_closed_set_committed() -> None:
     path = Path(CYCLE8_CLOSED_SET_PATH)
     if not path.is_file():
         raise ValueError("invisible carrier closed-set spec is not committed")
     disk = json.loads(path.read_text(encoding="utf-8"))
-    payload = scan_invisible_carrier_closed_set()
-    if disk != payload:
-        raise ValueError("invisible carrier closed-set spec does not match the scan payload")
-    digest = str(payload["closed_set_hash"])
+    body = {key: value for key, value in disk.items() if key != "closed_set_hash"}
+    digest = sha256_json(body)
+    if disk.get("closed_set_hash") != digest:
+        raise ValueError("invisible carrier closed-set spec hash mismatch")
     if CYCLE8_CLOSED_SET_HASH != "0" * 64 and digest != CYCLE8_CLOSED_SET_HASH:
         raise ValueError("invisible carrier closed-set spec hash is not the frozen digest")
-    if payload["stronger_priority_zero_safe_mechanism"] is not None:
+    if disk["stronger_priority_zero_safe_mechanism"] is not None:
         raise ValueError("closed-set spec must not claim a stronger Priority-Zero-safe mechanism")
-    if payload["width0_assigned_other"]:
+    if disk["width0_assigned_other"]:
         raise ValueError("closed-set spec found unexpected width-0 assigned code points")
+    live = assert_live_closed_set_boundary()
+    if live["width0_assigned_mn"] == disk["width0_assigned_mn"] and live != disk:
+        raise ValueError("invisible carrier closed-set spec does not match the scan payload")

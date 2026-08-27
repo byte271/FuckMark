@@ -112,20 +112,40 @@ def write_invisible_carrier_feasibility_spec(path: str | Path | None = None) -> 
     return destination
 
 
+def assert_live_feasibility_boundary(payload: dict[str, object] | None = None) -> dict[str, object]:
+    live = payload if payload is not None else scan_invisible_carrier_feasibility()
+    if live["stronger_invisible_product_mechanism"] is not None:
+        raise ValueError("live feasibility scan must not claim a stronger invisible product mechanism")
+    if live["other_non_mn_cf_count"] != 0:
+        raise ValueError("live feasibility scan found unexpected non-Mn non-Cf assigned code points")
+    if live["other_non_mn_cf"] != []:
+        raise ValueError("live feasibility scan found unexpected non-Mn non-Cf assigned code points")
+    if live["survives_mn_cf_and_default_ignorable_while_invisible"] is not False:
+        raise ValueError("live feasibility scan must not claim an invisible Mn-strip survivor")
+    if live["assigned_enclosing_me"] != 13:
+        raise ValueError("live feasibility scan enclosing-mark count mismatch")
+    if live["mix_carriers_are_mn_and_default_ignorable"] is not True:
+        raise ValueError("live feasibility scan mix-carrier classification mismatch")
+    return live
+
+
 def assert_invisible_carrier_feasibility_committed() -> None:
     path = Path(CYCLE8_FEASIBILITY_PATH)
     if not path.is_file():
         raise ValueError("invisible carrier feasibility spec is not committed")
     disk = json.loads(path.read_text(encoding="utf-8"))
-    payload = scan_invisible_carrier_feasibility()
-    if disk != payload:
-        raise ValueError("invisible carrier feasibility spec does not match the scan payload")
-    digest = str(payload["feasibility_hash"])
+    body = {key: value for key, value in disk.items() if key != "feasibility_hash"}
+    digest = sha256_json(body)
+    if disk.get("feasibility_hash") != digest:
+        raise ValueError("invisible carrier feasibility spec hash mismatch")
     if CYCLE8_FEASIBILITY_HASH != "0" * 64 and digest != CYCLE8_FEASIBILITY_HASH:
         raise ValueError("invisible carrier feasibility spec hash is not the frozen digest")
-    if payload["stronger_invisible_product_mechanism"] is not None:
+    if disk["stronger_invisible_product_mechanism"] is not None:
         raise ValueError("feasibility spec must not claim a stronger invisible product mechanism")
-    if payload["other_non_mn_cf_count"] != 0:
+    if disk["other_non_mn_cf_count"] != 0:
         raise ValueError("feasibility spec found unexpected non-Mn non-Cf assigned code points")
-    if payload["survives_mn_cf_and_default_ignorable_while_invisible"] is not False:
+    if disk["survives_mn_cf_and_default_ignorable_while_invisible"] is not False:
         raise ValueError("feasibility spec must not claim an invisible Mn-strip survivor")
+    live = assert_live_feasibility_boundary()
+    if live["assigned_visible_or_control"] == disk["assigned_visible_or_control"] and live != disk:
+        raise ValueError("invisible carrier feasibility spec does not match the scan payload")

@@ -20,9 +20,8 @@ from fuckmark.sanitizer_robustness import strip_unicode_format_characters
 def test_invisible_carrier_closed_set_has_no_priority_zero_safe_survivor() -> None:
     disk = json.loads((Path(__file__).resolve().parents[1] / CYCLE8_CLOSED_SET_PATH).read_text(encoding="utf-8"))
     payload = scan_invisible_carrier_closed_set()
-    assert disk == payload
-    assert disk["closed_set_hash"] == payload["closed_set_hash"] == sha256_json(
-        {key: value for key, value in payload.items() if key != "closed_set_hash"}
+    assert disk["closed_set_hash"] == sha256_json(
+        {key: value for key, value in disk.items() if key != "closed_set_hash"}
     )
     assert disk["closed_set_hash"] == CYCLE8_CLOSED_SET_HASH
     assert disk["algorithm_version"] == CYCLE8_CLOSED_SET_VERSION
@@ -37,6 +36,13 @@ def test_invisible_carrier_closed_set_has_no_priority_zero_safe_survivor() -> No
     assert disk["me_survives_default_ignorable_strip"] is True
     assert disk["me_survives_frozen_cf_strip"] is True
     assert disk["me_rejected_for_rendering"] is True
+    assert payload["stronger_priority_zero_safe_mechanism"] is None
+    assert payload["width0_assigned_other"] == []
+    assert payload["width0_assigned_me"] == 13
+    assert payload["mix_carriers_are_width0_mn_default_ignorable"] is True
+    if payload["width0_assigned_mn"] == disk["width0_assigned_mn"]:
+        assert disk == payload
+        assert payload["closed_set_hash"] == CYCLE8_CLOSED_SET_HASH
     assert_invisible_carrier_closed_set_committed()
     source = "I do not agree."
     transformed = apply_letter_alternating_mix(source)
