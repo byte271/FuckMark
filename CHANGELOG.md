@@ -2,9 +2,10 @@
 
 ## Unreleased
 
-- Formalized Cycle 8 publishability Gate v2 as `cycle8-publishability-gate-v2`, status `preregistered_not_active`. The product form is detector-after-sanitizer, not carrier fixed-point survival of every sanitizer. Mn-strip and default-ignorable-strip stay recorded as `stress_only_not_frozen` / `KNOWN_DESTRUCTIVE_COUNTERMEASURE`. `required_sanitizers_keep` is not weakened. The v1 mix sanitizer gate stays FAIL. Public CLI stays empty.
-- Recorded that the original H16 shaping scan executed one latin `A`/`B` context, not the advertised 12. The 286719 / 396 / intersection 0 figures remain VERIFIED for that A/B oracle. The scan tool now iterates all 12 advertised contexts; the corrected measurement is pending and does not overwrite the frozen A/B artifact.
-- Reserved unspent Gate v2 confirmation seeds `1200000` / `1210000` / `1220000` before generation. Do not reuse `830000` / `840000` / `850000`. Do not generate `950000`.
+- Recorded one-shot Gate v2 confirmation on preregistered seeds `1200000` / `1210000` / `1220000`: identity WM **188/192**, mix required-sanitizer WM **0/192**, mix UW **0/192**, visible **192/192**, UnicodeSanitizer mix **0/192**, carrier-free Unicode **182/192** (drop 6), worst mix max 0.526739 (gap 0.030360). Status `confirmed_not_product_authorized`. Those seeds are spent. Do not rerun looking for zero. `required_sanitizers_keep` is not weakened. The v1 mix sanitizer gate stays FAIL. Public CLI stays empty. Do not generate `950000`. Do not retag `v0.3.0`.
+- Formalized Cycle 8 publishability Gate v2 as `cycle8-publishability-gate-v2`. The product form is detector-after-sanitizer, not carrier fixed-point survival of every sanitizer. Mn-strip and default-ignorable-strip stay recorded as `stress_only_not_frozen` / `KNOWN_DESTRUCTIVE_COUNTERMEASURE`.
+- Recorded that the original H16 shaping scan executed one latin `A`/`B` context, not the advertised 12. The 286719 / 396 / intersection 0 figures remain VERIFIED for that A/B oracle. The scan tool now iterates all 12 advertised contexts. The corrected 12-context rescan is recorded: union 396, intersection 0, product-context union 396. It does not overwrite the frozen A/B artifact.
+- Reserved unspent Gate v2 confirmation seeds `1200000` / `1210000` / `1220000` before generation, then generated them once. Do not reuse `830000` / `840000` / `850000`. Do not generate `950000`.
 - Gate v2 required sanitizers include frozen Cycle 7 `ws_collapse_nfkc_cf_strip` and the real `jwkirchenbauer/lm-watermarking` UnicodeSanitizer default. Homoglyphs and truecase remain UNSUPPORTED.
 
 ## v0.3.0 — Visible invariance, install and release hardening

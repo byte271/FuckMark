@@ -19,7 +19,7 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 - Seeds `1060000`, `1070000`, and `1080000` are reserved for independent DeepMind synthid-text 30-key mix transfer. Combined mix is 0/192. That transfer is HYPOTHESIS, not mix-freeze confirmation.
 - Seed `1090000` is reserved for DistilGPT2 second-model mix transfer. n=16 is HYPOTHESIS, not confirmation-scale.
 - Seed `1100000` is reserved for independent H12 control-mix sanitizer exploratory n=16. Generated and scored: identity WM 15/16, control-mix WM 0/16. Do not treat the seen `920000` diagnostic as this corpus. Not confirmation.
-- Seeds `1200000`, `1210000`, and `1220000` are reserved for Gate v2 confirmation before generation. Detector-after-sanitizer protocol. Do not inspect `830000` / `840000` / `850000`. Do not generate `950000`. Do not retune after looking at detector scores.
+- Seeds `1200000`, `1210000`, and `1220000` were generated once as Gate v2 confirmation and are spent. Combined mix required-sanitizer WM 0/192, mix UW 0/192, visible 192/192, identity 188/192, carrier-free Unicode 182/192. Do not rerun looking for zero. Do not inspect `830000` / `840000` / `850000`. Do not generate `950000`. Do not retune after looking at detector scores.
 
 ## Cycle 8 scale reservation (before generation)
 
@@ -46,9 +46,9 @@ This ledger is the cross-cycle source of truth for seed reuse. A seed must be re
 | 1080000 | DeepMind transfer holdout | `deepmind mix transfer holdout` | reserved before generation; identity 63/64, mix 0/64; combined mix 0/192; HYPOTHESIS |
 | 1090000 | second-model transfer | `second model mix transfer` | reserved before generation; DistilGPT2 n=16 HYPOTHESIS identity 16/16 mix 0/16; not confirmation-scale |
 | 1100000 | control-mix exploratory | `control mix sanitizer exploratory` | reserved before generation; independent H12 Cc control-mix n=16: identity 15/16, control-mix 0/16; seen 920000 diagnostic is not this corpus |
-| 1200000 | Gate v2 confirmation primary | `gate v2 confirmation primary` | reserved before generation; n=64; detector-after-sanitizer including lm-watermarking UnicodeSanitizer and carrier-free control; not yet generated |
-| 1210000 | Gate v2 confirmation replication | `gate v2 confirmation replication` | reserved before generation; n=64; independent of 1200000; not yet generated |
-| 1220000 | Gate v2 confirmation holdout | `gate v2 confirmation holdout` | reserved before generation; n=64; independent of 1200000 and 1210000; not yet generated |
+| 1200000 | Gate v2 confirmation primary | `gate v2 confirmation primary` | generated once under cycle8-publishability-gate-v2; identity 64/64, mix required 0/64, mix UW 0/64, Unicode mix 0/64, carrier-free 61/64, visible 64/64, mix max 0.519124; combined 0/192; spent |
+| 1210000 | Gate v2 confirmation replication | `gate v2 confirmation replication` | generated once; identity 61/64, mix required 0/64, mix max 0.526739; combined 0/192; spent |
+| 1220000 | Gate v2 confirmation holdout | `gate v2 confirmation holdout` | generated once; identity 63/64, mix required 0/64, mix max 0.516419; combined 0/192; spent |
 
 ## Historical v1 Cycle 8 ledger
 

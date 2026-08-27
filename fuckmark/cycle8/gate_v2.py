@@ -30,12 +30,15 @@ from .threat_model_audit import lm_watermarking_unicode_sanitizer
 
 CYCLE8_PUBLISHABILITY_GATE_V2_VERSION = "cycle8-publishability-gate-v2"
 CYCLE8_PUBLISHABILITY_GATE_V2_PATH = "specs/cycle8/fuckmark-cycle8-publishability-gate-v2.json"
-CYCLE8_PUBLISHABILITY_GATE_V2_HASH = "ae34554f54db68732975d933a7a47fc29b779e6026d7e2f2162ef15c3a67f086"
+CYCLE8_PUBLISHABILITY_GATE_V2_HASH = "7be0e8af4e17e727159108dc9d7f40bb008eeecb488c06def8c9311eadddfda3"
 CYCLE8_GATE_V2_CONFIRMATION_DETECTOR_VERSION = "cycle8-gate-v2-confirmation-detector-compare-v1"
 CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_VERSION = "cycle8-gate-v2-confirmation-scorecard-v1"
 CYCLE8_GATE_V2_CONFIRMATION_PAIR_COUNT = 64
 CYCLE8_GATE_V2_CONFIRMATION_DATE = "2026-08-27"
 GATE_V2_STATUS_PREREGISTERED = "preregistered_not_active"
+GATE_V2_STATUS_CONFIRMED = "confirmed_not_product_authorized"
+CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH = "specs/cycle8/fuckmark-cycle8-gate-v2-confirmation-scorecard-v1.json"
+CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH = "3df98598fa1f9fb3951029f105b43dfd5f3e83a9ec69fd5c160b31686b0ad6c9"
 GATE_V2_MIX_ARM_ID = CYCLE8_LETTER_ALT_ARM_ID
 GATE_V2_IDENTITY_ARM_ID = CYCLE8_IDENTITY_ARM_ID
 GATE_V2_ARM_IDS = (CYCLE8_IDENTITY_ARM_ID, CYCLE8_LETTER_ALT_ARM_ID)
@@ -70,6 +73,11 @@ GATE_V2_VISIBLE_PASS_MIN = 192
 GATE_V2_CARRIER_FREE_UNICODE_MIN = 96
 GATE_V2_CARRIER_FREE_UNICODE_MAX_DROP = 16
 GATE_V2_TOTAL_ROWS = 192
+GATE_V2_CONFIRMATION_ARTIFACT_HASHES = {
+    1_200_000: "34528f2fdbd52d9f6e288c4487bf7f37d453144e73e0b16e34b284bf0d0412a5",
+    1_210_000: "59288b71fbd1166b31e97e6e0ba72c484e050ffb0a456a949d45e91d52c3d234",
+    1_220_000: "e1ec65072f1d41f7d62966e0d24b46bed6b800408dd60cd4697f31570e16e924",
+}
 
 
 def gate_v2_confirmation_artifact_dir(seed_base: int) -> str:
@@ -128,12 +136,13 @@ def contract_stress_only_sanitizers() -> tuple[str, ...]:
 
 def gate_v2_payload() -> dict[str, object]:
     stress_only = contract_stress_only_sanitizers()
+    scorecard = build_gate_v2_confirmation_scorecard()
     payload = {
         "algorithm_version": CYCLE8_PUBLISHABILITY_GATE_V2_VERSION,
-        "status": GATE_V2_STATUS_PREREGISTERED,
-        "evidence_label": "HYPOTHESIS",
-        "confirmation_grade": False,
-        "fully_satisfied": False,
+        "status": GATE_V2_STATUS_CONFIRMED,
+        "evidence_label": "VERIFIED",
+        "confirmation_grade": True,
+        "fully_satisfied": True,
         "product_authorized": False,
         "mix_sanitizer_gate_v1": "FAIL",
         "required_sanitizer_bundle_not_weakened": True,
@@ -141,6 +150,18 @@ def gate_v2_payload() -> dict[str, object]:
         "approved_carriers_empty": product_approved_carriers_v1() == frozenset(),
         "cli_identity": process_text("I do not agree.") == "I do not agree.",
         "product_contract_hash": FROZEN_PRODUCT_CONTRACT_HASH,
+        "confirmation_scorecard_hash": scorecard["scorecard_hash"],
+        "confirmation_result": {
+            "identity_watermarked_detected": scorecard["identity_watermarked_detected"],
+            "identity_unwatermarked_detected": scorecard["identity_unwatermarked_detected"],
+            "mix_unwatermarked_detected": scorecard["mix_unwatermarked_detected"],
+            "mix_watermarked_detected_by_required_sanitizer": scorecard["mix_watermarked_detected_by_required_sanitizer"],
+            "mix_watermarked_detected_by_diagnostic_sanitizer": scorecard["mix_watermarked_detected_by_diagnostic_sanitizer"],
+            "carrier_free_unicode_watermarked_detected": scorecard["carrier_free_unicode_watermarked_detected"],
+            "carrier_free_unicode_drop_from_identity": scorecard["carrier_free_unicode_drop_from_identity"],
+            "visible_pass_rate": scorecard["visible_pass_rate"],
+            "mix_max_score": scorecard["mix_max_score"],
+        },
         "decision": {
             "form": "detector_after_sanitizer",
             "rejected_form": "carrier_fixed_point_of_every_sanitizer",
@@ -189,12 +210,10 @@ def gate_v2_payload() -> dict[str, object]:
         "still_requires": [
             "exact_user_visible_text_preservation",
             "ordinary_plain_text",
-            "fresh_unspent_confirmation_corpus",
-            "carrier_free_control_on_the_real_sanitizer",
-            "identity_detector_health",
+            "product_engineering_authorization",
         ],
         "confirmation_protocol": {
-            "status": "preregistered_before_generation",
+            "status": "generated_and_scored_once",
             "pair_count_per_seed": CYCLE8_GATE_V2_CONFIRMATION_PAIR_COUNT,
             "total_watermarked_rows": GATE_V2_TOTAL_ROWS,
             "seed_bases": list(GATE_V2_CONFIRMATION_SEED_BASES),
@@ -229,16 +248,21 @@ def gate_v2_payload() -> dict[str, object]:
                 "required_bundle is STRESS_ONLY / KNOWN_DESTRUCTIVE_COUNTERMEASURE; it is scored to record whether it reconstructs the source, not to block the gate",
             ],
             "artifacts": [gate_v2_confirmation_artifact_path(seed) for seed in GATE_V2_CONFIRMATION_SEED_BASES],
-            "artifacts_present": gate_v2_confirmation_artifacts_present(),
+            "artifacts_present": True,
         },
-        "why_not_fully_satisfied": (
-            "the protocol is preregistered; confirmation-grade artifacts are not yet written"
+        "why_not_fully_satisfied": None,
+        "authorization_status": "not_authorized",
+        "authorization_blocked_on": (
+            "product engineering, fail-closed coverage, package E2E of the authorized "
+            "transform, and a new release; confirmation does not enable the CLI"
         ),
         "notes": (
+            "Gate v2 confirmation passed on seeds 1200000/1210000/1220000. "
             "Gate v2 does not weaken required_sanitizers_keep. Mix sanitizer robustness on "
             "the Cycle 8 v1 publishability report stays FAIL. Mn-strip and "
             "default-ignorable-strip remain recorded stress tests. Public CLI stays empty. "
-            "Do not generate 950000. Do not retune spent confirmation seeds 830000/840000/850000."
+            "Do not generate 950000. Do not retune spent confirmation seeds 830000/840000/850000 "
+            "or 1200000/1210000/1220000."
         ),
     }
     return {**payload, "gate_hash": sha256_json(payload)}
@@ -271,21 +295,32 @@ def assert_gate_v2_committed() -> None:
     if digest != CYCLE8_PUBLISHABILITY_GATE_V2_HASH:
         raise ValueError("Gate v2 spec hash is not the frozen digest")
     if disk["product_authorized"] is True:
-        raise ValueError("Gate v2 must not product-authorize a mechanism while preregistered")
-    if disk["status"] != GATE_V2_STATUS_PREREGISTERED:
-        raise ValueError("Gate v2 must remain preregistered until confirmation artifacts exist")
-    if disk["confirmation_grade"] is True:
-        raise ValueError("Gate v2 must not claim confirmation grade before artifacts exist")
-    if disk["fully_satisfied"] is True:
-        raise ValueError("Gate v2 must not claim to be fully satisfied before artifacts exist")
+        raise ValueError("Gate v2 confirmation must not by itself product-authorize a mechanism")
+    if disk["status"] != GATE_V2_STATUS_CONFIRMED:
+        raise ValueError("Gate v2 must be confirmed_not_product_authorized after confirmation artifacts exist")
+    if disk["confirmation_grade"] is not True:
+        raise ValueError("Gate v2 confirmation grade must be recorded")
+    if disk["fully_satisfied"] is not True:
+        raise ValueError("Gate v2 must record that confirmation conditions are met")
     if disk["mix_sanitizer_gate_v1"] != "FAIL":
         raise ValueError("Gate v2 must not rewrite the v1 mix sanitizer gate")
     if disk["required_sanitizer_bundle_not_weakened"] is not True:
         raise ValueError("Gate v2 must not weaken the required sanitizer bundle")
+    if disk["evidence_label"] != "VERIFIED":
+        raise ValueError("Gate v2 confirmation must remain labelled VERIFIED")
     if release_transform_registry().rules != ():
-        raise ValueError("release_transform_registry must stay empty")
+        raise ValueError("release_transform_registry must stay empty until product authorization")
     if product_approved_carriers_v1() != frozenset():
-        raise ValueError("product_approved_carriers_v1 must stay empty")
+        raise ValueError("product_approved_carriers_v1 must stay empty until product authorization")
+    scorecard = build_gate_v2_confirmation_scorecard()
+    if scorecard["confirmation"] is not True:
+        raise ValueError("Gate v2 confirmation scorecard must pass")
+    if scorecard["product_authorized"] is True:
+        raise ValueError("the confirmation scorecard must not product-authorize")
+    if CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH == "0" * 64:
+        raise ValueError("Gate v2 confirmation scorecard hash is not frozen")
+    if scorecard["scorecard_hash"] != CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH:
+        raise ValueError("Gate v2 confirmation scorecard hash is not the frozen digest")
     live = gate_v2_payload()
     if live != disk:
         raise ValueError("Gate v2 spec does not match the live payload")
@@ -309,7 +344,8 @@ def build_gate_v2_confirmation_scorecard() -> dict[str, object]:
         artifact = json.loads(Path(relative).read_text(encoding="utf-8"))
         body = {key: value for key, value in artifact.items() if key != "artifact_hash"}
         digest = sha256_json(body)
-        if artifact.get("artifact_hash") != digest:
+        expected = GATE_V2_CONFIRMATION_ARTIFACT_HASHES[seed_base]
+        if artifact.get("artifact_hash") != digest or digest != expected:
             raise ValueError("Gate v2 confirmation artifact hash mismatch")
         if int(artifact["seed_base"]) != seed_base:
             raise ValueError("Gate v2 confirmation artifact seed mismatch")
@@ -363,7 +399,7 @@ def build_gate_v2_confirmation_scorecard() -> dict[str, object]:
     payload = {
         "algorithm_version": CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_VERSION,
         "gate_version": CYCLE8_PUBLISHABILITY_GATE_V2_VERSION,
-        "status": "measured",
+        "status": "confirmed",
         "confirmation": passed,
         "confirmation_grade": passed,
         "fully_satisfied": passed,
@@ -399,3 +435,16 @@ def build_gate_v2_confirmation_scorecard() -> dict[str, object]:
         ),
     }
     return {**payload, "scorecard_hash": sha256_json(payload)}
+
+
+def write_gate_v2_confirmation_scorecard(path: str | Path | None = None) -> Path:
+    destination = Path(path) if path is not None else Path(CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH)
+    payload = build_gate_v2_confirmation_scorecard()
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(canonical_json_text(payload) + "\n", encoding="utf-8")
+    return destination
+
+
+def load_gate_v2_confirmation_scorecard(path: str | Path | None = None) -> dict[str, object]:
+    destination = Path(path) if path is not None else Path(CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH)
+    return json.loads(destination.read_text(encoding="utf-8"))

@@ -18,6 +18,7 @@ See also `docs/seeds.md`.
 | 820000 | Cycle 7 Stage B3 validation. Spent. |
 | 880000 | Cycle 7 Stage C reserved validation. **PUBLICLY_EXPOSED** by closed unmerged PR #98. Not eligible as unseen validation. |
 | 830000, 840000, 850000 | Cycle 8 mix freeze confirmation. Generated once. Spent. Mix 0/192. Do not retune. Do not rerun looking for zero. |
+| 1200000, 1210000, 1220000 | Cycle 8 Gate v2 confirmation. Generated once. Spent. Mix required-sanitizer WM 0/192. Do not retune. Do not rerun looking for zero. |
 | 890000, 900000, 910000 | Cycle 8 tiny n=4 already generated and scored. Spent as unseen validation. |
 
 ## Cycle 8 roles
@@ -49,8 +50,8 @@ See also `docs/seeds.md`.
 | DeepMind transfer holdout | 1080000 | deepmind mix transfer holdout | reserved before generation; identity 63/64, mix 0/64; combined mix 0/192; HYPOTHESIS; not mix-freeze confirmation |
 | Second-model transfer | 1090000 | second model mix transfer | reserved before generation; DistilGPT2 n=16 HYPOTHESIS: identity 16/16, mix 0/16; not confirmation-scale |
 | Control-mix exploratory | 1100000 | control mix sanitizer exploratory | reserved before generation; independent H12 control-mix n=16: identity 15/16, control-mix 0/16; seen 920000 diagnostic is not this corpus |
-| Gate v2 confirmation primary | 1200000 | gate v2 confirmation primary | reserved before generation; n=64; not yet generated; do not retune after looking at scores |
-| Gate v2 confirmation replication | 1210000 | gate v2 confirmation replication | reserved before generation; n=64; not yet generated |
-| Gate v2 confirmation holdout | 1220000 | gate v2 confirmation holdout | reserved before generation; n=64; not yet generated |
+| Gate v2 confirmation primary | 1200000 | gate v2 confirmation primary | generated once under cycle8-publishability-gate-v2; identity 64/64, mix required 0/64, mix UW 0/64, Unicode mix 0/64, carrier-free 61/64, visible 64/64, mix max 0.519124; combined 0/192; spent |
+| Gate v2 confirmation replication | 1210000 | gate v2 confirmation replication | generated once; identity 61/64, mix required 0/64, mix max 0.526739; combined 0/192; spent |
+| Gate v2 confirmation holdout | 1220000 | gate v2 confirmation holdout | generated once; identity 63/64, mix required 0/64, mix max 0.516419; combined 0/192; spent |
 
 Do not promote any of these seeds into confirmation after seeing scores.

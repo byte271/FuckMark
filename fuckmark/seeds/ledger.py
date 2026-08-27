@@ -139,9 +139,9 @@ def global_seed_rows() -> tuple[dict[str, object], ...]:
         _row(1080000, "cycle8", "deepmind_transfer_holdout", CYCLE8_DEEPMIND_TRANSFER_HOLDOUT_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DeepMind synthid-text 30-key GPT-2 mix transfer n=64: identity WM 63/64, mix WM 0/64, mix UW 0/64, visible pass, mix max 0.506760. Combined with 1060000+1070000: mix 0/192. Not mix-freeze confirmation. Do not generate 950000."),
         _row(1090000, "cycle8", "second_model_transfer", CYCLE8_SECOND_MODEL_TRANSFER_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DistilGPT2 DeepMind 30-key mix transfer n=16 HYPOTHESIS: identity WM 16/16, mix WM 0/16, mix UW 0/16, visible pass, mix max 0.504800. Different weights from openai-community/gpt2, same GPT-2 BPE tokenizer (vocab 50257). Not mix-freeze confirmation. Not confirmation-scale. Do not generate 950000."),
         _row(1100000, "cycle8", "control_mix_exploratory_development", CYCLE8_CONTROL_MIX_EXPLORATORY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=False, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Reserved before generation. Independent DeepMind 30-key GPT-2 control-mix exploratory n=16: identity WM 15/16, control-mix WM 0/16, UW 0/16, visible pass, required sanitizers keep, control-mix max 0.505851. Seen diagnostic on 920000 is not this corpus. Not confirmation. Do not generate 950000."),
-        _row(1200000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=True, notes="Reserved before generation. Gate v2 confirmation primary n=64. Detector-after-sanitizer protocol including lm-watermarking UnicodeSanitizer and carrier-free control. Do not inspect 830000/840000/850000. Do not generate 950000. Do not retune after looking at detector scores."),
-        _row(1210000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=True, notes="Reserved before generation. Gate v2 confirmation replication n=64. Independent of 1200000. Do not inspect 830000/840000/850000. Do not generate 950000. Do not retune after looking at detector scores."),
-        _row(1220000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC, "global-seed-ledger-v1", generated=False, scored=False, publicly_exposed=False, spent=False, eligible_for_confirmation=True, eligible_as_unseen_validation=True, notes="Reserved before generation. Gate v2 confirmation holdout n=64. Independent of 1200000 and 1210000. Do not inspect 830000/840000/850000. Do not generate 950000. Do not retune after looking at detector scores."),
+        _row(1200000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Generated once under cycle8-publishability-gate-v2. n=64: identity WM 64/64, mix required sanitizers 0/64, mix UW 0/64, UnicodeSanitizer mix 0/64, carrier-free Unicode 61/64, visible mix WM 64/64, mix max 0.519124. Combined 0/192. Spent. Do not retune. Do not rerun looking for zero. Do not generate 950000."),
+        _row(1210000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Generated once under cycle8-publishability-gate-v2. n=64: identity WM 61/64, mix required sanitizers 0/64, mix UW 0/64, UnicodeSanitizer mix 0/64, carrier-free Unicode 60/64, visible mix WM 64/64, mix max 0.526739. Combined 0/192. Spent. Do not retune. Do not rerun looking for zero. Do not generate 950000."),
+        _row(1220000, "cycle8", "gate_v2_confirmation", CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC, "global-seed-ledger-v1", generated=True, scored=True, publicly_exposed=False, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Generated once under cycle8-publishability-gate-v2. n=64: identity WM 63/64, mix required sanitizers 0/64, mix UW 0/64, UnicodeSanitizer mix 0/64, carrier-free Unicode 61/64, visible mix WM 64/64, mix max 0.516419. Combined 0/192. Spent. Do not retune. Do not rerun looking for zero. Do not generate 950000."),
         _row(1120000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1130000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
         _row(1140000, "effectiveness", "schedule", "effectiveness profile", "historic", generated=True, scored=True, publicly_exposed=True, spent=True, eligible_for_confirmation=False, eligible_as_unseen_validation=False, notes="Frozen effectiveness-profile schedule base."),
@@ -177,8 +177,10 @@ def global_seed_ledger_payload() -> dict[str, object]:
             "DeepMind synthid-text 30-key mix transfer. "
             "Seed 1090000 is reserved for independent second-model mix transfer. "
             "Seed 1100000 is reserved for independent control-mix sanitizer exploratory. "
-            "Seeds 1200000, 1210000, and 1220000 are reserved for Gate v2 confirmation "
-            "before generation. Do not reuse 830000, 840000, or 850000. Do not generate 950000."
+            "Seeds 1200000, 1210000, and 1220000 were generated once as Gate v2 confirmation "
+            "and are spent. Combined mix required-sanitizer WM 0/192, mix UW 0/192, visible "
+            "192/192, identity 188/192, carrier-free Unicode 182/192. Do not rerun looking "
+            "for zero. Do not reuse 830000, 840000, or 850000. Do not generate 950000."
         ),
         "confirmation_content_forbidden_seed_bases": list(CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES),
         "publicly_exposed_unseen_invalid_seed_bases": list(PUBLICLY_EXPOSED_UNSEEN_INVALID_SEED_BASES),
@@ -382,12 +384,12 @@ def assert_new_cycle8_gate_v2_confirmation_generation_seed(seed_base: int) -> No
         CYCLE8_GATE_V2_CONFIRMATION_HOLDOUT_SEED_BASE,
     }:
         raise ValueError("seed_base is not a Cycle 8 Gate v2 confirmation seed")
-    if row["eligible_for_confirmation"] is not True:
-        raise ValueError("Gate v2 confirmation seed is not eligible for confirmation")
     if row["generated"] is True:
         raise ValueError("Gate v2 confirmation seed already generated")
     if row["scored"] is True:
         raise ValueError("Gate v2 confirmation seed already scored")
+    if row["eligible_for_confirmation"] is not True:
+        raise ValueError("Gate v2 confirmation seed is not eligible for confirmation")
 
 
 def assert_new_cycle8_control_mix_generation_seed(seed_base: int) -> None:

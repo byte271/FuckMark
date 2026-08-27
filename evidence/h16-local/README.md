@@ -19,7 +19,7 @@ H9-H15 searched for a carrier that is invisible to the reader and also survives 
 | shaping-invisible outside `Mn`/`Cf` | none |
 | **intersection** | **0** |
 
-The original H16 write-up advertised 12 shaping contexts. Independent review (Codex P1) found that `tools/h16_shaping_closure_scan.py` called `primary.invisible(codepoint)` with the default latin `A`/`B` context and never iterated `SHAPING_CONTEXTS`. Artifact `shaping-closure.json` has no contexts-scanned field. The 286719 / 396 / intersection 0 numbers are therefore **VERIFIED** for latin `A`/`B` only. That overclaim is recorded in `cycle8-threat-model-audit-v1`. The scan tool now iterates all 12 advertised contexts. The corrected measurement writes `shaping-closure-12context.json` and must not overwrite the frozen A/B artifact.
+The original H16 write-up advertised 12 shaping contexts. Independent review (Codex P1) found that `tools/h16_shaping_closure_scan.py` called `primary.invisible(codepoint)` with the default latin `A`/`B` context and never iterated `SHAPING_CONTEXTS`. Artifact `shaping-closure.json` has no contexts-scanned field. The 286719 / 396 / intersection 0 numbers are therefore **VERIFIED** for latin `A`/`B` only. That overclaim is recorded in `cycle8-threat-model-audit-v1`. The scan tool now iterates all 12 advertised contexts. The corrected measurement is recorded in `shaping-closure-12context.json` and does not overwrite the frozen A/B artifact: union still 396, all `Mn` or `Cf`, intersection still 0; product-context union 396; arabic 390; digit/punct/start 395. Script contexts on DejaVu Sans Mono may be missing-glyph behavior.
 
 The 396 invisible code points occupy 15 contiguous ranges and are the familiar invisible set: soft hyphen, CGJ, ALM, Khmer inherent vowels, Mongolian free variation selectors, the zero-width and bidi marks, bidi embedding and isolate controls, word joiner and the invisible operators, variation selectors, BOM, musical combining marks, and the tag characters.
 
@@ -139,17 +139,17 @@ Reading the already-recorded frozen confirmation evidence against `proposed_gate
 | detected after `nfc` / `nfkc` / `cf_strip` / `nfkc_cf_strip` / `ws_collapse` / `ws_collapse_nfkc_cf_strip` | 0 each |
 | frozen sanitizer fixture survival | 21/21 |
 
-The remaining condition, detection after the lm-watermarking `UnicodeSanitizer`, is met too: 0 of 48 on the exploratory lane, against 47 of 48 pristine.
+The remaining condition, detection after the lm-watermarking `UnicodeSanitizer`, is met too: 0 of 48 on the exploratory lane, against 47 of 48 pristine. Confirmation-grade measurement of that same condition is now on record: seeds `1200000` / `1210000` / `1220000`, mix **0/192** after the UnicodeSanitizer, carrier-free **182/192**, drop 6 from identity **188/192**. See `docs/cycle8/gate-v2.md`.
 
-So every frozen condition of `proposed_gate_v2` now has a measurement behind it. It is still **not** claimed satisfied: the real-sanitizer condition rests on an exploratory run rather than a confirmation one, so `proposed_gate_v2_fully_satisfied` is `false` and `confirmation_grade` is `false`. Gate v2 is formalized as `cycle8-publishability-gate-v2` and preregistered on unspent seeds `1200000` / `1210000` / `1220000`. It adds `ws_collapse_nfkc_cf_strip` versus the H16 draft. See `docs/cycle8/gate-v2.md`.
+So every frozen condition of `proposed_gate_v2` now has a measurement behind it. The H16 draft still records `proposed_gate_v2_fully_satisfied` as `false` because that draft's remaining-condition sentence was written against the exploratory lane. Formal Gate v2 is `cycle8-publishability-gate-v2`, status `confirmed_not_product_authorized`. It adds `ws_collapse_nfkc_cf_strip` versus the H16 draft.
 
 ## What this does not do
 
-This record is an audit. It does not authorize a mechanism, does not relax `required_sanitizers_keep`, and does not rewrite the mix verdict. `proposed_gate_v2` in the spec is marked `proposal_only_not_active`. Formal Gate v2 is `preregistered_not_active` until the confirmation artifacts exist.
+This record is an audit. It does not authorize a mechanism, does not relax `required_sanitizers_keep`, and does not rewrite the mix verdict. `proposed_gate_v2` in the spec is marked `proposal_only_not_active`. Formal Gate v2 is `confirmed_not_product_authorized`. Public CLI stays empty.
 
 Spec: `specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json`.
 
-Artifacts in this folder: `shaping-closure.json` (frozen A/B scan), `oracle-validation.json`, `tokenizer-threat-model.json`, `sanitizer-deployability.json`, `real-sanitizer-detector.json`.
+Artifacts in this folder: `shaping-closure.json` (frozen A/B scan), `shaping-closure-12context.json` (12-context rescan), `oracle-validation.json`, `tokenizer-threat-model.json`, `sanitizer-deployability.json`, `real-sanitizer-detector.json`.
 
 Reproduce with the research extra:
 
@@ -169,4 +169,4 @@ python -m pip install -r requirements-smoke.txt
 python tools/h16_real_sanitizer_detector.py --pair-count 48
 ```
 
-Do not generate `950000`. Do not retune spent confirmation seeds `830000` / `840000` / `850000`.
+Do not generate `950000`. Do not retune spent confirmation seeds `830000` / `840000` / `850000` or `1200000` / `1210000` / `1220000`.

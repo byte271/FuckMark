@@ -5,25 +5,30 @@ import pytest
 from fuckmark.cli import process_text
 from fuckmark.cycle8.control_carrier import required_sanitizers_keep
 from fuckmark.cycle8.gate_v2 import (
+    CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH,
+    CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH,
     CYCLE8_PUBLISHABILITY_GATE_V2_HASH,
     CYCLE8_PUBLISHABILITY_GATE_V2_PATH,
+    GATE_V2_CONFIRMATION_ARTIFACT_HASHES,
     GATE_V2_CONFIRMATION_SEED_BASES,
     GATE_V2_IDENTITY_WM_MIN,
     GATE_V2_REQUIRED_SANITIZER_IDS,
-    GATE_V2_STATUS_PREREGISTERED,
+    GATE_V2_STATUS_CONFIRMED,
     GATE_V2_UNICODE_SANITIZER_ID,
     assert_gate_v2_committed,
     assert_gate_v2_confirmation_generation_seed,
     build_gate_v2_confirmation_scorecard,
+    gate_v2_confirmation_artifact_dir,
     gate_v2_confirmation_artifacts_present,
     gate_v2_payload,
     load_gate_v2,
+    load_gate_v2_confirmation_scorecard,
     sanitize_gate_v2_variant,
 )
 from fuckmark.cycle8.ledger import assert_cycle8_development_seed
 from fuckmark.cycle8.publishability import measure_mix_fixtures
 from fuckmark.cycle8.threat_model_audit import lm_watermarking_unicode_sanitizer
-from fuckmark.hashing import sha256_json
+from fuckmark.hashing import sha256_file, sha256_json
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.seeds.ledger import (
     CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES,
@@ -37,20 +42,20 @@ from fuckmark.seeds.ledger import (
 from fuckmark.transforms.registry import release_transform_registry
 
 
-def test_gate_v2_spec_is_committed_and_preregistered():
+def test_gate_v2_spec_is_committed_and_confirmed():
     assert Path(CYCLE8_PUBLISHABILITY_GATE_V2_PATH).is_file()
     assert_gate_v2_committed()
     disk = load_gate_v2()
     assert disk["gate_hash"] == CYCLE8_PUBLISHABILITY_GATE_V2_HASH
     assert disk == gate_v2_payload()
-    assert disk["status"] == GATE_V2_STATUS_PREREGISTERED
-    assert disk["evidence_label"] == "HYPOTHESIS"
-    assert disk["confirmation_grade"] is False
-    assert disk["fully_satisfied"] is False
+    assert disk["status"] == GATE_V2_STATUS_CONFIRMED
+    assert disk["evidence_label"] == "VERIFIED"
+    assert disk["confirmation_grade"] is True
+    assert disk["fully_satisfied"] is True
     assert disk["product_authorized"] is False
     assert disk["mix_sanitizer_gate_v1"] == "FAIL"
     assert disk["required_sanitizer_bundle_not_weakened"] is True
-    assert gate_v2_confirmation_artifacts_present() is False
+    assert gate_v2_confirmation_artifacts_present() is True
 
 
 def test_gate_v2_does_not_authorize_the_product():
@@ -67,7 +72,7 @@ def test_gate_v2_does_not_weaken_the_required_bundle():
     assert measured["mn_strip_kills"] == measured["stress_total"]
 
 
-def test_gate_v2_seeds_are_reserved_unspent_and_unseen():
+def test_gate_v2_seeds_are_spent_after_one_shot_confirmation():
     assert GATE_V2_CONFIRMATION_SEED_BASES == (
         CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_SEED_BASE,
         CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_SEED_BASE,
@@ -75,13 +80,15 @@ def test_gate_v2_seeds_are_reserved_unspent_and_unseen():
     )
     for seed_base in GATE_V2_CONFIRMATION_SEED_BASES:
         row = row_for_seed_base(seed_base)
-        assert row["generated"] is False
-        assert row["scored"] is False
-        assert row["spent"] is False
-        assert row["eligible_for_confirmation"] is True
-        assert row["eligible_as_unseen_validation"] is True
-        assert_gate_v2_confirmation_generation_seed(seed_base)
-        assert_new_cycle8_gate_v2_confirmation_generation_seed(seed_base)
+        assert row["generated"] is True
+        assert row["scored"] is True
+        assert row["spent"] is True
+        assert row["eligible_for_confirmation"] is False
+        assert row["eligible_as_unseen_validation"] is False
+        with pytest.raises(ValueError, match="already generated"):
+            assert_gate_v2_confirmation_generation_seed(seed_base)
+        with pytest.raises(ValueError, match="already generated"):
+            assert_new_cycle8_gate_v2_confirmation_generation_seed(seed_base)
         with pytest.raises(ValueError, match="Gate v2 confirmation"):
             assert_cycle8_development_seed(seed_base, role="exploratory_development")
     assert set(GATE_V2_CONFIRMATION_SEED_BASES).isdisjoint(CONFIRMATION_CONTENT_FORBIDDEN_SEED_BASES)
@@ -104,7 +111,47 @@ def test_gate_v2_form_is_detector_after_sanitizer():
     assert payload["classifications"]["default_ignorable_removal"] == "stress_only_not_frozen"
     assert payload["classifications"]["required_bundle"] == "known_destructive_countermeasure"
     assert payload["confirmation_protocol"]["thresholds"]["identity_watermarked_detected_min"] == GATE_V2_IDENTITY_WM_MIN
+    assert payload["confirmation_protocol"]["status"] == "generated_and_scored_once"
     assert list(GATE_V2_REQUIRED_SANITIZER_IDS) == payload["required_sanitizers"]
+
+
+def test_gate_v2_confirmation_scorecard_passes_preregistered_thresholds():
+    assert Path(CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH).is_file()
+    disk = load_gate_v2_confirmation_scorecard()
+    live = build_gate_v2_confirmation_scorecard()
+    assert disk == live
+    assert disk["scorecard_hash"] == CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH
+    assert disk["confirmation"] is True
+    assert disk["confirmation_grade"] is True
+    assert disk["product_authorized"] is False
+    assert disk["evidence_label"] == "VERIFIED"
+    assert disk["identity_watermarked_detected"] == 188
+    assert disk["mix_unwatermarked_detected"] == 0
+    assert disk["visible_pass_rate"] == "192/192"
+    assert disk["carrier_free_unicode_watermarked_detected"] == 182
+    assert disk["carrier_free_unicode_drop_from_identity"] == 6
+    assert all(value == 0 for value in disk["mix_watermarked_detected_by_required_sanitizer"].values())
+    assert disk["mix_watermarked_detected_by_diagnostic_sanitizer"]["required_bundle"] == 188
+    assert disk["rerun_looking_for_zero"] is False
+    assert disk["mix_max_score"] == 0.5267390214198725
+    for row in disk["corpora"]:
+        assert row["artifact_hash"] == GATE_V2_CONFIRMATION_ARTIFACT_HASHES[row["seed_base"]]
+
+
+def _assert_sha256sums(relative: str) -> None:
+    root = Path(relative)
+    sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
+    for line in sums.splitlines():
+        digest, name = line.split()
+        assert sha256_file(root / name) == digest
+
+
+def test_gate_v2_confirmation_artifact_checksums_match():
+    for seed_base in GATE_V2_CONFIRMATION_SEED_BASES:
+        _assert_sha256sums(gate_v2_confirmation_artifact_dir(seed_base))
+    combined = Path("evidence/cycle8-gate-v2-confirmation-2026-08-27")
+    _assert_sha256sums(str(combined))
+    assert (combined / "scorecard.json").read_text(encoding="utf-8") == Path(CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH).read_text(encoding="utf-8")
 
 
 def test_gate_v2_unicode_sanitizer_matches_upstream_whitespaces_default():
@@ -154,13 +201,22 @@ def test_shaping_scan_tool_iterates_all_advertised_contexts():
     assert set(PRODUCT_SHAPING_CONTEXT_IDS) <= set(ids)
 
 
+def test_twelve_context_rescan_is_recorded_and_does_not_rewrite_ab():
+    disk = Path("evidence/h16-local/shaping-closure-12context.json").read_text(encoding="utf-8")
+    import json
+
+    payload = json.loads(disk)
+    assert payload["shaping_contexts_scanned_count"] == 12
+    assert payload["shaping_invisible_count"] == 396
+    assert payload["shaping_invisible_in_product_contexts_count"] == 396
+    assert payload["intersection_count"] == 0
+    assert payload["shaping_invisible_categories"] == {"Cf": 134, "Mn": 262}
+    assert payload["original_h16_scan_was_latin_ab_only"] is True
+    assert payload["shaping_invisible_per_context"]["latin"] == 396
+    assert payload["shaping_invisible_per_context"]["arabic"] == 390
+
+
 def test_gate_v2_hash_is_canonical():
     payload = gate_v2_payload()
     body = {key: value for key, value in payload.items() if key != "gate_hash"}
     assert payload["gate_hash"] == sha256_json(body)
-
-
-def test_gate_v2_scorecard_refuses_absent_artifacts():
-    assert gate_v2_confirmation_artifacts_present() is False
-    with pytest.raises(ValueError, match="not present"):
-        build_gate_v2_confirmation_scorecard()

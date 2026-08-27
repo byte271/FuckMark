@@ -21,7 +21,7 @@ from .publishability import (
 
 CYCLE8_THREAT_MODEL_AUDIT_VERSION = "cycle8-threat-model-audit-v1"
 CYCLE8_THREAT_MODEL_AUDIT_PATH = "specs/cycle8/fuckmark-cycle8-threat-model-audit-v1.json"
-CYCLE8_THREAT_MODEL_AUDIT_HASH = "32f30b69a07cf13a92c2c76b4242c54df103cf15de6818ae8b23d4a07e3eb83e"
+CYCLE8_THREAT_MODEL_AUDIT_HASH = "bcd3026a514e1dc80338f57345d65aa1ec51a816e0135ab14843d850ed9aa680"
 
 AUDIT_SOURCE = "I do not agree."
 H16_RESEARCH_EXTRA_INSTALL = 'pip install -e ".[research]"'
@@ -59,7 +59,25 @@ SHAPING_CONTEXTS: tuple[tuple[str, str, str], ...] = (
 )
 PRODUCT_SHAPING_CONTEXT_IDS = ("latin", "latin_lower", "digit", "space_left", "space_right", "start", "end", "punct")
 ORIGINAL_H16_SCAN_CONTEXT_IDS = ("latin",)
-TWELVE_CONTEXT_RESCAN_STATUS = "tool_corrected_measurement_pending"
+TWELVE_CONTEXT_RESCAN_STATUS = "recorded"
+TWELVE_CONTEXT_INVISIBLE_COUNT = 396
+TWELVE_CONTEXT_PRODUCT_INVISIBLE_COUNT = 396
+TWELVE_CONTEXT_INTERSECTION_COUNT = 0
+TWELVE_CONTEXT_PER_CONTEXT = {
+    "arabic": 390,
+    "cjk": 396,
+    "devanagari": 396,
+    "digit": 395,
+    "end": 396,
+    "hangul": 396,
+    "latin": 396,
+    "latin_lower": 396,
+    "punct": 395,
+    "space_left": 396,
+    "space_right": 396,
+    "start": 395,
+}
+TWELVE_CONTEXT_ARTIFACT = "evidence/h16-local/shaping-closure-12context.json"
 
 SHAPING_INVISIBLE_RANGES: tuple[tuple[int, int], ...] = (
     (0x00AD, 0x00AD),
@@ -389,10 +407,12 @@ def threat_model_audit_payload() -> dict[str, object]:
                 "On that A/B measurement, invisibility and required-sanitizer survival are "
                 "complementary: every one of the 396 invisible code points in the Chromium pre "
                 "font is Mn or Cf, and the required bundle strips exactly Mn, Cf and "
-                "default-ignorable. The 12-context claim was an overclaim (Codex P1). The scan "
-                "tool now iterates all 12 advertised contexts; the corrected measurement is "
-                "pending. H9-H15 negatives still measure the fixed-point gate rather than a "
-                "missing English-ASCII product carrier on the A/B oracle."
+                "default-ignorable. The 12-context claim was an overclaim (Codex P1). The "
+                "corrected 12-context rescan is recorded: union still 396, all Mn or Cf, "
+                "intersection still 0. Arabic context 390, digit/punct/start 395; script "
+                "contexts on DejaVu Sans Mono may be missing-glyph behavior. H9-H15 negatives "
+                "still measure the fixed-point gate rather than a missing English-ASCII "
+                "product carrier."
             ),
             "evidence": "evidence/h16-local/shaping-closure.json",
         },
@@ -414,6 +434,13 @@ def threat_model_audit_payload() -> dict[str, object]:
             "original_h16_scan_context_ids": list(ORIGINAL_H16_SCAN_CONTEXT_IDS),
             "original_h16_scan_overclaimed_twelve_contexts": True,
             "twelve_context_rescan_status": TWELVE_CONTEXT_RESCAN_STATUS,
+            "twelve_context_artifact": TWELVE_CONTEXT_ARTIFACT,
+            "twelve_context_invisible_count": TWELVE_CONTEXT_INVISIBLE_COUNT,
+            "twelve_context_invisible_in_product_contexts_count": TWELVE_CONTEXT_PRODUCT_INVISIBLE_COUNT,
+            "twelve_context_intersection_count": TWELVE_CONTEXT_INTERSECTION_COUNT,
+            "twelve_context_invisible_categories": {"Cf": 134, "Mn": 262},
+            "twelve_context_per_context": dict(TWELVE_CONTEXT_PER_CONTEXT),
+            "twelve_context_script_contexts_may_be_missing_glyph": True,
             "product_shaping_context_ids": list(PRODUCT_SHAPING_CONTEXT_IDS),
             "required_sanitizer_fixed_point_count": REQUIRED_SANITIZER_FIXED_POINT_COUNT,
             "shaping_invisible_count": shaping_invisible_codepoint_count(),
@@ -468,7 +495,7 @@ def threat_model_audit_payload() -> dict[str, object]:
             ],
             "adoption": "requires an explicit product decision and a fresh confirmation run",
             "formalized_as": "cycle8-publishability-gate-v2",
-            "formalization_status": "preregistered_not_active",
+            "formalization_status": "confirmed_not_product_authorized",
         },
         "proposed_gate_status_on_existing_evidence": proposed_gate_status_on_existing_evidence(),
         "stronger_priority_zero_safe_mechanism": None,
@@ -507,11 +534,10 @@ def threat_model_audit_payload() -> dict[str, object]:
             "the already recorded frozen confirmation evidence, the frozen conditions of the "
             "proposed gate are also met: identity detects 185 of 192, mix detects 0 of 192, "
             "every frozen sanitizer still detects 0, and visible text passes 192 of 192. "
-            "The real-sanitizer condition is exploratory, so the gate is not claimed "
-            "satisfied at confirmation grade. Gate v2 is now formalized as "
-            "cycle8-publishability-gate-v2 and preregistered, not active. What remains is a "
-            "fresh confirmation run on unspent seeds 1200000/1210000/1220000. This record "
-            "does not product-authorize mix: the required bundle is unchanged, the v1 mix "
+            "The real-sanitizer condition is now confirmation-grade on seeds "
+            "1200000/1210000/1220000: mix 0/192 after the UnicodeSanitizer, carrier-free "
+            "182/192, drop 6 from identity 188/192. Gate v2 is confirmed_not_product_authorized. "
+            "This record does not product-authorize mix: the required bundle is unchanged, the v1 mix "
             "sanitizer gate stays FAIL, and the public CLI stays empty."
         ),
     }
@@ -558,6 +584,12 @@ def assert_threat_model_audit_committed() -> None:
         raise ValueError("the original H16 12-context overclaim must remain recorded")
     if disk["closure"]["shaping_contexts_scanned"] != 1:
         raise ValueError("the original H16 scan executed one context")
+    if disk["closure"]["twelve_context_rescan_status"] != "recorded":
+        raise ValueError("the 12-context rescan must remain recorded")
+    if disk["closure"]["twelve_context_intersection_count"] != 0:
+        raise ValueError("the 12-context intersection must be empty")
+    if disk["closure"]["twelve_context_invisible_count"] != 396:
+        raise ValueError("the 12-context union must not rewrite the 396 count")
     if disk["proposed_gate_v2"]["formalized_as"] != "cycle8-publishability-gate-v2":
         raise ValueError("H16 must point at the formal Gate v2 spec")
     if disk["closure"]["intersection_count"] != 0:

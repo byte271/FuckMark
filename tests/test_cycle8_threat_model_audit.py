@@ -57,6 +57,10 @@ def test_audit_does_not_authorize_a_product_mechanism():
     assert disk["closure"]["original_h16_scan_overclaimed_twelve_contexts"] is True
     assert disk["closure"]["shaping_contexts_scanned"] == 1
     assert disk["closure"]["shaping_contexts_advertised"] == 12
+    assert disk["closure"]["twelve_context_rescan_status"] == "recorded"
+    assert disk["closure"]["twelve_context_invisible_count"] == 396
+    assert disk["closure"]["twelve_context_intersection_count"] == 0
+    assert disk["proposed_gate_v2"]["formalization_status"] == "confirmed_not_product_authorized"
 
 
 def test_required_sanitizer_bundle_is_unchanged_by_this_cycle():

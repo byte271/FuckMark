@@ -245,16 +245,20 @@ def test_scale_seeds_are_reserved_before_generation() -> None:
         assert_new_cycle8_control_mix_generation_seed(830000)
     primary = row_for_seed_base(1200000)
     assert primary["generation_topic"] == CYCLE8_GATE_V2_CONFIRMATION_PRIMARY_TOPIC == "gate v2 confirmation primary"
-    assert primary["generated"] is False
-    assert primary["scored"] is False
-    assert primary["eligible_for_confirmation"] is True
+    assert primary["generated"] is True
+    assert primary["scored"] is True
+    assert primary["spent"] is True
+    assert primary["eligible_for_confirmation"] is False
     replica = row_for_seed_base(1210000)
     assert replica["generation_topic"] == CYCLE8_GATE_V2_CONFIRMATION_REPLICATION_TOPIC
     holdout = row_for_seed_base(1220000)
     assert holdout["generation_topic"] == CYCLE8_GATE_V2_CONFIRMATION_HOLD_TOPIC
-    assert_new_cycle8_gate_v2_confirmation_generation_seed(1200000)
-    assert_new_cycle8_gate_v2_confirmation_generation_seed(1210000)
-    assert_new_cycle8_gate_v2_confirmation_generation_seed(1220000)
+    with pytest.raises(ValueError, match="already generated"):
+        assert_new_cycle8_gate_v2_confirmation_generation_seed(1200000)
+    with pytest.raises(ValueError, match="already generated"):
+        assert_new_cycle8_gate_v2_confirmation_generation_seed(1210000)
+    with pytest.raises(ValueError, match="already generated"):
+        assert_new_cycle8_gate_v2_confirmation_generation_seed(1220000)
     with pytest.raises(ValueError, match="confirmation"):
         assert_new_cycle8_gate_v2_confirmation_generation_seed(830000)
     with pytest.raises(ValueError, match="frozen"):
