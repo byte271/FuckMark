@@ -21,6 +21,7 @@ PROJECT_VERSION = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(enco
 
 
 def _run(command: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    kwargs.setdefault("encoding", "utf-8")
     return subprocess.run(command, text=True, check=True, **kwargs)
 
 
@@ -55,7 +56,12 @@ def _verify_artifact(artifact: Path) -> None:
         root = Path(value)
         venv.EnvBuilder(with_pip=True).create(root)
         python = _venv_python(root)
-        environment = {**os.environ, "PIP_CACHE_DIR": str(root / "pip-cache")}
+        environment = {
+            **os.environ,
+            "PIP_CACHE_DIR": str(root / "pip-cache"),
+            "PYTHONUTF8": "1",
+            "PYTHONIOENCODING": "utf-8",
+        }
         _run(
             [str(python), "-m", "pip", "install", "--disable-pip-version-check", str(artifact)],
             env=environment,
@@ -63,16 +69,24 @@ def _verify_artifact(artifact: Path) -> None:
         for command in _venv_commands(root):
             if not command.is_file():
                 raise RuntimeError(f"missing installed console command: {command.name}")
-            version = _run([str(command), "--version"], capture_output=True).stdout
+            version = _run([str(command), "--version"], capture_output=True, env=environment).stdout
             if f"FuckMark {PROJECT_VERSION}" not in version or "release-cli-v5" not in version:
                 raise RuntimeError(f"unexpected version output from {command.name}: {version!r}")
-            transformed = _run(
-                [str(command), "--stdin"],
-                input=EXPECTED_INPUT,
-                capture_output=True,
-            )
+            try:
+                transformed = _run(
+                    [str(command), "--stdin"],
+                    input=EXPECTED_INPUT,
+                    capture_output=True,
+                    env=environment,
+                )
+            except subprocess.CalledProcessError as error:
+                raise RuntimeError(
+                    f"installed CLI failed for {command.name}: stdout={error.stdout!r} stderr={error.stderr!r}"
+                ) from error
             if transformed.stdout != EXPECTED_OUTPUT or transformed.stderr:
-                raise RuntimeError(f"installed CLI failed for {command.name}")
+                raise RuntimeError(
+                    f"installed CLI failed for {command.name}: stdout={transformed.stdout!r} stderr={transformed.stderr!r}"
+                )
 
 
 def main() -> int:

@@ -213,6 +213,37 @@ def _same_path(left: str, right: str) -> bool:
     return Path(left).expanduser().resolve(strict=False) == Path(right).expanduser().resolve(strict=False)
 
 
+def _ensure_utf8(stream: TextIO) -> None:
+    reconfigure = getattr(stream, "reconfigure", None)
+    if reconfigure is None:
+        return
+    encoding = getattr(stream, "encoding", None)
+    if isinstance(encoding, str) and encoding.replace("-", "").casefold() == "utf8":
+        return
+    try:
+        reconfigure(encoding="utf-8", errors="strict")
+    except (OSError, ValueError, AttributeError):
+        return
+
+
+def _write_stdout_utf8(output_stream: TextIO, text: str) -> None:
+    try:
+        output_stream.write(text)
+        output_stream.flush()
+        return
+    except UnicodeError:
+        pass
+    buffer = getattr(output_stream, "buffer", None)
+    if buffer is None:
+        raise ValueError("standard output cannot encode UTF-8 product payload")
+    try:
+        output_stream.flush()
+    except UnicodeError:
+        pass
+    buffer.write(text.encode("utf-8"))
+    buffer.flush()
+
+
 def _write_file_atomic(path_value: str, text: str) -> None:
     target = Path(path_value).expanduser()
     parent = target.parent
@@ -242,8 +273,7 @@ def _write_file_atomic(path_value: str, text: str) -> None:
 
 def _write_result(text: str, output_path: str | None, output_stream: TextIO) -> None:
     if output_path is None or output_path == "-":
-        output_stream.write(text)
-        output_stream.flush()
+        _write_stdout_utf8(output_stream, text)
         return
     _write_file_atomic(output_path, text)
 
@@ -269,6 +299,9 @@ def main(
     source = sys.stdin if input_stream is None else input_stream
     output = sys.stdout if output_stream is None else output_stream
     errors = sys.stderr if error_stream is None else error_stream
+    _ensure_utf8(source)
+    _ensure_utf8(output)
+    _ensure_utf8(errors)
 
     try:
         require_supported_product_encoding(arguments.encoding)

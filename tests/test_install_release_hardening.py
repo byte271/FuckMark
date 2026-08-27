@@ -99,6 +99,9 @@ def test_verify_release_install_loads_mix_from_repository_root() -> None:
     text = VERIFY_RELEASE_INSTALL.read_text(encoding="utf-8")
     assert "sys.path.insert(0, str(PROJECT_ROOT))" in text
     assert text.index("PROJECT_ROOT = Path") < text.index("from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix")
+    assert 'kwargs.setdefault("encoding", "utf-8")' in text
+    assert '"PYTHONIOENCODING": "utf-8"' in text
+    assert '"PYTHONUTF8": "1"' in text
 
 
 def test_verify_release_install_imports_under_isolated_interpreter() -> None:

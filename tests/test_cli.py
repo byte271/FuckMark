@@ -1,4 +1,4 @@
-from io import StringIO
+from io import BytesIO, StringIO, TextIOWrapper
 from pathlib import Path
 import sys
 import tomllib
@@ -231,6 +231,18 @@ def test_cli_refuses_to_overwrite_its_input_file(tmp_path: Path) -> None:
     assert main(error_stream=errors, argv=(str(source), "--output", str(source))) == 1
     assert "input and output paths must be different" in errors.getvalue()
     assert source.read_text(encoding="utf-8") == "I do not agree.\n"
+
+
+def test_cli_writes_mix_when_stdio_starts_as_cp1252() -> None:
+    raw_out = BytesIO()
+    source = TextIOWrapper(BytesIO(b"I do not agree.\n"), encoding="cp1252", newline="")
+    output = TextIOWrapper(raw_out, encoding="cp1252", newline="")
+    errors = StringIO()
+    status = main(source, output, argv=("--stdin",), error_stream=errors)
+    assert status == 0
+    assert errors.getvalue() == ""
+    output.flush()
+    assert raw_out.getvalue() == apply_letter_alternating_mix("I do not agree.\n").encode("utf-8")
 
 
 def test_cli_automatically_uses_stream_mode_for_a_pipe(monkeypatch) -> None:
