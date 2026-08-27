@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-"""H14 local research scan: sanitizer-surviving mechanism classes beyond width-0 Mn/Me/Cf.
-
-This is an experiment runner, not a product authorization path.
-It does not weaken sanitizer tests and does not touch spent confirmation corpora.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -229,7 +222,6 @@ def scan(dejavu_glyphs: dict[int, dict[str, object]]) -> dict[str, object]:
             row["bucket"] = mechanism_bucket(row)
             survivors.append(row)
 
-    # Second pass: every assigned Mc/Lm/Me and every sanitizer-surviving DejaVu empty glyph.
     seen = {row["codepoint"] for row in survivors}
     for codepoint in iter_scalars():
         if codepoint in seen:

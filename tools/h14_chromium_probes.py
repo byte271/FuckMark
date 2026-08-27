@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-"""H14 Chromium pixel probes for sanitizer-surviving non-width0 classes."""
-
 from __future__ import annotations
 
 import json
