@@ -15,7 +15,7 @@ def test_project_identity_is_fuckmark_v040() -> None:
 
 def test_legacy_project_identity_is_absent_outside_immutable_spec() -> None:
     root = Path(__file__).resolve().parents[1]
-    frozen_spec = root / "spec.md"
+    frozen_spec = root / "evidence" / "frozen-spec-revision-2" / "spec.md"
     forbidden = (
         "Watermark " + "Fracture " + "Lab",
         "watermark-" + "fracture-" + "lab",

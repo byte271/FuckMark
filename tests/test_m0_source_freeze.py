@@ -14,8 +14,8 @@ def _sha256(path: Path) -> str:
 
 
 def test_frozen_revision_2_spec_is_exact() -> None:
-    spec = ROOT / "spec.md"
-    sums = ROOT / "SHA256SUMS.txt"
+    spec = ROOT / "evidence" / "frozen-spec-revision-2" / "spec.md"
+    sums = ROOT / "evidence" / "frozen-spec-revision-2" / "SHA256SUMS.txt"
     assert spec.is_file()
     assert spec.stat().st_size == 145372
     assert _sha256(spec) == SPEC_SHA256

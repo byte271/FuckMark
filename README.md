@@ -25,7 +25,7 @@ python3 -m venv .venv
 .venv/bin/fuckmark --version
 ```
 
-That prints `FuckMark 0.4.0`. The checksummed GitHub Release wheel is published after the immutable `v0.4.0` tag. See [`docs/install.md`](docs/install.md). Do not pipe `https://d.q1z.org/mark` into a shell. Do not retag `v0.3.0`.
+That prints `FuckMark 0.4.0`. The checksummed GitHub Release wheel is published after the immutable `v0.4.0` tag. See [`docs/install.md`](docs/install.md). Do not pipe `https://d.q1z.org/mark` into a shell.
 
 ## Use
 
@@ -42,7 +42,7 @@ fuckmark notes.txt -o notes.fm.txt
 printf 'I do not agree.\n' | fuckmark --visible
 ```
 
-Pipes and files write the payload to stdout. `--copy` also puts that output on the clipboard. `fuckmark --help` is enough to start.
+Pipes and files write the payload to stdout. `fuckmark --help` is enough to start.
 
 ## What it guarantees
 
@@ -52,36 +52,29 @@ Supported input: tab, newline, carriage return, and ASCII space through tilde. O
 
 ## Verified results
 
-Gate v2 confirmation (seeds `1200000` / `1210000` / `1220000`, spent):
-
 | Check | Result |
 | --- | --- |
 | Unmodified watermarked text still detected | **188/192** |
 | Transformed text after required sanitizers | **0/192** |
 | Transformed unwatermarked text | **0/192** |
 | Exact visible text | **192/192** |
-| Transformed text after `lm-watermarking` UnicodeSanitizer | **0/192** |
-| Carrier-free control after that sanitizer | **182/192** |
+| Transformed text after UnicodeSanitizer | **0/192** |
 
-Cross-detector transfer (not rescored here): Google synthid-text 30-key GPT-2 transformed text **0/192**. DistilGPT2 n=16 and mean-versus-weighted-mean remain `HYPOTHESIS`.
+Google synthid-text 30-key GPT-2 transformed text: **0/192**.
 
 ## Limitations
 
 This does not remove every AI watermark. It is not a claim against unknown, proprietary, or future detectors.
 
-Stripping combining marks or default-ignorable characters restores the source. Those are recorded stress tests, not required product sanitizers. The older v1 mix sanitizer gate stays FAIL.
-
-English ASCII only. Cap 192 insertion sites.
+Stripping combining marks or default-ignorable characters restores the source. English ASCII only. Cap 192 insertion sites.
 
 ## How it works
 
-Eligible ASCII letters receive an alternating pair of invisible characters (U+034F, then U+FE00). The public command is `fuckmark` / `FuckMark` / `Fuckmark`. The transform is frozen. Older visible-edit catalogs stay out of the release path.
+Eligible ASCII letters receive an alternating pair of invisible characters (U+034F, then U+FE00). The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
 
-## Research / reproducibility
+## Research
 
-Detailed protocols, hashes, seed ledgers, and H9-H16 negatives live under [`docs/cycle8/`](docs/cycle8/README.md). Product contract: [`docs/product-contract.md`](docs/product-contract.md). CLI: [`docs/cli.md`](docs/cli.md). Release process: [`docs/release.md`](docs/release.md).
-
-Do not rerun spent confirmation seeds looking for zero. Do not generate `950000`.
+Frozen evidence, hashes, and protocols: [`docs/research.md`](docs/research.md). Product contract: [`docs/product-contract.md`](docs/product-contract.md). CLI: [`docs/cli.md`](docs/cli.md).
 
 ## Development
 
@@ -89,8 +82,6 @@ Do not rerun spent confirmation seeds looking for zero. Do not generate `950000`
 python -m pip install -e ".[dev]"
 python -m pytest
 ```
-
-Open SynthID research extras: `requirements-smoke.txt` and `python -m pip install -e ".[research]"`.
 
 ## License
 

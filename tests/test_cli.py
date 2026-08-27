@@ -311,15 +311,15 @@ def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
     assert output.getvalue().count(expected) == 1
 
 
-def test_cli_version_reports_project_and_algorithm_identity(capsys) -> None:
+def test_cli_version_reports_project_identity(capsys) -> None:
     with pytest.raises(SystemExit) as result:
         main(argv=("--version",))
     assert result.value.code == 0
-    rendered = capsys.readouterr().out
-    assert f"FuckMark {__version__}" in rendered
+    rendered = capsys.readouterr().out.strip()
+    assert rendered == f"FuckMark {__version__}"
     assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v5"
-    assert "release-cli-v5" in rendered
-    assert "transform-registry-v6" in rendered
+    assert "release-cli-v5" not in rendered
+    assert "transform-registry" not in rendered
 
 
 @pytest.mark.parametrize("option", (("--stdin",), ("--non-interactive",)))

@@ -20,7 +20,6 @@ from .product.visible_projection import (
     product_approved_carriers_v1,
     project_visible_v1,
 )
-from .transforms import TRANSFORM_REGISTRY_ALGORITHM_VERSION
 
 
 INTERACTIVE_DONE = ":done"
@@ -132,10 +131,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--version",
         action="version",
-        version=(
-            f"{__project_name__} {__version__} "
-            f"({RELEASE_CLI_ALGORITHM_VERSION}; {TRANSFORM_REGISTRY_ALGORITHM_VERSION})"
-        ),
+        version=f"{__project_name__} {__version__}",
     )
     parser.add_argument(
         "--stdin",

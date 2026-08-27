@@ -42,7 +42,7 @@ Live `product_approved_carriers_v1()` is `{U+034F, U+FE00}`. The v1 contract's e
 
 Authorization is recorded in `cycle8-publishability-gate-v2` (`confirmed_and_product_authorized`) and `cycle8-product-authorization-v1`. Confirmation does not by itself enable the CLI; the engineering step did.
 
-The Cycle 8 v1 mix publishability report (`cycle8-mix-publishability-v1`) stays `product_publishable: false` because sanitizer weaknesses FAIL: Mn-strip and default-ignorable-strip remove the mix carriers. Gate v2 treats those two as `stress_only_not_frozen` / `KNOWN_DESTRUCTIVE_COUNTERMEASURE` and does not weaken `required_sanitizers_keep`. See `docs/cycle8/mix-publishability.md` and `docs/cycle8/gate-v2.md`.
+The Cycle 8 v1 mix publishability report (`cycle8-mix-publishability-v1`) stays `product_publishable: false` because sanitizer weaknesses FAIL: Mn-strip and default-ignorable-strip remove the mix carriers. Gate v2 treats those two as `stress_only_not_frozen` / `KNOWN_DESTRUCTIVE_COUNTERMEASURE` and does not weaken `required_sanitizers_keep`. See `specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json` and `specs/cycle8/fuckmark-cycle8-publishability-gate-v2.json`.
 
 U+200C is not authorized. It is a diagnostic baseline and is removed by Cf stripping. H12 control-mix is not authorized.
 

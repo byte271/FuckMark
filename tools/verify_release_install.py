@@ -70,7 +70,7 @@ def _verify_artifact(artifact: Path) -> None:
             if not command.is_file():
                 raise RuntimeError(f"missing installed console command: {command.name}")
             version = _run([str(command), "--version"], capture_output=True, env=environment).stdout
-            if f"FuckMark {PROJECT_VERSION}" not in version or "release-cli-v5" not in version:
+            if f"FuckMark {PROJECT_VERSION}" not in version or "release-cli" in version:
                 raise RuntimeError(f"unexpected version output from {command.name}: {version!r}")
             try:
                 transformed = _run(

@@ -1,6 +1,6 @@
 # Installation
 
-Python 3.11 or newer. The public CLI is `fuckmark` / `FuckMark` / `Fuckmark` (`release-cli-v5`).
+Python 3.11 or newer. The public CLI is `fuckmark` / `FuckMark` / `Fuckmark`.
 
 Do not pipe `https://d.q1z.org/mark` into a shell.
 
@@ -31,7 +31,7 @@ Download `SHA256SUMS.txt` from the same release and confirm the wheel digest bef
 https://github.com/byte271/FuckMark/releases/download/v0.4.0/SHA256SUMS.txt
 ```
 
-The historical v0.3.0 identity-CLI wheel SHA-256 is:
+The historical v0.3.0 wheel SHA-256 is:
 
 ```text
 cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325  fuckmark-0.3.0-py3-none-any.whl
@@ -64,7 +64,7 @@ fuckmark --version
 printf 'I do not agree.\n' | fuckmark --visible
 ```
 
-`--version` must begin with `FuckMark 0.4.0` and mention `release-cli-v5`. `--visible` must print `I do not agree.`
+`--version` must print `FuckMark 0.4.0`. `--visible` must print `I do not agree.`
 
 In a terminal, `fuckmark` with no arguments opens the paste UI. Finish with `:done`. The result is copied, not printed.
 
@@ -73,13 +73,6 @@ In a terminal, `fuckmark` with no arguments opens the paste UI. Finish with `:do
 ```text
 python -m pip install -e ".[dev]"
 python -m pytest
-```
-
-Research extras (not required to run the CLI):
-
-```text
-python -m pip install -e ".[research]"
-python -m pip install -r requirements-smoke.txt
 ```
 
 ## Troubleshooting

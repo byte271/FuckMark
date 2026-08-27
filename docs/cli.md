@@ -56,7 +56,7 @@ Piped or quoted input writes the hidden payload to stdout. `--visible` writes th
 
 | Option | Behavior |
 | --- | --- |
-| `--version` | Print `FuckMark 0.4.0` plus internal algorithm ids. |
+| `--version` | Print `FuckMark 0.4.0`. |
 | `--stdin` | Read all of standard input. |
 | `-o FILE`, `--output FILE` | Write UTF-8 output to FILE. |
 | `--copy` | Also copy the output to the clipboard. The paste UI always copies. |
@@ -94,4 +94,4 @@ If the text is already transformed, or has no eligible letters, the CLI returns 
 
 ## Install
 
-See [`install.md`](install.md). Product contract: [`product-contract.md`](product-contract.md).
+See [`install.md`](install.md).
