@@ -1,0 +1,86 @@
+[
+  {
+    "id": "prepend_malayalam_reph_before_I",
+    "keep": true,
+    "status": "REJECTED",
+    "equal": false
+  },
+  {
+    "id": "prepend_sharada_jihvamuliya_before_I",
+    "keep": true,
+    "status": "REJECTED",
+    "equal": false
+  },
+  {
+    "id": "tatweel_after_I",
+    "keep": true,
+    "status": "REJECTED",
+    "equal": false
+  },
+  {
+    "id": "esc_sgr_reset_after_I",
+    "keep": true,
+    "status": "REJECTED",
+    "equal": false
+  },
+  {
+    "id": "hangul_lv_jamo_after_I",
+    "keep": false,
+    "status": "REJECTED",
+    "equal": false
+  },
+  {
+    "id": "bidi_lri_wrap",
+    "keep": false,
+    "status": "VERIFIED",
+    "equal": true
+  },
+  {
+    "id": "bidi_rli_wrap",
+    "keep": false,
+    "status": "REJECTED",
+    "equal": false
+  },
+  {
+    "id": "bidi_fsi_wrap",
+    "keep": false,
+    "status": "VERIFIED",
+    "equal": true
+  },
+  {
+    "id": "mix_agree",
+    "keep": false,
+    "status": "VERIFIED",
+    "equal": true
+  },
+  {
+    "id": "mix_plus_del",
+    "keep": false,
+    "status": "VERIFIED",
+    "equal": true
+  },
+  {
+    "id": "del_only",
+    "keep": true,
+    "status": "VERIFIED",
+    "equal": true
+  },
+  {
+    "id": "affirm_cgj_between_f_i",
+    "keep": false,
+    "status": "VERIFIED",
+    "equal": true
+  },
+  {
+    "id": "arabic_lam_alef_letters",
+    "keep": true,
+    "status": "REJECTED",
+    "equal": false
+  },
+  {
+    "id": "iso6429_conceal_wrap",
+    "keep": true,
+    "status": "REJECTED",
+    "equal": false
+  }
+]

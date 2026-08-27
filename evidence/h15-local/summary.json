@@ -1,0 +1,32 @@
+{
+  "hypothesis": "H15",
+  "algorithm_version": "cycle8-post-sanitizer-sequences-v1",
+  "mix_sanitizer_gate": "FAIL",
+  "product_authorized": false,
+  "stronger_priority_zero_safe_mechanism": null,
+  "conjunction_sanitizer_pass_chromium_verified_ordinary_text": [],
+  "prepend_sanitizer_survivor_count": 13,
+  "ascii_plus_mc_nfc_hit_count": 0,
+  "hangul_lv_sequence_required_sanitizers_keep": false,
+  "hangul_lv_composed_required_sanitizers_keep": false,
+  "lri_wrap_required_sanitizers_keep": false,
+  "mix_plus_del_mn_remainder": ["U+007F"],
+  "dejavu_sans_mono_zero_advance_keep_including_composites": [],
+  "dejavu_sans_mono_latin_extra_component_liga_count": 2,
+  "pixel_equal_sanitizer_fail": [
+    "bidi_lri_wrap",
+    "bidi_fsi_wrap",
+    "bidi_lro_wrap",
+    "zwj_in_agree",
+    "cgj_between_f_i",
+    "word_joiner_between_words",
+    "vs15_after_I"
+  ],
+  "pixel_equal_sanitizer_keep": ["cc_del"],
+  "chromium_rejected_sanitizer_keep": [
+    "grapheme_prepend_malayalam_reph",
+    "joining_tatweel",
+    "iso6429_esc_sgr_reset",
+    "arabic_lam_alef_letters"
+  ]
+}

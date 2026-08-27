@@ -119,6 +119,27 @@ This does **not** rewrite mix sanitizer FAIL. Public CLI stays empty. Do not gen
 
 Spec: `cycle8-post-sanitizer-extended-class-v1`. Evidence: `evidence/h14-local/`.
 
+## H15. Sequence and representation class
+
+`VERIFIED` as a negative sequence-level extension, not a product unlock. H14 closed the next single-codepoint graphic classes. H15 does not repeat that sweep. It measures multi-codepoint sequences and representation interactions.
+
+No measured class is simultaneously sanitizer-surviving, Chromium-portable, ordinary plain text, and Priority-Zero safe.
+
+Live sequence measurements:
+
+- Thirteen UAX #29 prepend letters survive the required sanitizers. Chromium `pre` rejects them in front of Latin `I`.
+- Joining connectors (tatweel, Nko lajanyalan, Mongolian nirugu, character tie) survive and change Chromium `pre` pixels. ZWJ/ZWNJ die to Cf-strip.
+- Hangul L plus V jamo is NFC-unstable. The composed syllable is NFKD-unstable. Either form dies to the required bundle.
+- ASCII plus sanitizer-surviving `Mc` does not NFC-compose.
+- LRI/FSI wraps around LTR English are pixel-equal on this Chromium host and die to Cf-strip. RLI/RLO wraps change pixels.
+- ISO-6429 ESC CSI sequences survive because they are `Cc` plus ASCII, but Chromium `pre` shows the ASCII parameters.
+- Mix plus DEL is pixel-equal here; Mn-strip leaves DEL. That is the H12 remainder, not a new class.
+- DejaVu Sans Mono has no sanitizer-surviving zero-advance mapped glyph, including composites. Discretionary `fi`/`fl` ligatures map to NFKC-fragile compatibility characters and are not applied in Chromium `pre`.
+
+This does **not** rewrite mix sanitizer FAIL. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
+
+Spec: `cycle8-post-sanitizer-sequences-v1`. Evidence: `evidence/h15-local/`.
+
 ## Rejected as product mechanisms
 
 | Mechanism | Label | Why |
@@ -137,6 +158,12 @@ Spec: `cycle8-post-sanitizer-extended-class-v1`. Evidence: `evidence/h14-local/`
 | Egyptian blanks / Indic gap fillers / U+FFFC | `REJECTED` | sanitizer-survive with width; Chromium `pre` pixels change |
 | Hangul filler sequences | `REJECTED` | default-ignorable; DI-strip restores the source |
 | CSI-filtered C1 subset | `PRODUCT_DISQUALIFIED` | still `Cc`; Chromium host-dependent; not ordinary text |
+| Grapheme prepend plus Latin base | `REJECTED` | sanitizer-survive; Chromium `pre` pixels change |
+| Joining connectors (tatweel / nirugu) | `REJECTED` | sanitizer-survive; Chromium `pre` pixels change |
+| Hangul L plus V composition | `REJECTED` | NFC or NFKD rewrites the representation |
+| Bidi isolate wrap | `REJECTED` as durable | pixel-equal on LTR here; Cf-strip restores the source |
+| ISO-6429 escape sequences | `PRODUCT_DISQUALIFIED` | sanitizer-survive as `Cc` plus ASCII; parameters stay visible |
+| Mix plus DEL remainder | `PRODUCT_DISQUALIFIED` | leftover is still H12 `Cc` |
 
 ## Baseline
 
