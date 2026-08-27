@@ -37,7 +37,7 @@ fuckmark = "fuckmark.cli:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3"]
-research = ["fonttools>=4.50"]
+research = ["fonttools>=4.50", "uharfbuzz>=0.39", "tokenizers>=0.20"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

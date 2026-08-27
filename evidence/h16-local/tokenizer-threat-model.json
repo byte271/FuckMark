@@ -1,0 +1,438 @@
+{
+  "gemma-2-2b-it": {
+    "normalizer": "Replace",
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 9,
+    "carriers_dropped": [],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 22,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 22,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      }
+    }
+  },
+  "gemma-3-1b-it": {
+    "normalizer": "Replace",
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 9,
+    "carriers_dropped": [],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 45,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 22,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 22,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      }
+    }
+  },
+  "gpt2": {
+    "normalizer": null,
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 9,
+    "carriers_dropped": [],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 45,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      }
+    }
+  },
+  "llama-2-7b": {
+    "normalizer": "Sequence[Prepend, Replace]",
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 9,
+    "carriers_dropped": [],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 45,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      }
+    }
+  },
+  "llama-3-8b": {
+    "normalizer": null,
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 9,
+    "carriers_dropped": [],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 22,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      }
+    }
+  },
+  "mistral-7b-v0.2": {
+    "normalizer": null,
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 9,
+    "carriers_dropped": [],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 34,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 45,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      }
+    }
+  },
+  "xlm-roberta-base": {
+    "normalizer": "Precompiled",
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 8,
+    "carriers_dropped": [
+      "U+007F DEL (Cc)"
+    ],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 13,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 13,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 13,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 5,
+        "reaches_token_stream": false
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      }
+    }
+  },
+  "t5-small": {
+    "normalizer": "Precompiled",
+    "baseline_token_count": 5,
+    "carriers_probed": 9,
+    "carriers_reaching_token_stream": 8,
+    "carriers_dropped": [
+      "U+007F DEL (Cc)"
+    ],
+    "carriers": {
+      "U+034F CGJ (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 26,
+        "reaches_token_stream": true
+      },
+      "U+FE00 VS-1 (Mn)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 26,
+        "reaches_token_stream": true
+      },
+      "U+200B ZWSP (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+200C ZWNJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+2060 WJ (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 26,
+        "reaches_token_stream": true
+      },
+      "U+00AD SHY (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 26,
+        "reaches_token_stream": true
+      },
+      "U+FEFF BOM (Cf)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 23,
+        "reaches_token_stream": true
+      },
+      "U+007F DEL (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 5,
+        "reaches_token_stream": false
+      },
+      "U+0080 PAD (Cc)": {
+        "baseline_token_count": 5,
+        "carrier_token_count": 26,
+        "reaches_token_stream": true
+      }
+    }
+  }
+}

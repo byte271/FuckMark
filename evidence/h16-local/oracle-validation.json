@@ -1,0 +1,220 @@
+{
+  "source": "I do not agree.",
+  "font": "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+  "sample_size": 23,
+  "agreement": 20,
+  "disagreement_ids": [
+    "cf_zwnj",
+    "cc_del",
+    "cc_c1_pad"
+  ],
+  "rows": [
+    {
+      "id": "mn_cgj",
+      "codepoint": "U+034F",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "mn_variation_selector_1",
+      "codepoint": "U+FE00",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "mn_devanagari_nukta",
+      "codepoint": "U+093C",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "cf_zwsp",
+      "codepoint": "U+200B",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "cf_zwnj",
+      "codepoint": "U+200C",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": false,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "cf_zwj",
+      "codepoint": "U+200D",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "cf_word_joiner",
+      "codepoint": "U+2060",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "cf_soft_hyphen",
+      "codepoint": "U+00AD",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "cf_mongolian_vowel_separator",
+      "codepoint": "U+180E",
+      "shaping_oracle_invisible": true,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "lm_tatweel",
+      "codepoint": "U+0640",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "lm_modifier_small_h",
+      "codepoint": "U+02B0",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "mc_devanagari_aa",
+      "codepoint": "U+093E",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "mc_hangul_tone",
+      "codepoint": "U+302E",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "me_enclosing_circle",
+      "codepoint": "U+20DD",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "so_braille_blank",
+      "codepoint": "U+2800",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "so_object_replacement",
+      "codepoint": "U+FFFC",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "lo_hangul_filler",
+      "codepoint": "U+3164",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "lo_hangul_jamo_v_filler",
+      "codepoint": "U+1160",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "lo_egyptian_full_blank",
+      "codepoint": "U+13441",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "zs_nbsp",
+      "codepoint": "U+00A0",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": false
+    },
+    {
+      "id": "zs_ogham_space",
+      "codepoint": "U+1680",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": false,
+      "chromium_status": "REJECTED",
+      "agree": true,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "cc_del",
+      "codepoint": "U+007F",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": false,
+      "required_sanitizers_keep": true
+    },
+    {
+      "id": "cc_c1_pad",
+      "codepoint": "U+0080",
+      "shaping_oracle_invisible": false,
+      "chromium_pre_invisible": true,
+      "chromium_status": "VERIFIED",
+      "agree": false,
+      "required_sanitizers_keep": true
+    }
+  ]
+}

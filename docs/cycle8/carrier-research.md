@@ -140,6 +140,24 @@ This does **not** rewrite mix sanitizer FAIL. Public CLI stays empty. Do not gen
 
 Spec: `cycle8-post-sanitizer-sequences-v1`. Evidence: `evidence/h15-local/`.
 
+## H16. Threat-model audit
+
+`VERIFIED` as an audit of the gate itself, not another carrier search. H9-H15 all returned negatives; H16 asks whether the gate that produced them is correct. It is not.
+
+**The search space was empty by construction.** A HarfBuzz advance-and-ink oracle over 286719 assigned code points in 12 shaping contexts finds 396 invisible code points in the Chromium `pre` font. Every one is `Mn` or `Cf`, in 15 contiguous ranges. The required bundle strips exactly `Mn`, `Cf`, and default-ignorable, so invisibility and required-bundle survival are complementary sets. The intersection is 0 and no further enumeration can change that. The oracle agrees with real Chromium pixels on 20 of 23 stratified samples; all three disagreements are understood and none weakens the closure.
+
+The other transformation classes close too. Substitution: 14 code points render as an ASCII space, all 14 NFKC-collapse to `U+0020`, none survives. Canonical re-encoding: the declared ASCII input domain is a fixed point of all four normalization forms. Deletion and reordering change visible text. The single remainder in all of Unicode is `Cc`, which ordinary-plain-text excludes — the H12 result, now shown to be unique rather than one option among many.
+
+**Production detectors do not apply these sanitizers.** SynthID-Text scores model tokens, so the tokenizer is the real normalizer. The Gemma tokenizers it is deployed on declare only the SentencePiece whitespace `Replace` and strip no `Mn`, `Cf`, or `Cc`; all nine probe carriers reach the token stream and a 5-token sentence becomes 22-23 tokens. The only tokenizers that drop anything are the two SentencePiece `Precompiled` ones, and what they drop is DEL — inverting the gate, which permits `Cc` and forbids `Mn`/`Cf`.
+
+**The stress sanitizers are not deployable.** Mn-strip corrupts 5 of 7 ordinary multilingual samples and default-ignorable-strip corrupts 4 of 7. Thai loses every vowel and tone mark, Hebrew loses all niqqud, Hindi `नहीं` becomes `नही`, Persian loses its ZWNJ, and `👨‍👩‍👧` becomes three separate people. No platform can run these as preprocessing.
+
+**The gate is wrong on scope and on form.** On scope, the frozen product contract classifies `default_ignorable_removal` and `nonspacing_mark_removal` as `stress_only_not_frozen`, yet `required_sanitizers_keep` treats both as hard requirements. That is the entire blockage: mix survives 21/21 frozen sanitizer fixtures and every other publishability gate passes, so `sanitizer_weaknesses` fails only on those two. On form, the gate asks for carrier fixed-point survival `S(T(x)) == T(x)`, which is strictly stronger than the product goal that detection fail after sanitization.
+
+`proposed_gate_v2` records a corrected boundary but is marked `proposal_only_not_active`. This does **not** rewrite mix sanitizer FAIL, does not relax `required_sanitizers_keep`, and does not authorize a product mechanism. Adopting it needs an explicit product decision and a fresh confirmation run. Public CLI stays empty. Do not generate `950000`. Do not retune spent confirmation seeds.
+
+Spec: `cycle8-threat-model-audit-v1`. Evidence: `evidence/h16-local/`.
+
 ## Rejected as product mechanisms
 
 | Mechanism | Label | Why |

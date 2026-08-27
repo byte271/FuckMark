@@ -1,0 +1,291 @@
+{
+  "corpus_size": 7,
+  "sanitizer_damage": {
+    "nfc": {
+      "category": "frozen",
+      "corrupted_samples": 1,
+      "of": 7
+    },
+    "nfkc": {
+      "category": "frozen",
+      "corrupted_samples": 1,
+      "of": 7
+    },
+    "cf_strip": {
+      "category": "frozen",
+      "corrupted_samples": 3,
+      "of": 7
+    },
+    "mn_strip": {
+      "category": "stress_only_not_frozen",
+      "corrupted_samples": 5,
+      "of": 7
+    },
+    "default_ignorable_strip": {
+      "category": "stress_only_not_frozen",
+      "corrupted_samples": 4,
+      "of": 7
+    }
+  },
+  "rows": [
+    {
+      "id": "devanagari",
+      "script": "Devanagari",
+      "original": "मैं इससे सहमत नहीं हूँ।",
+      "results": {
+        "nfc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "मैं इससे सहमत नहीं हूँ।",
+          "codepoints_lost": 0
+        },
+        "nfkc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "मैं इससे सहमत नहीं हूँ।",
+          "codepoints_lost": 0
+        },
+        "cf_strip": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "मैं इससे सहमत नहीं हूँ।",
+          "codepoints_lost": 0
+        },
+        "mn_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "म इसस सहमत नही ह।",
+          "codepoints_lost": 6
+        },
+        "default_ignorable_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": false,
+          "output": "मैं इससे सहमत नहीं हूँ।",
+          "codepoints_lost": 0
+        }
+      }
+    },
+    {
+      "id": "hebrew_niqqud",
+      "script": "Hebrew niqqud",
+      "original": "אֲנִי לֹא מַסְכִּים.",
+      "results": {
+        "nfc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": true,
+          "output": "אֲנִי לֹא מַסְכִּים.",
+          "codepoints_lost": 0
+        },
+        "nfkc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": true,
+          "output": "אֲנִי לֹא מַסְכִּים.",
+          "codepoints_lost": 0
+        },
+        "cf_strip": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "אֲנִי לֹא מַסְכִּים.",
+          "codepoints_lost": 0
+        },
+        "mn_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "אני לא מסכים.",
+          "codepoints_lost": 7
+        },
+        "default_ignorable_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": false,
+          "output": "אֲנִי לֹא מַסְכִּים.",
+          "codepoints_lost": 0
+        }
+      }
+    },
+    {
+      "id": "thai",
+      "script": "Thai",
+      "original": "ฉันไม่เห็นด้วย",
+      "results": {
+        "nfc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "ฉันไม่เห็นด้วย",
+          "codepoints_lost": 0
+        },
+        "nfkc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "ฉันไม่เห็นด้วย",
+          "codepoints_lost": 0
+        },
+        "cf_strip": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "ฉันไม่เห็นด้วย",
+          "codepoints_lost": 0
+        },
+        "mn_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "ฉนไมเหนดวย",
+          "codepoints_lost": 4
+        },
+        "default_ignorable_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": false,
+          "output": "ฉันไม่เห็นด้วย",
+          "codepoints_lost": 0
+        }
+      }
+    },
+    {
+      "id": "persian_zwnj",
+      "script": "Persian ZWNJ",
+      "original": "من موافق نیستم‌ها.",
+      "results": {
+        "nfc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "من موافق نیستم‌ها.",
+          "codepoints_lost": 0
+        },
+        "nfkc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "من موافق نیستم‌ها.",
+          "codepoints_lost": 0
+        },
+        "cf_strip": {
+          "category": "frozen",
+          "corrupts_ordinary_text": true,
+          "output": "من موافق نیستمها.",
+          "codepoints_lost": 1
+        },
+        "mn_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": false,
+          "output": "من موافق نیستم‌ها.",
+          "codepoints_lost": 0
+        },
+        "default_ignorable_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "من موافق نیستمها.",
+          "codepoints_lost": 1
+        }
+      }
+    },
+    {
+      "id": "emoji_zwj_family",
+      "script": "Emoji ZWJ family",
+      "original": "Our family 👨‍👩‍👧 disagrees.",
+      "results": {
+        "nfc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "Our family 👨‍👩‍👧 disagrees.",
+          "codepoints_lost": 0
+        },
+        "nfkc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "Our family 👨‍👩‍👧 disagrees.",
+          "codepoints_lost": 0
+        },
+        "cf_strip": {
+          "category": "frozen",
+          "corrupts_ordinary_text": true,
+          "output": "Our family 👨👩👧 disagrees.",
+          "codepoints_lost": 2
+        },
+        "mn_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": false,
+          "output": "Our family 👨‍👩‍👧 disagrees.",
+          "codepoints_lost": 0
+        },
+        "default_ignorable_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "Our family 👨👩👧 disagrees.",
+          "codepoints_lost": 2
+        }
+      }
+    },
+    {
+      "id": "emoji_vs16",
+      "script": "Emoji VS-16",
+      "original": "I disagree ❤️ strongly.",
+      "results": {
+        "nfc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "I disagree ❤️ strongly.",
+          "codepoints_lost": 0
+        },
+        "nfkc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "I disagree ❤️ strongly.",
+          "codepoints_lost": 0
+        },
+        "cf_strip": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "I disagree ❤️ strongly.",
+          "codepoints_lost": 0
+        },
+        "mn_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "I disagree ❤ strongly.",
+          "codepoints_lost": 1
+        },
+        "default_ignorable_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "I disagree ❤ strongly.",
+          "codepoints_lost": 1
+        }
+      }
+    },
+    {
+      "id": "devanagari_zwj_conjunct",
+      "script": "Devanagari ZWJ conjunct",
+      "original": "क्‍ष सही नहीं है।",
+      "results": {
+        "nfc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "क्‍ष सही नहीं है।",
+          "codepoints_lost": 0
+        },
+        "nfkc": {
+          "category": "frozen",
+          "corrupts_ordinary_text": false,
+          "output": "क्‍ष सही नहीं है।",
+          "codepoints_lost": 0
+        },
+        "cf_strip": {
+          "category": "frozen",
+          "corrupts_ordinary_text": true,
+          "output": "क्ष सही नहीं है।",
+          "codepoints_lost": 1
+        },
+        "mn_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "क‍ष सही नही ह।",
+          "codepoints_lost": 3
+        },
+        "default_ignorable_strip": {
+          "category": "stress_only_not_frozen",
+          "corrupts_ordinary_text": true,
+          "output": "क्ष सही नहीं है।",
+          "codepoints_lost": 1
+        }
+      }
+    }
+  ]
+}

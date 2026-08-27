@@ -1,27 +1,13 @@
-"""H16 shaping oracle validation against real Chromium ``pre`` pixels.
-
-The exhaustive H16 closure scan uses a HarfBuzz shaping oracle instead of one
-screenshot per code point. This script checks that oracle against the Chromium
-comparator the earlier cycles used, on a stratified sample covering every class
-the closure argument depends on.
-"""
-
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO))
-sys.path.insert(0, str(REPO / "tools"))
+from h16_shaping_closure_scan import ShapingOracle
 
-from h16_shaping_closure_scan import CHROMIUM_PRE_FONT, ShapingOracle  # noqa: E402
-
-from fuckmark.cycle8.control_carrier import required_sanitizers_keep  # noqa: E402
-from fuckmark.product.rendering import compare_chrome_pre_screenshots  # noqa: E402
-
-SOURCE = "I do not agree."
+from fuckmark.cycle8.control_carrier import required_sanitizers_keep
+from fuckmark.cycle8.threat_model_audit import AUDIT_SOURCE, CHROMIUM_PRE_FONT
+from fuckmark.product.rendering import compare_chrome_pre_screenshots
 
 SAMPLE: tuple[tuple[str, int], ...] = (
     ("mn_cgj", 0x034F),
@@ -62,23 +48,22 @@ def insert_after_letters(source: str, payload: str) -> str:
 def main() -> int:
     oracle = ShapingOracle(CHROMIUM_PRE_FONT)
     rows = []
-    agree = 0
-    disagree = []
+    agreement = 0
+    disagreements: list[str] = []
     for probe_id, codepoint in SAMPLE:
-        applied = insert_after_letters(SOURCE, chr(codepoint))
-        comparison = compare_chrome_pre_screenshots(SOURCE, applied)
+        applied = insert_after_letters(AUDIT_SOURCE, chr(codepoint))
+        comparison = compare_chrome_pre_screenshots(AUDIT_SOURCE, applied)
         shaping_invisible = oracle.invisible(codepoint)
-        chromium_invisible = comparison.equal
-        matched = shaping_invisible == chromium_invisible
-        agree += int(matched)
+        matched = shaping_invisible == comparison.equal
+        agreement += int(matched)
         if not matched:
-            disagree.append(probe_id)
+            disagreements.append(probe_id)
         rows.append(
             {
                 "id": probe_id,
                 "codepoint": f"U+{codepoint:04X}",
                 "shaping_oracle_invisible": shaping_invisible,
-                "chromium_pre_invisible": chromium_invisible,
+                "chromium_pre_invisible": comparison.equal,
                 "chromium_status": comparison.status,
                 "agree": matched,
                 "required_sanitizers_keep": required_sanitizers_keep(applied),
@@ -86,21 +71,21 @@ def main() -> int:
         )
         print(
             f"{probe_id:32} {f'U+{codepoint:04X}':10} shaping={shaping_invisible!s:5} "
-            f"chromium={chromium_invisible!s:5} {'OK' if matched else 'DISAGREE'}"
+            f"chromium={comparison.equal!s:5} {'OK' if matched else 'DISAGREE'}"
         )
 
     payload = {
-        "source": SOURCE,
+        "source": AUDIT_SOURCE,
         "font": CHROMIUM_PRE_FONT,
         "sample_size": len(SAMPLE),
-        "agreement": agree,
-        "disagreement_ids": disagree,
+        "agreement": agreement,
+        "disagreement_ids": disagreements,
         "rows": rows,
     }
-    destination = REPO / "evidence" / "h16-local" / "oracle-validation.json"
+    destination = Path("evidence/h16-local/oracle-validation.json")
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"\nagreement {agree}/{len(SAMPLE)}; disagreements: {disagree}")
+    print(f"\nagreement {agreement}/{len(SAMPLE)}; disagreements: {disagreements}")
     print("wrote", destination)
     return 0
 
