@@ -272,7 +272,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
   <section class="panel" id="live-inspect">
     <h2>Local paste inspector (no detector, no insertion)</h2>
     <p>Checks whether text is ordinary English ASCII the CLI accepts. It does not run the mix transform, does not protect Markdown/paths, and does not query any detector. The CLI remains the source of truth.</p>
-    <textarea id="live-input" spellcheck="false" placeholder="Paste text to check ASCII eligibility. Example that fails: I don’t agree."></textarea>
+    <textarea id="live-input" spellcheck="false" placeholder="Paste text to check ASCII eligibility. Example that fails: I don’t agree. (U+2019)"></textarea>
     <div class="actions">
       <button type="button" class="primary" id="btn-live">Inspect paste</button>
       <button type="button" id="btn-live-clear">Clear</button>
@@ -359,6 +359,14 @@ code { font-family: var(--mono); font-size: 0.9em; }
   let active = samples[0];
   let mode = "output";
 
+
+  function formatUnsupported(token) {
+    if (!token) return "";
+    const match = /^U\+([0-9A-Fa-f]+)@(\d+)$/.exec(token);
+    if (!match) return token;
+    return "U+" + match[1].toUpperCase() + " at index " + match[2];
+  }
+
   function hex(cp) {
     return "U+" + cp.toString(16).toUpperCase().padStart(4, "0");
   }
@@ -430,7 +438,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
       setStat("last_index", sample.last_index == null ? "" : String(sample.last_index)),
       setStat("source_length", String(sample.source_length)),
       setStat("capped", sample.capped ? "yes" : "no", sample.capped ? "warn" : ""),
-      setStat("first_unsupported", sample.first_unsupported || "")
+      setStat("first_unsupported", formatUnsupported(sample.first_unsupported))
     );
     if (extras && extras.restored != null) {
       statusGrid.append(setStat("strip restores source", extras.restored ? "yes" : "no", extras.restored ? "ok" : "bad"));
@@ -539,7 +547,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
       setStat("local verdict", processedHint, tone),
       setStat("reason hint", reason, tone),
       setStat("payload marks found", String(carriers)),
-      setStat("first_unsupported", first ? hex(first.cp) + "@" + first.index : ""),
+      setStat("first_unsupported", first ? formatUnsupported(hex(first.cp) + "@" + first.index) : ""),
       setStat("source_length", String([...text].length)),
       setStat("detector score", "not computed")
     );
