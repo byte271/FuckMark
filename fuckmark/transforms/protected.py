@@ -21,7 +21,7 @@ from .protected_patterns import (
     _NUMERIC_CITATION_RE,
     _PERCENT_RE,
 )
-from .protected_markdown import _add_markdown_reference_spans
+from .protected_markdown import _add_markdown_reference_spans, markdown_label_closers
 from .protected_structures import (
     _add_delimited_math,
     _add_dollar_math,
@@ -29,6 +29,8 @@ from .protected_structures import (
     _add_extended_posix_paths,
     _add_extended_windows_paths,
     _add_fenced_code,
+    _add_html_markup,
+    _add_indented_code,
     _add_inline_code,
     _add_markdown_destinations,
     _add_posix_paths,
@@ -37,7 +39,6 @@ from .protected_structures import (
     _STRAIGHT_SINGLE_QUOTE_RE,
 )
 from .schema import ProtectedSpanKind
-
 
 PROTECTED_SPAN_ALGORITHM_VERSION = "protected-span-extractor-v4"
 _MAX_IDENTIFIER_SCAN_WORK = 50_000_000
@@ -65,34 +66,8 @@ def _merge_spans(text: str, raw: Sequence[tuple[int, int, ProtectedSpanKind]]) -
     return tuple(output)
 
 
-def _is_escaped(text: str, index: int) -> bool:
-    count = 0
-    cursor = index - 1
-    while cursor >= 0 and text[cursor] == "\\":
-        count += 1
-        cursor -= 1
-    return count % 2 == 1
-
-
-def _markdown_label_closers(text: str) -> frozenset[int]:
-    stack: list[int] = []
-    closers: set[int] = set()
-    for index, character in enumerate(text):
-        if character == "\n":
-            stack.clear()
-            continue
-        if character not in "[]" or _is_escaped(text, index):
-            continue
-        if character == "[":
-            stack.append(index)
-        elif stack:
-            stack.pop()
-            closers.add(index)
-    return frozenset(closers)
-
-
 def _add_valid_markdown_destinations(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
-    closers = _markdown_label_closers(text)
+    closers = markdown_label_closers(text)
     if not closers:
         return
     temporary: list[tuple[int, int, ProtectedSpanKind]] = []
@@ -100,6 +75,27 @@ def _add_valid_markdown_destinations(raw: list[tuple[int, int, ProtectedSpanKind
     for start, end, kind in temporary:
         if start >= 2 and start - 2 in closers:
             _append(raw, start, end, kind)
+
+
+def add_hard_machine_spans(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
+    _add_fenced_code(raw, text)
+    _add_inline_code(raw, text)
+    _add_indented_code(raw, text)
+    _add_html_markup(raw, text)
+    _add_valid_markdown_destinations(raw, text)
+    _add_markdown_reference_spans(raw, text)
+    _add_urls(raw, text)
+    _add_regex(raw, text, _EMAIL_RE, ProtectedSpanKind.EMAIL)
+    _add_ip_addresses(raw, text)
+    _add_dates(raw, text)
+    _add_regex(raw, text, _CURRENCY_RE, ProtectedSpanKind.CURRENCY)
+    _add_regex(raw, text, _PERCENT_RE, ProtectedSpanKind.PERCENTAGE)
+    _add_regex(raw, text, _NUMBER_RE, ProtectedSpanKind.NUMBER)
+    _add_posix_paths(raw, text)
+    _add_extended_posix_paths(raw, text)
+    _add_windows_paths(raw, text)
+    _add_extended_windows_paths(raw, text)
+    _add_regex(raw, text, _CLI_FLAG_RE, ProtectedSpanKind.CLI_FLAG)
 
 
 def _identifier_matches(text: str, identifier: str) -> Iterator[tuple[int, int]]:
@@ -158,26 +154,11 @@ class ProtectedSpanExtractor:
             if value.end > len(text):
                 raise ValueError("user protected range extends beyond text")
         raw: list[tuple[int, int, ProtectedSpanKind]] = []
-        _add_fenced_code(raw, text)
-        _add_inline_code(raw, text)
-        _add_valid_markdown_destinations(raw, text)
-        _add_markdown_reference_spans(raw, text)
-        _add_urls(raw, text)
-        _add_regex(raw, text, _EMAIL_RE, ProtectedSpanKind.EMAIL)
-        _add_ip_addresses(raw, text)
-        _add_dates(raw, text)
-        _add_regex(raw, text, _CURRENCY_RE, ProtectedSpanKind.CURRENCY)
-        _add_regex(raw, text, _PERCENT_RE, ProtectedSpanKind.PERCENTAGE)
-        _add_regex(raw, text, _NUMBER_RE, ProtectedSpanKind.NUMBER)
+        add_hard_machine_spans(raw, text)
         if include_quotations:
             _add_double_quotations(raw, text)
             _add_regex(raw, text, _CURLY_SINGLE_QUOTE_RE, ProtectedSpanKind.QUOTATION)
             _add_regex(raw, text, _STRAIGHT_SINGLE_QUOTE_RE, ProtectedSpanKind.QUOTATION)
-        _add_posix_paths(raw, text)
-        _add_extended_posix_paths(raw, text)
-        _add_windows_paths(raw, text)
-        _add_extended_windows_paths(raw, text)
-        _add_regex(raw, text, _CLI_FLAG_RE, ProtectedSpanKind.CLI_FLAG)
         _add_regex(raw, text, _NUMERIC_CITATION_RE, ProtectedSpanKind.CITATION)
         _add_regex(raw, text, _AUTHOR_YEAR_CITATION_RE, ProtectedSpanKind.CITATION)
         _add_dollar_math(raw, text)

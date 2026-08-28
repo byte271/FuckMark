@@ -13,7 +13,7 @@ from fuckmark.cycle8.mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_V
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
-from tests.audit_mix_replay import live_mix_hash
+from tests.audit_mix_replay import assert_live_mix_matches_stored
 
 
 def test_mix_mean_transfer_scorecard_is_hypothesis_on_the_same_adapter() -> None:
@@ -55,7 +55,12 @@ def test_mix_mean_transfer_rows_replay_live_mix_without_rewriting_hashes() -> No
             assert "text" not in row
             assert "text" not in row["mix"]
             assert row["source_sha256"] == sample["text_sha256"] == sha256_text(source)
-            live_mix_hash(source)
+            assert_live_mix_matches_stored(
+                str(sample["sample_id"]),
+                source,
+                row["mix"]["text_sha256"],
+                label=str(row.get("label", sample.get("label", ""))),
+            )
     root = Path(__file__).resolve().parents[1] / Path(CYCLE8_MIX_DETECTOR_TRANSFER_PATH).parent
     sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
     for line in sums.splitlines():

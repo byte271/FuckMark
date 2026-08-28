@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fuckmark"
-version = "0.4.0"
-description = "CLI that inserts a frozen invisible Unicode payload into English ASCII text without changing what you see"
+version = "0.4.1"
+description = "CLI that inserts frozen invisible Unicode into English ASCII text without changing what you see. Constrained SynthID results; not a general watermark remover."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
@@ -37,7 +37,7 @@ Fuckmark = "fuckmark.cli:main"
 fuckmark = "fuckmark.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=8.3"]
+dev = ["pytest>=8.3", "markdown-it-py==4.2.0"]
 research = ["fonttools>=4.50", "uharfbuzz>=0.39", "tokenizers>=0.20"]
 
 [tool.pytest.ini_options]

@@ -107,6 +107,36 @@ def _verify_artifact(artifact: Path) -> None:
                 raise RuntimeError(
                     f"installed CLI quoted argument failed for {command.name}: stdout={quoted.stdout!r} stderr={quoted.stderr!r}"
                 )
+            text_flag = _run(
+                [str(command), "--text", "I do not agree."],
+                capture_output=True,
+                env=environment,
+            )
+            if text_flag.stdout != expected_arg or text_flag.stderr:
+                raise RuntimeError(
+                    f"installed CLI --text failed for {command.name}: stdout={text_flag.stdout!r} stderr={text_flag.stderr!r}"
+                )
+            source_file = root / "notes.txt"
+            source_file.write_text("I do not agree.\n", encoding="utf-8")
+            file_flag = _run(
+                [str(command), "--file", str(source_file)],
+                capture_output=True,
+                env=environment,
+            )
+            expected_file = apply_letter_alternating_mix("I do not agree.\n")
+            if file_flag.stdout != expected_file or file_flag.stderr:
+                raise RuntimeError(
+                    f"installed CLI --file failed for {command.name}: stdout={file_flag.stdout!r} stderr={file_flag.stderr!r}"
+                )
+            status_line = _run(
+                [str(command), "--text", "I do not agree.", "--status"],
+                capture_output=True,
+                env=environment,
+            )
+            if status_line.stdout != expected_arg or "fuckmark-status" not in status_line.stderr:
+                raise RuntimeError(
+                    f"installed CLI --status failed for {command.name}: stdout={status_line.stdout!r} stderr={status_line.stderr!r}"
+                )
             help_text = _run([str(command), "--help"], capture_output=True, env=environment).stdout
             if "fuckmark" not in help_text.casefold() or "--visible" not in help_text or ":done" not in help_text:
                 raise RuntimeError(f"installed CLI --help failed for {command.name}: {help_text!r}")

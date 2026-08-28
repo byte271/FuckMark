@@ -13,8 +13,13 @@ from pathlib import Path
 from typing import TextIO
 
 from . import __project_name__, __version__
-from .cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
-from .product.domain import is_supported_product_domain_v1
+from .cycle8.letter_mix import (
+    LETTER_MIX_APPROVED_CARRIERS,
+    LETTER_MIX_MAX_SELECTED,
+    compose_letter_mix,
+    select_letter_mix_sites,
+)
+from .product.domain import PRODUCT_MAX_INPUT_CHARS, is_supported_product_domain_v1
 from .product.encodings import require_supported_product_encoding
 from .product.visible_projection import (
     is_carrier_insertion_v1,
@@ -37,10 +42,29 @@ class ClipboardUnavailableError(RuntimeError):
     pass
 
 
+EXIT_OK = 0
+EXIT_ERROR = 1
+EXIT_USAGE = 2
+EXIT_CLIPBOARD = 3
+EXIT_INTERNAL = 4
+EXIT_INTERRUPT = 130
+REASON_TRANSFORMED = "transformed"
+REASON_SITE_CAP = "site-cap"
+REASON_UNSUPPORTED_DOMAIN = "unsupported-domain"
+REASON_ALREADY_TRANSFORMED = "already-transformed"
+REASON_NO_ELIGIBLE_SITES = "no-eligible-sites"
+REASON_INTERNAL_ERROR = "internal-error"
+REASON_TOO_LARGE = "too-large"
+
+
 @dataclass(frozen=True, slots=True)
 class ProcessResult:
     output_text: str
     change_count: int
+    reason: str = REASON_TRANSFORMED
+    last_source_index: int | None = None
+    site_count: int = 0
+    capped: bool = False
 
     @property
     def changed(self) -> bool:
@@ -51,23 +75,38 @@ def transform_text(text: str) -> ProcessResult:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     try:
+        if len(text) > PRODUCT_MAX_INPUT_CHARS:
+            return ProcessResult(text, 0, reason=REASON_TOO_LARGE)
         approved = product_approved_carriers_v1()
         if approved != frozenset(LETTER_MIX_APPROVED_CARRIERS):
-            return ProcessResult(text, 0)
-        if not is_supported_product_domain_v1(text):
-            return ProcessResult(text, 0)
+            return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
         if any(ord(character) in approved for character in text):
-            return ProcessResult(text, 0)
-        applied = apply_letter_alternating_mix(text)
+            return ProcessResult(text, 0, reason=REASON_ALREADY_TRANSFORMED)
+        if not is_supported_product_domain_v1(text):
+            return ProcessResult(text, 0, reason=REASON_UNSUPPORTED_DOMAIN)
+        probe = select_letter_mix_sites(text, max_selected=LETTER_MIX_MAX_SELECTED + 1)
+        capped = len(probe) > LETTER_MIX_MAX_SELECTED
+        sites = probe[:LETTER_MIX_MAX_SELECTED]
+        if not sites:
+            return ProcessResult(text, 0, reason=REASON_NO_ELIGIBLE_SITES)
+        applied = compose_letter_mix(text, sites)
         if applied == text:
-            return ProcessResult(text, 0)
+            return ProcessResult(text, 0, reason=REASON_NO_ELIGIBLE_SITES)
         if not is_carrier_insertion_v1(text, applied, approved):
-            return ProcessResult(text, 0)
+            return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
         if project_visible_v1(applied, approved) != text:
-            return ProcessResult(text, 0)
-        return ProcessResult(applied, len(applied) - len(text))
+            return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
+        reason = REASON_SITE_CAP if capped else REASON_TRANSFORMED
+        return ProcessResult(
+            applied,
+            len(applied) - len(text),
+            reason=reason,
+            last_source_index=sites[-1],
+            site_count=len(sites),
+            capped=capped,
+        )
     except (KeyError, TypeError, ValueError, RuntimeError):
-        return ProcessResult(text, 0)
+        return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
 
 
 def process_text(text: str) -> str:
@@ -122,9 +161,10 @@ def _parser() -> argparse.ArgumentParser:
             "\n"
             "Supported input: tab, newline, carriage return, and ASCII space through tilde.\n"
             "Other Unicode is returned unchanged with exit 0. That status means I/O\n"
-            "succeeded, not that a transformation occurred. Only UTF-8 is supported.\n"
+            "succeeded, not that hidden characters were inserted. Only UTF-8 is supported.\n"
             "Visible text stays the same. Use --visible to print that visible text.\n"
-            "Use --text for literal strings and --file for existing UTF-8 files."
+            "Use --text for literal strings and --file for existing UTF-8 files.\n"
+            "Use --status for a machine-readable outcome on stderr."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -185,6 +225,12 @@ def _parser() -> argparse.ArgumentParser:
         "--quiet",
         action="store_true",
         help="hide non-essential status messages",
+    )
+    parser.add_argument(
+        "--status",
+        dest="status_report",
+        action="store_true",
+        help="write a machine-readable outcome line to stderr",
     )
     parser.add_argument(
         "--no-color",
@@ -340,19 +386,49 @@ def _ensure_utf8(stream: TextIO) -> None:
             return
 
 
-def _write_stdout_utf8(output_stream: TextIO, text: str) -> None:
-    buffer = getattr(output_stream, "buffer", None)
-    if buffer is not None:
-        try:
-            output_stream.flush()
-        except UnicodeError:
-            pass
-        buffer.write(text.encode("utf-8"))
-        buffer.flush()
+def _abandon_stdio(stream: TextIO) -> None:
+    try:
+        handle = stream.fileno()
+    except (OSError, ValueError, AttributeError):
         return
     try:
+        stream.flush()
+    except (OSError, ValueError, UnicodeError, BrokenPipeError):
+        pass
+    try:
+        null_fd = os.open(os.devnull, os.O_WRONLY)
+        try:
+            os.dup2(null_fd, handle)
+        finally:
+            os.close(null_fd)
+    except OSError:
+        pass
+    try:
+        stream.close()
+    except (OSError, ValueError):
+        pass
+
+
+def _write_stdout_utf8(output_stream: TextIO, text: str) -> None:
+    buffer = getattr(output_stream, "buffer", None)
+    try:
+        if buffer is not None:
+            try:
+                output_stream.flush()
+            except UnicodeError:
+                pass
+            buffer.write(text.encode("utf-8"))
+            buffer.flush()
+            return
         output_stream.write(text)
         output_stream.flush()
+    except BrokenPipeError as error:
+        _abandon_stdio(output_stream)
+        raise ValueError("standard output pipe closed") from error
+    except OSError as error:
+        _abandon_stdio(output_stream)
+        detail = getattr(error, "strerror", None) or str(error)
+        raise ValueError(f"cannot write standard output: {detail}") from error
     except UnicodeError as error:
         raise ValueError("standard output cannot encode UTF-8 product payload") from error
 
@@ -402,6 +478,56 @@ def _status(errors: TextIO, message: str, *, enabled: bool, code: str) -> None:
     errors.flush()
 
 
+def _human_reason(result: ProcessResult) -> str:
+    if result.reason == REASON_TRANSFORMED:
+        return f"inserted {result.change_count} hidden characters"
+    if result.reason == REASON_SITE_CAP:
+        return (
+            f"inserted {result.change_count} hidden characters, then stopped at the "
+            f"{LETTER_MIX_MAX_SELECTED}-site cap; trailing text is unchanged"
+        )
+    if result.reason == REASON_UNSUPPORTED_DOMAIN:
+        return "no hidden characters inserted (unsupported Unicode). I/O succeeded; this is not watermark removal"
+    if result.reason == REASON_ALREADY_TRANSFORMED:
+        return "no hidden characters inserted (input already contains the payload)"
+    if result.reason == REASON_NO_ELIGIBLE_SITES:
+        return "no hidden characters inserted (no eligible ASCII letter sites)"
+    if result.reason == REASON_TOO_LARGE:
+        return f"input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)"
+    return "transformation failed internally; source returned unchanged"
+
+
+def _machine_status_line(result: ProcessResult) -> str:
+    last = "" if result.last_source_index is None else str(result.last_source_index)
+    capped = "yes" if result.capped else "no"
+    return (
+        "fuckmark-status "
+        f"result={result.reason} insertions={result.change_count} "
+        f"sites={result.site_count} last_index={last} capped={capped}"
+    )
+
+
+def _emit_outcome(
+    errors: TextIO,
+    result: ProcessResult,
+    *,
+    interactive: bool,
+    quiet: bool,
+    status_report: bool,
+    color: bool,
+) -> None:
+    if status_report:
+        errors.write(_machine_status_line(result) + "\n")
+        errors.flush()
+    if result.reason == REASON_INTERNAL_ERROR or result.reason == REASON_TOO_LARGE:
+        return
+    if quiet:
+        return
+    if result.reason == REASON_TRANSFORMED and not interactive:
+        return
+    _status(errors, f"FuckMark: {_human_reason(result)}.", enabled=color, code=_ANSI_YELLOW if result.reason != REASON_TRANSFORMED else _ANSI_GREEN)
+
+
 def main(
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
@@ -424,13 +550,30 @@ def main(
                 for value in (input_stream, output_stream, clipboard_writer, error_stream)
             ),
         )
+    except BrokenPipeError:
+        try:
+            errors.write("FuckMark: standard output pipe closed\n")
+            errors.flush()
+        except (OSError, UnicodeError, ValueError, BrokenPipeError):
+            pass
+        _abandon_stdio(output)
+        return EXIT_ERROR
     except KeyboardInterrupt:
         try:
             errors.write("\n")
             errors.flush()
-        except (OSError, UnicodeError, ValueError):
+        except (OSError, UnicodeError, ValueError, BrokenPipeError):
             pass
-        return 130
+        return EXIT_INTERRUPT
+    except OSError as error:
+        try:
+            detail = getattr(error, "strerror", None) or str(error)
+            errors.write(f"FuckMark: cannot write standard output: {detail}\n")
+            errors.flush()
+        except (OSError, UnicodeError, ValueError, BrokenPipeError):
+            pass
+        _abandon_stdio(output)
+        return EXIT_ERROR
 
 
 def _run(
@@ -528,9 +671,23 @@ def _run(
     except (KeyError, TypeError, ValueError) as error:
         return _error(errors, f"could not transform the text: {error}")
 
+    if result.reason == REASON_TOO_LARGE:
+        return _error(errors, _human_reason(result))
+    if result.reason == REASON_INTERNAL_ERROR:
+        _error(errors, _human_reason(result))
+        return EXIT_INTERNAL
+
     output_text = result.output_text
     if arguments.visible:
         output_text = project_visible_v1(output_text, product_approved_carriers_v1())
+
+    wrote_payload = False
+    if (not interactive) or arguments.output not in (None, "-"):
+        try:
+            _write_result(output_text, arguments.output, output)
+            wrote_payload = True
+        except (ValueError, OSError) as error:
+            return _error(errors, str(error))
 
     should_copy = arguments.copy or interactive
     copy_failed: Exception | None = None
@@ -541,16 +698,17 @@ def _run(
         except Exception as error:
             copy_failed = error
 
-    wrote_payload = False
-    if (not interactive) or arguments.output not in (None, "-"):
-        try:
-            _write_result(output_text, arguments.output, output)
-            wrote_payload = True
-        except ValueError as error:
-            return _error(errors, str(error))
-
     if interactive and copy_failed is None:
         _status(errors, _COPIED, enabled=color, code=_ANSI_GREEN)
+
+    _emit_outcome(
+        errors,
+        result,
+        interactive=interactive,
+        quiet=arguments.quiet,
+        status_report=arguments.status_report,
+        color=color,
+    )
 
     if copy_failed is not None:
         tool_failed = "no supported clipboard command found" not in str(copy_failed)
@@ -568,9 +726,32 @@ def _run(
             enabled=color,
             code=_ANSI_YELLOW,
         )
-        return 2
-    return 0
+        return EXIT_CLIPBOARD
+    return EXIT_OK
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    status = EXIT_ERROR
+    try:
+        status = main()
+    except SystemExit as error:
+        code = error.code
+        if code is None:
+            status = EXIT_OK
+        elif isinstance(code, int):
+            status = code
+        else:
+            status = EXIT_ERROR
+    except BrokenPipeError:
+        status = EXIT_ERROR
+    except KeyboardInterrupt:
+        status = EXIT_INTERRUPT
+    except OSError:
+        status = EXIT_ERROR
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.flush()
+        except (OSError, ValueError, BrokenPipeError):
+            pass
+    _abandon_stdio(sys.stdout)
+    os._exit(status)

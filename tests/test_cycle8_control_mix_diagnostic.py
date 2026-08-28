@@ -6,7 +6,7 @@ from fuckmark.cycle8.control_mix import CONTROL_MIX_APPROVED_CARRIERS, apply_con
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import is_carrier_insertion_v1, product_approved_carriers_v1, project_visible_v1
 from fuckmark.transforms.registry import release_transform_registry
-from tests.audit_mix_replay import live_mix_hash
+from tests.audit_mix_replay import assert_live_mix_matches_stored
 
 
 _DIAGNOSTIC = "evidence/cycle8-control-mix-diagnostic-920000-n16-2026-08-27"
@@ -48,7 +48,12 @@ def test_control_mix_diagnostic_920000_is_seen_hypothesis_zero() -> None:
         source = by_id[row["sample_id"]]["text"]
         assert sha256_text(source) == row["source_sha256"]
         control = apply_control_alternating_mix(source)
-        live_mix_hash(source)
+        assert_live_mix_matches_stored(
+            str(row["sample_id"]),
+            source,
+            row["mix"]["text_sha256"],
+            label=str(row.get("label", "")),
+        )
         assert sha256_text(control) == row["control_mix"]["text_sha256"]
         assert is_carrier_insertion_v1(source, control, CONTROL_MIX_APPROVED_CARRIERS)
         assert project_visible_v1(control, CONTROL_MIX_APPROVED_CARRIERS) == source

@@ -1,0 +1,126 @@
+{
+  "algorithm_version": "product-reference-render-v2",
+  "browser_version": "Google Chrome 148.0.7778.96",
+  "chrome_executable": "/usr/local/bin/google-chrome",
+  "font": "DejaVu Sans Mono",
+  "harness": "product-reference-render-v2",
+  "historical_render_v2_controls_not_rewritten": true,
+  "historical_evidence_invalid_because": "cycle8-benchmark-render-v1 compared blank contenteditable divs. Frozen AAAA/BBBB controls remain in evidence/audit-fixes-2026-08-27/render-v2.json.",
+  "measurement_scope": "this-host Chromium headless pre/textarea/contenteditable for one mix sentence plus AAAA controls and a below-fold INCOMPLETE check. Not Safari/WebKit. Not terminal pixels. Not whole-document proof beyond the captured window.",
+  "platform": "linux",
+  "rows": [
+    {
+      "pair": "mix_payload",
+      "surface": "pre",
+      "original": "I do not agree.",
+      "transformed": "I͏ d︀o͏ n︀o͏t︀ a͏g︀r͏e︀e͏.",
+      "result": {
+        "algorithm_version": "product-reference-render-v2",
+        "environment": "chromium_headless",
+        "status": "VERIFIED",
+        "original_sha256": "3067cc798b2263d2f6c31afb17b24bb0f421aa505d406145b423e681d6a037fe",
+        "transformed_sha256": "5c0409ead4bf62c9ba0e3a5f82b98cba18bc36ae6c85edad380f1e0d3f018ef5",
+        "equal": true,
+        "detail": "png_bytes_equal",
+        "comparison_hash": "3a64fa1f51738d9415b3a3fffa4b1de12d221467846d9fc47df00468e1737ff8",
+        "font": "DejaVu Sans Mono",
+        "browser_version": "Google Chrome 148.0.7778.96"
+      }
+    },
+    {
+      "pair": "mix_payload",
+      "surface": "textarea",
+      "original": "I do not agree.",
+      "transformed": "I͏ d︀o͏ n︀o͏t︀ a͏g︀r͏e︀e͏.",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "environment": "chromium_textarea",
+        "status": "VERIFIED",
+        "original_sha256": "3067cc798b2263d2f6c31afb17b24bb0f421aa505d406145b423e681d6a037fe",
+        "transformed_sha256": "5c0409ead4bf62c9ba0e3a5f82b98cba18bc36ae6c85edad380f1e0d3f018ef5",
+        "equal": true,
+        "detail": "png_bytes_equal",
+        "font": "DejaVu Sans Mono",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "4f6f681d0b49c3f4fb0cd81e88c3992ec2bdff9e5d26c830ee757aab0e8a656f"
+      }
+    },
+    {
+      "pair": "mix_payload",
+      "surface": "contenteditable",
+      "original": "I do not agree.",
+      "transformed": "I͏ d︀o͏ n︀o͏t︀ a͏g︀r͏e︀e͏.",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "environment": "chromium_contenteditable",
+        "status": "VERIFIED",
+        "original_sha256": "3067cc798b2263d2f6c31afb17b24bb0f421aa505d406145b423e681d6a037fe",
+        "transformed_sha256": "5c0409ead4bf62c9ba0e3a5f82b98cba18bc36ae6c85edad380f1e0d3f018ef5",
+        "equal": true,
+        "detail": "png_bytes_equal",
+        "font": "DejaVu Sans Mono",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "e0c0d730a01ecaaed5d9b7f3129246a72bfe568bfb344d7ff425575d9ae7bc0d"
+      }
+    },
+    {
+      "pair": "negative",
+      "surface": "contenteditable",
+      "original": "AAAA",
+      "transformed": "BBBB",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "environment": "chromium_contenteditable",
+        "status": "REJECTED",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "transformed_sha256": "4a8d8134f29b0b7b60c126f5532bc9f5d9bb73037373cf6fb872d81f1dcefdfd",
+        "equal": false,
+        "detail": "png_bytes_differ",
+        "font": "DejaVu Sans Mono",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "7363f35290941fe43459f5250fa09a1cfc0cc6870522fee1d032661c743ce45e"
+      }
+    },
+    {
+      "pair": "positive",
+      "surface": "textarea",
+      "original": "AAAA",
+      "transformed": "AAAA",
+      "result": {
+        "algorithm_version": "cycle8-benchmark-render-v2",
+        "environment": "chromium_textarea",
+        "status": "VERIFIED",
+        "original_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "transformed_sha256": "63c1dd951ffedf6f7fd968ad4efa39b8ed584f162f46e715114ee184f8de9201",
+        "equal": true,
+        "detail": "png_bytes_equal",
+        "font": "DejaVu Sans Mono",
+        "browser_version": "Google Chrome 148.0.7778.96",
+        "comparison_hash": "c8e0a881d1f514214edfa79d535bdce7de77e11c833bcf44e636c2c7246fb87b"
+      }
+    },
+    {
+      "pair": "below_fold",
+      "surface": "pre",
+      "original_sha256": "4677942dfa3e74b5dea7484661a2485bb73ba422eb72d311fdb39372c019c615",
+      "transformed_sha256": "307dffe4cb27b00adc53d540a7a2aa91d234515e49955354a85eabd14bc13b2c",
+      "original_chars": 5,
+      "transformed_chars": 2005,
+      "result": {
+        "algorithm_version": "product-reference-render-v2",
+        "environment": "chromium_headless",
+        "status": "INCOMPLETE",
+        "original_sha256": "4677942dfa3e74b5dea7484661a2485bb73ba422eb72d311fdb39372c019c615",
+        "transformed_sha256": "307dffe4cb27b00adc53d540a7a2aa91d234515e49955354a85eabd14bc13b2c",
+        "equal": null,
+        "detail": "content exceeds captured window",
+        "comparison_hash": "b8f1912f139aa2ed85d2271304b5a5e2c10ebf2e61cc3c2705833ca4fc23c925",
+        "font": "DejaVu Sans Mono",
+        "browser_version": "Google Chrome 148.0.7778.96"
+      }
+    }
+  ],
+  "terminal_pixels": "UNKNOWN",
+  "webkit_safari": "UNKNOWN",
+  "artifact_hash": "0266d1097518040e660f4cb851fa3e44d7baaa0b4e24f9a49f21474e01547179"
+}

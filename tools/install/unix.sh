@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-RELEASE_TAG="${FUCKMARK_RELEASE_TAG:-v0.4.0}"
+RELEASE_TAG="${FUCKMARK_RELEASE_TAG:-v0.4.1}"
 PACKAGE_VERSION="${RELEASE_TAG#v}"
 WHEEL_NAME="fuckmark-${PACKAGE_VERSION}-py3-none-any.whl"
 RELEASE_BASE="https://github.com/byte271/FuckMark/releases/download/${RELEASE_TAG}"
@@ -24,7 +24,9 @@ find_python() {
 
 ensure_path() {
   shell_name="$(basename "${SHELL:-sh}")"
-  line='export PATH="$HOME/.local/bin:$PATH"'
+  escaped=$(printf "%s" "$BIN" | sed "s/'/'\\\\''/g")
+  quoted="'${escaped}'"
+  line="export PATH=${quoted}:\"\$PATH\""
   case "$shell_name" in
     zsh)
       file="$HOME/.zshrc"
@@ -36,7 +38,7 @@ ensure_path() {
       file="$HOME/.config/fish/config.fish"
       mkdir -p "$(dirname "$file")"
       touch "$file"
-      fish_line='fish_add_path "$HOME/.local/bin"'
+      fish_line="fish_add_path ${quoted}"
       grep -F "$fish_line" "$file" >/dev/null 2>&1 || printf '\n%s\n' "$fish_line" >> "$file"
       return 0
       ;;
@@ -121,8 +123,9 @@ chmod +x "$BIN/fuckmark"
 
 ensure_path
 
-printf '\n%s\n%s\n%s\n%s\n\n' \
+printf '\n%s\n%s\n%s\n%s\n%s\n\n' \
   "FuckMark ${PACKAGE_VERSION} installed." \
-  "The public CLI currently returns input text unchanged." \
+  "The public CLI inserts hidden Unicode into ordinary English ASCII text." \
+  "Installation success is not watermark removal. Check --status for the outcome." \
   "Command: fuckmark --help" \
   "Open a new terminal if the command is not on PATH yet."

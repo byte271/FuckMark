@@ -37,7 +37,7 @@ These are not product success:
 
 ## Current product path
 
-`release_transform_registry()` stays empty. The public CLI (`release-cli-v5`) applies `apply_letter_alternating_mix` directly: U+034F on even selected ASCII-letter sites, U+FE00 on odd sites, cap 192, outside hard machine spans. Live protection now also covers common relative paths without a leading `./`, Windows paths that use `/`, and Markdown reference labels at both uses and definitions. Those protection changes can change outputs versus the v0.4.0 freeze of `letter_mix.py` (`cycle8-mix-freeze-v1`, `letter_mix_source_sha256` `b1ceec24e584c0e9e7135ef0c89a3bd249b0bda4a45e07aa7190b1b010ba56d4`). Frozen confirmation hashes stay historical. They are not silently rewritten.
+`release_transform_registry()` stays empty. The public CLI (`release-cli-v5`) applies `apply_letter_alternating_mix` directly: U+034F on even selected ASCII-letter sites, U+FE00 on odd sites, cap 192, outside hard machine spans. Live protection covers fenced/inline/indented code, HTML tags and entities, Markdown destinations and reference labels (including multiline and container forms), URLs including `ftp://`, and paths including `src/main.py`, `scripts/build`, and last-component spaces. Those protection changes can change outputs versus the v0.4.0 freeze of `letter_mix.py` (`cycle8-mix-freeze-v1`, `letter_mix_source_sha256` `b1ceec24e584c0e9e7135ef0c89a3bd249b0bda4a45e07aa7190b1b010ba56d4`). Frozen confirmation hashes stay historical. They are not silently rewritten.
 
 Live `product_approved_carriers_v1()` is `{U+034F, U+FE00}`. The v1 contract's empty `product_authorized_carriers_v1` list is a historical snapshot of that file.
 

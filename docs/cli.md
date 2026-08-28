@@ -31,6 +31,7 @@ Enter :done on a new line when finished.
 Processing...
 
 ✓ Copied to clipboard
+FuckMark: inserted 54 hidden characters.
 ```
 
 Blank lines are kept. `:done` ends the session only when it is the entire line. The transformed payload is copied and not printed.
@@ -54,6 +55,7 @@ fuckmark notes.txt
 fuckmark notes.txt -o notes.fm.txt
 printf 'I do not agree.\n' | fuckmark --copy
 printf 'I do not agree.\n' | fuckmark --visible
+printf 'I do not agree.\n' | fuckmark --status >/tmp/fm.out
 ```
 
 Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard.
@@ -77,15 +79,16 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 | Option | Behavior |
 | --- | --- |
-| `--version` | Print `FuckMark 0.4.0`. |
+| `--version` | Print `FuckMark 0.4.1`. |
 | `--text TEXT` | Transform TEXT as a literal string. |
 | `--file FILE` | Read UTF-8 from FILE. |
 | `--stdin` | Read all of standard input. |
-| `-o FILE`, `--output FILE` | Write UTF-8 output to FILE. |
+| `-o FILE`, `--output FILE` | Write UTF-8 output to FILE. The file is written before any clipboard copy. |
 | `--copy` | Also copy the output to the clipboard. The paste UI always copies. |
 | `--visible` | Print the visible text (no hidden characters). |
 | `--encoding NAME` | Only `utf-8`. `latin-1`, `ascii`, and `cp1252` are rejected. |
 | `-q`, `--quiet` | Hide non-essential status messages. |
+| `--status` | Write one `fuckmark-status` line to stderr (result, insertions, sites, last_index, capped). |
 | `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |
 
 `--non-interactive` is an alias of `--stdin`.
@@ -94,9 +97,9 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 Tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged (exit 0). Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
 
-Machine spans stay intact: fenced/inline code, markdown destinations, markdown reference labels, URLs, emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including relative paths such as `src/main.py` and `C:/Users/...`), CLI flags. Quote interiors are eligible. Cap 192 insertion sites. Insertions fill the first 192 eligible letter sites and then stop, so the tail of a long document is unchanged.
+Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 192 insertion sites. Insertions fill the first 192 eligible letter sites and then stop, so the tail of a long document is unchanged.
 
-If the text is already transformed, or has no eligible letters, the CLI returns it unchanged.
+If the text is already transformed, has no eligible letters, or is outside the ASCII domain, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason. Exit 0 still means I/O succeeded, not watermark removal.
 
 Same visible words are not the same as identical Markdown, path, or search behavior in other programs. Reports must not treat visible-projection equality as Markdown or filesystem equality.
 
@@ -104,9 +107,11 @@ Same visible words are not the same as identical Markdown, path, or search behav
 
 | Status | Meaning |
 | ---: | ---: |
-| 0 | Output was written or copied. Unsupported Unicode is returned unchanged. |
-| 1 | No input, bad file, invalid UTF-8, unsupported encoding, missing `:done`, or output could not be written. |
-| 2 | Transform succeeded, but clipboard copy failed. Stream modes still write stdout. The paste UI does not print the payload. |
+| 0 | Output was written or copied. Unsupported Unicode, already-transformed text, no eligible sites, and the site cap are reported on stderr. This is not watermark removal. |
+| 1 | No input, bad file, invalid UTF-8, unsupported encoding, missing `:done`, input too large, or output could not be written. |
+| 2 | Usage error (`argparse`: unknown option or bad flags). Transformation did not run. |
+| 3 | Transform I/O succeeded, but clipboard copy failed. Stream modes still write stdout. The paste UI does not print the payload. |
+| 4 | Internal transform failure. Source is returned unchanged. Do not treat this as a completed transformation. |
 | 130 | Interrupted with Ctrl+C. |
 
 ## Clipboard

@@ -72,13 +72,16 @@ def test_unix_installer_uses_tagged_release_checksum_and_does_not_start_cli() ->
     assert UNIX_INSTALLER.stat().st_mode & 0o111
     assert "releases/download" in text
     assert "SHA256SUMS" in text
-    assert "v0.4.0" in text
+    assert "v0.4.1" in text
+    assert "returns input text unchanged" not in text
+    assert 'export PATH="$HOME/.local/bin:$PATH"' not in text
     assert "main.zip" not in text
     assert "force-reinstall" not in text
     assert not any(line.strip().startswith("sudo") for line in text.splitlines())
     assert "apt-get" not in text
     assert text.count("-m fuckmark.cli") == 1
     assert 'Command: fuckmark --help' in text
+    assert "hidden Unicode" in text
     assert not text.rstrip().endswith('-m fuckmark.cli')
 
 
@@ -86,13 +89,17 @@ def test_windows_installer_uses_tagged_release_checksum_and_does_not_start_cli()
     text = WINDOWS_INSTALLER.read_text(encoding="utf-8")
     assert "releases/download" in text
     assert "SHA256SUMS" in text
-    assert "v0.4.0" in text
+    assert "v0.4.1" in text
+    assert "returns input text unchanged" not in text
+    assert "[Text.Encoding]::ASCII" not in text
+    assert "UnicodeEncoding" in text
     assert "main.zip" not in text
     assert "force-reinstall" not in text
     assert "winget install" not in text
     assert "Starting FuckMark" not in text
     assert text.count("-m fuckmark.cli") == 1
     assert "Command: fuckmark --help" in text
+    assert "hidden Unicode" in text
 
 
 def test_verify_release_install_loads_mix_from_repository_root() -> None:
@@ -136,3 +143,17 @@ def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
     assert "5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f" in readme
     assert "5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f" in install
     assert "cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325" in install
+    assert ".venv/bin/fuckmark --version" in readme
+    assert ".venv/bin/fuckmark --visible" in readme or ".venv/bin/fuckmark --status" in readme
+    website = (ROOT / "docs/website.md").read_text(encoding="utf-8")
+    assert "| sh" not in website
+    assert "| iex" not in website
+
+
+def test_unix_path_config_quotes_custom_bin_directory() -> None:
+    text = UNIX_INSTALLER.read_text(encoding="utf-8")
+    assert 'BIN="${FUCKMARK_BIN:-$HOME/.local/bin}"' in text
+    assert 'quoted="\'${escaped}\'"' in text or "quoted=\"'${escaped}'\"" in text
+    assert "export PATH=${quoted}" in text
+    assert "fish_add_path ${quoted}" in text
+    assert "$HOME/.local/bin:$PATH" not in text

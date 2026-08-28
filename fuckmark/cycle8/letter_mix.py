@@ -4,27 +4,7 @@ from collections.abc import Sequence
 
 from ..product.invariants import validate_user_visible_invariants
 from ..product.visible_projection import is_carrier_insertion_v1, project_visible_v1
-from ..transforms.protected import _add_valid_markdown_destinations
-from ..transforms.protected_markdown import _add_markdown_reference_spans
-from ..transforms.protected_patterns import (
-    _CLI_FLAG_RE,
-    _CURRENCY_RE,
-    _EMAIL_RE,
-    _NUMBER_RE,
-    _PERCENT_RE,
-    _add_dates,
-    _add_ip_addresses,
-    _add_regex,
-    _add_urls,
-)
-from ..transforms.protected_structures import (
-    _add_extended_posix_paths,
-    _add_extended_windows_paths,
-    _add_fenced_code,
-    _add_inline_code,
-    _add_posix_paths,
-    _add_windows_paths,
-)
+from ..transforms.protected import add_hard_machine_spans
 from ..transforms.schema import InvariantStatus, ProtectedSpanKind
 
 LETTER_MIX_APPROVED_CARRIERS = (0x034F, 0xFE00)
@@ -36,22 +16,7 @@ def hard_machine_intervals(text: str) -> tuple[tuple[int, int], ...]:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     raw: list[tuple[int, int, ProtectedSpanKind]] = []
-    _add_fenced_code(raw, text)
-    _add_inline_code(raw, text)
-    _add_valid_markdown_destinations(raw, text)
-    _add_markdown_reference_spans(raw, text)
-    _add_urls(raw, text)
-    _add_regex(raw, text, _EMAIL_RE, ProtectedSpanKind.EMAIL)
-    _add_ip_addresses(raw, text)
-    _add_dates(raw, text)
-    _add_regex(raw, text, _CURRENCY_RE, ProtectedSpanKind.CURRENCY)
-    _add_regex(raw, text, _PERCENT_RE, ProtectedSpanKind.PERCENTAGE)
-    _add_regex(raw, text, _NUMBER_RE, ProtectedSpanKind.NUMBER)
-    _add_posix_paths(raw, text)
-    _add_extended_posix_paths(raw, text)
-    _add_windows_paths(raw, text)
-    _add_extended_windows_paths(raw, text)
-    _add_regex(raw, text, _CLI_FLAG_RE, ProtectedSpanKind.CLI_FLAG)
+    add_hard_machine_spans(raw, text)
     ordered = sorted((start, end) for start, end, _kind in raw)
     merged: list[list[int]] = []
     for start, end in ordered:

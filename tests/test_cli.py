@@ -174,6 +174,7 @@ def test_cli_main_interactive_copies_fail_closed_unicode_without_printing() -> N
     assert copied == [source_text]
     assert output.getvalue() == ""
     assert "Copied to clipboard" in errors.getvalue()
+    assert "unsupported Unicode" in errors.getvalue() or "hidden characters" in errors.getvalue()
     assert "\u034f" not in copied[0]
 
 
@@ -186,7 +187,7 @@ def test_cli_main_interactive_reports_clipboard_failure_without_printing_payload
         raise RuntimeError("clipboard unavailable")
 
     status = main(source, output, fail, error_stream=errors)
-    assert status == 2
+    assert status == 3
     assert output.getvalue() == ""
     ui = errors.getvalue()
     assert "clipboard copy failed" in ui
@@ -302,7 +303,7 @@ def test_cli_main_prints_result_if_clipboard_copy_fails() -> None:
         raise RuntimeError("clipboard unavailable")
 
     status = main(source, output, fail, error_stream=errors, argv=("--stdin", "--copy"))
-    assert status == 2
+    assert status == 3
     rendered = output.getvalue()
     expected = apply_letter_alternating_mix("I do not agree.\n")
     assert expected in rendered
@@ -468,7 +469,7 @@ def test_cli_stdin_returns_unsupported_unicode_unchanged() -> None:
     status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin",))
     assert status == 0
     assert output.getvalue() == source_text
-    assert errors.getvalue() == ""
+    assert "unsupported Unicode" in errors.getvalue() or "hidden characters" in errors.getvalue()
 
 
 def test_cli_stdin_keeps_multiline_visible_text() -> None:
@@ -492,7 +493,7 @@ def test_cli_stdin_respects_selected_site_cap() -> None:
     applied = output.getvalue()
     assert applied.count("\u034f") + applied.count("\ufe00") == 192
     assert project_visible_v1(applied, APPROVED) == source_text
-    assert errors.getvalue() == ""
+    assert "site cap" in errors.getvalue() or "192" in errors.getvalue()
 
 
 def test_cli_rejects_invalid_utf8_stdin() -> None:

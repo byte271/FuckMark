@@ -4,7 +4,7 @@ import re
 from bisect import bisect_right
 from collections.abc import Sequence
 
-from .protected_patterns import _append, _is_escaped, _line_end, _trim_terminal_punctuation
+from .protected_patterns import _append, _is_escaped, _line_content_end, _line_end, _line_starts, _trim_terminal_punctuation
 from .schema import ProtectedSpanKind
 
 _INLINE_CODE_RUN_RE = re.compile(r"`+")
@@ -15,6 +15,82 @@ _STRAIGHT_SINGLE_QUOTE_RE = re.compile(r"(?<!\w)'[^'\n]{2,}'(?!\w)")
 _POSIX_PATH_RE = re.compile(r"(?<![\w:])(?:~?/|\./|\.\./)(?:[A-Za-z0-9._~+@%-]+/)*[A-Za-z0-9._~+@%-]+/?")
 _RELATIVE_PATH_RE = re.compile(
     r"(?<![\w:/])(?:[A-Za-z0-9._~+@%-]+/)+[A-Za-z0-9._~+@%-]*\.[A-Za-z][A-Za-z0-9]{0,11}/?"
+)
+_EXTENSIONLESS_RELATIVE_PATH_RE = re.compile(
+    r"(?<![\w:/])(?:[A-Za-z0-9._~+@%-]+/){1,}[A-Za-z0-9._~+@%-]+/?"
+)
+_FILENAME_TOKEN = r"[A-Za-z0-9._~+@%'-]+"
+_SPACED_BASENAME = rf"(?:{_FILENAME_TOKEN} ){{1,3}}{_FILENAME_TOKEN}\.[A-Za-z][A-Za-z0-9]{{0,11}}"
+_WINDOWS_SPACED_FILE_RE = re.compile(
+    rf"(?i)(?<![A-Z0-9_])(?:[A-Z]:[/\\]|\\\\[A-Z0-9._$-]+\\)(?:{_FILENAME_TOKEN}[/\\])+{_SPACED_BASENAME}"
+)
+_POSIX_SPACED_FILE_RE = re.compile(
+    rf"(?<![\w:])(?:~?/|\./|\.\./)(?:{_FILENAME_TOKEN}/)+{_SPACED_BASENAME}"
+)
+_HTML_TAG_RE = re.compile(r"</?[A-Za-z][A-Za-z0-9:-]{0,64}(?:\s[^<>\r\n]{0,1024})?/?>")
+_HTML_ENTITY_RE = re.compile(r"&(?:[A-Za-z][A-Za-z0-9]{0,31}|#[0-9]{1,7}|#x[0-9A-Fa-f]{1,6});")
+_PROSE_SLASH_PAIRS = frozenset(
+    {
+        "and/or",
+        "or/and",
+        "either/or",
+        "he/she",
+        "she/he",
+        "his/her",
+        "her/his",
+        "yes/no",
+        "no/yes",
+        "on/off",
+        "off/on",
+        "true/false",
+        "false/true",
+        "n/a",
+        "w/o",
+        "c/o",
+        "a/k/a",
+        "i/o",
+        "input/output",
+        "output/input",
+        "read/write",
+        "write/read",
+        "high/low",
+        "low/high",
+        "left/right",
+        "right/left",
+        "up/down",
+        "down/up",
+        "plus/minus",
+        "minus/plus",
+    }
+)
+_PATH_ROOTS = frozenset(
+    {
+        "src",
+        "lib",
+        "bin",
+        "sbin",
+        "scripts",
+        "tests",
+        "docs",
+        "dist",
+        "tmp",
+        "temp",
+        "usr",
+        "var",
+        "opt",
+        "etc",
+        "include",
+        "vendor",
+        "pkg",
+        "pkgs",
+        "tools",
+        "assets",
+        "static",
+        "cmake",
+        "modules",
+        "third_party",
+        "node_modules",
+    }
 )
 _WINDOWS_PATH_RE = re.compile(
     r"(?i)(?<![A-Z0-9_])(?:[A-Z]:[/\\]|\\\\[A-Z0-9._$-]+\\)(?:[^\\/:*?\"<>|\s]+[/\\])*[^\\/:*?\"<>|\s]+"
@@ -47,6 +123,39 @@ def _add_fenced_code(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -
 def _paragraph_end(text: str, start: int) -> int:
     match = _BLANK_LINE_RE.search(text, start)
     return len(text) if match is None else match.start()
+
+
+def _add_indented_code(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
+    starts = _line_starts(text)
+    count = len(starts)
+    for index, start in enumerate(starts):
+        next_start = starts[index + 1] if index + 1 < count else len(text)
+        limit = _line_content_end(text, start, next_start)
+        cursor = start
+        while True:
+            spaces = 0
+            look = cursor
+            while look < limit and spaces < 4 and text[look] == " ":
+                spaces += 1
+                look += 1
+            if look < limit and text[look] == ">":
+                cursor = look + 1
+                if cursor < limit and text[cursor] in " \t":
+                    cursor += 1
+                continue
+            break
+        if cursor < limit and text[cursor] == "\t":
+            _append(raw, cursor, limit, ProtectedSpanKind.CODE)
+            continue
+        if cursor + 4 <= limit and text[cursor : cursor + 4] == "    ":
+            _append(raw, cursor, limit, ProtectedSpanKind.CODE)
+
+
+def _add_html_markup(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
+    for match in _HTML_TAG_RE.finditer(text):
+        _append(raw, match.start(), match.end(), ProtectedSpanKind.CODE)
+    for match in _HTML_ENTITY_RE.finditer(text):
+        _append(raw, match.start(), match.end(), ProtectedSpanKind.CODE)
 
 
 def _add_inline_code(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
@@ -119,7 +228,7 @@ def _add_markdown_destinations(raw: list[tuple[int, int, ProtectedSpanKind]], te
         depth = 1
         index = start
         escaped = False
-        while index < len(text) and text[index] != "\n":
+        while index < len(text):
             character = text[index]
             if escaped:
                 escaped = False
@@ -143,10 +252,49 @@ def _add_markdown_destinations(raw: list[tuple[int, int, ProtectedSpanKind]], te
             cursor = max(index, start + 1)
 
 
+def _accept_extensionless_relative(token: str) -> bool:
+    compact = token.strip("/").casefold()
+    if compact in _PROSE_SLASH_PAIRS:
+        return False
+    parts = [part for part in token.strip("/").split("/") if part]
+    if len(parts) < 2:
+        return False
+    if len(parts) >= 3:
+        return True
+    if parts[0].casefold() in _PATH_ROOTS:
+        return True
+    return any(
+        any(character in part for character in "._-") or any(character.isdigit() for character in part)
+        for part in parts
+    )
+
+
+def _last_component_has_space(text: str, start: int, end: int, separators: str) -> bool:
+    chunk = text[start:end]
+    last = -1
+    for separator in separators:
+        last = max(last, chunk.rfind(separator))
+    if last < 0:
+        return False
+    return " " in chunk[last + 1 :]
+
+
 def _add_posix_paths(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
-    for pattern in (_POSIX_PATH_RE, _RELATIVE_PATH_RE):
-        for match in pattern.finditer(text):
-            start, end = _trim_terminal_punctuation(text, match.start(), match.end())
+    for match in _POSIX_PATH_RE.finditer(text):
+        start, end = _trim_terminal_punctuation(text, match.start(), match.end())
+        _append(raw, start, end, ProtectedSpanKind.POSIX_PATH)
+    for match in _RELATIVE_PATH_RE.finditer(text):
+        start, end = _trim_terminal_punctuation(text, match.start(), match.end())
+        _append(raw, start, end, ProtectedSpanKind.POSIX_PATH)
+    for match in _EXTENSIONLESS_RELATIVE_PATH_RE.finditer(text):
+        start, end = _trim_terminal_punctuation(text, match.start(), match.end())
+        token = text[start:end]
+        if not _accept_extensionless_relative(token):
+            continue
+        _append(raw, start, end, ProtectedSpanKind.POSIX_PATH)
+    for match in _POSIX_SPACED_FILE_RE.finditer(text):
+        start, end = _trim_terminal_punctuation(text, match.start(), match.end())
+        if _last_component_has_space(text, start, end, "/"):
             _append(raw, start, end, ProtectedSpanKind.POSIX_PATH)
 
 
@@ -154,6 +302,10 @@ def _add_windows_paths(raw: list[tuple[int, int, ProtectedSpanKind]], text: str)
     for match in _WINDOWS_PATH_RE.finditer(text):
         start, end = _trim_terminal_punctuation(text, match.start(), match.end())
         _append(raw, start, end, ProtectedSpanKind.WINDOWS_PATH)
+    for match in _WINDOWS_SPACED_FILE_RE.finditer(text):
+        start, end = _trim_terminal_punctuation(text, match.start(), match.end())
+        if _last_component_has_space(text, start, end, "/\\"):
+            _append(raw, start, end, ProtectedSpanKind.WINDOWS_PATH)
 
 
 def _path_scan_limit(text: str, start: int, forbidden: str) -> int:

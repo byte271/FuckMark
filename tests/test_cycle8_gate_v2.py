@@ -1,4 +1,5 @@
 from pathlib import Path
+import json
 
 import pytest
 
@@ -19,6 +20,7 @@ from fuckmark.cycle8.gate_v2 import (
     assert_gate_v2_confirmation_generation_seed,
     build_gate_v2_confirmation_scorecard,
     gate_v2_confirmation_artifact_dir,
+    gate_v2_confirmation_artifact_path,
     gate_v2_confirmation_artifacts_present,
     gate_v2_payload,
     load_gate_v2,
@@ -41,6 +43,7 @@ from fuckmark.seeds.ledger import (
     row_for_seed_base,
 )
 from fuckmark.transforms.registry import release_transform_registry
+from tests.audit_mix_replay import assert_live_mix_matches_stored
 
 
 def test_gate_v2_spec_is_committed_and_confirmed():
@@ -219,6 +222,18 @@ def test_twelve_context_rescan_is_recorded_and_does_not_rewrite_ab():
     assert payload["original_h16_scan_was_latin_ab_only"] is True
     assert payload["shaping_invisible_per_context"]["latin"] == 396
     assert payload["shaping_invisible_per_context"]["arabic"] == 390
+
+
+def test_gate_v2_live_mix_matches_stored_transformed_hashes() -> None:
+    arm = "u034f-ufe00-letter-alt-v1"
+    for seed_base in GATE_V2_CONFIRMATION_SEED_BASES:
+        artifact = json.loads(Path(gate_v2_confirmation_artifact_path(seed_base)).read_text(encoding="utf-8"))
+        by_text = {sample["sample_id"]: sample["text"] for sample in artifact["samples"]}
+        assert len(artifact["geometry_rows"]) == 128
+        for row in artifact["geometry_rows"]:
+            source = by_text[row["sample_id"]]
+            stored = row["arms"][arm]["transformed_text_hash"]
+            assert_live_mix_matches_stored(str(row["sample_id"]), source, stored, label=str(row["label"]))
 
 
 def test_gate_v2_hash_is_canonical():

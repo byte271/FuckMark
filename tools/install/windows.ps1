@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$ReleaseTag = if ($env:FUCKMARK_RELEASE_TAG) { $env:FUCKMARK_RELEASE_TAG } else { "v0.4.0" }
+$ReleaseTag = if ($env:FUCKMARK_RELEASE_TAG) { $env:FUCKMARK_RELEASE_TAG } else { "v0.4.1" }
 $PackageVersion = $ReleaseTag.TrimStart("v")
 $WheelName = "fuckmark-$PackageVersion-py3-none-any.whl"
 $ReleaseBase = "https://github.com/byte271/FuckMark/releases/download/$ReleaseTag"
@@ -98,7 +98,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $LauncherBody = "@echo off`r`n`"$Python`" -m fuckmark.cli %*`r`n"
-[IO.File]::WriteAllText($Launcher, $LauncherBody, [Text.Encoding]::ASCII)
+$Utf16 = New-Object System.Text.UnicodeEncoding $false, $true
+[IO.File]::WriteAllText($Launcher, $LauncherBody, $Utf16)
 
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 $Entries = @()
@@ -114,7 +115,8 @@ if (($env:Path -split ";") -notcontains $Bin) {
 
 Write-Host ""
 Write-Host "FuckMark $PackageVersion installed."
-Write-Host "The public CLI currently returns input text unchanged."
+Write-Host "The public CLI inserts hidden Unicode into ordinary English ASCII text."
+Write-Host "Installation success is not watermark removal. Check --status for the outcome."
 Write-Host "Command: fuckmark --help"
 Write-Host "Open a new terminal if the command is not on PATH yet."
 Write-Host ""
