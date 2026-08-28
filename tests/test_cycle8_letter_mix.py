@@ -9,7 +9,9 @@ from fuckmark.cycle8.compare import (
 from fuckmark.cycle8.letter_mix import (
     LETTER_MIX_APPROVED_CARRIERS,
     LETTER_MIX_CONTROL_PAYLOADS,
+    LETTER_MIX_INSERTIONS_PER_SITE,
     LETTER_MIX_MAX_SELECTED,
+    LETTER_MIX_ME_PAYLOADS,
     apply_letter_alternating_mix,
     hard_machine_intervals,
     select_letter_mix_sites,
@@ -26,13 +28,18 @@ def test_letter_mix_uses_alternating_carriers_and_keeps_visible_text() -> None:
     assert applied == (
         "A\u034f"
         + LETTER_MIX_CONTROL_PAYLOADS[0]
+        + LETTER_MIX_ME_PAYLOADS[0]
         + "b\ufe00"
         + LETTER_MIX_CONTROL_PAYLOADS[1]
+        + LETTER_MIX_ME_PAYLOADS[0]
         + "c\u034f"
         + LETTER_MIX_CONTROL_PAYLOADS[2]
+        + LETTER_MIX_ME_PAYLOADS[0]
         + "d\ufe00"
         + LETTER_MIX_CONTROL_PAYLOADS[3]
+        + LETTER_MIX_ME_PAYLOADS[0]
     )
+    assert LETTER_MIX_INSERTIONS_PER_SITE == 3
     assert is_carrier_insertion_v1(source, applied, LETTER_MIX_APPROVED_CARRIERS)
     assert project_visible_v1(applied, LETTER_MIX_APPROVED_CARRIERS) == source
     assert LETTER_MIX_MAX_SELECTED == 4096
@@ -67,7 +74,7 @@ def test_letter_mix_reaches_unclosed_math_prose_and_blocks_numbers_and_urls() ->
         source_text=source,
     )
     assert measured["visible_ok"] is True
-    assert int(measured["inserted_count"]) == len(letter_sites) * 2
+    assert int(measured["inserted_count"]) == len(letter_sites) * LETTER_MIX_INSERTIONS_PER_SITE
     assert int(measured["selected_count"]) == len(letter_sites)
     assert int(measured["protected_blocked_count"]) >= 1
     assert CYCLE8_MIX_ARM_IDS == ("identity", CYCLE8_U034F_LETTER_ARM_ID, CYCLE8_LETTER_ALT_ARM_ID)

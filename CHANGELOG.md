@@ -4,10 +4,10 @@
 
 Audit findings D01-D16, E01-E04, L01-L06, P01, and G01 against `d7dc98b7ee99fc46b767c93444a9f051fdbea2ba`. Do not retag v0.4.0. Frozen confirmation files and their SHA-256 sums are unchanged.
 
-- Live mix is dual-layer (`u034f-ufe00-cc-letter-alt-v1`, `release-cli-v6`): each eligible ASCII letter gets U+034F or U+FE00 plus a C0/C1 control. Visible text stays identical. Mn-strip and default-ignorable strip no longer restore the source.
-- Exploratory GPT-2 / SynthID rescore of frozen Gate v2 seed 1200000 watermarked sources (n=64): dual-layer **0/64** raw, after Mn-strip, and after default-ignorable strip. Historical mark-only mix on the same sources returns to **64/64** after those strips. Confirmation artifacts were not rewritten.
-- Mixed Unicode with ASCII letters is processed. Curly apostrophes, accents, and emoji stay in the visible text and are reported as `first_unsupported`. Site cap is 4096 (two insertions per site).
-- Product authorization v2 records the dual-layer path. Gate v2 confirmation hashes stay historical. The v1 mix publishability report now records stress-strip PASS and remains `product_authorized: false`.
+- Live mix is triple-layer (`u034f-ufe00-cc-me-letter-alt-v1`, `release-cli-v7`): each eligible ASCII letter gets U+034F or U+FE00, a C0/C1 control, and enclosing Me (U+20DD). Visible projection stays identical. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, and the required sanitizer bundle no longer restore the source.
+- Exploratory GPT-2 / SynthID rescore of frozen Gate v2 seed 1200000 watermarked sources (n=64): triple-layer **0/64** on raw, Mn-strip, DI-strip, UnicodeSanitizer, Mn then US, DI then US, US then Mn, required-bundle, and bundle then US. Historical dual-layer / mark-only under Mn then US returns to **61/64** detections. Confirmation artifacts were not rewritten.
+- Mixed Unicode with ASCII letters is processed. Curly apostrophes, accents, and emoji stay in the visible text and are reported as `first_unsupported`. Site cap is 4096 (three insertions per site).
+- Product authorization v2 records the triple-layer path. Gate v2 confirmation hashes stay historical. The v1 mix publishability report records stress-strip PASS and remains `product_authorized: false`.
 - Public copy, installer messages, and this source tree describe carrier insertion. They no longer say the CLI returns text unchanged. `docs/website.md` is the controlled website/installer copy. Do not pipe `https://d.q1z.org/mark` into a shell.
 - Package version is 0.4.1. The published v0.4.0 wheel remains the last GitHub Release artifact and does not implement `--text` / `--file`.
 - Markdown reference labels may span lines and line endings (LF, CRLF, CR). Definitions may put the destination on the next line and may appear in blockquotes or lists. Multiline inline destinations are protected. HTML tags, HTML entities, and indented code are protected.

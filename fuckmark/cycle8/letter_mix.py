@@ -11,15 +11,24 @@ from ..transforms.schema import InvariantStatus, ProtectedSpanKind
 LETTER_MIX_CONTROL_CODEPOINTS = (0x007F, *range(0x0080, 0x0085), *range(0x0086, 0x00A0))
 LETTER_MIX_MARK_PAYLOADS = ("\u034f", "\ufe00")
 LETTER_MIX_CONTROL_PAYLOADS = tuple(chr(codepoint) for codepoint in LETTER_MIX_CONTROL_CODEPOINTS)
-LETTER_MIX_APPROVED_CARRIERS = tuple(ord(character) for character in LETTER_MIX_MARK_PAYLOADS) + LETTER_MIX_CONTROL_CODEPOINTS
+LETTER_MIX_ME_PAYLOADS = ("\u20dd",)
+LETTER_MIX_APPROVED_CARRIERS = (
+    tuple(ord(character) for character in LETTER_MIX_MARK_PAYLOADS)
+    + LETTER_MIX_CONTROL_CODEPOINTS
+    + tuple(ord(character) for character in LETTER_MIX_ME_PAYLOADS)
+)
 LETTER_MIX_PAYLOADS = LETTER_MIX_MARK_PAYLOADS
 LETTER_MIX_MAX_SELECTED = 4096
-LETTER_MIX_INSERTIONS_PER_SITE = 2
-LETTER_MIX_MECHANISM_ID = "u034f-ufe00-cc-letter-alt-v1"
+LETTER_MIX_INSERTIONS_PER_SITE = 3
+LETTER_MIX_MECHANISM_ID = "u034f-ufe00-cc-me-letter-alt-v1"
 HISTORICAL_MARK_MIX_CARRIERS = (0x034F, 0xFE00)
 HISTORICAL_MARK_MIX_MAX_SELECTED = 192
 HISTORICAL_MARK_MIX_INSERTIONS_PER_SITE = 1
 HISTORICAL_MARK_MIX_MECHANISM_ID = "u034f-ufe00-letter-alt-v1"
+HISTORICAL_DUAL_LAYER_MIX_CARRIERS = tuple(ord(character) for character in LETTER_MIX_MARK_PAYLOADS) + LETTER_MIX_CONTROL_CODEPOINTS
+HISTORICAL_DUAL_LAYER_MIX_MAX_SELECTED = 4096
+HISTORICAL_DUAL_LAYER_MIX_INSERTIONS_PER_SITE = 2
+HISTORICAL_DUAL_LAYER_MIX_MECHANISM_ID = "u034f-ufe00-cc-letter-alt-v1"
 
 
 def hard_machine_intervals(text: str) -> tuple[tuple[int, int], ...]:
@@ -81,6 +90,7 @@ def compose_letter_mix(text: str, sites: Sequence[int]) -> str:
     if ordered != tuple(sorted(set(ordered))):
         raise ValueError("letter mix sites must be unique and ordered")
     control_count = len(LETTER_MIX_CONTROL_PAYLOADS)
+    me_count = len(LETTER_MIX_ME_PAYLOADS)
     chunks: list[str] = []
     cursor = 0
     for order, index in enumerate(ordered):
@@ -89,6 +99,7 @@ def compose_letter_mix(text: str, sites: Sequence[int]) -> str:
         chunks.append(text[cursor : index + 1])
         chunks.append(LETTER_MIX_MARK_PAYLOADS[order % 2])
         chunks.append(LETTER_MIX_CONTROL_PAYLOADS[order % control_count])
+        chunks.append(LETTER_MIX_ME_PAYLOADS[order % me_count])
         cursor = index + 1
     chunks.append(text[cursor:])
     output = "".join(chunks)
@@ -144,6 +155,42 @@ def compose_historical_mark_letter_mix(text: str, sites: Sequence[int]) -> str:
     return output
 
 
+def compose_historical_dual_layer_letter_mix(text: str, sites: Sequence[int]) -> str:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    ordered = tuple(sites)
+    if ordered != tuple(sorted(set(ordered))):
+        raise ValueError("letter mix sites must be unique and ordered")
+    control_count = len(LETTER_MIX_CONTROL_PAYLOADS)
+    chunks: list[str] = []
+    cursor = 0
+    for order, index in enumerate(ordered):
+        if index < cursor or index >= len(text):
+            raise ValueError("letter mix site is outside the source")
+        chunks.append(text[cursor : index + 1])
+        chunks.append(LETTER_MIX_MARK_PAYLOADS[order % 2])
+        chunks.append(LETTER_MIX_CONTROL_PAYLOADS[order % control_count])
+        cursor = index + 1
+    chunks.append(text[cursor:])
+    output = "".join(chunks)
+    if project_visible_v1(output, HISTORICAL_DUAL_LAYER_MIX_CARRIERS) != text:
+        raise RuntimeError("letter mix changed the visible projection")
+    if not is_carrier_insertion_v1(text, output, HISTORICAL_DUAL_LAYER_MIX_CARRIERS):
+        raise RuntimeError("letter mix is not a carrier insertion")
+    report = validate_user_visible_invariants(text, output, HISTORICAL_DUAL_LAYER_MIX_CARRIERS)
+    if report.status is not InvariantStatus.PASS:
+        raise RuntimeError("letter mix failed user-visible invariants")
+    site_index = 0
+    shift = 0
+    for start, end in hard_machine_intervals(text):
+        while site_index < len(ordered) and ordered[site_index] < start:
+            shift += HISTORICAL_DUAL_LAYER_MIX_INSERTIONS_PER_SITE
+            site_index += 1
+        if output[start + shift : end + shift] != text[start:end]:
+            raise RuntimeError("letter mix mutated a hard machine span")
+    return output
+
+
 def apply_letter_alternating_mix(
     text: str,
     *,
@@ -163,6 +210,19 @@ def apply_historical_mark_letter_mix(
         approved_carriers=HISTORICAL_MARK_MIX_CARRIERS,
     )
     return compose_historical_mark_letter_mix(text, sites)
+
+
+def apply_historical_dual_layer_letter_mix(
+    text: str,
+    *,
+    max_selected: int | None = HISTORICAL_DUAL_LAYER_MIX_MAX_SELECTED,
+) -> str:
+    sites = select_letter_mix_sites(
+        text,
+        max_selected=max_selected,
+        approved_carriers=HISTORICAL_DUAL_LAYER_MIX_CARRIERS,
+    )
+    return compose_historical_dual_layer_letter_mix(text, sites)
 
 
 def letter_mix_protected_blocked_count(text: str) -> int:

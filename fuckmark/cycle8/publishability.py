@@ -59,7 +59,7 @@ from .sanitize import CYCLE8_SCALE_SANITIZER_VARIANT_IDS, sanitize_cycle8_scale_
 
 CYCLE8_MIX_PUBLISHABILITY_VERSION = "cycle8-mix-publishability-v1"
 CYCLE8_MIX_PUBLISHABILITY_PATH = "specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json"
-CYCLE8_MIX_PUBLISHABILITY_HASH = "3109c054bb0f7828c706792747c2cba45080eb95e46561c8995afa69b7cb5aaa"
+CYCLE8_MIX_PUBLISHABILITY_HASH = "52e25a1e4078f7bb55de729b4ab85ba4d4aa26f544fe4fa56bf3bb79d3a4bdc8"
 CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH = "1149940b64e9617af12cb1e8e89448043edc235bdfd127cda5e163cfe03bc5c8"
 _CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
@@ -465,7 +465,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "sanitizer_weaknesses",
             "PASS" if sanitizer_product_pass else "FAIL",
             product_blocking=True,
-            summary="Frozen Cycle 6/7 sanitizers keep mix. Dual-layer U+034F/U+FE00 plus Cc controls leave residual disruption after Mn-strip and default-ignorable-strip, so those stress strips no longer restore the source.",
+            summary="Frozen Cycle 6/7 sanitizers keep mix. Triple-layer U+034F/U+FE00 plus Cc plus Me (U+20DD) leave residual disruption after Mn-strip, default-ignorable-strip, UnicodeSanitizer orderings, and the required sanitizer bundle, so those paths no longer restore the source.",
             checks=[
                 _check(
                     "frozen_sanitizers",
@@ -620,7 +620,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "Mean versus Weighted Mean transfer is HYPOTHESIS on the same GPT-2 Hugging Face SynthID adapter, not a second model",
             "DeepMind synthid-text 30-key transfer is confirmation-scale mix 0/192 on GPT-2 and is not mix-freeze confirmation",
             "DistilGPT2 n=16 second-model transfer is HYPOTHESIS, same GPT-2 BPE tokenizer, not confirmation-scale",
-            "dual-layer mark plus Cc residual survives Mn-strip and default-ignorable-strip source restoration",
+            "triple-layer mark plus Cc plus Me residual survives Mn-strip, default-ignorable-strip, UnicodeSanitizer orderings, and required-bundle source restoration",
         ],
     }
 

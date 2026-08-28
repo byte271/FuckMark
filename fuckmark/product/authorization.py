@@ -6,6 +6,7 @@ from pathlib import Path
 from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text
 from ..config import canonical_json_text
 from ..cycle8.benchmark import strip_default_ignorable, strip_nonspacing_marks
+from ..cycle8.control_carrier import apply_required_sanitizer_bundle
 from ..cycle8.gate_v2 import (
     CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH,
     CYCLE8_PUBLISHABILITY_GATE_V2_HASH,
@@ -20,6 +21,7 @@ from ..cycle8.letter_mix import (
 from ..cycle8.mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION
 from ..cycle8.mix_freeze import CYCLE8_MIX_FREEZE_VERSION, mix_freeze_hash
 from ..cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_HASH
+from ..cycle8.threat_model_audit import lm_watermarking_unicode_sanitizer
 from ..hashing import sha256_json
 from ..product.contract import FROZEN_PRODUCT_CONTRACT_HASH
 from ..product.domain import is_supported_product_domain_v1
@@ -29,7 +31,7 @@ from ..transforms.registry import release_transform_registry
 
 PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
 PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
-PRODUCT_AUTHORIZATION_HASH = "38b84bb79c3430e62fe27bff3a9325ef91f56b93385f3d360f87f4b4981c8afb"
+PRODUCT_AUTHORIZATION_HASH = "6970bd5b20649f3723bcbe444c8cab1ba370f5d31c287c3705a547a99a3ba2f2"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -38,6 +40,9 @@ _AUDIT_SOURCE = "I do not agree."
 def product_authorization_payload() -> dict[str, object]:
     transformed = apply_letter_alternating_mix(_AUDIT_SOURCE)
     mixed = "I do not agree " + chr(0x00E9) + "."
+    mn_then_us = lm_watermarking_unicode_sanitizer(strip_nonspacing_marks(transformed))
+    di_then_us = lm_watermarking_unicode_sanitizer(strip_default_ignorable(transformed))
+    bundle_then_us = lm_watermarking_unicode_sanitizer(apply_required_sanitizer_bundle(transformed))
     payload = {
         "algorithm_version": PRODUCT_AUTHORIZATION_VERSION,
         "product_authorized": True,
@@ -78,10 +83,15 @@ def product_authorization_payload() -> dict[str, object]:
             "already_mixed_identity": process_text(transformed) == transformed,
             "mn_strip_does_not_restore_source": strip_nonspacing_marks(transformed) != _AUDIT_SOURCE,
             "di_strip_does_not_restore_source": strip_default_ignorable(transformed) != _AUDIT_SOURCE,
+            "mn_then_us_does_not_restore_source": mn_then_us != _AUDIT_SOURCE,
+            "di_then_us_does_not_restore_source": di_then_us != _AUDIT_SOURCE,
+            "required_bundle_then_us_does_not_restore_source": bundle_then_us != _AUDIT_SOURCE,
         },
         "notes": (
-            "Product authorization of dual-layer u034f-ufe00-cc-letter-alt-v1. "
-            "Mark carriers plus Cc residuals keep Mn-strip and default-ignorable-strip from restoring the source. "
+            "Product authorization of triple-layer u034f-ufe00-cc-me-letter-alt-v1. "
+            "Mark plus Cc plus enclosing Me (U+20DD) keep Mn-strip, default-ignorable-strip, "
+            "UnicodeSanitizer orderings, and the required sanitizer bundle from restoring the source. "
+            "Visible projection strips approved carriers; Me may decorate glyphs in some renderers. "
             "ASCII letter sites are processed even when the surrounding text contains non-ASCII. "
             "Historical Gate v2 confirmation remains the frozen GPT-2 evidence for the prior mark-only arm."
         ),
@@ -120,8 +130,8 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("product authorization spec does not match the live payload")
     if disk["product_authorized"] is not True:
         raise ValueError("product authorization spec must authorize")
-    if disk["cli_algorithm_version"] != "release-cli-v6":
-        raise ValueError("product authorization must use release-cli-v6")
+    if disk["cli_algorithm_version"] != "release-cli-v7":
+        raise ValueError("product authorization must use release-cli-v7")
     if disk["mix_sanitizer_gate_v1"] != "PASS":
         raise ValueError("product authorization must record the durable sanitizer gate PASS")
     if disk["identities"]["mix_freeze_hash"] != _MIX_FREEZE_HASH:
@@ -138,4 +148,10 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("authorized mix must resist Mn-strip source restoration")
     if disk["live"]["di_strip_does_not_restore_source"] is not True:
         raise ValueError("authorized mix must resist default-ignorable-strip source restoration")
+    if disk["live"]["mn_then_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn-strip then UnicodeSanitizer restoration")
+    if disk["live"]["di_then_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist DI-strip then UnicodeSanitizer restoration")
+    if disk["live"]["required_bundle_then_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist required-bundle then UnicodeSanitizer restoration")
     assert_gate_v2_committed()

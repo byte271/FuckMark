@@ -10,7 +10,7 @@ Frozen scientific records are not the user manual. They stay in the repository s
 | --- | --- | --- |
 | Gate v2 confirmation READMEs | Frozen 188/192 identity and 0/192 mix after required sanitizers | Historical sentence "CLI remains empty" / `process_text` identity **at confirmation time**. Live product is authorized letter-mix. |
 | `cycle8-product-authorization-v1` | Historical mark-only authorization | Public CLI applied U+034F / U+FE00 (`release-cli-v5`) |
-| `cycle8-product-authorization-v2` | Live dual-layer authorization | Public CLI applies mark plus C0/C1 (`release-cli-v6`) |
+| `cycle8-product-authorization-v2` | Live triple-layer authorization | Public CLI applies mark plus C0/C1 plus Me (`release-cli-v7`) |
 | mix-freeze / mix-confirmation 830000+ | Historical 0/192 on earlier seeds | Not rewritten |
 
 ## Evidence index
@@ -22,6 +22,7 @@ Frozen scientific records are not the user manual. They stay in the repository s
 - F01–F07 render/path notes: [`evidence/audit-fixes-2026-08-27/README.md`](../evidence/audit-fixes-2026-08-27/README.md)
 - 0.4.1 audit follow-up: [`evidence/audit-fixes-2026-08-28/README.md`](../evidence/audit-fixes-2026-08-28/README.md)
 - Dual-layer stress exploratory: [`evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/README.md`](../evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/README.md)
+- Combo stress exploratory: [`evidence/cycle8-combo-stress-exploratory-2026-08-28/README.md`](../evidence/cycle8-combo-stress-exploratory-2026-08-28/README.md)
 
 Cycle 8 archive pointers:
 

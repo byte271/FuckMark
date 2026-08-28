@@ -33,7 +33,7 @@ from .product.visible_projection import (
 
 
 INTERACTIVE_DONE = ":done"
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v6"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v7"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -220,7 +220,7 @@ def _parser() -> argparse.ArgumentParser:
             "insertions, sites, last_index, source_length, and capped. Use -q to hide that.\n"
             "Use --status for a machine-readable outcome line on stderr.\n"
             "Use --inspect for a character-level insertion map on stderr.\n"
-            "Stripping combining marks or default-ignorable characters leaves control residuals."
+            "Mn-strip, default-ignorable strip, and UnicodeSanitizer combinations leave Me/Cc residuals."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -622,8 +622,8 @@ def _emit_inspect(errors: TextIO, result: ProcessResult) -> None:
     if result.change_count > 0:
         errors.write(f"fuckmark-inspect-map {_inspect_map(result)}\n")
         errors.write(
-            "fuckmark-inspect-note stripping combining marks or "
-            "default-ignorable characters leaves control residuals; "
+            "fuckmark-inspect-note Mn-strip, default-ignorable strip, and "
+            "UnicodeSanitizer combinations leave Me/Cc residuals; "
             "the source is not restored\n"
         )
     elif result.reason == REASON_UNSUPPORTED_DOMAIN:
@@ -660,7 +660,7 @@ def _emit_outcome(
     if result.change_count > 0:
         _status(
             errors,
-            "FuckMark: stripping combining marks or default-ignorable characters leaves control residuals.",
+            "FuckMark: Mn-strip, default-ignorable strip, and UnicodeSanitizer combinations leave Me/Cc residuals.",
             enabled=color,
             code=_ANSI_YELLOW,
         )

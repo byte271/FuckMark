@@ -9,7 +9,7 @@
 
 # FuckMark
 
-FuckMark is a UTF-8 command for **English text with eligible ASCII letters**. It inserts hidden Unicode (U+034F, U+FE00, and C0/C1 controls) after those letters **without changing the words you see**.
+FuckMark is a UTF-8 command for **English text with eligible ASCII letters**. It inserts Unicode carriers (U+034F, U+FE00, C0/C1 controls, and enclosing Me U+20DD) after those letters. Visible projection stays identical; Me may decorate glyphs in some renderers.
 
 It is a constrained research/product CLI with measured SynthID / GPT-2 results. It is **not** a general watermark remover, not a paraphraser, and not a claim against unknown or proprietary detectors.
 
@@ -30,9 +30,9 @@ It does **not** score your paste against a detector and does **not** promise the
 
 ## Honest limits (read these)
 
-### 1. Stress-strip reversal (live dual-layer)
+### 1. Combined sanitizer reversal (live triple-layer)
 
-Live mix inserts a mark **and** a C0/C1 control at each eligible ASCII letter. Clearing combining marks or default-ignorable characters leaves those controls, so the source is not restored. Exploratory GPT-2 / SynthID rescore of frozen Gate v2 seed 1200000 watermarked sources: dual-layer **0/64** raw, after Mn-strip, and after default-ignorable strip. Historical mark-only mix on the same sources: **0/64** raw, then **64/64** after those strips. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after those strips).
+Live mix inserts a mark, a C0/C1 control, and enclosing Me (U+20DD) at each eligible ASCII letter. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, and the required sanitizer bundle leave Me/Cc residuals, so the source is not restored. Exploratory GPT-2 / SynthID rescore of frozen Gate v2 seed 1200000 watermarked sources: triple-layer **0/64** on those arms, including Mn then UnicodeSanitizer and required-bundle then UnicodeSanitizer. Historical dual-layer under Mn then UnicodeSanitizer returns to **61/64** detections. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after Mn/DI strip).
 
 ### 2. Mixed Unicode with ASCII letters is processed
 
@@ -110,7 +110,7 @@ Pipes and files write the payload to stdout. `--visible` prints the original vis
 
 ## What it guarantees
 
-`VISIBLE(original) == VISIBLE(transformed)`. FuckMark inserts U+034F or U+FE00 plus a C0/C1 control after eligible ASCII letters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
+`VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, and U+20DD after eligible ASCII letters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
 
 ASCII letter sites are processed in mixed-Unicode input. Only UTF-8. Inputs with no eligible ASCII letters, or that already contain approved carriers, stay unchanged with exit 0 and a stderr reason. That status means I/O succeeded, not that hidden characters were inserted or that a watermark was removed.
 
@@ -122,7 +122,8 @@ Machine text is left intact when recognized: fenced/inline/indented code, HTML t
 | --- | --- |
 | Unmodified watermarked text still detected | **188/192** (frozen mark-only corpus) |
 | Transformed text after required sanitizers | **0/192** (frozen mark-only corpus) |
-| Transformed text after Mn-strip / DI-strip | **188/192** on frozen mark-only; live dual-layer exploratory **0/64** (source not restored) |
+| Transformed text after Mn-strip / DI-strip | **188/192** on frozen mark-only; live triple-layer exploratory **0/64** |
+| Transformed text after Mn then UnicodeSanitizer | Historical dual-layer **61/64**; live triple-layer exploratory **0/64** |
 | Transformed unwatermarked text | **0/192** |
 | Exact visible text | **192/192** |
 | Transformed text after UnicodeSanitizer | **0/192** |
@@ -133,9 +134,9 @@ These numbers are frozen Gate v2 confirmation on GPT-2 / SynthID, 64-token sampl
 
 ## Limitations
 
-Live dual-layer mix does not restore under Mn-strip or default-ignorable strip (exploratory **0/64** on seed 1200000 watermarked sources). Frozen Gate v2 confirmation is still the historical mark-only arm (**188/192** after those strips). NFC, NFKC, Cf stripping, and whitespace collapse are required-sanitizer paths, not those stress strips.
+Live triple-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, or the required sanitizer bundle (exploratory **0/64** on seed 1200000 watermarked sources). Frozen Gate v2 confirmation is still the historical mark-only arm (**188/192** after Mn/DI strip).
 
-Insertion stops after the first 4096 eligible letter sites (two insertions per site). A longer document is unchanged after that point.
+Insertion stops after the first 4096 eligible letter sites (three insertions per site). A longer document is unchanged after that point.
 
 Primary evidence uses GPT-2-generated 64-token samples and GPT-2 BPE. DistilGPT2 still uses that tokenizer family. This is not evidence against generic AI-authorship classifiers, unknown proprietary detectors, every SynthID deployment, or C2PA.
 
@@ -147,7 +148,7 @@ Historical Chromium `contenteditable` VERIFIED rows from 2026-08-26 used a blank
 
 ## How it works
 
-Eligible ASCII letters receive an alternating mark (U+034F, then U+FE00) plus a cycling C0/C1 control. The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
+Eligible ASCII letters receive an alternating mark (U+034F, then U+FE00), a cycling C0/C1 control, and enclosing Me (U+20DD). The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
 
 ## Research
 

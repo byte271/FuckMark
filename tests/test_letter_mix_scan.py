@@ -11,7 +11,12 @@ from fuckmark.product.visible_projection import is_carrier_insertion_v1, project
 def test_letter_mix_scan_keeps_eligible_prose_bytes_and_invariants() -> None:
     source = "Abcd"
     applied = apply_letter_alternating_mix(source)
-    assert applied == "A\u034f" + "\u007f" + "b\ufe00" + "\u0080" + "c\u034f" + "\u0081" + "d\ufe00" + "\u0082"
+    assert applied == (
+        "A\u034f\u007f\u20dd"
+        "b\ufe00\u0080\u20dd"
+        "c\u034f\u0081\u20dd"
+        "d\ufe00\u0082\u20dd"
+    )
     prose = "Hello world. This is ordinary English ASCII text without paths."
     mixed = apply_letter_alternating_mix(prose)
     assert project_visible_v1(mixed, LETTER_MIX_APPROVED_CARRIERS) == prose

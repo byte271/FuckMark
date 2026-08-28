@@ -18,8 +18,10 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 | lm-watermarking UnicodeSanitizer | no (mangles; does not reconstruct) | 0/192 |
 | Mn-strip / combining-mark strip | **no** (exploratory 0/64) | 188/192 (historical restore) |
 | default-ignorable strip | **no** (exploratory 0/64) | 188/192 (historical restore) |
+| Mn-strip then UnicodeSanitizer | **no** (exploratory 0/64) | historical dual-layer 61/64 |
+| required-bundle then UnicodeSanitizer | **no** (exploratory 0/64) | n/a (bundle already strips marks) |
 
-Live mix (`u034f-ufe00-cc-letter-alt-v1`) leaves C0/C1 residuals after Mn-strip and default-ignorable strip. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescore: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/`.
+Live mix (`u034f-ufe00-cc-me-letter-alt-v1`) leaves Me/Cc residuals after those paths. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescores: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/` and `evidence/cycle8-combo-stress-exploratory-2026-08-28/`.
 
 ## L02 — Input domain
 
@@ -38,7 +40,7 @@ The product does not strip a BOM, normalize accents, or transliterate to force e
 
 ## L03 — Length and the 4096-site cap
 
-Only the first 4096 eligible ASCII-letter sites receive insertions (two per site: mark plus control). For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
+Only the first 4096 eligible ASCII-letter sites receive insertions (three per site: mark, control, Me). For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
 
 ## L04 — Detector / model / tokenizer evidence
 

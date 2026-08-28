@@ -19,13 +19,13 @@ Homepage copy should link the demo before install instructions.
 
 ## What the product does
 
-FuckMark inserts U+034F or U+FE00 plus a C0/C1 control into eligible ASCII letter sites without changing the visible words. v0.4.1 (this tree) already inserts those characters. Mixed Unicode with ASCII letters is processed.
+FuckMark inserts U+034F or U+FE00, a C0/C1 control, and enclosing Me (U+20DD) into eligible ASCII letter sites. Visible projection stays identical; Me may decorate glyphs. v0.4.1 (this tree) already inserts those characters. Mixed Unicode with ASCII letters is processed.
 
 It is not a general watermark remover.
 
 ## Honest limits on the homepage
 
-1. Live dual-layer mix does not restore under Mn-strip or default-ignorable strip (exploratory 0/64). Frozen Gate v2 confirmation is the historical mark-only arm (188/192 after those strips).
+1. Live triple-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, or the required sanitizer bundle (exploratory 0/64). Frozen Gate v2 confirmation is the historical mark-only arm (188/192 after Mn/DI strip).
 2. Mixed Unicode with ASCII letters is processed. Inputs with no eligible ASCII letters stay unchanged with exit 0. That is not a completed transformation.
 3. Frozen 0/192 results are GPT-2 / SynthID confirmation on 64-token samples. They do not answer whether text is useful on a user's platform and are not a general AI-detector rate reduction.
 4. Install remains Python 3.11+ and a CLI; the static demo is the no-install path.
@@ -54,4 +54,4 @@ Tagged wheel: GitHub Release `SHA256SUMS.txt` only. Last published wheel: v0.4.0
 
 ## Results to show, with boundaries
 
-Gate v2 confirmation (GPT-2 / SynthID, 64-token samples, historical mark-only): unmodified watermarked **188/192**; transformed after required sanitizers **0/192**; visible text **192/192**. Live dual-layer exploratory rescore of seed 1200000 watermarked sources: **0/64** after Mn-strip and default-ignorable strip. Cap 4096 letter sites. See [`limits.md`](limits.md) and [`demo.html`](demo.html).
+Gate v2 confirmation (GPT-2 / SynthID, 64-token samples, historical mark-only): unmodified watermarked **188/192**; transformed after required sanitizers **0/192**; visible text **192/192**. Live triple-layer exploratory rescore of seed 1200000 watermarked sources: **0/64** after Mn then UnicodeSanitizer and after required-bundle then UnicodeSanitizer. Cap 4096 letter sites. See [`limits.md`](limits.md) and [`demo.html`](demo.html).

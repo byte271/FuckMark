@@ -1,6 +1,6 @@
 # v0.4.1 Release Process
 
-FuckMark v0.4.1 is the audit-fix and dual-layer mix release on top of the Gate v2 product-authorization CLI. The public CLI algorithm identity is `release-cli-v6`. Do not retag `v0.4.0`. The historical `v0.3.0` tag is the identity CLI (`release-cli-v4`). The historical `v0.2.0` tag still applies contractions.
+FuckMark v0.4.1 is the audit-fix and triple-layer mix release on top of the Gate v2 product-authorization CLI. The public CLI algorithm identity is `release-cli-v7`. Do not retag `v0.4.0`. The historical `v0.3.0` tag is the identity CLI (`release-cli-v4`). The historical `v0.2.0` tag still applies contractions.
 
 ## Release invariants
 
@@ -11,7 +11,7 @@ FuckMark v0.4.1 is the audit-fix and dual-layer mix release on top of the Gate v
 5. Frozen historical contracts and evidence under `specs/` remain byte-stable unless their own protocol explicitly defines a successor artifact. Mix-freeze and mix-confirmation stay historical snapshots (`product_authorized: false`). The live v1 mix publishability report records dual-layer stress-strip PASS and remains `product_authorized: false`. Gate v2 is the frozen confirmation instrument. Product authorization v2 is the live dual-layer authorization.
 6. The release must build and clean-install on Linux, macOS, and Windows.
 7. Every published GitHub Release must be backed by an immutable `v*` tag.
-8. Gate v2 still records the historical v1 mix sanitizer gate as FAIL. `required_sanitizers_keep` is not weakened. Do not generate `950000`. Live dual-layer mix does not restore under Mn-strip or default-ignorable strip.
+8. Gate v2 still records the historical v1 mix sanitizer gate as FAIL. `required_sanitizers_keep` is not weakened. Do not generate `950000`. Live triple-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, or the required sanitizer bundle.
 9. CI for the published artifact must exercise `--text`, `--file`, `--status`, and the documented exit statuses, not only a piped sentence.
 
 ## Required release sequence
@@ -33,7 +33,7 @@ Direct tag pushes do not trigger the workflow. There is no hard-coded release ta
 
 ## Claim boundary
 
-Gate v2 confirmation is GPT-2 / Hugging Face SynthID Weighted Mean plus the real UnicodeSanitizer, with existing DeepMind 30-key GPT-2 transfer. It is not a universal watermark-removal guarantee. Live dual-layer mix leaves C0/C1 residuals after Mn-strip and default-ignorable strip. DistilGPT2 n=16 and mean-versus-weighted-mean remain `HYPOTHESIS`. See `docs/limits.md`.
+Gate v2 confirmation is GPT-2 / Hugging Face SynthID Weighted Mean plus the real UnicodeSanitizer, with existing DeepMind 30-key GPT-2 transfer. It is not a universal watermark-removal guarantee. Live triple-layer mix leaves Me/Cc residuals after Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, and the required sanitizer bundle. DistilGPT2 n=16 and mean-versus-weighted-mean remain `HYPOTHESIS`. See `docs/limits.md`.
 
 ## Historical boundary
 

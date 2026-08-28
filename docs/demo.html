@@ -132,6 +132,7 @@ th { color: var(--muted); font-weight: 600; }
 }
 .viewer .cgj { color: var(--c034f); background: color-mix(in srgb, var(--c034f) 18%, transparent); }
 .viewer .cc { color: #7dffb3; background: color-mix(in srgb, #7dffb3 16%, transparent); }
+.viewer .me { color: #ffd27a; background: color-mix(in srgb, #ffd27a 18%, transparent); }
 .viewer .badch { color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); }
 .viewer .tail { opacity: 0.45; }
 .legend {
@@ -154,6 +155,7 @@ th { color: var(--muted); font-weight: 600; }
 .legend .l034f::before { background: var(--c034f); }
 .legend .lfe00::before { background: var(--cfe00); }
 .legend .lcc::before { background: #7dffb3; }
+.legend .lme::before { background: #ffd27a; }
 .legend .lbad::before { background: var(--bad); }
 .actions {
   display: flex;
@@ -223,13 +225,13 @@ code { font-family: var(--mono); font-size: 0.9em; }
 </header>
 <main>
   <section class="banner" id="reversal-banner">
-    <strong>Dual-layer mix resists Mn and default-ignorable reversal.</strong>
-    Each eligible ASCII letter site receives a mark (U+034F or U+FE00) plus a C0/C1 control residual. Clearing combining marks or default-ignorable characters no longer restores the source. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
+    <strong>Triple-layer mix resists Mn/DI strip and UnicodeSanitizer combinations.</strong>
+    Each eligible ASCII letter site receives a mark (U+034F or U+FE00), a C0/C1 control, and enclosing Me (U+20DD). Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, and the required sanitizer bundle no longer restore the source. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
   </section>
 
   <section class="panel" id="frozen-scores">
     <h2>Frozen detection comparison (fixed corpus, not your paste)</h2>
-    <p>Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. Live CLI now uses dual-layer mark plus control residuals and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
+    <p>Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. Live CLI now uses triple-layer mark plus Cc plus Me and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
     <table>
       <thead>
         <tr><th>Arm</th><th>Detections</th><th>What it means</th></tr>
@@ -239,8 +241,10 @@ code { font-family: var(--mono); font-size: 0.9em; }
         <tr><td>Mark-only + required sanitizers (freeze)</td><td>0/192</td><td>Required-path success on this corpus</td></tr>
         <tr><td>Mark-only + Mn-strip (freeze)</td><td>188/192</td><td>Historical mark-only source restore</td></tr>
         <tr><td>Mark-only + default-ignorable strip (freeze)</td><td>188/192</td><td>Historical mark-only source restore</td></tr>
-        <tr><td>Live dual-layer + Mn-strip (exploratory n=64)</td><td>0/64</td><td>Source not restored; detection stays down</td></tr>
-        <tr><td>Live dual-layer + default-ignorable strip (exploratory n=64)</td><td>0/64</td><td>Source not restored; detection stays down</td></tr>
+        <tr><td>Live dual-layer + Mn-strip (exploratory n=64)</td><td>0/64</td><td>Historical dual-layer Mn/DI residual</td></tr>
+        <tr><td>Historical dual-layer + Mn then UnicodeSanitizer</td><td>61/64</td><td>Combined attack restores most watermarked rows</td></tr>
+        <tr><td>Live triple-layer + Mn then UnicodeSanitizer (exploratory n=64)</td><td>0/64</td><td>Source not restored; detection stays down</td></tr>
+        <tr><td>Live triple-layer + required-bundle then UnicodeSanitizer (exploratory n=64)</td><td>0/64</td><td>Source not restored; detection stays down</td></tr>
         <tr><td>Exact visible text</td><td>192/192</td><td>Words on screen unchanged</td></tr>
       </tbody>
     </table>
@@ -261,6 +265,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
       <span class="l034f">U+034F insertion</span>
       <span class="lfe00">U+FE00 insertion</span>
       <span class="lcc">Cc residual</span>
+      <span class="lme">U+20DD Me</span>
       <span class="lbad">Unsupported / restored mismatch</span>
     </div>
     <div class="actions">
@@ -296,9 +301,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "ascii-eligible",
     "title": "Eligible ASCII",
     "source": "I do not agree.",
-    "output": "I\u034f\u007f d\ufe00\u0080o\u034f\u0081 n\ufe00\u0082o\u034f\u0083t\ufe00\u0084 a\u034f\u0086g\ufe00\u0087r\u034f\u0088e\ufe00\u0089e\u034f\u008a.",
+    "output": "I͏⃝ d︀⃝o͏⃝ n︀⃝o͏⃝t︀⃝ a͏⃝g︀⃝r͏⃝e︀⃝e͏⃝.",
     "reason": "transformed",
-    "insertions": 22,
+    "insertions": 33,
     "sites": 11,
     "last_index": 13,
     "capped": false,
@@ -310,9 +315,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "ascii-apostrophe",
     "title": "Straight ASCII apostrophe",
     "source": "I don't agree.",
-    "output": "I\u034f\u007f d\ufe00\u0080o\u034f\u0081n\ufe00\u0082't\u034f\u0083 a\ufe00\u0084g\u034f\u0086r\ufe00\u0087e\u034f\u0088e\ufe00\u0089.",
+    "output": "I͏⃝ d︀⃝o͏⃝n︀⃝'t͏⃝ a︀⃝g͏⃝r︀⃝e͏⃝e︀⃝.",
     "reason": "transformed",
-    "insertions": 20,
+    "insertions": 30,
     "sites": 10,
     "last_index": 12,
     "capped": false,
@@ -323,10 +328,10 @@ code { font-family: var(--mono); font-size: 0.9em; }
   {
     "id": "curly-apostrophe",
     "title": "Curly apostrophe (ASCII letters mixed)",
-    "source": "I don\u2019t agree.",
-    "output": "I\u034f\u007f d\ufe00\u0080o\u034f\u0081n\ufe00\u0082\u2019t\u034f\u0083 a\ufe00\u0084g\u034f\u0086r\ufe00\u0087e\u034f\u0088e\ufe00\u0089.",
+    "source": "I don’t agree.",
+    "output": "I͏⃝ d︀⃝o͏⃝n︀⃝’t͏⃝ a︀⃝g͏⃝r︀⃝e͏⃝e︀⃝.",
     "reason": "transformed",
-    "insertions": 20,
+    "insertions": 30,
     "sites": 10,
     "last_index": 12,
     "capped": false,
@@ -337,10 +342,10 @@ code { font-family: var(--mono); font-size: 0.9em; }
   {
     "id": "accented",
     "title": "Accented word with ASCII letters",
-    "source": "I do not agree \u00e9.",
-    "output": "I\u034f\u007f d\ufe00\u0080o\u034f\u0081 n\ufe00\u0082o\u034f\u0083t\ufe00\u0084 a\u034f\u0086g\ufe00\u0087r\u034f\u0088e\ufe00\u0089e\u034f\u008a \u00e9.",
+    "source": "I do not agree é.",
+    "output": "I͏⃝ d︀⃝o͏⃝ n︀⃝o͏⃝t︀⃝ a͏⃝g︀⃝r͏⃝e︀⃝e͏⃝ é.",
     "reason": "transformed",
-    "insertions": 22,
+    "insertions": 33,
     "sites": 11,
     "last_index": 13,
     "capped": false,
@@ -352,9 +357,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "site-full",
     "title": "312-letter coverage (under 4096 cap)",
     "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
-    "output": "a\u034f\u007fb\ufe00\u0080c\u034f\u0081d\ufe00\u0082e\u034f\u0083f\ufe00\u0084g\u034f\u0086h\ufe00\u0087i\u034f\u0088j\ufe00\u0089k\u034f\u008al\ufe00\u008bm\u034f\u008cn\ufe00\u008do\u034f\u008ep\ufe00\u008fq\u034f\u0090r\ufe00\u0091s\u034f\u0092t\ufe00\u0093u\u034f\u0094v\ufe00\u0095w\u034f\u0096x\ufe00\u0097y\u034f\u0098z\ufe00\u0099a\u034f\u009ab\ufe00\u009bc\u034f\u009cd\ufe00\u009de\u034f\u009ef\ufe00\u009fg\u034f\u007fh\ufe00\u0080i\u034f\u0081j\ufe00\u0082k\u034f\u0083l\ufe00\u0084m\u034f\u0086n\ufe00\u0087o\u034f\u0088p\ufe00\u0089q\u034f\u008ar\ufe00\u008bs\u034f\u008ct\ufe00\u008du\u034f\u008ev\ufe00\u008fw\u034f\u0090x\ufe00\u0091y\u034f\u0092z\ufe00\u0093a\u034f\u0094b\ufe00\u0095c\u034f\u0096d\ufe00\u0097e\u034f\u0098f\ufe00\u0099g\u034f\u009ah\ufe00\u009bi\u034f\u009cj\ufe00\u009dk\u034f\u009el\ufe00\u009fm\u034f\u007fn\ufe00\u0080o\u034f\u0081p\ufe00\u0082q\u034f\u0083r\ufe00\u0084s\u034f\u0086t\ufe00\u0087u\u034f\u0088v\ufe00\u0089w\u034f\u008ax\ufe00\u008by\u034f\u008cz\ufe00\u008da\u034f\u008eb\ufe00\u008fc\u034f\u0090d\ufe00\u0091e\u034f\u0092f\ufe00\u0093g\u034f\u0094h\ufe00\u0095i\u034f\u0096j\ufe00\u0097k\u034f\u0098l\ufe00\u0099m\u034f\u009an\ufe00\u009bo\u034f\u009cp\ufe00\u009dq\u034f\u009er\ufe00\u009fs\u034f\u007ft\ufe00\u0080u\u034f\u0081v\ufe00\u0082w\u034f\u0083x\ufe00\u0084y\u034f\u0086z\ufe00\u0087a\u034f\u0088b\ufe00\u0089c\u034f\u008ad\ufe00\u008be\u034f\u008cf\ufe00\u008dg\u034f\u008eh\ufe00\u008fi\u034f\u0090j\ufe00\u0091k\u034f\u0092l\ufe00\u0093m\u034f\u0094n\ufe00\u0095o\u034f\u0096p\ufe00\u0097q\u034f\u0098r\ufe00\u0099s\u034f\u009at\ufe00\u009bu\u034f\u009cv\ufe00\u009dw\u034f\u009ex\ufe00\u009fy\u034f\u007fz\ufe00\u0080a\u034f\u0081b\ufe00\u0082c\u034f\u0083d\ufe00\u0084e\u034f\u0086f\ufe00\u0087g\u034f\u0088h\ufe00\u0089i\u034f\u008aj\ufe00\u008bk\u034f\u008cl\ufe00\u008dm\u034f\u008en\ufe00\u008fo\u034f\u0090p\ufe00\u0091q\u034f\u0092r\ufe00\u0093s\u034f\u0094t\ufe00\u0095u\u034f\u0096v\ufe00\u0097w\u034f\u0098x\ufe00\u0099y\u034f\u009az\ufe00\u009ba\u034f\u009cb\ufe00\u009dc\u034f\u009ed\ufe00\u009fe\u034f\u007ff\ufe00\u0080g\u034f\u0081h\ufe00\u0082i\u034f\u0083j\ufe00\u0084k\u034f\u0086l\ufe00\u0087m\u034f\u0088n\ufe00\u0089o\u034f\u008ap\ufe00\u008bq\u034f\u008cr\ufe00\u008ds\u034f\u008et\ufe00\u008fu\u034f\u0090v\ufe00\u0091w\u034f\u0092x\ufe00\u0093y\u034f\u0094z\ufe00\u0095a\u034f\u0096b\ufe00\u0097c\u034f\u0098d\ufe00\u0099e\u034f\u009af\ufe00\u009bg\u034f\u009ch\ufe00\u009di\u034f\u009ej\ufe00\u009fk\u034f\u007fl\ufe00\u0080m\u034f\u0081n\ufe00\u0082o\u034f\u0083p\ufe00\u0084q\u034f\u0086r\ufe00\u0087s\u034f\u0088t\ufe00\u0089u\u034f\u008av\ufe00\u008bw\u034f\u008cx\ufe00\u008dy\u034f\u008ez\ufe00\u008fa\u034f\u0090b\ufe00\u0091c\u034f\u0092d\ufe00\u0093e\u034f\u0094f\ufe00\u0095g\u034f\u0096h\ufe00\u0097i\u034f\u0098j\ufe00\u0099k\u034f\u009al\ufe00\u009bm\u034f\u009cn\ufe00\u009do\u034f\u009ep\ufe00\u009fq\u034f\u007fr\ufe00\u0080s\u034f\u0081t\ufe00\u0082u\u034f\u0083v\ufe00\u0084w\u034f\u0086x\ufe00\u0087y\u034f\u0088z\ufe00\u0089a\u034f\u008ab\ufe00\u008bc\u034f\u008cd\ufe00\u008de\u034f\u008ef\ufe00\u008fg\u034f\u0090h\ufe00\u0091i\u034f\u0092j\ufe00\u0093k\u034f\u0094l\ufe00\u0095m\u034f\u0096n\ufe00\u0097o\u034f\u0098p\ufe00\u0099q\u034f\u009ar\ufe00\u009bs\u034f\u009ct\ufe00\u009du\u034f\u009ev\ufe00\u009fw\u034f\u007fx\ufe00\u0080y\u034f\u0081z\ufe00\u0082a\u034f\u0083b\ufe00\u0084c\u034f\u0086d\ufe00\u0087e\u034f\u0088f\ufe00\u0089g\u034f\u008ah\ufe00\u008bi\u034f\u008cj\ufe00\u008dk\u034f\u008el\ufe00\u008fm\u034f\u0090n\ufe00\u0091o\u034f\u0092p\ufe00\u0093q\u034f\u0094r\ufe00\u0095s\u034f\u0096t\ufe00\u0097u\u034f\u0098v\ufe00\u0099w\u034f\u009ax\ufe00\u009by\u034f\u009cz\ufe00\u009da\u034f\u009eb\ufe00\u009fc\u034f\u007fd\ufe00\u0080e\u034f\u0081f\ufe00\u0082g\u034f\u0083h\ufe00\u0084i\u034f\u0086j\ufe00\u0087k\u034f\u0088l\ufe00\u0089m\u034f\u008an\ufe00\u008bo\u034f\u008cp\ufe00\u008dq\u034f\u008er\ufe00\u008fs\u034f\u0090t\ufe00\u0091u\u034f\u0092v\ufe00\u0093w\u034f\u0094x\ufe00\u0095y\u034f\u0096z\ufe00\u0097",
+    "output": "a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝a͏⃝b︀⃝c͏⃝d︀⃝e͏⃝f︀⃝g͏⃝h︀⃝i͏⃝j︀⃝k͏⃝l︀⃝m͏⃝n︀⃝o͏⃝p︀⃝q͏⃝r︀⃝s͏⃝t︀⃝u͏⃝v︀⃝w͏⃝x︀⃝y͏⃝z︀⃝",
     "reason": "transformed",
-    "insertions": 624,
+    "insertions": 936,
     "sites": 312,
     "last_index": 311,
     "capped": false,
@@ -416,6 +421,10 @@ code { font-family: var(--mono); font-size: 0.9em; }
         html += '<span class="cc" title="' + hex(cp) + '">[' + hex(cp).slice(2) + ']</span>';
         continue;
       }
+      if (cp === 0x20dd) {
+        html += '<span class="me" title="U+20DD">[20DD]</span>';
+        continue;
+      }
       let cls = "";
       if (options.markUnsupported && cp > 0x7e) cls = "badch";
       if (options.dimAfter != null && sourceIndex > options.dimAfter) cls = (cls ? cls + " " : "") + "tail";
@@ -430,7 +439,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     let out = "";
     for (const ch of text) {
       const cp = ch.codePointAt(0);
-      if (cp === 0x034f || cp === 0xfe00 || cp === 0x7f || (cp >= 0x80 && cp <= 0x9f) || cp > 0x7e || cp < 0x20) {
+      if (cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || cp === 0x7f || (cp >= 0x80 && cp <= 0x9f) || cp > 0x7e || cp < 0x20) {
         out += "\\u" + cp.toString(16).padStart(4, "0");
       } else if (ch === "\\") {
         out += "\\\\";
@@ -500,12 +509,12 @@ code { font-family: var(--mono); font-size: 0.9em; }
     });
     if (mode === "mn" || mode === "di") {
       reversalNote.textContent = extras.restored
-        ? "Strip restored the exact source. That should not happen on live dual-layer output."
-        : "Strip did not restore the source. Control residuals remain after Mn or default-ignorable removal.";
+        ? "Strip restored the exact source. That should not happen on live triple-layer output."
+        : "Strip did not restore the source. Me/Cc residuals remain after Mn or default-ignorable removal.";
     } else if (!active.processed) {
       reversalNote.textContent = "This sample is not processed. Exit 0 from the CLI still means I/O succeeded, not that hidden characters were inserted.";
     } else {
-      reversalNote.textContent = "Use the strip buttons on a transformed sample. Dual-layer residuals should keep the source from coming back.";
+      reversalNote.textContent = "Use the strip buttons on a transformed sample. Triple-layer residuals should keep the source from coming back.";
     }
   }
 
