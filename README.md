@@ -42,7 +42,9 @@ Example: `I don't agree.` with a curly apostrophe is **not processed**. Use `--s
 
 ### 3. Frozen scores are not “AI detector rate reduction”
 
-Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product only fills the first 192 eligible letter sites; long documents stay mostly unchanged after that. See [`docs/limits.md`](docs/limits.md).
+Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product only fills the first 192 eligible letter sites; long documents stay mostly unchanged after that.
+
+That evidence does **not** answer: “Is this text actually useful on the platform I am using?” Statistical watermarking results on a frozen GPT-2 corpus must not be marketed as a general reduction in AI detection rates. See [`docs/limits.md`](docs/limits.md).
 
 ### 4. Install is still a terminal tool
 
@@ -94,7 +96,7 @@ Keep using the venv command from the install step. Examples below assume `.venv/
 .venv/bin/fuckmark
 ```
 
-Paste or type text, then a line that is only `:done`. The result is copied to the clipboard. Status on stderr says whether hidden characters were inserted, with insertions, sites, `last_index`, and cap. Successful interactive runs also remind you that stripping combining marks restores the source.
+Paste or type text, then a line that is only `:done`. The result is copied to the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and cap unless `-q`. Successful runs also remind you that stripping combining marks restores the source.
 
 ```text
 printf 'I do not agree.\n' | .venv/bin/fuckmark

@@ -80,7 +80,7 @@ def test_explicit_text_mode_accepts_sentences_decimals_and_slashes() -> None:
     for source in cases:
         output = StringIO()
         errors = StringIO()
-        status = main(StringIO(""), output, error_stream=errors, argv=("--text", source))
+        status = main(StringIO(""), output, error_stream=errors, argv=("--text", source, "-q"))
         assert status == 0, errors.getvalue()
         assert output.getvalue() == apply_letter_alternating_mix(source)
         assert errors.getvalue() == ""

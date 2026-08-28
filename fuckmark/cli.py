@@ -195,8 +195,11 @@ def _parser() -> argparse.ArgumentParser:
             "Only UTF-8 is supported. Visible text stays the same.\n"
             "Use --visible to print that visible text.\n"
             "Use --text for literal strings and --file for existing UTF-8 files.\n"
-            "Use --status for processed/reason/insertions/coverage on stderr.\n"
-            "Use --inspect for a character-level insertion map on stderr."
+            "By default, stderr reports processed vs not processed, reason,\n"
+            "insertions, sites, last_index, source_length, and capped. Use -q to hide that.\n"
+            "Use --status for a machine-readable outcome line on stderr.\n"
+            "Use --inspect for a character-level insertion map on stderr.\n"
+            "Stripping combining marks or default-ignorable characters restores the source."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -256,7 +259,7 @@ def _parser() -> argparse.ArgumentParser:
         "-q",
         "--quiet",
         action="store_true",
-        help="hide non-essential status messages",
+        help="hide processed/reason/coverage status messages on stderr",
     )
     parser.add_argument(
         "--status",
@@ -632,14 +635,11 @@ def _emit_outcome(
         return
     if quiet:
         return
-    if result.reason == REASON_TRANSFORMED and not interactive:
-        return
     warn = result.reason != REASON_TRANSFORMED and result.reason != REASON_SITE_CAP
     code = _ANSI_YELLOW if warn else _ANSI_GREEN
     _status(errors, f"FuckMark: {_human_reason(result)}.", enabled=color, code=code)
-    if interactive or result.reason != REASON_TRANSFORMED:
-        _status(errors, f"FuckMark: {_coverage_line(result)}.", enabled=color, code=code)
-    if interactive and result.change_count > 0:
+    _status(errors, f"FuckMark: {_coverage_line(result)}.", enabled=color, code=code)
+    if result.change_count > 0:
         _status(
             errors,
             "FuckMark: stripping combining marks or default-ignorable characters restores the source.",

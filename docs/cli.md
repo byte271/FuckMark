@@ -64,7 +64,7 @@ fuckmark --text "I don’t agree." --status
 ```
 
 
-Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stream mode stays silent on full success unless `--status` or `--inspect`. No-ops and the site cap always report on stderr unless `-q`.
+Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and capped unless `-q`. Successful transforms also note that stripping combining marks or default-ignorable characters restores the source. Use `-q` when a pipe must keep stderr empty.
 
 ## Input modes
 
@@ -93,7 +93,7 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 | `--copy` | Also copy the output to the clipboard. The paste UI always copies. |
 | `--visible` | Print the visible text (no hidden characters). |
 | `--encoding NAME` | Only `utf-8`. `latin-1`, `ascii`, and `cp1252` are rejected. |
-| `-q`, `--quiet` | Hide non-essential status messages. |
+| `-q`, `--quiet` | Hide processed/reason/coverage status messages on stderr. |
 | `--status` | Write one `fuckmark-status` line to stderr (`result`, `processed`, `insertions`, `sites`, `last_index`, `source_length`, `capped`, `first_unsupported`). |
 | `--inspect` | Write a character-level coverage map to stderr. Stdout stays the payload. |
 | `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |

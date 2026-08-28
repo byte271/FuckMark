@@ -48,7 +48,7 @@ Only the first 192 eligible ASCII-letter sites receive insertions. For a long do
 | DeepMind 30-key transfer | GPT-2 | GPT-2 BPE | 192 pairs | HYPOTHESIS / configuration check |
 | DistilGPT2 n=16 | DistilGPT2 | GPT-2 BPE | 16 pairs | HYPOTHESIS; not a second tokenizer family |
 
-Zero detections in a finite set is not a universal zero-rate. Not claimed: generic AI-authorship classifiers, unknown proprietary detectors, every SynthID deployment, C2PA.
+Zero detections in a finite set is not a universal zero-rate. This evidence does not answer whether text is useful on a specific commercial platform. Not claimed: generic AI-authorship classifiers, unknown proprietary detectors, every SynthID deployment, C2PA, or a general reduction in AI detection rates.
 
 ## L05 — Downstream behavior
 

@@ -27,7 +27,7 @@ It is not a general watermark remover.
 
 1. Clearing combining marks or default-ignorable characters restores the source and restores frozen detections to 188/192.
 2. Curly apostrophes, accents, emoji, and other non-ASCII leave the whole input unchanged with exit 0. That is not a completed transformation.
-3. Frozen 0/192 results are GPT-2 / SynthID confirmation, not a general AI-detector claim.
+3. Frozen 0/192 results are GPT-2 / SynthID confirmation on 64-token samples. They do not answer whether text is useful on a user's platform and are not a general AI-detector rate reduction.
 4. Install remains Python 3.11+ and a CLI; the static demo is the no-install path.
 
 ## Install (Linux / macOS)

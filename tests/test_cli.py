@@ -289,7 +289,7 @@ def test_cli_main_copies_raw_mix_payload_with_copy_flag() -> None:
     output = StringIO()
     errors = StringIO()
     copied: list[str] = []
-    status = main(source, output, copied.append, error_stream=errors, argv=("--stdin", "--copy"))
+    status = main(source, output, copied.append, error_stream=errors, argv=("--stdin", "--copy", "-q"))
     assert status == 0
     expected = apply_letter_alternating_mix("I do not agree.\n")
     assert copied == [expected]
@@ -368,7 +368,11 @@ def test_cli_reads_file_and_atomically_writes_output(tmp_path: Path) -> None:
     source.write_text("I do not agree.\n", encoding="utf-8")
     output = StringIO()
     errors = StringIO()
-    assert main(output_stream=output, error_stream=errors, argv=(str(source), "--output", str(target))) == 0
+    assert main(
+        output_stream=output,
+        error_stream=errors,
+        argv=(str(source), "--output", str(target), "-q"),
+    ) == 0
     assert output.getvalue() == ""
     assert errors.getvalue() == ""
     assert target.read_text(encoding="utf-8") == apply_letter_alternating_mix("I do not agree.\n")
@@ -388,7 +392,7 @@ def test_cli_writes_mix_when_stdio_starts_as_cp1252() -> None:
     source = TextIOWrapper(BytesIO(b"I do not agree.\n"), encoding="cp1252", newline="")
     output = TextIOWrapper(raw_out, encoding="cp1252", newline="")
     errors = StringIO()
-    status = main(source, output, argv=("--stdin",), error_stream=errors)
+    status = main(source, output, argv=("--stdin", "-q"), error_stream=errors)
     assert status == 0
     assert errors.getvalue() == ""
     output.flush()
@@ -402,7 +406,7 @@ def test_cli_automatically_uses_stream_mode_for_a_pipe(monkeypatch) -> None:
     monkeypatch.setattr(sys, "stdin", source)
     monkeypatch.setattr(sys, "stdout", output)
     monkeypatch.setattr(sys, "stderr", errors)
-    assert main(argv=()) == 0
+    assert main(argv=("-q",)) == 0
     assert output.getvalue() == apply_letter_alternating_mix("I do not agree.\n")
     assert errors.getvalue() == ""
 
@@ -435,10 +439,34 @@ def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> 
 def test_cli_quoted_text_argument_transforms_without_a_file() -> None:
     output = StringIO()
     errors = StringIO()
-    status = main(StringIO(""), output, error_stream=errors, argv=("I do not agree.",))
+    status = main(StringIO(""), output, error_stream=errors, argv=("I do not agree.", "-q"))
     assert status == 0
     assert output.getvalue() == apply_letter_alternating_mix("I do not agree.")
     assert errors.getvalue() == ""
+
+
+def test_cli_stream_success_reports_processed_coverage_and_reversal() -> None:
+    output = StringIO()
+    errors = StringIO()
+    status = main(StringIO(""), output, error_stream=errors, argv=("--text", "I do not agree."))
+    assert status == 0
+    assert output.getvalue() == apply_letter_alternating_mix("I do not agree.")
+    stderr = errors.getvalue()
+    assert "processed=yes" in stderr
+    assert "insertions=" in stderr
+    assert "source_length=15" in stderr
+    assert "restores the source" in stderr
+    quiet_out = StringIO()
+    quiet_err = StringIO()
+    quiet = main(
+        StringIO(""),
+        quiet_out,
+        error_stream=quiet_err,
+        argv=("--text", "I do not agree.", "-q"),
+    )
+    assert quiet == 0
+    assert quiet_out.getvalue() == apply_letter_alternating_mix("I do not agree.")
+    assert quiet_err.getvalue() == ""
 
 
 def test_cli_missing_path_like_argument_is_an_error(tmp_path: Path) -> None:
@@ -483,7 +511,7 @@ def test_cli_stdin_keeps_multiline_visible_text() -> None:
     source_text = "I do not agree.\nYou should not do that.\n"
     output = StringIO()
     errors = StringIO()
-    status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin",))
+    status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin", "-q"))
     assert status == 0
     applied = apply_letter_alternating_mix(source_text)
     assert output.getvalue() == applied
