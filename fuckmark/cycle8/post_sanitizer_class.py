@@ -8,7 +8,7 @@ from ..hashing import sha256_json
 from .closed_set import CYCLE8_CLOSED_SET_HASH
 from .control_carrier import CYCLE8_CONTROL_CARRIER_HASH, scan_control_carrier_class
 from .feasibility import CYCLE8_FEASIBILITY_HASH
-from .publishability import CYCLE8_MIX_PUBLISHABILITY_HASH
+from .publishability import CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH
 
 
 CYCLE8_POST_SANITIZER_CLASS_VERSION = "cycle8-post-sanitizer-mechanism-class-v1"
@@ -146,7 +146,7 @@ def post_sanitizer_mechanism_class_payload() -> dict[str, object]:
         "assigned_width0_closed_set_hash": CYCLE8_CLOSED_SET_HASH,
         "assigned_width0_feasibility_hash": CYCLE8_FEASIBILITY_HASH,
         "control_carrier_hash": CYCLE8_CONTROL_CARRIER_HASH,
-        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_HASH,
+        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH,
         "mix_sanitizer_gate": "FAIL",
         "control_carrier_required_sanitizers_keep": control["eligible_required_sanitizers_keep"],
         "control_carrier_chromium_pre_pixels": control["chromium_pre_pixels"],

@@ -10,7 +10,7 @@ from fuckmark.cycle8.benchmark import sanitize_benchmark_stress
 from fuckmark.cycle8.closed_set import CYCLE8_CLOSED_SET_HASH
 from fuckmark.cycle8.control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_keep
 from fuckmark.cycle8.feasibility import CYCLE8_FEASIBILITY_HASH
-from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 from fuckmark.cycle8.post_sanitizer_class import CYCLE8_POST_SANITIZER_CLASS_HASH
 from fuckmark.cycle8.post_sanitizer_extended import (
     CYCLE8_POST_SANITIZER_EXTENDED_HASH,
@@ -29,7 +29,7 @@ from fuckmark.cycle8.post_sanitizer_extended import (
     is_simple_empty_true_type_glyph,
     post_sanitizer_extended_class_payload,
 )
-from fuckmark.cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_HASH, mix_is_product_publishable
+from fuckmark.cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH, mix_is_product_publishable
 from fuckmark.cycle8.unicode_meta import DEFAULT_IGNORABLE_RANGES_V1
 from fuckmark.hashing import sha256_file, sha256_json
 from fuckmark.product.rendering import chrome_executable, compare_chrome_pre_screenshots
@@ -53,7 +53,7 @@ def test_post_sanitizer_extended_class_has_no_conjunction_survivor() -> None:
     assert disk["assigned_width0_feasibility_hash"] == CYCLE8_FEASIBILITY_HASH
     assert disk["control_carrier_hash"] == CYCLE8_CONTROL_CARRIER_HASH
     assert disk["post_sanitizer_class_hash"] == CYCLE8_POST_SANITIZER_CLASS_HASH
-    assert disk["mix_publishability_hash"] == CYCLE8_MIX_PUBLISHABILITY_HASH
+    assert disk["mix_publishability_hash"] == CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH
     assert disk["mix_sanitizer_gate"] == "FAIL"
     assert disk["di_list_complete_vs_ucd15"] is True
     assert DEFAULT_IGNORABLE_RANGES_V1 == UCD15_DEFAULT_IGNORABLE_RANGES
@@ -81,9 +81,9 @@ def test_post_sanitizer_extended_class_has_no_conjunction_survivor() -> None:
     assert by_id["nfkc_compatibility_lookalike"]["required_sanitizers"] == "FAIL"
     assert by_id["cc_csi_filtered_subset"]["chromium_pre"] == "HOST_DEPENDENT"
     assert by_id["cc_csi_filtered_subset"]["ordinary_plain_text"] == "FAIL"
-    assert mix_is_product_publishable() is False
+    assert mix_is_product_publishable() is True
     assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
     assert release_transform_registry().rules == ()
     for row in disk["classes"]:
         conjunction = (
@@ -102,8 +102,8 @@ def test_extended_class_probes_match_required_sanitizer_contract() -> None:
     assert required_sanitizers_keep(f"A{HANGUL_JAMO_FILLER_SEQUENCE}B") is False
     source = "I do not agree."
     mix = apply_letter_alternating_mix(source)
-    assert sanitize_benchmark_stress("mn_strip", mix) == source
-    assert sanitize_benchmark_stress("default_ignorable_strip", mix) == source
+    assert sanitize_benchmark_stress("mn_strip", mix) != source
+    assert sanitize_benchmark_stress("default_ignorable_strip", mix) != source
 
 
 def test_extended_class_chromium_probes_change_pre_pixels() -> None:

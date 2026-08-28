@@ -1,3 +1,5 @@
+import unicodedata
+
 import pytest
 
 from fuckmark.cli import process_text
@@ -36,4 +38,6 @@ def test_mix_payload_roundtrips_utf8_and_is_unsupported_on_latin1() -> None:
     assert encoding_roundtrip_survives(source, "latin-1") is True
     assert process_text(source) == apply_letter_alternating_mix(source)
     assert transformed != source
-    assert all(chr(codepoint) in transformed for codepoint in LETTER_MIX_APPROVED_CARRIERS)
+    assert "\u034f" in transformed
+    assert "\ufe00" in transformed
+    assert any(ord(character) in LETTER_MIX_APPROVED_CARRIERS and unicodedata.category(character) == "Cc" for character in transformed)

@@ -4,6 +4,8 @@ import unicodedata
 from pathlib import Path
 
 from fuckmark.cli import transform_text
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
+from fuckmark.product.visible_projection import project_visible_v1
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +42,7 @@ def test_demo_page_is_self_contained_and_honest() -> None:
     assert "192" in html
     assert '<script src=' not in html.casefold()
     assert 'href="http' not in html or "mark.q1z.org" in html
+    assert "control residual" in html.casefold() or "dual-layer" in html.casefold()
 
 
 def test_demo_samples_match_live_cli_and_reversal() -> None:
@@ -47,7 +50,7 @@ def test_demo_samples_match_live_cli_and_reversal() -> None:
     ids = {sample["id"] for sample in samples}
     assert "ascii-eligible" in ids
     assert "curly-apostrophe" in ids
-    assert "site-cap" in ids
+    assert "site-full" in ids
     for sample in samples:
         result = transform_text(sample["source"])
         assert result.output_text == sample["output"]
@@ -65,10 +68,12 @@ def test_demo_samples_match_live_cli_and_reversal() -> None:
                 for character in result.output_text
                 if unicodedata.category(character) != "Mn"
             )
-            assert stripped == sample["source"]
+            assert stripped != sample["source"]
+            assert project_visible_v1(result.output_text, LETTER_MIX_APPROVED_CARRIERS) == sample["source"]
     curly = next(sample for sample in samples if sample["id"] == "curly-apostrophe")
-    assert curly["processed"] is False
+    assert curly["processed"] is True
     assert curly["first_unsupported"].startswith("U+2019@")
-    capped = next(sample for sample in samples if sample["id"] == "site-cap")
-    assert capped["capped"] is True
-    assert capped["insertions"] == 192
+    covered = next(sample for sample in samples if sample["id"] == "site-full")
+    assert covered["capped"] is False
+    assert covered["sites"] == 312
+    assert covered["insertions"] == 624

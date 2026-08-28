@@ -2,7 +2,7 @@
 
 Python 3.11 or newer. The public CLI is `fuckmark` / `FuckMark` / `Fuckmark`.
 
-Before installing, open the no-install demo: [`demo.html`](demo.html) (`file://` works). After website deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html). The demo shows character differences, processing status, sanitizer reversal, and frozen GPT-2 scores on fixed samples only.
+Before installing, open the no-install demo: [`demo.html`](demo.html) (`file://` works). After website deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html). The demo shows character differences, processing status, Mn/DI residual checks, and frozen GPT-2 scores on fixed samples only.
 
 Do not pipe `https://d.q1z.org/mark` into a shell. The live website must match [`website.md`](website.md).
 

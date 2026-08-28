@@ -9,6 +9,7 @@ from fuckmark.cycle8.deepmind_transfer import (
     assert_mix_deepmind_transfer_committed,
     transfer_corpus_paths,
 )
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
@@ -65,7 +66,7 @@ def test_deepmind_920000_n16_is_independent_configuration_hypothesis() -> None:
         digest, name = line.split()
         assert sha256_file(root / name) == digest
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
 
 
 def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> None:
@@ -129,4 +130,4 @@ def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> Non
         file_digest, name = line.split()
         assert sha256_file(combined_root / name) == file_digest
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)

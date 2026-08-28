@@ -1,3 +1,4 @@
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
 import json
 from pathlib import Path
 
@@ -39,7 +40,7 @@ def test_mix_mean_transfer_scorecard_is_hypothesis_on_the_same_adapter() -> None
     assert float(effectiveness["mix_weighted_mean_wm_max_score"]) == 0.5243003808577579
     assert_mix_mean_transfer_committed()
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
 
 
 def test_mix_mean_transfer_rows_replay_live_mix_without_rewriting_hashes() -> None:

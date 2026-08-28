@@ -6,7 +6,7 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 
 ## L01 — Sanitizers
 
-| Arm | Restores source? | Gate v2 mix WM (frozen) |
+| Arm | Live dual-layer restores source? | Frozen Gate v2 mark-only mix WM |
 | --- | --- | --- |
 | raw | no | 0/192 |
 | nfc | no | 0/192 |
@@ -16,29 +16,29 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 | ws_collapse | no | 0/192 |
 | ws_collapse_nfkc_cf_strip | no | 0/192 |
 | lm-watermarking UnicodeSanitizer | no (mangles; does not reconstruct) | 0/192 |
-| Mn-strip / combining-mark strip | **yes** | 188/192 (diagnostic restore) |
-| default-ignorable strip | **yes** | 188/192 (diagnostic restore) |
+| Mn-strip / combining-mark strip | **no** (exploratory 0/64) | 188/192 (historical restore) |
+| default-ignorable strip | **no** (exploratory 0/64) | 188/192 (historical restore) |
 
-If `R(T(x)) = x` and a detector sees `R(T(x))`, it sees the original watermarked source. The insertion-only mechanism cannot claim immunity to that removal. Demonstrations must show both the successful required-sanitizer paths and this source-restoring failure path.
+Live mix (`u034f-ufe00-cc-letter-alt-v1`) leaves C0/C1 residuals after Mn-strip and default-ignorable strip. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescore: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/`.
 
 ## L02 — Input domain
 
-Supported code points: U+0009, U+000A, U+000D, U+0020..U+007E.
+ASCII letter sites are processed. Other Unicode remains in the visible text and is reported as `first_unsupported`.
 
 | Input | Behavior |
 | --- | --- |
 | `I do not agree.` | transformed (exit 0, reason `transformed`) |
-| `I don't agree.` (U+2019) | unchanged (exit 0, reason `unsupported-domain`) |
-| `Hello 😀` | unchanged |
-| `café` | unchanged |
-| BOM, NBSP, CJK | unchanged |
-| already contains U+034F or U+FE00 | unchanged (`already-transformed`) |
+| `I don't agree.` (U+2019) | transformed (exit 0, `first_unsupported=U+2019@5`) |
+| `Hello 😀` | transformed (eligible ASCII letters) |
+| `café` | transformed (`caf` plus visible `é`) |
+| BOM / NBSP with no ASCII letters | unchanged (`unsupported-domain` or `no-eligible-sites`) |
+| already contains an approved carrier | unchanged (`already-transformed`) |
 
 The product does not strip a BOM, normalize accents, or transliterate to force eligibility.
 
-## L03 — Length and the 192-site cap
+## L03 — Length and the 4096-site cap
 
-Only the first 192 eligible ASCII-letter sites receive insertions. For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. A 9,000-character paragraph sequence can stop near source index 245, leaving thousands of trailing characters unchanged. That is a coverage limit, not a long-document detection result.
+Only the first 4096 eligible ASCII-letter sites receive insertions (two per site: mark plus control). For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
 
 ## L04 — Detector / model / tokenizer evidence
 

@@ -33,7 +33,7 @@ from .product.visible_projection import (
 
 
 INTERACTIVE_DONE = ":done"
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v5"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v6"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -110,16 +110,35 @@ def transform_text(text: str) -> ProcessResult:
             return _unchanged(text, REASON_INTERNAL_ERROR)
         if any(ord(character) in approved for character in text):
             return _unchanged(text, REASON_ALREADY_TRANSFORMED)
-        if not is_supported_product_domain_v1(text):
-            return _unchanged(text, REASON_UNSUPPORTED_DOMAIN)
+        unsupported = _unsupported_token(text)
         probe = select_letter_mix_sites(text, max_selected=LETTER_MIX_MAX_SELECTED + 1)
         capped = len(probe) > LETTER_MIX_MAX_SELECTED
         sites = probe[:LETTER_MIX_MAX_SELECTED]
         if not sites:
-            return _unchanged(text, REASON_NO_ELIGIBLE_SITES)
+            if unsupported and not is_supported_product_domain_v1(text):
+                return ProcessResult(
+                    text,
+                    0,
+                    reason=REASON_UNSUPPORTED_DOMAIN,
+                    source_length=len(text),
+                    first_unsupported=unsupported,
+                )
+            return ProcessResult(
+                text,
+                0,
+                reason=REASON_NO_ELIGIBLE_SITES,
+                source_length=len(text),
+                first_unsupported=unsupported,
+            )
         applied = compose_letter_mix(text, sites)
         if applied == text:
-            return _unchanged(text, REASON_NO_ELIGIBLE_SITES)
+            return ProcessResult(
+                text,
+                0,
+                reason=REASON_NO_ELIGIBLE_SITES,
+                source_length=len(text),
+                first_unsupported=unsupported,
+            )
         if not is_carrier_insertion_v1(text, applied, approved):
             return _unchanged(text, REASON_INTERNAL_ERROR)
         if project_visible_v1(applied, approved) != text:
@@ -133,6 +152,7 @@ def transform_text(text: str) -> ProcessResult:
             site_count=len(sites),
             capped=capped,
             source_length=len(text),
+            first_unsupported=unsupported,
         )
     except (KeyError, TypeError, ValueError, RuntimeError):
         return _unchanged(text, REASON_INTERNAL_ERROR)
@@ -147,7 +167,7 @@ def read_interactive_text(input_stream: TextIO, ui_stream: TextIO, *, color: boo
     ui_stream.write(
         "\n"
         "Paste or type your text below.\n"
-        "English ASCII only. Curly apostrophes, accents, and emoji are not processed.\n"
+        "ASCII letter sites are processed. Other Unicode is left in the visible text.\n"
         "Enter :done on a new line when finished.\n"
         "\n"
     )
@@ -189,8 +209,9 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark --stdin --copy < notes.txt\n"
             "  fuckmark --stdin --visible < notes.fm.txt\n"
             "\n"
-            "Supported input: tab, newline, carriage return, and ASCII space through tilde.\n"
-            "Other Unicode (including curly apostrophes) is returned unchanged with exit 0.\n"
+            "ASCII letter sites are processed even when surrounding text has other Unicode,\n"
+            "including curly apostrophes. Inputs with no eligible ASCII letters are returned\n"
+            "unchanged with exit 0.\n"
             "Exit 0 means I/O succeeded, not that hidden characters were inserted.\n"
             "Only UTF-8 is supported. Visible text stays the same.\n"
             "Use --visible to print that visible text.\n"
@@ -199,7 +220,7 @@ def _parser() -> argparse.ArgumentParser:
             "insertions, sites, last_index, source_length, and capped. Use -q to hide that.\n"
             "Use --status for a machine-readable outcome line on stderr.\n"
             "Use --inspect for a character-level insertion map on stderr.\n"
-            "Stripping combining marks or default-ignorable characters restores the source."
+            "Stripping combining marks or default-ignorable characters leaves control residuals."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -521,7 +542,10 @@ def _status(errors: TextIO, message: str, *, enabled: bool, code: str) -> None:
 
 def _human_reason(result: ProcessResult) -> str:
     if result.reason == REASON_TRANSFORMED:
-        return f"processed: inserted {result.change_count} hidden characters"
+        extra = ""
+        if result.first_unsupported:
+            extra = f"; ASCII letters mixed, {result.first_unsupported} left in visible text"
+        return f"processed: inserted {result.change_count} hidden characters{extra}"
     if result.reason == REASON_SITE_CAP:
         return (
             f"processed with coverage limit: inserted {result.change_count} hidden characters, "
@@ -529,19 +553,10 @@ def _human_reason(result: ProcessResult) -> str:
         )
     if result.reason == REASON_UNSUPPORTED_DOMAIN:
         loc = result.first_unsupported or "non-ASCII"
-        note = (
-            f"not processed: unsupported Unicode ({loc}). "
-            "Accents, emoji, CJK, and curly quotes disable the whole input"
+        return (
+            f"not processed: no eligible ASCII letter sites ({loc}). "
+            "Exit 0 means I/O succeeded, not that hidden characters were inserted"
         )
-        if result.first_unsupported.startswith("U+2019@"):
-            note += (
-                ". English curly apostrophes are not ASCII, so a sentence such as "
-                "I don\u2019t agree. is returned unchanged"
-            )
-        note += (
-            ". Exit 0 means I/O succeeded, not that hidden characters were inserted"
-        )
-        return note
     if result.reason == REASON_ALREADY_TRANSFORMED:
         return "not processed: input already contains the payload"
     if result.reason == REASON_NO_ELIGIBLE_SITES:
@@ -584,6 +599,8 @@ def _inspect_map(result: ProcessResult) -> str:
             pieces.append("[U+034F]")
         elif codepoint == 0xFE00:
             pieces.append("[U+FE00]")
+        elif codepoint in LETTER_MIX_APPROVED_CARRIERS:
+            pieces.append(f"[U+{codepoint:04X}]")
         elif character == "\n":
             pieces.append("\\n")
         elif character == "\r":
@@ -606,7 +623,8 @@ def _emit_inspect(errors: TextIO, result: ProcessResult) -> None:
         errors.write(f"fuckmark-inspect-map {_inspect_map(result)}\n")
         errors.write(
             "fuckmark-inspect-note stripping combining marks or "
-            "default-ignorable characters restores the source\n"
+            "default-ignorable characters leaves control residuals; "
+            "the source is not restored\n"
         )
     elif result.reason == REASON_UNSUPPORTED_DOMAIN:
         errors.write(
@@ -642,7 +660,7 @@ def _emit_outcome(
     if result.change_count > 0:
         _status(
             errors,
-            "FuckMark: stripping combining marks or default-ignorable characters restores the source.",
+            "FuckMark: stripping combining marks or default-ignorable characters leaves control residuals.",
             enabled=color,
             code=_ANSI_YELLOW,
         )

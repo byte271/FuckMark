@@ -2,7 +2,7 @@
 
 The same command is installed as `fuckmark`, `FuckMark`, and `Fuckmark`.
 
-It inserts hidden Unicode into ordinary English ASCII text. The words on screen do not change.
+It inserts hidden Unicode into English text at eligible ASCII letters. The words on screen do not change.
 
 ```text
 fuckmark --help
@@ -20,7 +20,7 @@ fuckmark
 FuckMark
 
 Paste or type your text below.
-English ASCII only. Curly apostrophes, accents, and emoji are not processed.
+ASCII letter sites are processed. Other Unicode is left in the visible text.
 Enter :done on a new line when finished.
 
 > I do not agree.
@@ -32,9 +32,9 @@ Enter :done on a new line when finished.
 Processing...
 
 ✓ Copied to clipboard
-FuckMark: processed: inserted 54 hidden characters.
-FuckMark: processed=yes reason=transformed insertions=54 sites=54 last_index=... source_length=... capped=no.
-FuckMark: stripping combining marks or default-ignorable characters restores the source.
+FuckMark: processed: inserted 108 hidden characters.
+FuckMark: processed=yes reason=transformed insertions=108 sites=54 last_index=... source_length=... capped=no.
+FuckMark: stripping combining marks or default-ignorable characters leaves control residuals.
 ```
 
 Blank lines are kept. `:done` ends the session only when it is the entire line. The transformed payload is copied and not printed. Interactive stderr always states processed vs not processed, insertions, sites, `last_index`, `source_length`, and cap.
@@ -64,7 +64,7 @@ fuckmark --text "I don’t agree." --status
 ```
 
 
-Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and capped unless `-q`. Successful transforms also note that stripping combining marks or default-ignorable characters restores the source. Use `-q` when a pipe must keep stderr empty.
+Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and capped unless `-q`. Successful transforms note that stripping combining marks or default-ignorable characters leaves control residuals. Use `-q` when a pipe must keep stderr empty.
 
 ## Input modes
 
@@ -102,13 +102,13 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 ## Supported input
 
-Tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged (exit 0). Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
+ASCII letter sites are processed. Mixed Unicode (curly apostrophes, accents, emoji) stays in the visible text and is reported as `first_unsupported`. Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
 
-Example: `I don't agree.` with U+2019 is reason `unsupported-domain`, `processed=no`, and `first_unsupported=U+2019@5`. The straight ASCII apostrophe in `I don't agree.` is processed.
+Example: `I don` + U+2019 + `t agree.` is processed (`reason=transformed`, `first_unsupported=U+2019@5`). A string with no eligible ASCII letters is `unsupported-domain` or `no-eligible-sites`.
 
-Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 192 insertion sites. Insertions fill the first 192 eligible letter sites and then stop, so the tail of a long document is unchanged.
+Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 4096 letter sites, two insertions per site. Insertions fill the first 4096 eligible letter sites and then stop, so the tail of a long document is unchanged.
 
-If the text is already transformed, has no eligible letters, or is outside the ASCII domain, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason, including for `too-large` and internal failure. Exit 0 still means I/O succeeded, not watermark removal.
+If the text is already transformed or has no eligible letters, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason, including for `too-large` and internal failure. Exit 0 still means I/O succeeded, not watermark removal.
 
 Same visible words are not the same as identical Markdown, path, or search behavior in other programs. Reports must not treat visible-projection equality as Markdown or filesystem equality.
 
@@ -116,7 +116,7 @@ Same visible words are not the same as identical Markdown, path, or search behav
 
 | Status | Meaning |
 | ---: | ---: |
-| 0 | Output was written or copied. Unsupported Unicode, already-transformed text, no eligible sites, and the site cap are reported on stderr. This is not watermark removal. |
+| 0 | Output was written or copied. Already-transformed text, no eligible sites, and the site cap are reported on stderr. This is not watermark removal. |
 | 1 | No input, bad file, invalid UTF-8, unsupported encoding, missing `:done`, input too large, or output could not be written. |
 | 2 | Usage error (`argparse`: unknown option or bad flags). Transformation did not run. |
 | 3 | Transform I/O succeeded, but clipboard copy failed. Stream modes still write stdout. The paste UI does not print the payload. |

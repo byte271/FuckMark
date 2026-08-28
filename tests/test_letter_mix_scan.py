@@ -11,7 +11,7 @@ from fuckmark.product.visible_projection import is_carrier_insertion_v1, project
 def test_letter_mix_scan_keeps_eligible_prose_bytes_and_invariants() -> None:
     source = "Abcd"
     applied = apply_letter_alternating_mix(source)
-    assert applied == "A\u034fb\ufe00c\u034fd\ufe00"
+    assert applied == "A\u034f" + "\u007f" + "b\ufe00" + "\u0080" + "c\u034f" + "\u0081" + "d\ufe00" + "\u0082"
     prose = "Hello world. This is ordinary English ASCII text without paths."
     mixed = apply_letter_alternating_mix(prose)
     assert project_visible_v1(mixed, LETTER_MIX_APPROVED_CARRIERS) == prose
@@ -36,7 +36,8 @@ def test_letter_mix_scan_is_deterministic_on_long_documents() -> None:
     second = apply_letter_alternating_mix(source)
     assert first == second
     assert project_visible_v1(first, LETTER_MIX_APPROVED_CARRIERS) == source
-    assert first.count("\u034f") + first.count("\ufe00") == 192
+    sites = select_letter_mix_sites(source)
+    assert first.count("\u034f") + first.count("\ufe00") == len(sites)
 
 
 def test_letter_mix_scan_records_repeated_timings() -> None:

@@ -9,7 +9,7 @@
 
 # FuckMark
 
-FuckMark is a UTF-8 command for **ordinary English ASCII text**. It inserts hidden Unicode (U+034F and U+FE00) after eligible letters **without changing the words you see**.
+FuckMark is a UTF-8 command for **English text with eligible ASCII letters**. It inserts hidden Unicode (U+034F, U+FE00, and C0/C1 controls) after those letters **without changing the words you see**.
 
 It is a constrained research/product CLI with measured SynthID / GPT-2 results. It is **not** a general watermark remover, not a paraphraser, and not a claim against unknown or proprietary detectors.
 
@@ -21,28 +21,26 @@ Open [`docs/demo.html`](docs/demo.html) in a browser. `file://` works; no Python
 
 The demo shows:
 
-- character-level differences for fixed CLI samples (U+034F / U+FE00)
+- character-level differences for fixed CLI samples (U+034F / U+FE00 plus C0/C1 residuals)
 - processed vs not processed, reason, insertions, sites, `last_index`, cap
-- Mn-strip / default-ignorable strip restoring the source
-- frozen Gate v2 detection numbers on the fixed GPT-2 corpus
+- Mn-strip / default-ignorable strip leaving control residuals (source not restored)
+- frozen Gate v2 detection numbers on the historical mark-only GPT-2 corpus, plus the dual-layer exploratory rescore
 
 It does **not** score your paste against a detector and does **not** promise the same detection outcome for arbitrary user text.
 
 ## Honest limits (read these)
 
-### 1. Sanitizer reversal
+### 1. Stress-strip reversal (live dual-layer)
 
-Insertion-only means clearing combining marks or default-ignorable characters restores the original text. On the frozen Gate v2 set: **0/192** after required sanitizers, then **188/192** again after Mn-strip or default-ignorable strip. That is a designed limitation, not a tuning gap.
+Live mix inserts a mark **and** a C0/C1 control at each eligible ASCII letter. Clearing combining marks or default-ignorable characters leaves those controls, so the source is not restored. Exploratory GPT-2 / SynthID rescore of frozen Gate v2 seed 1200000 watermarked sources: dual-layer **0/64** raw, after Mn-strip, and after default-ignorable strip. Historical mark-only mix on the same sources: **0/64** raw, then **64/64** after those strips. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after those strips).
 
-### 2. Unsupported input must look like failure to process
+### 2. Mixed Unicode with ASCII letters is processed
 
-Supported code points: tab, CR, LF, and ASCII space through tilde. Chinese characters, emoji, accents, and curly apostrophes (U+2019) cause the **whole** input to be returned unchanged with exit 0. Exit 0 means I/O succeeded, not that hidden characters were inserted.
-
-Example: `I don't agree.` with a curly apostrophe is **not processed**. Use `--status` or `--inspect`. The paste UI and stderr say `not processed` with the first unsupported code point.
+ASCII letter sites are transformed even when the surrounding text contains other Unicode (curly apostrophes, accents, emoji). The non-ASCII stays in the visible text. `--status` still reports `first_unsupported`. Inputs with **no** eligible ASCII letters stay unchanged with exit 0. Exit 0 means I/O succeeded, not that hidden characters were inserted.
 
 ### 3. Frozen scores are not “AI detector rate reduction”
 
-Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product only fills the first 192 eligible letter sites; long documents stay mostly unchanged after that.
+Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product fills up to 4096 eligible letter sites (two insertions per site).
 
 That evidence does **not** answer: “Is this text actually useful on the platform I am using?” Statistical watermarking results on a frozen GPT-2 corpus must not be marketed as a general reduction in AI detection rates. See [`docs/limits.md`](docs/limits.md).
 
@@ -52,7 +50,7 @@ Python 3.11+, venv, and a CLI remain the supported install. The no-install demo 
 
 ## Who it is for
 
-People who paste or pipe **English ASCII** and want a local, deterministic, detector-blind insertion that keeps visible text identical.
+People who paste or pipe **English text with ASCII letters** and want a local, deterministic, detector-blind insertion that keeps visible text identical.
 
 ## Install from this repository
 
@@ -96,7 +94,7 @@ Keep using the venv command from the install step. Examples below assume `.venv/
 .venv/bin/fuckmark
 ```
 
-Paste or type text, then a line that is only `:done`. The result is copied to the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and cap unless `-q`. Successful runs also remind you that stripping combining marks restores the source.
+Paste or type text, then a line that is only `:done`. The result is copied to the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and cap unless `-q`. Successful runs note that Mn-strip and default-ignorable strip leave control residuals.
 
 ```text
 printf 'I do not agree.\n' | .venv/bin/fuckmark
@@ -112,9 +110,9 @@ Pipes and files write the payload to stdout. `--visible` prints the original vis
 
 ## What it guarantees
 
-`VISIBLE(original) == VISIBLE(transformed)`. FuckMark only inserts U+034F and U+FE00 after eligible ASCII letters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
+`VISIBLE(original) == VISIBLE(transformed)`. FuckMark inserts U+034F or U+FE00 plus a C0/C1 control after eligible ASCII letters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
 
-Supported input: tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged with exit 0 and a stderr reason. That status means I/O succeeded, not that hidden characters were inserted or that a watermark was removed. Only UTF-8.
+ASCII letter sites are processed in mixed-Unicode input. Only UTF-8. Inputs with no eligible ASCII letters, or that already contain approved carriers, stay unchanged with exit 0 and a stderr reason. That status means I/O succeeded, not that hidden characters were inserted or that a watermark was removed.
 
 Machine text is left intact when recognized: fenced/inline/indented code, HTML tags and entities, markdown destinations and reference labels (including multiline and container forms), URLs including `ftp://`, emails, and paths such as `src/main.py`, `scripts/build`, `C:/My final notes.txt`, and `C:/Users/Alice/My final notes.txt`. Ambiguous prose such as `and/or` stays eligible.
 
@@ -122,9 +120,9 @@ Machine text is left intact when recognized: fenced/inline/indented code, HTML t
 
 | Check | Result |
 | --- | --- |
-| Unmodified watermarked text still detected | **188/192** |
-| Transformed text after required sanitizers | **0/192** |
-| Transformed text after Mn-strip / DI-strip | **188/192** (source restored) |
+| Unmodified watermarked text still detected | **188/192** (frozen mark-only corpus) |
+| Transformed text after required sanitizers | **0/192** (frozen mark-only corpus) |
+| Transformed text after Mn-strip / DI-strip | **188/192** on frozen mark-only; live dual-layer exploratory **0/64** (source not restored) |
 | Transformed unwatermarked text | **0/192** |
 | Exact visible text | **192/192** |
 | Transformed text after UnicodeSanitizer | **0/192** |
@@ -135,23 +133,21 @@ These numbers are frozen Gate v2 confirmation on GPT-2 / SynthID, 64-token sampl
 
 ## Limitations
 
-Stripping combining marks or default-ignorable characters restores the source and the detectable watermark. On the frozen Gate v2 set, those two stress sanitizers restored detection to 188/192. NFC, NFKC, Cf stripping, and whitespace collapse are not that removal step.
+Live dual-layer mix does not restore under Mn-strip or default-ignorable strip (exploratory **0/64** on seed 1200000 watermarked sources). Frozen Gate v2 confirmation is still the historical mark-only arm (**188/192** after those strips). NFC, NFKC, Cf stripping, and whitespace collapse are required-sanitizer paths, not those stress strips.
 
-English ASCII only. One unsupported character disables transformation of the whole input.
-
-Insertion stops after the first 192 eligible letter sites. A long document is mostly unchanged after that point.
+Insertion stops after the first 4096 eligible letter sites (two insertions per site). A longer document is unchanged after that point.
 
 Primary evidence uses GPT-2-generated 64-token samples and GPT-2 BPE. DistilGPT2 still uses that tokenizer family. This is not evidence against generic AI-authorship classifiers, unknown proprietary detectors, every SynthID deployment, or C2PA.
 
 Hidden characters change raw substring search, some editors, and GPT-2 token counts (about 8.9x on the stored Gate v2 watermarked set). Downstream software does not automatically call `visible_contains()`.
 
-Cap 192 insertion sites. See [`docs/limits.md`](docs/limits.md).
+Cap 4096 letter sites. See [`docs/limits.md`](docs/limits.md).
 
 Historical Chromium `contenteditable` VERIFIED rows from 2026-08-26 used a blank-div measurement bug and are not proof of rendering equivalence. Replacement controls exist; actual product-payload pixel requalification and Safari/WebKit/terminal pixels remain UNKNOWN. Viewport screenshots cannot prove whole-document equality.
 
 ## How it works
 
-Eligible ASCII letters receive an alternating pair of invisible characters (U+034F, then U+FE00). The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
+Eligible ASCII letters receive an alternating mark (U+034F, then U+FE00) plus a cycling C0/C1 control. The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
 
 ## Research
 

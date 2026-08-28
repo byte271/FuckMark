@@ -32,9 +32,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _strip(text: str) -> str:
-    for carrier in CARRIERS:
-        text = text.replace(carrier, "")
-    return text
+    from fuckmark.product.visible_projection import project_visible_v1
+    return project_visible_v1(text)
 
 
 def _commonmark_hrefs(text: str) -> tuple[str, ...]:
@@ -147,14 +146,17 @@ def test_transform_reasons_are_distinct() -> None:
     changed = transform_text("I do not agree.")
     assert changed.reason == REASON_TRANSFORMED
     assert changed.change_count > 0
-    unsupported = transform_text("I do not agree " + chr(0x00E9) + ".")
+    unsupported = transform_text("\u00e9\u00e9\u00e9")
     assert unsupported.reason == REASON_UNSUPPORTED_DOMAIN
     assert unsupported.change_count == 0
     mixed = transform_text(changed.output_text)
     assert mixed.reason == "already-transformed"
     none = transform_text("123.")
     assert none.reason == REASON_NO_ELIGIBLE_SITES
-    long = "abcdefghijklmnopqrstuvwxyz" * 12
+    accented = transform_text("I do not agree " + chr(0x00E9) + ".")
+    assert accented.reason == REASON_TRANSFORMED
+    assert accented.change_count > 0
+    long = "abcdefghijklmnopqrstuvwxyz" * 158
     capped = transform_text(long)
     assert capped.reason == REASON_SITE_CAP
     assert capped.capped is True
@@ -236,19 +238,18 @@ def test_stdout_full_device_has_no_traceback() -> None:
     assert "standard output" in stderr or "No space" in stderr or "cannot write" in stderr
 
 
-def test_status_flag_reports_noop_without_touching_payload() -> None:
+def test_status_flag_reports_mixed_unicode_processing() -> None:
     source = "I don" + chr(0x2019) + "t agree."
     result = _cli_bytes("--text", source, "--status")
     assert result.returncode == EXIT_OK
-    assert result.stdout == source.encode("utf-8")
+    assert result.stdout != source.encode("utf-8")
     stderr = result.stderr.decode("utf-8")
     assert "fuckmark-status" in stderr
-    assert "unsupported-domain" in stderr
-    assert "processed=no" in stderr
+    assert "transformed" in stderr
+    assert "processed=yes" in stderr
     assert "source_length=14" in stderr
     assert "first_unsupported=U+2019@5" in stderr
-    assert "not processed" in stderr
-    assert "curly" in stderr.casefold()
+    assert "U+2019" in stderr
 
 
 def test_status_flag_reports_too_large_and_inspect_map() -> None:
@@ -266,7 +267,7 @@ def test_status_flag_reports_too_large_and_inspect_map() -> None:
     inspect_err = inspected.stderr.decode("utf-8")
     assert "fuckmark-inspect" in inspect_err
     assert "[U+034F]" in inspect_err
-    assert "restores the source" in inspect_err
+    assert "leaves control residuals" in inspect_err
 
 
 def test_internal_failure_emits_status_when_requested(monkeypatch) -> None:
@@ -294,4 +295,4 @@ def test_bracket_heavy_scan_stays_bounded() -> None:
     apply_letter_alternating_mix(payload)
     elapsed = time.perf_counter() - start
     assert elapsed < 8.0
-    assert project_visible_v1(apply_letter_alternating_mix(payload), (0x034F, 0xFE00)) == payload
+    assert project_visible_v1(apply_letter_alternating_mix(payload)) == payload

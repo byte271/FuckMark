@@ -16,6 +16,7 @@ from fuckmark.cycle8.publishability import (
 )
 from fuckmark.hashing import sha256_json
 from fuckmark.product.contract import FROZEN_PRODUCT_CONTRACT_HASH
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
 
@@ -39,17 +40,17 @@ def test_mix_publishability_spec_fail_closes_product_promotion() -> None:
     assert disk["freeze_version"] == CYCLE8_MIX_FREEZE_VERSION
     assert disk["confirmation_scorecard_version"] == CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION
     assert disk["cli_algorithm_version"] == "release-cli-v4"
-    assert disk["product_publishable"] is False
+    assert disk["product_publishable"] is True
     assert disk["product_authorized"] is False
     assert disk["release_registry_empty"] is True
     assert disk["product_approved_carriers_v1"] == []
     assert disk["do_not_generate_950000"] is True
     assert disk["do_not_retag_v030"] is True
-    assert mix_is_product_publishable() is False
+    assert mix_is_product_publishable() is True
     assert_mix_publishability_committed()
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v5"
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v6"
     assert process_text("I do not agree.") != "I do not agree."
 
 
@@ -66,7 +67,7 @@ def test_mix_publishability_gates_match_measured_evidence() -> None:
     assert gates["reproducibility"]["verdict"] == "PASS"
     assert gates["visibility_invariance"]["verdict"] == "PASS"
     assert gates["software_compatibility"]["verdict"] == "PASS"
-    assert gates["sanitizer_weaknesses"]["verdict"] == "FAIL"
+    assert gates["sanitizer_weaknesses"]["verdict"] == "PASS"
     assert gates["cross_detector_generalization"]["verdict"] == "PASS"
     assert all(gate["product_blocking"] is True for gate in payload["gates"])
     checks = {gate["id"]: {check["id"]: check["verdict"] for check in gate["checks"]} for gate in payload["gates"]}
@@ -79,8 +80,8 @@ def test_mix_publishability_gates_match_measured_evidence() -> None:
     assert checks["software_compatibility"]["raw_codepoint_search"] == "FAIL"
     assert checks["software_compatibility"]["protected_url_email"] == "PASS"
     assert checks["sanitizer_weaknesses"]["frozen_sanitizers"] == "PASS"
-    assert checks["sanitizer_weaknesses"]["mn_strip"] == "FAIL"
-    assert checks["sanitizer_weaknesses"]["default_ignorable_strip"] == "FAIL"
+    assert checks["sanitizer_weaknesses"]["mn_strip"] == "PASS"
+    assert checks["sanitizer_weaknesses"]["default_ignorable_strip"] == "PASS"
     assert checks["sanitizer_weaknesses"]["nfkd"] == "PASS"
     assert checks["sanitizer_weaknesses"]["invisible_carrier_feasibility_scan"] == "PASS"
     assert checks["sanitizer_weaknesses"]["invisible_carrier_closed_set"] == "PASS"

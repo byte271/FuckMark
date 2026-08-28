@@ -11,7 +11,7 @@ from fuckmark.transforms.schema import ProtectedSpanKind
 
 
 def _strip(text: str) -> str:
-    return text.replace("\u034f", "").replace("\ufe00", "")
+    return project_visible_v1(text, LETTER_MIX_APPROVED_CARRIERS)
 
 
 def test_relative_and_windows_forward_slash_paths_keep_exact_bytes() -> None:

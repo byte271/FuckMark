@@ -92,10 +92,12 @@ def test_cli_process_text_fail_closes_without_letter_sites() -> None:
     assert transform_text(source).change_count == 0
 
 
-def test_cli_process_text_fail_closes_outside_ascii_domain() -> None:
+def test_cli_process_text_processes_mixed_unicode_ascii_letters() -> None:
     source = "I do not agree " + chr(0x00E9) + "."
-    assert process_text(source) == source
-    assert transform_text(source).change_count == 0
+    applied = process_text(source)
+    assert applied != source
+    assert transform_text(source).change_count > 0
+    assert project_visible_v1(applied, APPROVED) == source
 
 
 def test_cli_process_text_fail_closes_when_carriers_already_present() -> None:
@@ -108,7 +110,8 @@ def test_cli_process_text_fail_closes_when_carriers_already_present() -> None:
 def test_cli_respects_selected_site_cap() -> None:
     source = "abcdefghijklmnopqrstuvwxyz" * 12
     applied = process_text(source)
-    assert applied.count("\u034f") + applied.count("\ufe00") == 192
+    assert applied.count("\u034f") + applied.count("\ufe00") == 312
+    assert sum(applied.count(chr(c)) for c in range(0x7F, 0xA0) if c != 0x85) + applied.count(chr(0x7F)) >= 312
     assert project_visible_v1(applied, APPROVED) == source
 
 
@@ -121,7 +124,7 @@ def test_cli_reads_multiline_paste_until_done_and_keeps_blank_lines() -> None:
     ui = prompt.getvalue()
     assert ui.startswith("FuckMark\n")
     assert "Paste or type your text below." in ui
-    assert "English ASCII only" in ui
+    assert "ASCII letter sites are processed" in ui
     assert ":done" in ui
     assert ui.count("> ") == 5
 
@@ -148,7 +151,7 @@ def test_cli_main_interactive_copies_without_printing_payload() -> None:
     assert "Copied to clipboard" in ui
     assert "processed=yes" in ui
     assert "source_length=" in ui
-    assert "restores the source" in ui
+    assert "leaves control residuals" in ui
     assert expected not in ui
     assert "I don't agree." not in ui
     assert project_visible_v1(expected, APPROVED) == "I do not agree."
@@ -167,7 +170,7 @@ def test_cli_main_interactive_preserves_blank_lines_and_multiline() -> None:
     assert project_visible_v1(expected, APPROVED) == "I do not agree.\n\nYou should not do that."
 
 
-def test_cli_main_interactive_copies_fail_closed_unicode_without_printing() -> None:
+def test_cli_main_interactive_processes_mixed_unicode_without_printing() -> None:
     source_text = "I do not agree " + chr(0x00E9) + "."
     source = TtyIO(source_text + "\n:done\n")
     output = StringIO()
@@ -175,11 +178,12 @@ def test_cli_main_interactive_copies_fail_closed_unicode_without_printing() -> N
     copied: list[str] = []
     status = main(source, output, copied.append, error_stream=errors)
     assert status == 0
-    assert copied == [source_text]
+    expected = apply_letter_alternating_mix(source_text)
+    assert copied == [expected]
     assert output.getvalue() == ""
     assert "Copied to clipboard" in errors.getvalue()
-    assert "unsupported Unicode" in errors.getvalue() or "hidden characters" in errors.getvalue()
-    assert "\u034f" not in copied[0]
+    assert "processed=yes" in errors.getvalue()
+    assert project_visible_v1(copied[0], APPROVED) == source_text
 
 
 def test_cli_main_interactive_reports_clipboard_failure_without_printing_payload() -> None:
@@ -322,8 +326,8 @@ def test_cli_version_reports_project_identity(capsys) -> None:
     assert result.value.code == 0
     rendered = capsys.readouterr().out.strip()
     assert rendered == f"FuckMark {__version__}"
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v5"
-    assert "release-cli-v5" not in rendered
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v6"
+    assert "release-cli-v6" not in rendered
     assert "transform-registry" not in rendered
 
 
@@ -455,7 +459,7 @@ def test_cli_stream_success_reports_processed_coverage_and_reversal() -> None:
     assert "processed=yes" in stderr
     assert "insertions=" in stderr
     assert "source_length=15" in stderr
-    assert "restores the source" in stderr
+    assert "leaves control residuals" in stderr
     quiet_out = StringIO()
     quiet_err = StringIO()
     quiet = main(
@@ -497,14 +501,15 @@ def test_cli_rejects_stdin_flag_with_a_source() -> None:
     assert "not both" in errors.getvalue()
 
 
-def test_cli_stdin_returns_unsupported_unicode_unchanged() -> None:
+def test_cli_stdin_processes_mixed_unicode() -> None:
     source_text = "I do not agree " + chr(0x00E9) + ".\n"
     output = StringIO()
     errors = StringIO()
-    status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin",))
+    status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin", "-q"))
     assert status == 0
-    assert output.getvalue() == source_text
-    assert "unsupported Unicode" in errors.getvalue() or "hidden characters" in errors.getvalue()
+    expected = apply_letter_alternating_mix(source_text)
+    assert output.getvalue() == expected
+    assert project_visible_v1(expected, APPROVED) == source_text
 
 
 def test_cli_stdin_keeps_multiline_visible_text() -> None:
@@ -526,9 +531,10 @@ def test_cli_stdin_respects_selected_site_cap() -> None:
     status = main(StringIO(source_text), output, error_stream=errors, argv=("--stdin",))
     assert status == 0
     applied = output.getvalue()
-    assert applied.count("\u034f") + applied.count("\ufe00") == 192
+    assert applied.count("\u034f") + applied.count("\ufe00") == 312
+    assert sum(applied.count(chr(c)) for c in range(0x7F, 0xA0) if c != 0x85) + applied.count(chr(0x7F)) >= 312
     assert project_visible_v1(applied, APPROVED) == source_text
-    assert "site cap" in errors.getvalue() or "192" in errors.getvalue()
+    assert "site cap" not in errors.getvalue().casefold()
 
 
 def test_cli_rejects_invalid_utf8_stdin() -> None:

@@ -27,7 +27,7 @@ from fuckmark.cycle8.control_mix import (
     apply_control_alternating_mix,
 )
 from fuckmark.cycle8.feasibility import CYCLE8_FEASIBILITY_HASH
-from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
 from fuckmark.hashing import sha256_json
 from fuckmark.cycle8.benchmark_render import compare_chrome_surface
 from fuckmark.product.rendering import chrome_executable, compare_chrome_pre_screenshots
@@ -72,7 +72,7 @@ def test_control_carrier_scan_keeps_width0_closed_and_finds_cc_survivors() -> No
     assert payload == disk
     assert_control_carrier_scan_committed()
     assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
     assert release_transform_registry().rules == ()
 
 
@@ -99,12 +99,12 @@ def test_eligible_controls_are_policy_filtered_and_survive_required_sanitizers()
     assert sanitize_benchmark_stress("mn_strip", control) == control
     assert sanitize_benchmark_stress("default_ignorable_strip", control) == control
     assert strip_unicode_format_characters(control) == control
-    assert sanitize_benchmark_stress("mn_strip", mix) == source
-    assert sanitize_benchmark_stress("default_ignorable_strip", mix) == source
+    assert sanitize_benchmark_stress("mn_strip", mix) != source
+    assert sanitize_benchmark_stress("default_ignorable_strip", mix) != source
     assert display_column_width(source) != display_column_width(control)
     assert control_display_column_width(source) == control_display_column_width(control)
     assert process_text(source) == apply_letter_alternating_mix(source)
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
 
 
 def test_control_mix_carriers_match_eligible_set() -> None:

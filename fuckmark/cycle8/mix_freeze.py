@@ -15,7 +15,6 @@ from ..seeds.ledger import (
 )
 from ..transforms.registry import release_transform_registry
 from .compare import CYCLE8_LETTER_ALT_ARM_ID, CYCLE8_MIX_ARM_IDS
-from .letter_mix import LETTER_MIX_APPROVED_CARRIERS, LETTER_MIX_MAX_SELECTED, LETTER_MIX_PAYLOADS
 from .sanitize import CYCLE8_SCALE_SANITIZER_VARIANT_IDS
 
 
@@ -24,6 +23,9 @@ CYCLE8_MIX_FREEZE_PATH = "specs/cycle8/fuckmark-cycle8-mix-freeze-v1.json"
 CYCLE8_MIX_CONFIRMATION_DETECTOR_VERSION = "cycle8-mix-confirmation-detector-compare-v1"
 CYCLE8_MIX_CONFIRMATION_PAIR_COUNT = 64
 CYCLE8_MIX_FREEZE_LETTER_MIX_SHA256 = "b1ceec24e584c0e9e7135ef0c89a3bd249b0bda4a45e07aa7190b1b010ba56d4"
+_FREEZE_CARRIERS = (0x034F, 0xFE00)
+_FREEZE_PAYLOADS = ("\u034f", "\ufe00")
+_FREEZE_MAX_SELECTED = 192
 _DEVELOPMENT_ARTIFACTS = (
     ("1020000", "evidence/cycle8-mix-1020000-n64-2026-08-26/detector-compare.json", "2538c614a73bed360cdeebdaa60c0fa36ad34cf6995c76a120d49bd1da063ce2"),
     ("1030000", "evidence/cycle8-mix-1030000-n64-2026-08-26/detector-compare.json", "142809783554a890cfd68b80b560295605e068b8e0deede8ea81e3e75358eb95"),
@@ -55,11 +57,11 @@ def mix_freeze_payload() -> dict[str, object]:
         "release_registry_empty": True,
         "cli_identity": True,
         "mechanism_id": CYCLE8_LETTER_ALT_ARM_ID,
-        "carriers": [int(codepoint) for codepoint in LETTER_MIX_APPROVED_CARRIERS],
-        "payloads": list(LETTER_MIX_PAYLOADS),
+        "carriers": [int(codepoint) for codepoint in _FREEZE_CARRIERS],
+        "payloads": list(_FREEZE_PAYLOADS),
         "even_site_payload": "\u034f",
         "odd_site_payload": "\ufe00",
-        "max_selected": LETTER_MIX_MAX_SELECTED,
+        "max_selected": _FREEZE_MAX_SELECTED,
         "placement": (
             "ASCII letter sites outside raw unmerged hard machine spans; "
             "even selected-site index receives U+034F; odd receives U+FE00"

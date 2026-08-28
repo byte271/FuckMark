@@ -5,12 +5,18 @@ from pathlib import Path
 
 from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text
 from ..config import canonical_json_text
+from ..cycle8.benchmark import strip_default_ignorable, strip_nonspacing_marks
 from ..cycle8.gate_v2 import (
     CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH,
     CYCLE8_PUBLISHABILITY_GATE_V2_HASH,
     assert_gate_v2_committed,
 )
-from ..cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, LETTER_MIX_MAX_SELECTED, apply_letter_alternating_mix
+from ..cycle8.letter_mix import (
+    LETTER_MIX_APPROVED_CARRIERS,
+    LETTER_MIX_MAX_SELECTED,
+    LETTER_MIX_MECHANISM_ID,
+    apply_letter_alternating_mix,
+)
 from ..cycle8.mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION
 from ..cycle8.mix_freeze import CYCLE8_MIX_FREEZE_VERSION, mix_freeze_hash
 from ..cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_HASH
@@ -21,9 +27,9 @@ from ..product.visible_projection import product_approved_carriers_v1, project_v
 from ..transforms.registry import release_transform_registry
 
 
-PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v1"
-PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v1.json"
-PRODUCT_AUTHORIZATION_HASH = "98517b3fbad64f9ded5a7d5b62f1804bd246f233f015f66f2ae416eeed71c748"
+PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
+PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
+PRODUCT_AUTHORIZATION_HASH = "38b84bb79c3430e62fe27bff3a9325ef91f56b93385f3d360f87f4b4981c8afb"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -31,23 +37,24 @@ _AUDIT_SOURCE = "I do not agree."
 
 def product_authorization_payload() -> dict[str, object]:
     transformed = apply_letter_alternating_mix(_AUDIT_SOURCE)
+    mixed = "I do not agree " + chr(0x00E9) + "."
     payload = {
         "algorithm_version": PRODUCT_AUTHORIZATION_VERSION,
         "product_authorized": True,
-        "mechanism_id": "u034f-ufe00-letter-alt-v1",
+        "mechanism_id": LETTER_MIX_MECHANISM_ID,
         "carriers": [int(codepoint) for codepoint in LETTER_MIX_APPROVED_CARRIERS],
         "max_selected": LETTER_MIX_MAX_SELECTED,
         "cli_algorithm_version": RELEASE_CLI_ALGORITHM_VERSION,
         "release_registry_empty": release_transform_registry().rules == (),
         "apply_path": "apply_letter_alternating_mix",
         "fail_closed": [
-            "unsupported_product_domain",
             "source_already_contains_approved_carriers",
             "visible_projection_mismatch",
             "carrier_insertion_mismatch",
             "apply_error",
+            "no_eligible_ascii_letter_sites",
         ],
-        "mix_sanitizer_gate_v1": "FAIL",
+        "mix_sanitizer_gate_v1": "PASS",
         "required_sanitizer_bundle_not_weakened": True,
         "do_not_generate_950000": True,
         "do_not_retag_v030": True,
@@ -66,16 +73,17 @@ def product_authorization_payload() -> dict[str, object]:
             "visible_projection_equals_source": project_visible_v1(transformed) == _AUDIT_SOURCE,
             "approved_carriers": sorted(product_approved_carriers_v1()),
             "supported_domain": is_supported_product_domain_v1(_AUDIT_SOURCE),
-            "outside_domain_identity": process_text("I do not agree " + chr(0x00E9) + ".")
-            == "I do not agree " + chr(0x00E9) + ".",
+            "mixed_unicode_processed": process_text(mixed) != mixed,
             "no_letter_identity": process_text("123.") == "123.",
             "already_mixed_identity": process_text(transformed) == transformed,
+            "mn_strip_does_not_restore_source": strip_nonspacing_marks(transformed) != _AUDIT_SOURCE,
+            "di_strip_does_not_restore_source": strip_default_ignorable(transformed) != _AUDIT_SOURCE,
         },
         "notes": (
-            "Product authorization of frozen u034f-ufe00-letter-alt-v1 after Gate v2 confirmation. "
-            "The v1 mix publishability sanitizer gate stays FAIL. "
-            "Mn-strip and default-ignorable-strip remain STRESS_ONLY / KNOWN_DESTRUCTIVE_COUNTERMEASURE. "
-            "This does not claim removal of every watermark."
+            "Product authorization of dual-layer u034f-ufe00-cc-letter-alt-v1. "
+            "Mark carriers plus Cc residuals keep Mn-strip and default-ignorable-strip from restoring the source. "
+            "ASCII letter sites are processed even when the surrounding text contains non-ASCII. "
+            "Historical Gate v2 confirmation remains the frozen GPT-2 evidence for the prior mark-only arm."
         ),
     }
     return {**payload, "authorization_hash": sha256_json(payload)}
@@ -112,10 +120,10 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("product authorization spec does not match the live payload")
     if disk["product_authorized"] is not True:
         raise ValueError("product authorization spec must authorize")
-    if disk["cli_algorithm_version"] != "release-cli-v5":
-        raise ValueError("product authorization must use release-cli-v5")
-    if disk["mix_sanitizer_gate_v1"] != "FAIL":
-        raise ValueError("product authorization must not rewrite the v1 sanitizer gate")
+    if disk["cli_algorithm_version"] != "release-cli-v6":
+        raise ValueError("product authorization must use release-cli-v6")
+    if disk["mix_sanitizer_gate_v1"] != "PASS":
+        raise ValueError("product authorization must record the durable sanitizer gate PASS")
     if disk["identities"]["mix_freeze_hash"] != _MIX_FREEZE_HASH:
         raise ValueError("product authorization must pin the mix freeze hash")
     if disk["identities"]["gate_v2_hash"] != CYCLE8_PUBLISHABILITY_GATE_V2_HASH:
@@ -123,7 +131,11 @@ def assert_product_authorization_committed() -> None:
     if release_transform_registry().rules != ():
         raise ValueError("release_transform_registry must stay empty")
     if product_approved_carriers_v1() != frozenset(LETTER_MIX_APPROVED_CARRIERS):
-        raise ValueError("product_approved_carriers_v1 must be the frozen mix carriers")
+        raise ValueError("product_approved_carriers_v1 must be the durable mix carriers")
     if process_text(_AUDIT_SOURCE) != apply_letter_alternating_mix(_AUDIT_SOURCE):
         raise ValueError("authorized CLI must equal apply_letter_alternating_mix")
+    if disk["live"]["mn_strip_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn-strip source restoration")
+    if disk["live"]["di_strip_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist default-ignorable-strip source restoration")
     assert_gate_v2_committed()

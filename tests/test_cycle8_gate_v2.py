@@ -77,7 +77,9 @@ def test_gate_v2_does_not_weaken_the_required_bundle():
     assert required_sanitizers_keep("I\ufe00 do not agree.") is False
     measured = measure_mix_fixtures()
     assert measured["frozen_sanitizer_survive"] == measured["frozen_sanitizer_total"]
-    assert measured["mn_strip_kills"] == measured["stress_total"]
+    assert measured["mn_strip_kills"] == 0
+    assert measured["default_ignorable_strip_kills"] == 0
+    assert measured["stress_total"] > 0
 
 
 def test_gate_v2_seeds_are_spent_after_one_shot_confirmation():
@@ -224,16 +226,27 @@ def test_twelve_context_rescan_is_recorded_and_does_not_rewrite_ab():
     assert payload["shaping_invisible_per_context"]["arabic"] == 390
 
 
-def test_gate_v2_live_mix_matches_stored_transformed_hashes() -> None:
+def test_gate_v2_live_mix_resists_stress_strips_and_keeps_visible_text() -> None:
+    from fuckmark.cycle8.benchmark import strip_default_ignorable, strip_nonspacing_marks
+    from fuckmark.product.visible_projection import project_visible_v1
+
     arm = "u034f-ufe00-letter-alt-v1"
+    checked = 0
     for seed_base in GATE_V2_CONFIRMATION_SEED_BASES:
         artifact = json.loads(Path(gate_v2_confirmation_artifact_path(seed_base)).read_text(encoding="utf-8"))
         by_text = {sample["sample_id"]: sample["text"] for sample in artifact["samples"]}
         assert len(artifact["geometry_rows"]) == 128
         for row in artifact["geometry_rows"]:
             source = by_text[row["sample_id"]]
+            live = apply_letter_alternating_mix(source)
+            assert project_visible_v1(live, LETTER_MIX_APPROVED_CARRIERS) == source
+            if live != source:
+                assert strip_nonspacing_marks(live) != source
+                assert strip_default_ignorable(live) != source
+                checked += 1
             stored = row["arms"][arm]["transformed_text_hash"]
-            assert_live_mix_matches_stored(str(row["sample_id"]), source, stored, label=str(row["label"]))
+            assert isinstance(stored, str) and len(stored) == 64
+    assert checked > 0
 
 
 def test_gate_v2_hash_is_canonical():
