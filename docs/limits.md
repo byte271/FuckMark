@@ -2,6 +2,8 @@
 
 This page is the public limit list for FuckMark 0.4.1. Frozen detector numbers are not regenerated here. Do not retune on spent confirmation corpora.
 
+No-install walkthrough of these limits: [`demo.html`](demo.html).
+
 ## L01 — Sanitizers
 
 | Arm | Restores source? | Gate v2 mix WM (frozen) |

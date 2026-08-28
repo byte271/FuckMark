@@ -20,6 +20,7 @@ fuckmark
 FuckMark
 
 Paste or type your text below.
+English ASCII only. Curly apostrophes, accents, and emoji are not processed.
 Enter :done on a new line when finished.
 
 > I do not agree.
@@ -31,10 +32,12 @@ Enter :done on a new line when finished.
 Processing...
 
 ✓ Copied to clipboard
-FuckMark: inserted 54 hidden characters.
+FuckMark: processed: inserted 54 hidden characters.
+FuckMark: processed=yes reason=transformed insertions=54 sites=54 last_index=... source_length=... capped=no.
+FuckMark: stripping combining marks or default-ignorable characters restores the source.
 ```
 
-Blank lines are kept. `:done` ends the session only when it is the entire line. The transformed payload is copied and not printed.
+Blank lines are kept. `:done` ends the session only when it is the entire line. The transformed payload is copied and not printed. Interactive stderr always states processed vs not processed, insertions, sites, `last_index`, `source_length`, and cap.
 
 If clipboard copy fails, nothing is printed. Pipe text instead: `printf 'I do not agree.\n' | fuckmark`. Ctrl+C exits cleanly. EOF without `:done` is an error and copies nothing.
 
@@ -56,9 +59,12 @@ fuckmark notes.txt -o notes.fm.txt
 printf 'I do not agree.\n' | fuckmark --copy
 printf 'I do not agree.\n' | fuckmark --visible
 printf 'I do not agree.\n' | fuckmark --status >/tmp/fm.out
+printf 'I do not agree.\n' | fuckmark --inspect >/tmp/fm.out
+fuckmark --text "I don’t agree." --status
 ```
 
-Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard.
+
+Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stream mode stays silent on full success unless `--status` or `--inspect`. No-ops and the site cap always report on stderr unless `-q`.
 
 ## Input modes
 
@@ -88,7 +94,8 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 | `--visible` | Print the visible text (no hidden characters). |
 | `--encoding NAME` | Only `utf-8`. `latin-1`, `ascii`, and `cp1252` are rejected. |
 | `-q`, `--quiet` | Hide non-essential status messages. |
-| `--status` | Write one `fuckmark-status` line to stderr (result, insertions, sites, last_index, capped). |
+| `--status` | Write one `fuckmark-status` line to stderr (`result`, `processed`, `insertions`, `sites`, `last_index`, `source_length`, `capped`, `first_unsupported`). |
+| `--inspect` | Write a character-level coverage map to stderr. Stdout stays the payload. |
 | `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |
 
 `--non-interactive` is an alias of `--stdin`.
@@ -97,9 +104,11 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 Tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged (exit 0). Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
 
-Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 192 insertion sites. Insertions fill the first 192 eligible letter sites and then stop, so the tail of a long document is unchanged.
+Example: `I don't agree.` with U+2019 is reason `unsupported-domain`, `processed=no`, and `first_unsupported=U+2019@5`. The straight ASCII apostrophe in `I don't agree.` is processed.
 
-If the text is already transformed, has no eligible letters, or is outside the ASCII domain, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason. Exit 0 still means I/O succeeded, not watermark removal.
+Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 192 insertion sites. Insertions fill the first 192 eligible letter sites and then stop, so the tail of a long document is unchanged.
+
+If the text is already transformed, has no eligible letters, or is outside the ASCII domain, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason, including for `too-large` and internal failure. Exit 0 still means I/O succeeded, not watermark removal.
 
 Same visible words are not the same as identical Markdown, path, or search behavior in other programs. Reports must not treat visible-projection equality as Markdown or filesystem equality.
 

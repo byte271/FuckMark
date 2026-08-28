@@ -21,7 +21,7 @@ FuckMark v0.4.1 is the audit-fix release on top of the Gate v2 product-authoriza
 3. Create and push the immutable `v0.4.1` tag on that merge commit yourself. The workflow never runs `git tag`. Do not tag a pull-request SHA if `main` will be a squash merge. Do not retag `v0.4.0`.
 4. Publish with `workflow_dispatch` and `publish_github_release=true` on that same commit. The job refuses to run unless `v0.4.1` already exists and points at the dispatch SHA. If the GitHub Release is missing, it uploads the verified wheel and sdist. It does not delete merged branches.
 5. Record the published v0.4.1 wheel SHA-256 in README and `docs/install.md` in a follow-up commit, as was done for v0.4.0.
-6. Deploy [mark.q1z.org](https://mark.q1z.org) and `https://d.q1z.org/mark` from `docs/website.md`, including the PowerShell User-Agent response.
+6. Deploy [mark.q1z.org](https://mark.q1z.org), `https://mark.q1z.org/demo.html` from `docs/demo.html`, and `https://d.q1z.org/mark` from `docs/website.md`, including the PowerShell User-Agent response. The demo must stay static, work from `file://`, and must not run detectors on visitor paste.
 
 ## Publication workflow
 

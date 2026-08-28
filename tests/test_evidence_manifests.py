@@ -37,7 +37,9 @@ def test_cycle8_archive_pointers_exist() -> None:
     assert "docs/cycle8/gate-v2.md" in h16
     assert (ROOT / "docs/limits.md").is_file()
     assert (ROOT / "docs/website.md").is_file()
+    assert (ROOT / "docs/demo.html").is_file()
     website = (ROOT / "docs/website.md").read_text(encoding="utf-8")
     assert "| sh" not in website
     assert "| iex" not in website
     assert "curl -fsSL https://d.q1z.org/mark | sh" not in website
+    assert "demo.html" in website

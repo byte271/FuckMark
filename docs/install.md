@@ -2,6 +2,8 @@
 
 Python 3.11 or newer. The public CLI is `fuckmark` / `FuckMark` / `Fuckmark`.
 
+Before installing, open the no-install demo: [`demo.html`](demo.html) (`file://` works). After website deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html). The demo shows character differences, processing status, sanitizer reversal, and frozen GPT-2 scores on fixed samples only.
+
 Do not pipe `https://d.q1z.org/mark` into a shell. The live website must match [`website.md`](website.md).
 
 This source tree is **0.4.1**. The last published GitHub Release wheel is **v0.4.0**. That wheel does not implement `--text` or `--file`. Do not retag v0.4.0. The v0.4.1 wheel SHA-256 is recorded after the GitHub Release exists.
@@ -81,7 +83,7 @@ Windows PowerShell, from a clone:
 powershell -ExecutionPolicy Bypass -File tools/install/windows.ps1
 ```
 
-`FUCKMARK_BIN` is the launcher directory and the directory added to PATH. `FUCKMARK_HOME` is the venv root. Windows launchers are UTF-16 LE so Unicode profile paths are preserved.
+`FUCKMARK_BIN` is the launcher directory and the directory added to PATH. `FUCKMARK_HOME` is the venv root. The Windows `fuckmark.cmd` launcher is ASCII so `cmd.exe` can run it. When the Python path is non-ASCII, an ASCII `.cmd` trampoline calls a UTF-8 `fuckmark.ps1`.
 
 ## Verify
 

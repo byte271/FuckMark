@@ -22,10 +22,10 @@ _EXTENSIONLESS_RELATIVE_PATH_RE = re.compile(
 _FILENAME_TOKEN = r"[A-Za-z0-9._~+@%'-]+"
 _SPACED_BASENAME = rf"(?:{_FILENAME_TOKEN} ){{1,3}}{_FILENAME_TOKEN}\.[A-Za-z][A-Za-z0-9]{{0,11}}"
 _WINDOWS_SPACED_FILE_RE = re.compile(
-    rf"(?i)(?<![A-Z0-9_])(?:[A-Z]:[/\\]|\\\\[A-Z0-9._$-]+\\)(?:{_FILENAME_TOKEN}[/\\])+{_SPACED_BASENAME}"
+    rf"(?i)(?<![A-Z0-9_])(?:[A-Z]:[/\\]|\\\\[A-Z0-9._$-]+\\)(?:{_FILENAME_TOKEN}[/\\])*{_SPACED_BASENAME}"
 )
 _POSIX_SPACED_FILE_RE = re.compile(
-    rf"(?<![\w:])(?:~?/|\./|\.\./)(?:{_FILENAME_TOKEN}/)+{_SPACED_BASENAME}"
+    rf"(?<![\w:])(?:~?/|\./|\.\./)(?:{_FILENAME_TOKEN}/)*{_SPACED_BASENAME}"
 )
 _HTML_TAG_RE = re.compile(r"</?[A-Za-z][A-Za-z0-9:-]{0,64}(?:\s[^<>\r\n]{0,1024})?/?>")
 _HTML_ENTITY_RE = re.compile(r"&(?:[A-Za-z][A-Za-z0-9]{0,31}|#[0-9]{1,7}|#x[0-9A-Fa-f]{1,6});")

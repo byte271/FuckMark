@@ -1,6 +1,6 @@
 # Research archive
 
-This directory's user manuals are [`install.md`](install.md), [`cli.md`](cli.md), [`limits.md`](limits.md), and [`website.md`](website.md).
+This directory's user manuals are [`install.md`](install.md), [`cli.md`](cli.md), [`limits.md`](limits.md), [`website.md`](website.md), and the no-install [`demo.html`](demo.html). The demo uses fixed samples and frozen scores; it is not a live detector.
 
 Frozen scientific records are not the user manual. They stay in the repository so the product claims can be audited.
 

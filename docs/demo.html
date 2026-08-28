@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FuckMark no-install demo</title>
+<style>
+:root {
+  --bg: #0a0a0a;
+  --panel: #121212;
+  --ink: #f4f1ea;
+  --muted: #9a968c;
+  --line: #2a2a2a;
+  --star: #d8ff00;
+  --ok: #7dffb3;
+  --warn: #ffb14a;
+  --bad: #ff6b6b;
+  --c034f: #7aa2ff;
+  --cfe00: #d59bff;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.45;
+}
+a { color: var(--star); }
+header {
+  border-bottom: 1px solid var(--line);
+  padding: 1.25rem 1.5rem 1.5rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+header img { width: 72px; height: auto; display: block; }
+h1 { margin: 0 0 0.35rem; font-size: 1.55rem; letter-spacing: -0.02em; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+  display: grid;
+  gap: 1.25rem;
+}
+.banner {
+  border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--line));
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+}
+.banner strong { color: var(--warn); }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem 1.1rem 1.15rem;
+}
+.panel h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+.panel p, .panel li { color: var(--muted); }
+.panel p { margin: 0 0 0.7rem; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+}
+th, td {
+  text-align: left;
+  padding: 0.45rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+th { color: var(--muted); font-weight: 600; }
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+.tabs button {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #0e0e0e;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+.tabs button[aria-selected="true"] {
+  border-color: var(--star);
+  color: #111;
+  background: var(--star);
+  font-weight: 650;
+}
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.55rem;
+  margin: 0.75rem 0 1rem;
+}
+.stat {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  background: #0e0e0e;
+}
+.stat .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat .v { font-family: var(--mono); font-size: 0.95rem; margin-top: 0.2rem; word-break: break-word; }
+.stat .v.ok { color: var(--ok); }
+.stat .v.warn { color: var(--warn); }
+.stat .v.bad { color: var(--bad); }
+.viewer {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0e0e0e;
+  padding: 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 280px;
+  overflow: auto;
+}
+.viewer .cgj { color: var(--c034f); background: color-mix(in srgb, var(--c034f) 18%, transparent); }
+.viewer .vs { color: var(--cfe00); background: color-mix(in srgb, var(--cfe00) 18%, transparent); }
+.viewer .badch { color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); }
+.viewer .tail { opacity: 0.45; }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.legend span::before {
+  content: "";
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.35rem;
+  border-radius: 2px;
+  vertical-align: -0.05rem;
+}
+.legend .l034f::before { background: var(--c034f); }
+.legend .lfe00::before { background: var(--cfe00); }
+.legend .lbad::before { background: var(--bad); }
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+.actions button, .actions label.filebtn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #171717;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+.actions button.primary {
+  background: var(--star);
+  color: #111;
+  border-color: var(--star);
+  font-weight: 650;
+}
+textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0e0e0e;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  padding: 0.7rem;
+}
+.note {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.coverage {
+  height: 10px;
+  border-radius: 999px;
+  background: #222;
+  overflow: hidden;
+  display: flex;
+  margin: 0.5rem 0 0.25rem;
+}
+.coverage .filled { background: var(--ok); }
+.coverage .rest { background: #3a3a3a; flex: 1; }
+footer {
+  color: var(--muted);
+  font-size: 0.88rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+code { font-family: var(--mono); font-size: 0.9em; }
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/fuckmark-logo-dark.png" alt="FuckMark" width="72" height="72">
+  <div>
+    <h1>FuckMark no-install demo</h1>
+    <p class="lede">Fixed CLI samples only. Shows character differences, processing status, sanitizer reversal, and frozen GPT-2 / SynthID numbers. This page does not score your text against a detector and does not guarantee results on any platform.</p>
+  </div>
+</header>
+<main>
+  <section class="banner" id="reversal-banner">
+    <strong>Sanitizer reversal is first-class.</strong>
+    FuckMark only inserts U+034F and U+FE00. Clearing combining marks or default-ignorable characters restores the original text. On the frozen Gate v2 set that means detections go from <strong>0/192</strong> after required sanitizers back to <strong>188/192</strong>. Parameter tuning cannot fix that under the insertion-only design.
+  </section>
+
+  <section class="panel" id="frozen-scores">
+    <h2>Frozen detection comparison (fixed corpus, not your paste)</h2>
+    <p>Gate v2 confirmation: GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. The product stops after 192 letter sites. These numbers are not a general AI-detector rate reduction.</p>
+    <table>
+      <thead>
+        <tr><th>Arm</th><th>Detections</th><th>What it means</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Unmodified watermarked</td><td>188/192</td><td>Baseline still detected</td></tr>
+        <tr><td>Transformed + required sanitizers</td><td>0/192</td><td>Required-path success on this corpus</td></tr>
+        <tr><td>Transformed + Mn-strip</td><td>188/192</td><td>Source restored; watermark returns</td></tr>
+        <tr><td>Transformed + default-ignorable strip</td><td>188/192</td><td>Source restored; watermark returns</td></tr>
+        <tr><td>Exact visible text</td><td>192/192</td><td>Words on screen unchanged</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Do not treat this table as a guarantee for arbitrary user text, commercial platforms, unknown detectors, or long documents past the 192-site cap.</p>
+  </section>
+
+  <section class="panel" id="samples">
+    <h2>Fixed CLI samples</h2>
+    <p>Outputs were produced by the repository CLI and baked into this file so <code>file://</code> works with no network.</p>
+    <div class="tabs" role="tablist" aria-label="Fixed samples" id="sample-tabs"></div>
+    <div class="status-grid" id="status-grid"></div>
+    <div id="coverage-wrap" hidden>
+      <div class="coverage" aria-hidden="true"><div class="filled" id="coverage-filled"></div><div class="rest"></div></div>
+      <p class="note" id="coverage-caption"></p>
+    </div>
+    <div class="viewer" id="char-view" aria-live="polite"></div>
+    <div class="legend">
+      <span class="l034f">U+034F insertion</span>
+      <span class="lfe00">U+FE00 insertion</span>
+      <span class="lbad">Unsupported / restored mismatch</span>
+    </div>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-show-output">Show transformed</button>
+      <button type="button" id="btn-show-source">Show source</button>
+      <button type="button" id="btn-strip-mn">Strip combining marks (Mn)</button>
+      <button type="button" id="btn-strip-di">Strip default-ignorables</button>
+      <button type="button" id="btn-escaped">Show escapes</button>
+    </div>
+    <p class="note" id="reversal-note">Use the strip buttons on a transformed sample. Restoring the source is expected and brings frozen detections back to 188/192 on that corpus.</p>
+  </section>
+
+  <section class="panel" id="live-inspect">
+    <h2>Local paste inspector (no detector, no insertion)</h2>
+    <p>Checks whether text is ordinary English ASCII the CLI accepts. It does not run the mix transform, does not protect Markdown/paths, and does not query any detector. The CLI remains the source of truth.</p>
+    <textarea id="live-input" spellcheck="false" placeholder="Paste text to check ASCII eligibility. Example that fails: I don’t agree."></textarea>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-live">Inspect paste</button>
+      <button type="button" id="btn-live-clear">Clear</button>
+    </div>
+    <div class="status-grid" id="live-status" style="margin-top:0.85rem"></div>
+    <div class="viewer" id="live-view"></div>
+    <p class="note">Unsupported Unicode returns exit 0 from the CLI with reason <code>unsupported-domain</code>. That is I/O success, not a completed transformation.</p>
+  </section>
+
+  <footer>
+    <p>Install and CLI docs: <a href="install.md">install.md</a>, <a href="cli.md">cli.md</a>, <a href="limits.md">limits.md</a>. Website deploy source: <a href="website.md">website.md</a>. Live host after deploy: <a href="https://mark.q1z.org/demo.html">mark.q1z.org/demo.html</a>.</p>
+  </footer>
+</main>
+<script id="demo-samples" type="application/json">
+[
+  {
+    "id": "ascii-eligible",
+    "title": "Eligible ASCII",
+    "source": "I do not agree.",
+    "output": "I\u034f d\ufe00o\u034f n\ufe00o\u034ft\ufe00 a\u034fg\ufe00r\u034fe\ufe00e\u034f.",
+    "reason": "transformed",
+    "insertions": 11,
+    "sites": 11,
+    "last_index": 13,
+    "capped": false,
+    "source_length": 15,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "ascii-apostrophe",
+    "title": "Straight ASCII apostrophe",
+    "source": "I don't agree.",
+    "output": "I\u034f d\ufe00o\u034fn\ufe00't\u034f a\ufe00g\u034fr\ufe00e\u034fe\ufe00.",
+    "reason": "transformed",
+    "insertions": 10,
+    "sites": 10,
+    "last_index": 12,
+    "capped": false,
+    "source_length": 14,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "curly-apostrophe",
+    "title": "Curly apostrophe (not processed)",
+    "source": "I don\u2019t agree.",
+    "output": "I don\u2019t agree.",
+    "reason": "unsupported-domain",
+    "insertions": 0,
+    "sites": 0,
+    "last_index": null,
+    "capped": false,
+    "source_length": 14,
+    "first_unsupported": "U+2019@5",
+    "processed": false
+  },
+  {
+    "id": "site-cap",
+    "title": "192-site coverage cap",
+    "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
+    "output": "a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00k\u034fl\ufe00m\u034fn\ufe00o\u034fp\ufe00q\u034fr\ufe00s\u034ft\ufe00u\u034fv\ufe00w\u034fx\ufe00y\u034fz\ufe00a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00k\u034fl\ufe00m\u034fn\ufe00o\u034fp\ufe00q\u034fr\ufe00s\u034ft\ufe00u\u034fv\ufe00w\u034fx\ufe00y\u034fz\ufe00a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00k\u034fl\ufe00m\u034fn\ufe00o\u034fp\ufe00q\u034fr\ufe00s\u034ft\ufe00u\u034fv\ufe00w\u034fx\ufe00y\u034fz\ufe00a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00k\u034fl\ufe00m\u034fn\ufe00o\u034fp\ufe00q\u034fr\ufe00s\u034ft\ufe00u\u034fv\ufe00w\u034fx\ufe00y\u034fz\ufe00a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00k\u034fl\ufe00m\u034fn\ufe00o\u034fp\ufe00q\u034fr\ufe00s\u034ft\ufe00u\u034fv\ufe00w\u034fx\ufe00y\u034fz\ufe00a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00k\u034fl\ufe00m\u034fn\ufe00o\u034fp\ufe00q\u034fr\ufe00s\u034ft\ufe00u\u034fv\ufe00w\u034fx\ufe00y\u034fz\ufe00a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00k\u034fl\ufe00m\u034fn\ufe00o\u034fp\ufe00q\u034fr\ufe00s\u034ft\ufe00u\u034fv\ufe00w\u034fx\ufe00y\u034fz\ufe00a\u034fb\ufe00c\u034fd\ufe00e\u034ff\ufe00g\u034fh\ufe00i\u034fj\ufe00klmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
+    "reason": "site-cap",
+    "insertions": 192,
+    "sites": 192,
+    "last_index": 191,
+    "capped": true,
+    "source_length": 312,
+    "first_unsupported": "",
+    "processed": true
+  }
+]
+</script>
+<script>
+(function () {
+  const samples = JSON.parse(document.getElementById("demo-samples").textContent);
+  const tabs = document.getElementById("sample-tabs");
+  const statusGrid = document.getElementById("status-grid");
+  const charView = document.getElementById("char-view");
+  const coverageWrap = document.getElementById("coverage-wrap");
+  const coverageFilled = document.getElementById("coverage-filled");
+  const coverageCaption = document.getElementById("coverage-caption");
+  const reversalNote = document.getElementById("reversal-note");
+  let active = samples[0];
+  let mode = "output";
+
+  function hex(cp) {
+    return "U+" + cp.toString(16).toUpperCase().padStart(4, "0");
+  }
+
+  function stripMn(text) {
+    return text.replace(/\p{Mn}/gu, "");
+  }
+
+  function stripDI(text) {
+    return text.replace(/\p{Default_Ignorable_Code_Point}/gu, "");
+  }
+
+  function renderChars(text, options) {
+    options = options || {};
+    const lastIndex = options.lastIndex;
+    let sourceIndex = 0;
+    let html = "";
+    for (const ch of text) {
+      const cp = ch.codePointAt(0);
+      if (cp === 0x034f) {
+        html += '<span class="cgj" title="U+034F">[034F]</span>';
+        continue;
+      }
+      if (cp === 0xfe00) {
+        html += '<span class="vs" title="U+FE00">[FE00]</span>';
+        continue;
+      }
+      let cls = "";
+      if (options.markUnsupported && cp > 0x7e) cls = "badch";
+      if (options.dimAfter != null && sourceIndex > options.dimAfter) cls = (cls ? cls + " " : "") + "tail";
+      const shown = ch === "\n" ? "\\n" : ch === "\r" ? "\\r" : ch === "\t" ? "\\t" : ch;
+      html += cls ? '<span class="' + cls + '" title="' + hex(cp) + '">' + shown + "</span>" : shown;
+      sourceIndex += 1;
+    }
+    return html || '<span style="color:var(--muted)">(empty)</span>';
+  }
+
+  function escaped(text) {
+    let out = "";
+    for (const ch of text) {
+      const cp = ch.codePointAt(0);
+      if (cp === 0x034f || cp === 0xfe00 || cp > 0x7e || cp < 0x20) {
+        out += "\\u" + cp.toString(16).padStart(4, "0");
+      } else if (ch === "\\") {
+        out += "\\\\";
+      } else {
+        out += ch;
+      }
+    }
+    return out;
+  }
+
+  function setStat(label, value, tone) {
+    const el = document.createElement("div");
+    el.className = "stat";
+    el.innerHTML = '<div class="k">' + label + '</div><div class="v' + (tone ? " " + tone : "") + '">' + value + "</div>";
+    return el;
+  }
+
+  function renderStatus(sample, extras) {
+    statusGrid.replaceChildren();
+    const processed = sample.processed ? "yes" : "no";
+    const tone = sample.processed ? "ok" : "warn";
+    statusGrid.append(
+      setStat("processed", processed, tone),
+      setStat("reason", sample.reason, tone),
+      setStat("insertions", String(sample.insertions), tone),
+      setStat("sites", String(sample.sites)),
+      setStat("last_index", sample.last_index == null ? "" : String(sample.last_index)),
+      setStat("source_length", String(sample.source_length)),
+      setStat("capped", sample.capped ? "yes" : "no", sample.capped ? "warn" : ""),
+      setStat("first_unsupported", sample.first_unsupported || "")
+    );
+    if (extras && extras.restored != null) {
+      statusGrid.append(setStat("strip restores source", extras.restored ? "yes" : "no", extras.restored ? "ok" : "bad"));
+    }
+    if (sample.capped) {
+      coverageWrap.hidden = false;
+      const ratio = Math.min(1, sample.sites / Math.max(1, sample.source_length));
+      coverageFilled.style.flex = String(sample.sites);
+      coverageCaption.textContent = "Coverage: insertions stop after source index " + sample.last_index + " (" + sample.sites + " sites). Remaining letters are unchanged.";
+    } else {
+      coverageWrap.hidden = true;
+    }
+  }
+
+  function renderActive() {
+    let text = active.output;
+    let extras = null;
+    if (mode === "source") text = active.source;
+    if (mode === "mn") {
+      text = stripMn(active.output);
+      extras = { restored: text === active.source };
+    }
+    if (mode === "di") {
+      text = stripDI(active.output);
+      extras = { restored: text === active.source };
+    }
+    if (mode === "escaped") {
+      charView.textContent = escaped(active.output);
+      renderStatus(active, null);
+      reversalNote.textContent = "Escapes show U+034F / U+FE00 without relying on font rendering.";
+      return;
+    }
+    renderStatus(active, extras);
+    charView.innerHTML = renderChars(text, {
+      markUnsupported: active.reason === "unsupported-domain" || mode === "source",
+      dimAfter: active.capped ? active.last_index : null
+    });
+    if (mode === "mn" || mode === "di") {
+      reversalNote.textContent = extras.restored
+        ? "Strip restored the exact source. On the frozen Gate v2 corpus this path returns detections to 188/192. That is a designed limitation of insertion-only transforms."
+        : "Strip did not restore the source for this sample.";
+    } else if (!active.processed) {
+      reversalNote.textContent = "This sample is not processed. Exit 0 from the CLI still means I/O succeeded, not that hidden characters were inserted.";
+    } else {
+      reversalNote.textContent = "Use the strip buttons on a transformed sample. Restoring the source is expected and brings frozen detections back to 188/192 on that corpus.";
+    }
+  }
+
+  samples.forEach(function (sample, index) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = sample.title;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", index === 0 ? "true" : "false");
+    button.addEventListener("click", function () {
+      active = sample;
+      mode = sample.processed ? "output" : "source";
+      Array.prototype.forEach.call(tabs.children, function (child) {
+        child.setAttribute("aria-selected", child === button ? "true" : "false");
+      });
+      renderActive();
+    });
+    tabs.appendChild(button);
+  });
+
+  document.getElementById("btn-show-output").addEventListener("click", function () { mode = "output"; renderActive(); });
+  document.getElementById("btn-show-source").addEventListener("click", function () { mode = "source"; renderActive(); });
+  document.getElementById("btn-strip-mn").addEventListener("click", function () { mode = "mn"; renderActive(); });
+  document.getElementById("btn-strip-di").addEventListener("click", function () { mode = "di"; renderActive(); });
+  document.getElementById("btn-escaped").addEventListener("click", function () { mode = "escaped"; renderActive(); });
+
+  function allowedCodepoint(cp) {
+    return cp === 9 || cp === 10 || cp === 13 || (cp >= 0x20 && cp <= 0x7e);
+  }
+
+  function inspectLive() {
+    const text = document.getElementById("live-input").value;
+    const liveStatus = document.getElementById("live-status");
+    const liveView = document.getElementById("live-view");
+    liveStatus.replaceChildren();
+    let carriers = 0;
+    let first = null;
+    for (let i = 0; i < text.length; ) {
+      const cp = text.codePointAt(i);
+      if (cp === 0x034f || cp === 0xfe00) carriers += 1;
+      else if (!allowedCodepoint(cp) && first === null) first = { index: i, cp: cp };
+      i += cp > 0xffff ? 2 : 1;
+    }
+    let reason = "ascii-domain";
+    let processedHint = "CLI may process (site selection only in CLI)";
+    let tone = "ok";
+    if (carriers > 0) {
+      reason = "already-transformed";
+      processedHint = "not processed by CLI";
+      tone = "warn";
+    } else if (first) {
+      reason = "unsupported-domain";
+      processedHint = "not processed by CLI";
+      tone = "warn";
+    } else if (!text) {
+      reason = "empty";
+      processedHint = "no input";
+      tone = "warn";
+    }
+    liveStatus.append(
+      setStat("local verdict", processedHint, tone),
+      setStat("reason hint", reason, tone),
+      setStat("payload marks found", String(carriers)),
+      setStat("first_unsupported", first ? hex(first.cp) + "@" + first.index : ""),
+      setStat("source_length", String([...text].length)),
+      setStat("detector score", "not computed")
+    );
+    liveView.innerHTML = renderChars(text, { markUnsupported: true });
+  }
+
+  document.getElementById("btn-live").addEventListener("click", inspectLive);
+  document.getElementById("btn-live-clear").addEventListener("click", function () {
+    document.getElementById("live-input").value = "";
+    document.getElementById("live-status").replaceChildren();
+    document.getElementById("live-view").textContent = "";
+  });
+
+  renderActive();
+})();
+</script>
+</body>
+</html>

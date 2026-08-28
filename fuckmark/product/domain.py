@@ -10,3 +10,13 @@ def is_supported_product_domain_v1(text: str) -> bool:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     return all(ord(character) in _ALLOWED for character in text)
+
+
+def first_unsupported_product_domain_v1(text: str) -> tuple[int, int] | None:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    for index, character in enumerate(text):
+        codepoint = ord(character)
+        if codepoint not in _ALLOWED:
+            return index, codepoint
+    return None

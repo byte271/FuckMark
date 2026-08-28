@@ -15,11 +15,42 @@ It is a constrained research/product CLI with measured SynthID / GPT-2 results. 
 
 Website: [mark.q1z.org](https://mark.q1z.org) · License: MIT
 
+## No-install demo (start here)
+
+Open [`docs/demo.html`](docs/demo.html) in a browser. `file://` works; no Python install required. After website deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html).
+
+The demo shows:
+
+- character-level differences for fixed CLI samples (U+034F / U+FE00)
+- processed vs not processed, reason, insertions, sites, `last_index`, cap
+- Mn-strip / default-ignorable strip restoring the source
+- frozen Gate v2 detection numbers on the fixed GPT-2 corpus
+
+It does **not** score your paste against a detector and does **not** promise the same detection outcome for arbitrary user text.
+
+## Honest limits (read these)
+
+### 1. Sanitizer reversal
+
+Insertion-only means clearing combining marks or default-ignorable characters restores the original text. On the frozen Gate v2 set: **0/192** after required sanitizers, then **188/192** again after Mn-strip or default-ignorable strip. That is a designed limitation, not a tuning gap.
+
+### 2. Unsupported input must look like failure to process
+
+Supported code points: tab, CR, LF, and ASCII space through tilde. Chinese characters, emoji, accents, and curly apostrophes (U+2019) cause the **whole** input to be returned unchanged with exit 0. Exit 0 means I/O succeeded, not that hidden characters were inserted.
+
+Example: `I don't agree.` with a curly apostrophe is **not processed**. Use `--status` or `--inspect`. The paste UI and stderr say `not processed` with the first unsupported code point.
+
+### 3. Frozen scores are not “AI detector rate reduction”
+
+Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product only fills the first 192 eligible letter sites; long documents stay mostly unchanged after that. See [`docs/limits.md`](docs/limits.md).
+
+### 4. Install is still a terminal tool
+
+Python 3.11+, venv, and a CLI remain the supported install. The no-install demo above is the path for people who need visible feedback first.
+
 ## Who it is for
 
-People who paste or pipe **English ASCII** (tab, CR, LF, space through tilde) and want a local, deterministic, detector-blind insertion that keeps visible text identical.
-
-If the input contains an emoji, a curly apostrophe, an accent, or any other Unicode, FuckMark copies it unchanged and says so.
+People who paste or pipe **English ASCII** and want a local, deterministic, detector-blind insertion that keeps visible text identical.
 
 ## Install from this repository
 
@@ -63,7 +94,7 @@ Keep using the venv command from the install step. Examples below assume `.venv/
 .venv/bin/fuckmark
 ```
 
-Paste or type text, then a line that is only `:done`. The result is copied to the clipboard. Status on stderr says whether hidden characters were inserted.
+Paste or type text, then a line that is only `:done`. The result is copied to the clipboard. Status on stderr says whether hidden characters were inserted, with insertions, sites, `last_index`, and cap. Successful interactive runs also remind you that stripping combining marks restores the source.
 
 ```text
 printf 'I do not agree.\n' | .venv/bin/fuckmark
@@ -72,9 +103,10 @@ printf 'I do not agree.\n' | .venv/bin/fuckmark
 .venv/bin/fuckmark --file notes.txt -o notes.fm.txt
 printf 'I do not agree.\n' | .venv/bin/fuckmark --visible
 printf 'I do not agree.\n' | .venv/bin/fuckmark --status >/tmp/fm.out
+printf 'I do not agree.\n' | .venv/bin/fuckmark --inspect >/tmp/fm.out
 ```
 
-Pipes and files write the payload to stdout. `--visible` prints the original visible text. `--status` writes a machine-readable outcome to stderr. `fuckmark --help` is enough to start.
+Pipes and files write the payload to stdout. `--visible` prints the original visible text. `--status` writes a machine-readable outcome to stderr. `--inspect` writes a character-level map to stderr. `fuckmark --help` is enough to start.
 
 ## What it guarantees
 
@@ -82,21 +114,22 @@ Pipes and files write the payload to stdout. `--visible` prints the original vis
 
 Supported input: tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged with exit 0 and a stderr reason. That status means I/O succeeded, not that hidden characters were inserted or that a watermark was removed. Only UTF-8.
 
-Machine text is left intact when recognized: fenced/inline/indented code, HTML tags and entities, markdown destinations and reference labels (including multiline and container forms), URLs including `ftp://`, emails, and paths such as `src/main.py`, `scripts/build`, and `C:/Users/Alice/My final notes.txt`. Ambiguous prose such as `and/or` stays eligible.
+Machine text is left intact when recognized: fenced/inline/indented code, HTML tags and entities, markdown destinations and reference labels (including multiline and container forms), URLs including `ftp://`, emails, and paths such as `src/main.py`, `scripts/build`, `C:/My final notes.txt`, and `C:/Users/Alice/My final notes.txt`. Ambiguous prose such as `and/or` stays eligible.
 
-## Verified results
+## Frozen GPT-2 / SynthID confirmation (not a product guarantee)
 
 | Check | Result |
 | --- | --- |
 | Unmodified watermarked text still detected | **188/192** |
 | Transformed text after required sanitizers | **0/192** |
+| Transformed text after Mn-strip / DI-strip | **188/192** (source restored) |
 | Transformed unwatermarked text | **0/192** |
 | Exact visible text | **192/192** |
 | Transformed text after UnicodeSanitizer | **0/192** |
 
 Google synthid-text 30-key GPT-2 transformed text: **0/192**.
 
-These numbers are frozen Gate v2 confirmation on GPT-2 / SynthID, 64-token samples, threshold and sanitizer paths as recorded. They are not a universal zero-rate guarantee. See [`docs/limits.md`](docs/limits.md).
+These numbers are frozen Gate v2 confirmation on GPT-2 / SynthID, 64-token samples, threshold and sanitizer paths as recorded. They are not a universal zero-rate guarantee and are not “AI detector rate reduction” for arbitrary platforms. See [`docs/limits.md`](docs/limits.md) and the [no-install demo](docs/demo.html).
 
 ## Limitations
 
@@ -120,7 +153,7 @@ Eligible ASCII letters receive an alternating pair of invisible characters (U+03
 
 ## Research
 
-Frozen evidence, hashes, and protocols: [`docs/research.md`](docs/research.md). Product contract: [`docs/product-contract.md`](docs/product-contract.md). CLI: [`docs/cli.md`](docs/cli.md). Limits matrix: [`docs/limits.md`](docs/limits.md).
+Frozen evidence, hashes, and protocols: [`docs/research.md`](docs/research.md). Product contract: [`docs/product-contract.md`](docs/product-contract.md). CLI: [`docs/cli.md`](docs/cli.md). Limits matrix: [`docs/limits.md`](docs/limits.md). Demo: [`docs/demo.html`](docs/demo.html).
 
 ## Development
 

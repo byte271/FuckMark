@@ -121,6 +121,7 @@ def test_cli_reads_multiline_paste_until_done_and_keeps_blank_lines() -> None:
     ui = prompt.getvalue()
     assert ui.startswith("FuckMark\n")
     assert "Paste or type your text below." in ui
+    assert "English ASCII only" in ui
     assert ":done" in ui
     assert ui.count("> ") == 5
 
@@ -145,6 +146,9 @@ def test_cli_main_interactive_copies_without_printing_payload() -> None:
     assert "FuckMark" in ui
     assert "Processing..." in ui
     assert "Copied to clipboard" in ui
+    assert "processed=yes" in ui
+    assert "source_length=" in ui
+    assert "restores the source" in ui
     assert expected not in ui
     assert "I don't agree." not in ui
     assert project_visible_v1(expected, APPROVED) == "I do not agree."
@@ -420,9 +424,12 @@ def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> 
     assert "fuckmark \"I do not agree.\"" in rendered
     assert "--text" in rendered
     assert "--file" in rendered
+    assert "--status" in rendered
+    assert "--inspect" in rendered
     assert "standard input" in rendered.casefold() or "--stdin" in rendered
     assert ":done" in rendered
     assert "clipboard" in rendered.casefold()
+    assert "curly" in rendered.casefold()
 
 
 def test_cli_quoted_text_argument_transforms_without_a_file() -> None:

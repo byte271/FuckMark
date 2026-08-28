@@ -19,7 +19,11 @@ from .cycle8.letter_mix import (
     compose_letter_mix,
     select_letter_mix_sites,
 )
-from .product.domain import PRODUCT_MAX_INPUT_CHARS, is_supported_product_domain_v1
+from .product.domain import (
+    PRODUCT_MAX_INPUT_CHARS,
+    first_unsupported_product_domain_v1,
+    is_supported_product_domain_v1,
+)
 from .product.encodings import require_supported_product_encoding
 from .product.visible_projection import (
     is_carrier_insertion_v1,
@@ -65,10 +69,34 @@ class ProcessResult:
     last_source_index: int | None = None
     site_count: int = 0
     capped: bool = False
+    source_length: int = 0
+    first_unsupported: str = ""
 
     @property
     def changed(self) -> bool:
         return self.change_count > 0
+
+    @property
+    def processed(self) -> bool:
+        return self.change_count > 0
+
+
+def _unsupported_token(text: str) -> str:
+    found = first_unsupported_product_domain_v1(text)
+    if found is None:
+        return ""
+    return f"U+{found[1]:04X}@{found[0]}"
+
+
+def _unchanged(text: str, reason: str) -> ProcessResult:
+    token = _unsupported_token(text) if reason == REASON_UNSUPPORTED_DOMAIN else ""
+    return ProcessResult(
+        text,
+        0,
+        reason=reason,
+        source_length=len(text),
+        first_unsupported=token,
+    )
 
 
 def transform_text(text: str) -> ProcessResult:
@@ -76,26 +104,26 @@ def transform_text(text: str) -> ProcessResult:
         raise TypeError("text must be a string")
     try:
         if len(text) > PRODUCT_MAX_INPUT_CHARS:
-            return ProcessResult(text, 0, reason=REASON_TOO_LARGE)
+            return _unchanged(text, REASON_TOO_LARGE)
         approved = product_approved_carriers_v1()
         if approved != frozenset(LETTER_MIX_APPROVED_CARRIERS):
-            return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
+            return _unchanged(text, REASON_INTERNAL_ERROR)
         if any(ord(character) in approved for character in text):
-            return ProcessResult(text, 0, reason=REASON_ALREADY_TRANSFORMED)
+            return _unchanged(text, REASON_ALREADY_TRANSFORMED)
         if not is_supported_product_domain_v1(text):
-            return ProcessResult(text, 0, reason=REASON_UNSUPPORTED_DOMAIN)
+            return _unchanged(text, REASON_UNSUPPORTED_DOMAIN)
         probe = select_letter_mix_sites(text, max_selected=LETTER_MIX_MAX_SELECTED + 1)
         capped = len(probe) > LETTER_MIX_MAX_SELECTED
         sites = probe[:LETTER_MIX_MAX_SELECTED]
         if not sites:
-            return ProcessResult(text, 0, reason=REASON_NO_ELIGIBLE_SITES)
+            return _unchanged(text, REASON_NO_ELIGIBLE_SITES)
         applied = compose_letter_mix(text, sites)
         if applied == text:
-            return ProcessResult(text, 0, reason=REASON_NO_ELIGIBLE_SITES)
+            return _unchanged(text, REASON_NO_ELIGIBLE_SITES)
         if not is_carrier_insertion_v1(text, applied, approved):
-            return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
+            return _unchanged(text, REASON_INTERNAL_ERROR)
         if project_visible_v1(applied, approved) != text:
-            return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
+            return _unchanged(text, REASON_INTERNAL_ERROR)
         reason = REASON_SITE_CAP if capped else REASON_TRANSFORMED
         return ProcessResult(
             applied,
@@ -104,9 +132,10 @@ def transform_text(text: str) -> ProcessResult:
             last_source_index=sites[-1],
             site_count=len(sites),
             capped=capped,
+            source_length=len(text),
         )
     except (KeyError, TypeError, ValueError, RuntimeError):
-        return ProcessResult(text, 0, reason=REASON_INTERNAL_ERROR)
+        return _unchanged(text, REASON_INTERNAL_ERROR)
 
 
 def process_text(text: str) -> str:
@@ -118,6 +147,7 @@ def read_interactive_text(input_stream: TextIO, ui_stream: TextIO, *, color: boo
     ui_stream.write(
         "\n"
         "Paste or type your text below.\n"
+        "English ASCII only. Curly apostrophes, accents, and emoji are not processed.\n"
         "Enter :done on a new line when finished.\n"
         "\n"
     )
@@ -160,11 +190,13 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark --stdin --visible < notes.fm.txt\n"
             "\n"
             "Supported input: tab, newline, carriage return, and ASCII space through tilde.\n"
-            "Other Unicode is returned unchanged with exit 0. That status means I/O\n"
-            "succeeded, not that hidden characters were inserted. Only UTF-8 is supported.\n"
-            "Visible text stays the same. Use --visible to print that visible text.\n"
+            "Other Unicode (including curly apostrophes) is returned unchanged with exit 0.\n"
+            "Exit 0 means I/O succeeded, not that hidden characters were inserted.\n"
+            "Only UTF-8 is supported. Visible text stays the same.\n"
+            "Use --visible to print that visible text.\n"
             "Use --text for literal strings and --file for existing UTF-8 files.\n"
-            "Use --status for a machine-readable outcome on stderr."
+            "Use --status for processed/reason/insertions/coverage on stderr.\n"
+            "Use --inspect for a character-level insertion map on stderr."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -231,6 +263,12 @@ def _parser() -> argparse.ArgumentParser:
         dest="status_report",
         action="store_true",
         help="write a machine-readable outcome line to stderr",
+    )
+    parser.add_argument(
+        "--inspect",
+        dest="inspect_report",
+        action="store_true",
+        help="write a character-level coverage map to stderr; stdout stays the payload",
     )
     parser.add_argument(
         "--no-color",
@@ -480,31 +518,99 @@ def _status(errors: TextIO, message: str, *, enabled: bool, code: str) -> None:
 
 def _human_reason(result: ProcessResult) -> str:
     if result.reason == REASON_TRANSFORMED:
-        return f"inserted {result.change_count} hidden characters"
+        return f"processed: inserted {result.change_count} hidden characters"
     if result.reason == REASON_SITE_CAP:
         return (
-            f"inserted {result.change_count} hidden characters, then stopped at the "
-            f"{LETTER_MIX_MAX_SELECTED}-site cap; trailing text is unchanged"
+            f"processed with coverage limit: inserted {result.change_count} hidden characters, "
+            f"then stopped at the {LETTER_MIX_MAX_SELECTED}-site cap; trailing text is unchanged"
         )
     if result.reason == REASON_UNSUPPORTED_DOMAIN:
-        return "no hidden characters inserted (unsupported Unicode). I/O succeeded; this is not watermark removal"
+        loc = result.first_unsupported or "non-ASCII"
+        note = (
+            f"not processed: unsupported Unicode ({loc}). "
+            "Accents, emoji, CJK, and curly quotes disable the whole input"
+        )
+        if result.first_unsupported.startswith("U+2019@"):
+            note += (
+                ". English curly apostrophes are not ASCII, so a sentence such as "
+                "I don\u2019t agree. is returned unchanged"
+            )
+        note += (
+            ". Exit 0 means I/O succeeded, not that hidden characters were inserted"
+        )
+        return note
     if result.reason == REASON_ALREADY_TRANSFORMED:
-        return "no hidden characters inserted (input already contains the payload)"
+        return "not processed: input already contains the payload"
     if result.reason == REASON_NO_ELIGIBLE_SITES:
-        return "no hidden characters inserted (no eligible ASCII letter sites)"
+        return "not processed: no eligible ASCII letter sites"
     if result.reason == REASON_TOO_LARGE:
-        return f"input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)"
-    return "transformation failed internally; source returned unchanged"
+        return f"not processed: input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)"
+    return "not processed: transformation failed internally; source returned unchanged"
+
+
+def _coverage_line(result: ProcessResult) -> str:
+    last = "" if result.last_source_index is None else str(result.last_source_index)
+    capped = "yes" if result.capped else "no"
+    processed = "yes" if result.processed else "no"
+    return (
+        f"processed={processed} reason={result.reason} "
+        f"insertions={result.change_count} sites={result.site_count} "
+        f"last_index={last} source_length={result.source_length} capped={capped}"
+    )
 
 
 def _machine_status_line(result: ProcessResult) -> str:
     last = "" if result.last_source_index is None else str(result.last_source_index)
     capped = "yes" if result.capped else "no"
+    processed = "yes" if result.processed else "no"
+    unsupported = result.first_unsupported
     return (
         "fuckmark-status "
-        f"result={result.reason} insertions={result.change_count} "
-        f"sites={result.site_count} last_index={last} capped={capped}"
+        f"result={result.reason} processed={processed} insertions={result.change_count} "
+        f"sites={result.site_count} last_index={last} "
+        f"source_length={result.source_length} capped={capped} "
+        f"first_unsupported={unsupported}"
     )
+
+
+def _inspect_map(result: ProcessResult) -> str:
+    pieces: list[str] = []
+    for character in result.output_text:
+        codepoint = ord(character)
+        if codepoint == 0x034F:
+            pieces.append("[U+034F]")
+        elif codepoint == 0xFE00:
+            pieces.append("[U+FE00]")
+        elif character == "\n":
+            pieces.append("\\n")
+        elif character == "\r":
+            pieces.append("\\r")
+        elif character == "\t":
+            pieces.append("\\t")
+        else:
+            pieces.append(character)
+    blob = "".join(pieces)
+    if len(blob) > 8000:
+        return blob[:8000] + "..."
+    return blob
+
+
+def _emit_inspect(errors: TextIO, result: ProcessResult) -> None:
+    errors.write(f"fuckmark-inspect {_coverage_line(result)}\n")
+    if result.first_unsupported:
+        errors.write(f"fuckmark-inspect-unsupported {result.first_unsupported}\n")
+    if result.change_count > 0:
+        errors.write(f"fuckmark-inspect-map {_inspect_map(result)}\n")
+        errors.write(
+            "fuckmark-inspect-note stripping combining marks or "
+            "default-ignorable characters restores the source\n"
+        )
+    elif result.reason == REASON_UNSUPPORTED_DOMAIN:
+        errors.write(
+            "fuckmark-inspect-note the whole input is returned unchanged; "
+            "exit 0 is not proof of insertion\n"
+        )
+    errors.flush()
 
 
 def _emit_outcome(
@@ -514,18 +620,32 @@ def _emit_outcome(
     interactive: bool,
     quiet: bool,
     status_report: bool,
+    inspect_report: bool,
     color: bool,
 ) -> None:
     if status_report:
         errors.write(_machine_status_line(result) + "\n")
         errors.flush()
+    if inspect_report:
+        _emit_inspect(errors, result)
     if result.reason == REASON_INTERNAL_ERROR or result.reason == REASON_TOO_LARGE:
         return
     if quiet:
         return
     if result.reason == REASON_TRANSFORMED and not interactive:
         return
-    _status(errors, f"FuckMark: {_human_reason(result)}.", enabled=color, code=_ANSI_YELLOW if result.reason != REASON_TRANSFORMED else _ANSI_GREEN)
+    warn = result.reason != REASON_TRANSFORMED and result.reason != REASON_SITE_CAP
+    code = _ANSI_YELLOW if warn else _ANSI_GREEN
+    _status(errors, f"FuckMark: {_human_reason(result)}.", enabled=color, code=code)
+    if interactive or result.reason != REASON_TRANSFORMED:
+        _status(errors, f"FuckMark: {_coverage_line(result)}.", enabled=color, code=code)
+    if interactive and result.change_count > 0:
+        _status(
+            errors,
+            "FuckMark: stripping combining marks or default-ignorable characters restores the source.",
+            enabled=color,
+            code=_ANSI_YELLOW,
+        )
 
 
 def main(
@@ -672,8 +792,26 @@ def _run(
         return _error(errors, f"could not transform the text: {error}")
 
     if result.reason == REASON_TOO_LARGE:
+        _emit_outcome(
+            errors,
+            result,
+            interactive=interactive,
+            quiet=arguments.quiet,
+            status_report=arguments.status_report,
+            inspect_report=arguments.inspect_report,
+            color=color,
+        )
         return _error(errors, _human_reason(result))
     if result.reason == REASON_INTERNAL_ERROR:
+        _emit_outcome(
+            errors,
+            result,
+            interactive=interactive,
+            quiet=arguments.quiet,
+            status_report=arguments.status_report,
+            inspect_report=arguments.inspect_report,
+            color=color,
+        )
         _error(errors, _human_reason(result))
         return EXIT_INTERNAL
 
@@ -707,6 +845,7 @@ def _run(
         interactive=interactive,
         quiet=arguments.quiet,
         status_report=arguments.status_report,
+        inspect_report=arguments.inspect_report,
         color=color,
     )
 

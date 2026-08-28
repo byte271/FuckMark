@@ -91,8 +91,10 @@ def test_windows_installer_uses_tagged_release_checksum_and_does_not_start_cli()
     assert "SHA256SUMS" in text
     assert "v0.4.1" in text
     assert "returns input text unchanged" not in text
-    assert "[Text.Encoding]::ASCII" not in text
-    assert "UnicodeEncoding" in text
+    assert "UnicodeEncoding" not in text
+    assert "ASCIIEncoding" in text
+    assert "%~dp0" in text
+    assert "fuckmark.ps1" in text
     assert "main.zip" not in text
     assert "force-reinstall" not in text
     assert "winget install" not in text
@@ -145,9 +147,13 @@ def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
     assert "cb4ee7b6c06d1dde8c612c237df78f68f8364bc74bf469086288e55a2d5c9325" in install
     assert ".venv/bin/fuckmark --version" in readme
     assert ".venv/bin/fuckmark --visible" in readme or ".venv/bin/fuckmark --status" in readme
+    assert "docs/demo.html" in readme
+    assert readme.index("No-install demo") < readme.index("Install from this repository")
     website = (ROOT / "docs/website.md").read_text(encoding="utf-8")
     assert "| sh" not in website
     assert "| iex" not in website
+    assert "demo.html" in website
+    assert (ROOT / "docs/demo.html").is_file()
 
 
 def test_unix_path_config_quotes_custom_bin_directory() -> None:

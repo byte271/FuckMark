@@ -116,7 +116,10 @@ def test_paths_and_ftp_uri_are_protected_without_and_or() -> None:
     cases = (
         ("See scripts/build now.", "scripts/build"),
         ("Open C:/Users/Alice/My final notes.txt now.", "C:/Users/Alice/My final notes.txt"),
+        ("Open C:/My final notes.txt now.", "C:/My final notes.txt"),
         ("Read /tmp/My final notes.txt now.", "/tmp/My final notes.txt"),
+        ("Read /My final notes.txt now.", "/My final notes.txt"),
+        ("Read ~/My final notes.txt now.", "~/My final notes.txt"),
         ("Get ftp://example.com/file now.", "ftp://example.com/file"),
     )
     for source, token in cases:
@@ -241,6 +244,48 @@ def test_status_flag_reports_noop_without_touching_payload() -> None:
     stderr = result.stderr.decode("utf-8")
     assert "fuckmark-status" in stderr
     assert "unsupported-domain" in stderr
+    assert "processed=no" in stderr
+    assert "source_length=14" in stderr
+    assert "first_unsupported=U+2019@5" in stderr
+    assert "not processed" in stderr
+    assert "curly" in stderr.casefold()
+
+
+def test_status_flag_reports_too_large_and_inspect_map() -> None:
+    huge = ("a" * (PRODUCT_MAX_INPUT_CHARS + 1)).encode("utf-8")
+    too_large = _cli_bytes("--stdin", "--status", stdin=huge)
+    assert too_large.returncode == EXIT_ERROR
+    stderr = too_large.stderr.decode("utf-8")
+    assert "fuckmark-status" in stderr
+    assert "too-large" in stderr
+    assert "processed=no" in stderr
+    source = "I do not agree."
+    inspected = _cli_bytes("--text", source, "--inspect")
+    assert inspected.returncode == EXIT_OK
+    assert inspected.stdout == apply_letter_alternating_mix(source).encode("utf-8")
+    inspect_err = inspected.stderr.decode("utf-8")
+    assert "fuckmark-inspect" in inspect_err
+    assert "[U+034F]" in inspect_err
+    assert "restores the source" in inspect_err
+
+
+def test_internal_failure_emits_status_when_requested(monkeypatch) -> None:
+    def boom(text: str, sites):
+        raise RuntimeError("invariant")
+
+    monkeypatch.setattr("fuckmark.cli.compose_letter_mix", boom)
+    output = StringIO()
+    errors = StringIO()
+    status = main(
+        StringIO(""),
+        output,
+        error_stream=errors,
+        argv=("--text", "I do not agree.", "--status"),
+    )
+    assert status == EXIT_INTERNAL
+    assert output.getvalue() == ""
+    assert "fuckmark-status" in errors.getvalue()
+    assert "internal-error" in errors.getvalue()
 
 
 def test_bracket_heavy_scan_stays_bounded() -> None:
