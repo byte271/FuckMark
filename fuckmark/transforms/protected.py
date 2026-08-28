@@ -21,6 +21,7 @@ from .protected_patterns import (
     _NUMERIC_CITATION_RE,
     _PERCENT_RE,
 )
+from .protected_markdown import _add_markdown_reference_spans
 from .protected_structures import (
     _add_delimited_math,
     _add_dollar_math,
@@ -160,6 +161,7 @@ class ProtectedSpanExtractor:
         _add_fenced_code(raw, text)
         _add_inline_code(raw, text)
         _add_valid_markdown_destinations(raw, text)
+        _add_markdown_reference_spans(raw, text)
         _add_urls(raw, text)
         _add_regex(raw, text, _EMAIL_RE, ProtectedSpanKind.EMAIL)
         _add_ip_addresses(raw, text)

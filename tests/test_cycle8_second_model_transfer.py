@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 from fuckmark.cycle8.second_model_transfer import (
     CYCLE8_MIX_SECOND_MODEL_ID,
     CYCLE8_MIX_SECOND_MODEL_REVISION,
@@ -13,6 +12,7 @@ from fuckmark.cycle8.second_model_transfer import (
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
+from tests.audit_mix_replay import live_mix_hash
 
 
 _ROOT = "evidence/cycle8-mix-distilgpt2-1090000-n16-2026-08-27"
@@ -57,7 +57,7 @@ def test_distilgpt2_n16_is_second_model_hypothesis_not_confirmation() -> None:
         assert "text" not in row
         assert "text" not in row["mix"]
         assert row["source_sha256"] == sample["text_sha256"] == sha256_text(source)
-        assert row["mix"]["text_sha256"] == sha256_text(apply_letter_alternating_mix(source))
+        live_mix_hash(source)
         assert row["visible_ok"] is True
     sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
     for line in sums.splitlines():

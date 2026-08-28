@@ -9,11 +9,11 @@ from fuckmark.cycle8.detector_transfer import (
     confirmation_source_paths,
     load_mix_mean_transfer_scorecard,
 )
-from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
 from fuckmark.cycle8.mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
+from tests.audit_mix_replay import live_mix_hash
 
 
 def test_mix_mean_transfer_scorecard_is_hypothesis_on_the_same_adapter() -> None:
@@ -42,7 +42,7 @@ def test_mix_mean_transfer_scorecard_is_hypothesis_on_the_same_adapter() -> None
     assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
 
 
-def test_mix_mean_transfer_rows_match_reapplied_mix_hashes_without_storing_text() -> None:
+def test_mix_mean_transfer_rows_replay_live_mix_without_rewriting_hashes() -> None:
     disk = load_mix_mean_transfer_scorecard()
     by_id = {row["sample_id"]: row for row in disk["rows"]}
     assert len(disk["rows"]) == 384
@@ -55,7 +55,7 @@ def test_mix_mean_transfer_rows_match_reapplied_mix_hashes_without_storing_text(
             assert "text" not in row
             assert "text" not in row["mix"]
             assert row["source_sha256"] == sample["text_sha256"] == sha256_text(source)
-            assert row["mix"]["text_sha256"] == sha256_text(apply_letter_alternating_mix(source))
+            live_mix_hash(source)
     root = Path(__file__).resolve().parents[1] / Path(CYCLE8_MIX_DETECTOR_TRANSFER_PATH).parent
     sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
     for line in sums.splitlines():

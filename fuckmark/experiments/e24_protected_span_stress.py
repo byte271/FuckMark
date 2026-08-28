@@ -218,6 +218,7 @@ def _protected_kind_token(kind: ProtectedSpanKind) -> str:
         ProtectedSpanKind.PERCENTAGE: "42%",
         ProtectedSpanKind.CODE: "`immutable_call()`",
         ProtectedSpanKind.MARKDOWN_DESTINATION: "[label](https://example.com/e24-target)",
+        ProtectedSpanKind.MARKDOWN_LABEL: "[see][e24ref]\n\n[e24ref]: https://example.com/e24-ref",
         ProtectedSpanKind.QUOTATION: '"immutable phrase"',
         ProtectedSpanKind.POSIX_PATH: "/usr/local/bin/e24-tool",
         ProtectedSpanKind.WINDOWS_PATH: "C:\\Temp\\e24-file.txt",

@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from ..product.invariants import validate_user_visible_invariants
 from ..product.visible_projection import is_carrier_insertion_v1, project_visible_v1
 from ..transforms.protected import _add_valid_markdown_destinations
+from ..transforms.protected_markdown import _add_markdown_reference_spans
 from ..transforms.protected_patterns import (
     _CLI_FLAG_RE,
     _CURRENCY_RE,
@@ -38,6 +39,7 @@ def hard_machine_intervals(text: str) -> tuple[tuple[int, int], ...]:
     _add_fenced_code(raw, text)
     _add_inline_code(raw, text)
     _add_valid_markdown_destinations(raw, text)
+    _add_markdown_reference_spans(raw, text)
     _add_urls(raw, text)
     _add_regex(raw, text, _EMAIL_RE, ProtectedSpanKind.EMAIL)
     _add_ip_addresses(raw, text)
@@ -60,13 +62,9 @@ def hard_machine_intervals(text: str) -> tuple[tuple[int, int], ...]:
     return tuple((start, end) for start, end in merged)
 
 
-def _index_blocked(index: int, intervals: Sequence[tuple[int, int]]) -> bool:
-    for start, end in intervals:
-        if start <= index < end:
-            return True
-        if start > index:
-            return False
-    return False
+def _source_contains_approved_carriers(text: str) -> bool:
+    approved = LETTER_MIX_APPROVED_CARRIERS
+    return any(ord(character) in approved for character in text)
 
 
 def select_letter_mix_sites(
@@ -81,19 +79,18 @@ def select_letter_mix_sites(
             raise TypeError("max_selected must be an integer")
         if max_selected <= 0:
             raise ValueError("max_selected must be positive")
+    if _source_contains_approved_carriers(text):
+        return ()
     blocked = hard_machine_intervals(text)
     sites: list[int] = []
+    interval_index = 0
+    blocked_count = len(blocked)
     for index, character in enumerate(text):
-        if character.isascii() and character.isalpha() and not _index_blocked(index, blocked):
-            payload = LETTER_MIX_PAYLOADS[len(sites) % 2]
-            trial = text[: index + 1] + payload + text[index + 1 :]
-            if not is_carrier_insertion_v1(text, trial, LETTER_MIX_APPROVED_CARRIERS):
-                continue
-            if project_visible_v1(trial, LETTER_MIX_APPROVED_CARRIERS) != text:
-                continue
-            report = validate_user_visible_invariants(text, trial, LETTER_MIX_APPROVED_CARRIERS)
-            if report.status is not InvariantStatus.PASS:
-                continue
+        while interval_index < blocked_count and blocked[interval_index][1] <= index:
+            interval_index += 1
+        if interval_index < blocked_count and blocked[interval_index][0] <= index:
+            continue
+        if character.isascii() and character.isalpha():
             sites.append(index)
             if max_selected is not None and len(sites) >= max_selected:
                 break
@@ -123,8 +120,12 @@ def compose_letter_mix(text: str, sites: Sequence[int]) -> str:
     report = validate_user_visible_invariants(text, output, LETTER_MIX_APPROVED_CARRIERS)
     if report.status is not InvariantStatus.PASS:
         raise RuntimeError("letter mix failed user-visible invariants")
+    site_index = 0
+    shift = 0
     for start, end in hard_machine_intervals(text):
-        shift = sum(1 for index in ordered if index < start)
+        while site_index < len(ordered) and ordered[site_index] < start:
+            shift += 1
+            site_index += 1
         if output[start + shift : end + shift] != text[start:end]:
             raise RuntimeError("letter mix mutated a hard machine span")
     return output
@@ -142,8 +143,14 @@ def letter_mix_protected_blocked_count(text: str) -> int:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     blocked = hard_machine_intervals(text)
-    return sum(
-        1
-        for index, character in enumerate(text)
-        if character.isascii() and character.isalpha() and _index_blocked(index, blocked)
-    )
+    count = 0
+    interval_index = 0
+    blocked_count = len(blocked)
+    for index, character in enumerate(text):
+        while interval_index < blocked_count and blocked[interval_index][1] <= index:
+            interval_index += 1
+        if not (character.isascii() and character.isalpha()):
+            continue
+        if interval_index < blocked_count and blocked[interval_index][0] <= index:
+            count += 1
+    return count

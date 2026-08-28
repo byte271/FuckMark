@@ -37,8 +37,9 @@ Paste or type text, then a line that is only `:done`. The result is copied to th
 
 ```text
 printf 'I do not agree.\n' | fuckmark
-fuckmark "I do not agree."
-fuckmark notes.txt -o notes.fm.txt
+fuckmark --text "I do not agree."
+fuckmark --text "I agree. You are right"
+fuckmark --file notes.txt -o notes.fm.txt
 printf 'I do not agree.\n' | fuckmark --visible
 ```
 
@@ -48,7 +49,7 @@ Pipes and files write the payload to stdout. `fuckmark --help` is enough to star
 
 `VISIBLE(original) == VISIBLE(transformed)`. FuckMark only inserts U+034F and U+FE00 after eligible ASCII letters. It does not contract, paraphrase, homoglyph, or add spaces.
 
-Supported input: tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged. Only UTF-8. URLs, code spans, paths, and similar machine text are left intact.
+Supported input: tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged with exit 0. That status means I/O succeeded, not that hidden characters were inserted. Only UTF-8. URLs, code spans, paths (including `src/main.py` and `C:/Users/...`), Markdown reference labels, and similar machine text are left intact.
 
 ## Verified results
 
@@ -66,7 +67,15 @@ Google synthid-text 30-key GPT-2 transformed text: **0/192**.
 
 This does not remove every AI watermark. It is not a claim against unknown, proprietary, or future detectors.
 
-Stripping combining marks or default-ignorable characters restores the source. English ASCII only. Cap 192 insertion sites.
+Stripping combining marks or default-ignorable characters restores the source. On the frozen Gate v2 confirmation set, mix plus those two stress sanitizers restored detection to 188/192. The stored 0/192 result applies only to the specified detectors, threshold, samples, and required sanitizer paths.
+
+Primary confirmation uses 64 generated tokens per sample. Insertion stops after the first 192 eligible letter sites, so the tail of a long document is unchanged. That coverage limit is not a measured long-document detection result.
+
+English ASCII only. Valid Unicode outside that domain, including accented letters, is returned unchanged with exit 0.
+
+Equal visible projection is not the same as equal behavior in other software. Raw codepoint search, Markdown reference matching, and exact byte paths can still fail if hidden characters remain. Historical Chromium `contenteditable` VERIFIED rows from 2026-08-26 used a blank-div measurement bug and are not proof of rendering equivalence. Safari/WebKit and terminal-pixel results remain UNKNOWN.
+
+Cap 192 insertion sites.
 
 ## How it works
 

@@ -1,0 +1,92 @@
+{
+  "algorithm_version": "letter-mix-scan-v2-host-observation",
+  "artifact_hash": "74928e81db58fa5ac1dc007b99f98438315e9647418aa572c3cc7e690aa213ba",
+  "commit": "1d686b6eb133c29479b2d9bc1b609f929b63e06e",
+  "note": "Host observations only. Not a cross-machine performance guarantee.",
+  "timings": [
+    {
+      "input_chars": 1040,
+      "median_seconds": 0.0013507550002032076,
+      "min_seconds": 0.0013172589999612683,
+      "name": "prose_1k",
+      "output_chars": 1232,
+      "seconds": [
+        0.0016266380000615754,
+        0.0013507550002032076,
+        0.0013172589999612683
+      ]
+    },
+    {
+      "input_chars": 10400,
+      "median_seconds": 0.011578481000015017,
+      "min_seconds": 0.011543329000005542,
+      "name": "prose_10k",
+      "output_chars": 10592,
+      "seconds": [
+        0.011669592000089324,
+        0.011543329000005542,
+        0.011578481000015017
+      ]
+    },
+    {
+      "input_chars": 104000,
+      "median_seconds": 0.1135778840000512,
+      "min_seconds": 0.11315520800008017,
+      "name": "prose_100k",
+      "output_chars": 104192,
+      "seconds": [
+        0.11315520800008017,
+        0.1135778840000512,
+        0.11412591299995256
+      ]
+    },
+    {
+      "input_chars": 9249,
+      "median_seconds": 0.0160103750001781,
+      "min_seconds": 0.012477553000053376,
+      "name": "url_only_10k",
+      "output_chars": 9249,
+      "seconds": [
+        0.012477553000053376,
+        0.01665635100016516,
+        0.0160103750001781
+      ]
+    },
+    {
+      "input_chars": 18499,
+      "median_seconds": 0.024290382999879512,
+      "min_seconds": 0.02418305700007295,
+      "name": "url_only_20k",
+      "output_chars": 18499,
+      "seconds": [
+        0.024858777999952508,
+        0.02418305700007295,
+        0.024290382999879512
+      ]
+    },
+    {
+      "input_chars": 2200,
+      "median_seconds": 0.0031189240000912832,
+      "min_seconds": 0.003113965000011376,
+      "name": "no_sites",
+      "output_chars": 2200,
+      "seconds": [
+        0.0032563459999437327,
+        0.003113965000011376,
+        0.0031189240000912832
+      ]
+    },
+    {
+      "input_chars": 4820,
+      "median_seconds": 0.029459684999892488,
+      "min_seconds": 0.029254702999878646,
+      "name": "long_protected",
+      "output_chars": 4820,
+      "seconds": [
+        0.029254702999878646,
+        0.029459684999892488,
+        0.03241230200001155
+      ]
+    }
+  ]
+}

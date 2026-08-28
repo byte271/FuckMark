@@ -14,6 +14,7 @@ class ProtectedSpanKind(str, Enum):
     PERCENTAGE = "percentage"
     CODE = "code"
     MARKDOWN_DESTINATION = "markdown_destination"
+    MARKDOWN_LABEL = "markdown_label"
     QUOTATION = "quotation"
     POSIX_PATH = "posix_path"
     WINDOWS_PATH = "windows_path"

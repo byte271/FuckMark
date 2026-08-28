@@ -92,6 +92,14 @@ def test_markdown_destination_is_protected() -> None:
     assert span.exact_text == "https://example.com/a"
 
 
+def test_markdown_reference_labels_are_protected_at_use_and_definition() -> None:
+    manifest = ProtectedSpanExtractor().extract("[click][ref]\n\n[ref]: https://example.com\n")
+    labels = tuple(value.exact_text for value in manifest.spans if ProtectedSpanKind.MARKDOWN_LABEL in value.kinds)
+    assert labels.count("ref") == 2
+    dest = next(value for value in manifest.spans if ProtectedSpanKind.MARKDOWN_DESTINATION in value.kinds)
+    assert dest.exact_text == "https://example.com"
+
+
 def test_double_quoted_sentence_is_protected() -> None:
     span = _single('"Do not change this."')
     assert ProtectedSpanKind.QUOTATION in span.kinds

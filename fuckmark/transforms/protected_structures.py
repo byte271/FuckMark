@@ -13,8 +13,13 @@ _BLANK_LINE_RE = re.compile(r"\r?\n[ \t]*\r?\n")
 _CURLY_SINGLE_QUOTE_RE = re.compile(r"‘[^’\n]{2,}’")
 _STRAIGHT_SINGLE_QUOTE_RE = re.compile(r"(?<!\w)'[^'\n]{2,}'(?!\w)")
 _POSIX_PATH_RE = re.compile(r"(?<![\w:])(?:~?/|\./|\.\./)(?:[A-Za-z0-9._~+@%-]+/)*[A-Za-z0-9._~+@%-]+/?")
-_WINDOWS_PATH_RE = re.compile(r"(?i)(?<![A-Z0-9_])(?:[A-Z]:\\|\\\\[A-Z0-9._$-]+\\)(?:[^\\/:*?\"<>|\s]+\\)*[^\\/:*?\"<>|\s]+")
-_WINDOWS_PREFIX_RE = re.compile(r"(?i)(?<![A-Z0-9_])(?:[A-Z]:\\|\\\\[A-Z0-9._$-]+\\)")
+_RELATIVE_PATH_RE = re.compile(
+    r"(?<![\w:/])(?:[A-Za-z0-9._~+@%-]+/)+[A-Za-z0-9._~+@%-]*\.[A-Za-z][A-Za-z0-9]{0,11}/?"
+)
+_WINDOWS_PATH_RE = re.compile(
+    r"(?i)(?<![A-Z0-9_])(?:[A-Z]:[/\\]|\\\\[A-Z0-9._$-]+\\)(?:[^\\/:*?\"<>|\s]+[/\\])*[^\\/:*?\"<>|\s]+"
+)
+_WINDOWS_PREFIX_RE = re.compile(r"(?i)(?<![A-Z0-9_])(?:[A-Z]:[/\\]|\\\\[A-Z0-9._$-]+\\)")
 _POSIX_PREFIX_RE = re.compile(r"(?<![\w:])(?:~?/|\./|\.\./)")
 _EXTENDED_BOUNDARY_RE = re.compile(r"[ \t]+(?=(?ai:https?://|www\.)|(?:/|~/|\./|\.\./)|[A-Za-z]:\\|\\\\|--?[A-Za-z])")
 _MAX_EXTENDED_PATH_SCAN = 4096
@@ -139,9 +144,10 @@ def _add_markdown_destinations(raw: list[tuple[int, int, ProtectedSpanKind]], te
 
 
 def _add_posix_paths(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
-    for match in _POSIX_PATH_RE.finditer(text):
-        start, end = _trim_terminal_punctuation(text, match.start(), match.end())
-        _append(raw, start, end, ProtectedSpanKind.POSIX_PATH)
+    for pattern in (_POSIX_PATH_RE, _RELATIVE_PATH_RE):
+        for match in pattern.finditer(text):
+            start, end = _trim_terminal_punctuation(text, match.start(), match.end())
+            _append(raw, start, end, ProtectedSpanKind.POSIX_PATH)
 
 
 def _add_windows_paths(raw: list[tuple[int, int, ProtectedSpanKind]], text: str) -> None:
@@ -207,7 +213,8 @@ def _add_extended_windows_paths(raw: list[tuple[int, int, ProtectedSpanKind]], t
     for match in _WINDOWS_PREFIX_RE.finditer(text):
         if _starts_inside_other_protection(starts, intervals, match.start()):
             continue
-        end = _extended_path_end(text, match.start(), match.end(), "\\", '<>"|?*')
+        separator = "/" if match.group().endswith("/") else "\\"
+        end = _extended_path_end(text, match.start(), match.end(), separator, '<>"|?*')
         if end is not None:
             _append(raw, match.start(), end, ProtectedSpanKind.WINDOWS_PATH)
 
