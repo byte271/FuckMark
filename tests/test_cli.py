@@ -326,8 +326,8 @@ def test_cli_version_reports_project_identity(capsys) -> None:
     assert result.value.code == 0
     rendered = capsys.readouterr().out.strip()
     assert rendered == f"FuckMark {__version__}"
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v11"
-    assert "release-cli-v11" not in rendered
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v12"
+    assert "release-cli-v12" not in rendered
     assert "transform-registry" not in rendered
 
 
@@ -436,6 +436,7 @@ def test_cli_help_documents_file_pipe_clipboard_and_visible_contract(capsys) -> 
     assert "--inspect" in rendered
     assert "--detect" in rendered
     assert "Fhelp@q1z.org" in rendered
+    assert "fuckmark web" in rendered
     assert "standard input" in rendered.casefold() or "--stdin" in rendered
     assert ":done" in rendered
     assert "clipboard" in rendered.casefold()

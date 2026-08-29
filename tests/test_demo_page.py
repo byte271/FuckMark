@@ -39,8 +39,10 @@ def test_demo_page_is_self_contained_and_honest() -> None:
     assert "Fhelp@q1z.org" in html
     assert "mailto:Fhelp@q1z.org" in html
     assert "id=\"detector\"" in html
-    assert "\u6211\u4eec\u6ca1\u6709\u4ece\u8fd9\u91cc\u9762\u68c0\u6d4b\u5230\u6c34\u5370" in html
-    assert "\u8054\u7cfb\u6211\u4eec" in html
+    assert "We did not detect a watermark in this text." in html
+    assert "What? You think there is a watermark in this?" in html
+    assert "Contact us" in html
+    assert "\u6211\u4eec" not in html
     assert "local FuckMark scan" in html or "FuckMark detector" in html
     assert "file://" in html or "file://" in html.casefold()
     assert "GPT-2" in html

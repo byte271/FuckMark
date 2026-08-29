@@ -33,7 +33,7 @@ def test_product_authorization_spec_is_committed_and_live() -> None:
     assert disk["algorithm_version"] == PRODUCT_AUTHORIZATION_VERSION
     assert disk["product_authorized"] is True
     assert disk["mechanism_id"] == LETTER_MIX_MECHANISM_ID
-    assert disk["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v11"
+    assert disk["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v12"
     assert disk["mix_sanitizer_gate_v1"] == "PASS"
     assert disk["required_sanitizer_bundle_not_weakened"] is True
     assert disk["release_registry_empty"] is True

@@ -19,9 +19,11 @@ Deploy these static files (repository CI cannot push them; copy after each relea
 Runs in the browser. On **Remove marks** it first runs the same closed-set FuckMark insertion scan as `fuckmark --detect` (U+034F, U+FE00, C0/C1, U+20DD, U+13430-U+13438, U+FFF9-U+FFFB).
 
 - Hit: strip those insertions, copy the cleaned text, keep visible words.
-- Miss: show the no-watermark card (Chinese copy in `mark.html`) and the contact form that mails `Fhelp@q1z.org`.
+- Miss: show the English no-watermark card and the contact form that mails `Fhelp@q1z.org`.
 
 Do not strip emoji variation selectors, ZWJ, or other non-approved characters. Do not query GPT-2, SynthID, or any remote detector. Icon scripts may load from a CDN; the scan itself is local.
+
+Local beginners can run `fuckmark web` after install. That serves the same `mark.html` tool from the package (`fuckmark/webui/mark.html`, kept identical to `docs/mark.html`) on `http://127.0.0.1:8765/mark.html`.
 
 ### `demo.html` (research walkthrough)
 

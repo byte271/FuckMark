@@ -832,7 +832,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
         setStat("first", first)
       );
     } else {
-      resultBox.innerHTML = '<div class="detect-card miss"><h3>我们没有从这里面检测到水印</h3><p>什么？您认为这里面有水印？</p><p><a class="contact" href="mailto:Fhelp@q1z.org">联系我们</a></p></div>';
+      resultBox.innerHTML = '<div class="detect-card miss"><h3>We did not detect a watermark in this text.</h3><p>What? You think there is a watermark in this?</p><p><a class="contact" href="mailto:Fhelp@q1z.org">Contact us</a></p></div>';
       statusBox.append(
         setStat("local scan", "not detected", "warn"),
         setStat("found", "0"),

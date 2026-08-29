@@ -63,6 +63,7 @@ printf 'I do not agree.\n' | fuckmark --status >/tmp/fm.out
 printf 'I do not agree.\n' | fuckmark --inspect >/tmp/fm.out
 fuckmark --detect --text "I do not agree."
 printf 'paste\n' | fuckmark --detect
+fuckmark web
 fuckmark --text "I don’t agree." --status
 ```
 
@@ -101,6 +102,18 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 | `--inspect` | Write a character-level coverage map to stderr. Stdout stays the payload. |
 | `--detect` | Scan for FuckMark insertions without transforming. Stdout is the detect report. If none are found, the report includes `Fhelp@q1z.org`. |
 | `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |
+
+### `fuckmark web`
+
+Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags.
+
+```text
+fuckmark web
+fuckmark web --no-open
+fuckmark web --port 9000
+```
+
+Default URL: `http://127.0.0.1:8765/mark.html`. Press Ctrl+C to stop the server.
 
 `--non-interactive` is an alias of `--stdin`.
 

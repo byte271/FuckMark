@@ -2,7 +2,7 @@
 
 Python 3.11 or newer. The public CLI is `fuckmark` / `FuckMark` / `Fuckmark`.
 
-Before installing, open the no-install demo: [`demo.html`](demo.html) (`file://` works). After website deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html). The demo shows character differences, processing status, Mn/DI residual checks, and frozen GPT-2 scores on fixed samples only.
+Prefer a browser over the CLI? After install, run `fuckmark web` to open the local paste tool. Before installing, you can also open [`mark.html`](mark.html) or the research demo [`demo.html`](demo.html) with `file://`. After website deploy: [mark.q1z.org/mark.html](https://mark.q1z.org/mark.html) and [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html).
 
 Do not pipe `https://d.q1z.org/mark` into a shell. The live website must match [`website.md`](website.md).
 
@@ -18,14 +18,18 @@ cd FuckMark
 python3 -m venv .venv
 .venv/bin/python -m pip install .
 .venv/bin/fuckmark --version
+.venv/bin/fuckmark web
 printf 'I do not agree.\n' | .venv/bin/fuckmark --visible
 ```
+
+`fuckmark web` opens `http://127.0.0.1:8765/mark.html` for beginners who do not want pipes or flags.
 
 Keep using `.venv/bin/fuckmark` unless you activate the venv:
 
 ```text
 . .venv/bin/activate
 fuckmark --version
+fuckmark web
 ```
 
 Windows PowerShell:

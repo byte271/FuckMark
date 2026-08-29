@@ -39,7 +39,7 @@ from ..transforms.registry import release_transform_registry
 
 PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
 PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
-PRODUCT_AUTHORIZATION_HASH = "07499a27e8abcfca5d6d524bc577c59b7631a052959d8e2b46970d27fe35cecf"
+PRODUCT_AUTHORIZATION_HASH = "b919483473fb98be0242db86c5eee827874f06508e2e5042b97102d50476967f"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -175,8 +175,8 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("product authorization spec does not match the live payload")
     if disk["product_authorized"] is not True:
         raise ValueError("product authorization spec must authorize")
-    if disk["cli_algorithm_version"] != "release-cli-v11":
-        raise ValueError("product authorization must use release-cli-v11")
+    if disk["cli_algorithm_version"] != "release-cli-v12":
+        raise ValueError("product authorization must use release-cli-v12")
     if disk["mix_sanitizer_gate_v1"] != "PASS":
         raise ValueError("product authorization must record the durable sanitizer gate PASS")
     if disk["identities"]["mix_freeze_hash"] != _MIX_FREEZE_HASH:

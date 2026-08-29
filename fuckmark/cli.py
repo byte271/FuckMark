@@ -26,6 +26,7 @@ from .product.detect import (
     detect_human_report,
     detect_machine_line,
 )
+from .web import run_web_argv
 from .product.domain import (
     PRODUCT_MAX_INPUT_CHARS,
     is_supported_product_domain_v1,
@@ -39,7 +40,7 @@ from .product.visible_projection import (
 
 
 INTERACTIVE_DONE = ":done"
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v11"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v12"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -216,6 +217,7 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark --stdin --visible < notes.fm.txt\n"
             "  fuckmark --detect --text \"I do not agree.\"\n"
             "  printf 'paste\\n' | fuckmark --detect\n"
+            "  fuckmark web\n"
             "\n"
             "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed\n"
             "even when surrounding text has other Unicode, including curly apostrophes.\n"
@@ -231,6 +233,7 @@ def _parser() -> argparse.ArgumentParser:
             "Use --detect to scan for FuckMark insertions without transforming.\n"
             "If --detect finds none, the report tells you to contact "
             f"{DETECT_CONTACT_EMAIL}.\n"
+            "Use fuckmark web to open the local browser tool (beginner-friendly).\n"
             "Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -803,6 +806,9 @@ def _run(
     parser_argv = argv
     if parser_argv is None and injected:
         parser_argv = ()
+    raw_argv = list(sys.argv[1:] if parser_argv is None else parser_argv)
+    if raw_argv and raw_argv[0] == "web":
+        return run_web_argv(raw_argv[1:], errors)
     arguments = _parser().parse_args(parser_argv)
     _ensure_utf8(source)
     _ensure_utf8(output)

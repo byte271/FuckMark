@@ -23,14 +23,16 @@ def test_mark_page_is_closed_set_detector_with_contact() -> None:
     assert DETECT_CONTACT_EMAIL in html
     assert f"mailto:{DETECT_CONTACT_EMAIL}" in html
     assert "Fmark@q1z.org" not in html
-    assert "\u6211\u4eec\u6ca1\u6709\u4ece\u8fd9\u91cc\u9762\u68c0\u6d4b\u5230\u6c34\u5370" in html
-    assert "\u8054\u7cfb\u6211\u4eec" in html
-    assert "\u4ec0\u4e48\uff1f\u60a8\u8ba4\u4e3a\u8fd9\u91cc\u9762\u6709\u6c34\u5370\uff1f" in html
+    assert "We did not detect a watermark in this text." in html
+    assert "What? You think there is a watermark in this?" in html
+    assert "Contact us" in html
+    assert "\u6211\u4eec" not in html
     assert "closed-set" in html.casefold()
     assert "not a general" in html.casefold()
     assert "markedSample" in html
     assert "FM_CCS" in html
     assert "FM_CFS" in html
+    assert "No CLI needed" in html
 
 
 def test_mark_page_demo_sample_is_detectable_by_python_detector() -> None:

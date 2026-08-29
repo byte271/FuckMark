@@ -15,12 +15,18 @@ It is a constrained research/product CLI with measured SynthID / GPT-2 results. 
 
 Website: [mark.q1z.org](https://mark.q1z.org) · License: MIT
 
-## Browser tool and no-install demo (start here)
+## Browser tool (start here if you dislike the CLI)
 
-- Product paste UI: [`docs/mark.html`](docs/mark.html) — after deploy: [mark.q1z.org/mark.html](https://mark.q1z.org/mark.html)
+```text
+fuckmark web
+```
+
+Opens a local page at `http://127.0.0.1:8765/mark.html`. Paste text in the browser. No other CLI flags required. Use `--no-open` to print the URL only, or `--port 0` to pick a free port.
+
+- Product paste UI source: [`docs/mark.html`](docs/mark.html) (packaged as `fuckmark/webui/mark.html`) — after deploy: [mark.q1z.org/mark.html](https://mark.q1z.org/mark.html)
 - Research demo: [`docs/demo.html`](docs/demo.html) — `file://` works; after deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html)
 
-`mark.html` runs a local closed-set FuckMark scan, strips approved insertions when found, and on a miss shows the no-watermark card with contact to `Fhelp@q1z.org`.
+`mark.html` runs a local closed-set FuckMark scan, strips approved insertions when found, and on a miss shows an English no-watermark card with contact to `Fhelp@q1z.org`.
 
 The research demo also includes:
 

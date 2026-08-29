@@ -148,12 +148,17 @@ def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
     assert ".venv/bin/fuckmark --version" in readme
     assert ".venv/bin/fuckmark --visible" in readme or ".venv/bin/fuckmark --status" in readme
     assert "docs/demo.html" in readme
-    assert readme.index("No-install demo") < readme.index("Install from this repository")
+    assert "fuckmark web" in readme
+    assert "docs/mark.html" in readme
+    assert readme.index("Browser tool") < readme.index("Install from this repository")
     website = (ROOT / "docs/website.md").read_text(encoding="utf-8")
     assert "| sh" not in website
     assert "| iex" not in website
     assert "demo.html" in website
+    assert "mark.html" in website
+    assert "fuckmark web" in website
     assert (ROOT / "docs/demo.html").is_file()
+    assert (ROOT / "docs/mark.html").is_file()
 
 
 def test_unix_path_config_quotes_custom_bin_directory() -> None:

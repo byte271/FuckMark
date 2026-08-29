@@ -50,7 +50,7 @@ def test_mix_publishability_spec_fail_closes_product_promotion() -> None:
     assert_mix_publishability_committed()
     assert release_transform_registry().rules == ()
     assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v11"
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v12"
     assert process_text("I do not agree.") != "I do not agree."
 
 
