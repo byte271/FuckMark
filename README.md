@@ -15,19 +15,22 @@ It is a constrained research/product CLI with measured SynthID / GPT-2 results. 
 
 Website: [mark.q1z.org](https://mark.q1z.org) · License: MIT
 
-## No-install demo (start here)
+## Browser tool and no-install demo (start here)
 
-Open [`docs/demo.html`](docs/demo.html) in a browser. `file://` works; no Python install required. After website deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html).
+- Product paste UI: [`docs/mark.html`](docs/mark.html) — after deploy: [mark.q1z.org/mark.html](https://mark.q1z.org/mark.html)
+- Research demo: [`docs/demo.html`](docs/demo.html) — `file://` works; after deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html)
 
-The demo shows:
+`mark.html` runs a local closed-set FuckMark scan, strips approved insertions when found, and on a miss shows the no-watermark card with contact to `Fhelp@q1z.org`.
 
-- a local FuckMark detector: paste text, scan for FuckMark insertion characters, and if none are found, contact `Fhelp@q1z.org`
+The research demo also includes:
+
+- a local FuckMark detector (same closed-set scan; miss path contacts `Fhelp@q1z.org`)
 - character-level differences for fixed CLI samples (U+034F / U+FE00 plus C0/C1 / Me / Cf residuals)
 - processed vs not processed, reason, insertions, sites, `last_index`, cap
 - Mn-strip / default-ignorable strip leaving control residuals (source not restored)
 - frozen Gate v2 detection numbers on the historical mark-only GPT-2 corpus, plus historical triple-layer exploratory rescore and the four-layer restore census
 
-The paste detector is a closed-set scan of FuckMark insertions. It does **not** query GPT-2 or SynthID and does **not** promise the same detection outcome for arbitrary user text.
+These pages do **not** query GPT-2 or SynthID and do **not** promise the same detection outcome for arbitrary user text.
 
 ## Honest limits (read these)
 

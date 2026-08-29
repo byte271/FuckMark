@@ -4,9 +4,28 @@ This file is the controlled source for [mark.q1z.org](https://mark.q1z.org) and 
 
 Do not pipe `https://d.q1z.org/mark` into a shell. Do not invoke that URL with `iex`. Those commands are disallowed.
 
-## Lead with the no-install demo
+## Lead with the browser tool, then the research demo
 
-Deploy [`demo.html`](demo.html) as `https://mark.q1z.org/demo.html`. Keep it a static file that works from `file://` with baked CLI samples. The live page must show:
+Deploy these static files (repository CI cannot push them; copy after each release):
+
+| Repo file | Public URL |
+| --- | --- |
+| [`mark.html`](mark.html) | `https://mark.q1z.org/mark.html` (browser tool) |
+| [`rec.html`](rec.html) | gate that waits for `go.txt`, then opens `mark.html?demo=1` |
+| [`demo.html`](demo.html) | `https://mark.q1z.org/demo.html` (research / CLI samples) |
+
+### `mark.html` (product paste UI)
+
+Runs in the browser. On **Remove marks** it first runs the same closed-set FuckMark insertion scan as `fuckmark --detect` (U+034F, U+FE00, C0/C1, U+20DD, U+13430-U+13438, U+FFF9-U+FFFB).
+
+- Hit: strip those insertions, copy the cleaned text, keep visible words.
+- Miss: show the no-watermark card (Chinese copy in `mark.html`) and the contact form that mails `Fhelp@q1z.org`.
+
+Do not strip emoji variation selectors, ZWJ, or other non-approved characters. Do not query GPT-2, SynthID, or any remote detector. Icon scripts may load from a CDN; the scan itself is local.
+
+### `demo.html` (research walkthrough)
+
+Keep it a static file that works from `file://` with baked CLI samples. The live page must show:
 
 - character differences for fixed samples (U+034F / U+FE00 plus C0/C1 / Me / Cf / annotation residuals)
 - processed vs not processed, reason, insertions, sites, `last_index`, capped
@@ -14,9 +33,9 @@ Deploy [`demo.html`](demo.html) as `https://mark.q1z.org/demo.html`. Keep it a s
 - Mn-strip / default-ignorable strip leaving control residuals (source not restored; four-layer restore census 0/192)
 - frozen Gate v2 numbers with GPT-2 / 64-token / historical mark-only scope
 
-Do not query GPT-2, SynthID, or any remote detector on visitor paste. The local scan only looks for FuckMark insertion characters. If none are found, the demo offers contact at `Fhelp@q1z.org`. Do not present demo numbers as a guarantee for arbitrary user text.
+If none are found, the demo offers contact at `Fhelp@q1z.org`. Do not present demo numbers as a guarantee for arbitrary user text.
 
-Homepage copy should link the demo before install instructions.
+Homepage copy should link `mark.html` (tool) and `demo.html` (evidence) before install instructions.
 
 ## What the product does
 
