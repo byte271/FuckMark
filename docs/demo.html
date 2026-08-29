@@ -134,6 +134,7 @@ th { color: var(--muted); font-weight: 600; }
 .viewer .cc { color: #7dffb3; background: color-mix(in srgb, #7dffb3 16%, transparent); }
 .viewer .me { color: #ffd27a; background: color-mix(in srgb, #ffd27a 18%, transparent); }
 .viewer .cf { color: #7ad7ff; background: color-mix(in srgb, #7ad7ff 18%, transparent); }
+.viewer .ia { color: #d7a6ff; background: color-mix(in srgb, #d7a6ff 18%, transparent); }
 .viewer .badch { color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); }
 .viewer .tail { opacity: 0.45; }
 .legend {
@@ -158,6 +159,7 @@ th { color: var(--muted); font-weight: 600; }
 .legend .lcc::before { background: #7dffb3; }
 .legend .lme::before { background: #ffd27a; }
 .legend .lcf::before { background: #7ad7ff; }
+.legend .lia::before { background: #d7a6ff; }
 .legend .lbad::before { background: var(--bad); }
 .actions {
   display: flex;
@@ -227,13 +229,13 @@ code { font-family: var(--mono); font-size: 0.9em; }
 </header>
 <main>
   <section class="banner" id="reversal-banner">
-    <strong>Four-layer mix resists Mn/DI strip, Me-strip, and UnicodeSanitizer combinations.</strong>
-    Each eligible letter or emoji grapheme cluster receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+13438). Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. NFD clusters are marked after the combining sequence. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle no longer restore the source. Frozen Cf-strip still removes the Cf layer. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
+    <strong>Five-layer mix resists Mn/DI strip, Me-strip, UnicodeSanitizer, and Cf-strip after UnicodeSanitizer.</strong>
+    Each eligible letter or emoji grapheme cluster receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), a cycling Egyptian hieroglyph format control (U+13430-U+13438), and a cycling interlinear annotation control (U+FFF9-U+FFFB). Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. NFD clusters are marked after the combining sequence. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, Mn then Me then UnicodeSanitizer then frozen Cf-strip, and the required sanitizer bundle no longer restore the source. UnicodeSanitizer turns annotation controls into spaces. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
   </section>
 
   <section class="panel" id="frozen-scores">
     <h2>Frozen detection comparison (fixed corpus, not your paste)</h2>
-    <p>Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. Live CLI now uses four-layer mark plus Cc plus Me plus Cf (U+13430-U+13438) and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
+    <p>Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. Live CLI now uses five-layer mark plus Cc plus Me plus Cf (U+13430-U+13438) plus annotation (U+FFF9-U+FFFB) and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
     <table>
       <thead>
         <tr><th>Arm</th><th>Detections</th><th>What it means</th></tr>
@@ -271,6 +273,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
       <span class="lcc">Cc residual</span>
       <span class="lme">U+20DD Me</span>
       <span class="lcf">U+13430 Cf</span>
+      <span class="lia">U+FFF9 annotation</span>
       <span class="lbad">Unsupported / restored mismatch</span>
     </div>
     <div class="actions">
@@ -306,9 +309,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "ascii-eligible",
     "title": "Eligible ASCII",
     "source": "I do not agree.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐰e͏⃝𓐱.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻ n︀⃝𓐳￹o͏⃝𓐴￺t︀⃝𓐵￻ a͏⃝𓐶￹g︀⃝𓐷￺r͏⃝𓐸￻e︀⃝𓐰￹e͏⃝𓐱￺.",
     "reason": "transformed",
-    "insertions": 44,
+    "insertions": 55,
     "sites": 11,
     "last_index": 13,
     "capped": false,
@@ -320,9 +323,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "ascii-apostrophe",
     "title": "Straight ASCII apostrophe",
     "source": "I don't agree.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲n︀⃝𓐳't͏⃝𓐴 a︀⃝𓐵g͏⃝𓐶r︀⃝𓐷e͏⃝𓐸e︀⃝𓐰.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻n︀⃝𓐳￹'t͏⃝𓐴￺ a︀⃝𓐵￻g͏⃝𓐶￹r︀⃝𓐷￺e͏⃝𓐸￻e︀⃝𓐰￹.",
     "reason": "transformed",
-    "insertions": 40,
+    "insertions": 50,
     "sites": 10,
     "last_index": 12,
     "capped": false,
@@ -334,9 +337,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "curly-apostrophe",
     "title": "Curly apostrophe (letters mixed)",
     "source": "I don’t agree.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲n︀⃝𓐳’t͏⃝𓐴 a︀⃝𓐵g͏⃝𓐶r︀⃝𓐷e͏⃝𓐸e︀⃝𓐰.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻n︀⃝𓐳￹’t͏⃝𓐴￺ a︀⃝𓐵￻g͏⃝𓐶￹r︀⃝𓐷￺e͏⃝𓐸￻e︀⃝𓐰￹.",
     "reason": "transformed",
-    "insertions": 40,
+    "insertions": 50,
     "sites": 10,
     "last_index": 12,
     "capped": false,
@@ -348,9 +351,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "accented",
     "title": "Accented Latin letter is a site",
     "source": "I do not agree é.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐰e͏⃝𓐱 é︀⃝𓐲.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻ n︀⃝𓐳￹o͏⃝𓐴￺t︀⃝𓐵￻ a͏⃝𓐶￹g︀⃝𓐷￺r͏⃝𓐸￻e︀⃝𓐰￹e͏⃝𓐱￺ é︀⃝𓐲￻.",
     "reason": "transformed",
-    "insertions": 48,
+    "insertions": 60,
     "sites": 12,
     "last_index": 15,
     "capped": false,
@@ -362,9 +365,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "latin-only",
     "title": "Latin letters without ASCII",
     "source": "ééé",
-    "output": "é͏⃝𓐰é︀⃝𓐱é͏⃝𓐲",
+    "output": "é͏⃝𓐰￹é︀⃝𓐱￺é͏⃝𓐲￻",
     "reason": "transformed",
-    "insertions": 12,
+    "insertions": 15,
     "sites": 3,
     "last_index": 2,
     "capped": false,
@@ -376,9 +379,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "han-only",
     "title": "Han syllables",
     "source": "中文",
-    "output": "中͏⃝𓐰文︀⃝𓐱",
+    "output": "中͏⃝𓐰￹文︀⃝𓐱￺",
     "reason": "transformed",
-    "insertions": 8,
+    "insertions": 10,
     "sites": 2,
     "last_index": 1,
     "capped": false,
@@ -390,9 +393,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "emoji-only",
     "title": "Emoji-only input",
     "source": "😀",
-    "output": "😀͏⃝𓐰",
+    "output": "😀͏⃝𓐰￹",
     "reason": "transformed",
-    "insertions": 4,
+    "insertions": 5,
     "sites": 1,
     "last_index": 0,
     "capped": false,
@@ -404,9 +407,9 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "site-full",
     "title": "312-letter coverage (under 4096 cap)",
     "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
-    "output": "a͏⃝𓐰b︀⃝𓐱c͏⃝𓐲d︀⃝𓐳e͏⃝𓐴f︀⃝𓐵g͏⃝𓐶h︀⃝𓐷i͏⃝𓐸j︀⃝𓐰k͏⃝𓐱l︀⃝𓐲m͏⃝𓐳n︀⃝𓐴o͏⃝𓐵p︀⃝𓐶q͏⃝𓐷r︀⃝𓐸s͏⃝𓐰t︀⃝𓐱u͏⃝𓐲v︀⃝𓐳w͏⃝𓐴x︀⃝𓐵y͏⃝𓐶z︀⃝𓐷a͏⃝𓐸b︀⃝𓐰c͏⃝𓐱d︀⃝𓐲e͏⃝𓐳f︀⃝𓐴g͏⃝𓐵h︀⃝𓐶i͏⃝𓐷j︀⃝𓐸k͏⃝𓐰l︀⃝𓐱m͏⃝𓐲n︀⃝𓐳o͏⃝𓐴p︀⃝𓐵q͏⃝𓐶r︀⃝𓐷s͏⃝𓐸t︀⃝𓐰u͏⃝𓐱v︀⃝𓐲w͏⃝𓐳x︀⃝𓐴y͏⃝𓐵z︀⃝𓐶a͏⃝𓐷b︀⃝𓐸c͏⃝𓐰d︀⃝𓐱e͏⃝𓐲f︀⃝𓐳g͏⃝𓐴h︀⃝𓐵i͏⃝𓐶j︀⃝𓐷k͏⃝𓐸l︀⃝𓐰m͏⃝𓐱n︀⃝𓐲o͏⃝𓐳p︀⃝𓐴q͏⃝𓐵r︀⃝𓐶s͏⃝𓐷t︀⃝𓐸u͏⃝𓐰v︀⃝𓐱w͏⃝𓐲x︀⃝𓐳y͏⃝𓐴z︀⃝𓐵a͏⃝𓐶b︀⃝𓐷c͏⃝𓐸d︀⃝𓐰e͏⃝𓐱f︀⃝𓐲g͏⃝𓐳h︀⃝𓐴i͏⃝𓐵j︀⃝𓐶k͏⃝𓐷l︀⃝𓐸m͏⃝𓐰n︀⃝𓐱o͏⃝𓐲p︀⃝𓐳q͏⃝𓐴r︀⃝𓐵s͏⃝𓐶t︀⃝𓐷u͏⃝𓐸v︀⃝𓐰w͏⃝𓐱x︀⃝𓐲y͏⃝𓐳z︀⃝𓐴a͏⃝𓐵b︀⃝𓐶c͏⃝𓐷d︀⃝𓐸e͏⃝𓐰f︀⃝𓐱g͏⃝𓐲h︀⃝𓐳i͏⃝𓐴j︀⃝𓐵k͏⃝𓐶l︀⃝𓐷m͏⃝𓐸n︀⃝𓐰o͏⃝𓐱p︀⃝𓐲q͏⃝𓐳r︀⃝𓐴s͏⃝𓐵t︀⃝𓐶u͏⃝𓐷v︀⃝𓐸w͏⃝𓐰x︀⃝𓐱y͏⃝𓐲z︀⃝𓐳a͏⃝𓐴b︀⃝𓐵c͏⃝𓐶d︀⃝𓐷e͏⃝𓐸f︀⃝𓐰g͏⃝𓐱h︀⃝𓐲i͏⃝𓐳j︀⃝𓐴k͏⃝𓐵l︀⃝𓐶m͏⃝𓐷n︀⃝𓐸o͏⃝𓐰p︀⃝𓐱q͏⃝𓐲r︀⃝𓐳s͏⃝𓐴t︀⃝𓐵u͏⃝𓐶v︀⃝𓐷w͏⃝𓐸x︀⃝𓐰y͏⃝𓐱z︀⃝𓐲a͏⃝𓐳b︀⃝𓐴c͏⃝𓐵d︀⃝𓐶e͏⃝𓐷f︀⃝𓐸g͏⃝𓐰h︀⃝𓐱i͏⃝𓐲j︀⃝𓐳k͏⃝𓐴l︀⃝𓐵m͏⃝𓐶n︀⃝𓐷o͏⃝𓐸p︀⃝𓐰q͏⃝𓐱r︀⃝𓐲s͏⃝𓐳t︀⃝𓐴u͏⃝𓐵v︀⃝𓐶w͏⃝𓐷x︀⃝𓐸y͏⃝𓐰z︀⃝𓐱a͏⃝𓐲b︀⃝𓐳c͏⃝𓐴d︀⃝𓐵e͏⃝𓐶f︀⃝𓐷g͏⃝𓐸h︀⃝𓐰i͏⃝𓐱j︀⃝𓐲k͏⃝𓐳l︀⃝𓐴m͏⃝𓐵n︀⃝𓐶o͏⃝𓐷p︀⃝𓐸q͏⃝𓐰r︀⃝𓐱s͏⃝𓐲t︀⃝𓐳u͏⃝𓐴v︀⃝𓐵w͏⃝𓐶x︀⃝𓐷y͏⃝𓐸z︀⃝𓐰a͏⃝𓐱b︀⃝𓐲c͏⃝𓐳d︀⃝𓐴e͏⃝𓐵f︀⃝𓐶g͏⃝𓐷h︀⃝𓐸i͏⃝𓐰j︀⃝𓐱k͏⃝𓐲l︀⃝𓐳m͏⃝𓐴n︀⃝𓐵o͏⃝𓐶p︀⃝𓐷q͏⃝𓐸r︀⃝𓐰s͏⃝𓐱t︀⃝𓐲u͏⃝𓐳v︀⃝𓐴w͏⃝𓐵x︀⃝𓐶y͏⃝𓐷z︀⃝𓐸a͏⃝𓐰b︀⃝𓐱c͏⃝𓐲d︀⃝𓐳e͏⃝𓐴f︀⃝𓐵g͏⃝𓐶h︀⃝𓐷i͏⃝𓐸j︀⃝𓐰k͏⃝𓐱l︀⃝𓐲m͏⃝𓐳n︀⃝𓐴o͏⃝𓐵p︀⃝𓐶q͏⃝𓐷r︀⃝𓐸s͏⃝𓐰t︀⃝𓐱u͏⃝𓐲v︀⃝𓐳w͏⃝𓐴x︀⃝𓐵y͏⃝𓐶z︀⃝𓐷a͏⃝𓐸b︀⃝𓐰c͏⃝𓐱d︀⃝𓐲e͏⃝𓐳f︀⃝𓐴g͏⃝𓐵h︀⃝𓐶i͏⃝𓐷j︀⃝𓐸k͏⃝𓐰l︀⃝𓐱m͏⃝𓐲n︀⃝𓐳o͏⃝𓐴p︀⃝𓐵q͏⃝𓐶r︀⃝𓐷s͏⃝𓐸t︀⃝𓐰u͏⃝𓐱v︀⃝𓐲w͏⃝𓐳x︀⃝𓐴y͏⃝𓐵z︀⃝𓐶a͏⃝𓐷b︀⃝𓐸c͏⃝𓐰d︀⃝𓐱e͏⃝𓐲f︀⃝𓐳g͏⃝𓐴h︀⃝𓐵i͏⃝𓐶j︀⃝𓐷k͏⃝𓐸l︀⃝𓐰m͏⃝𓐱n︀⃝𓐲o͏⃝𓐳p︀⃝𓐴q͏⃝𓐵r︀⃝𓐶s͏⃝𓐷t︀⃝𓐸u͏⃝𓐰v︀⃝𓐱w͏⃝𓐲x︀⃝𓐳y͏⃝𓐴z︀⃝𓐵",
+    "output": "a͏⃝𓐰￹b︀⃝𓐱￺c͏⃝𓐲￻d︀⃝𓐳￹e͏⃝𓐴￺f︀⃝𓐵￻g͏⃝𓐶￹h︀⃝𓐷￺i͏⃝𓐸￻j︀⃝𓐰￹k͏⃝𓐱￺l︀⃝𓐲￻m͏⃝𓐳￹n︀⃝𓐴￺o͏⃝𓐵￻p︀⃝𓐶￹q͏⃝𓐷￺r︀⃝𓐸￻s͏⃝𓐰￹t︀⃝𓐱￺u͏⃝𓐲￻v︀⃝𓐳￹w͏⃝𓐴￺x︀⃝𓐵￻y͏⃝𓐶￹z︀⃝𓐷￺a͏⃝𓐸￻b︀⃝𓐰￹c͏⃝𓐱￺d︀⃝𓐲￻e͏⃝𓐳￹f︀⃝𓐴￺g͏⃝𓐵￻h︀⃝𓐶￹i͏⃝𓐷￺j︀⃝𓐸￻k͏⃝𓐰￹l︀⃝𓐱￺m͏⃝𓐲￻n︀⃝𓐳￹o͏⃝𓐴￺p︀⃝𓐵￻q͏⃝𓐶￹r︀⃝𓐷￺s͏⃝𓐸￻t︀⃝𓐰￹u͏⃝𓐱￺v︀⃝𓐲￻w͏⃝𓐳￹x︀⃝𓐴￺y͏⃝𓐵￻z︀⃝𓐶￹a͏⃝𓐷￺b︀⃝𓐸￻c͏⃝𓐰￹d︀⃝𓐱￺e͏⃝𓐲￻f︀⃝𓐳￹g͏⃝𓐴￺h︀⃝𓐵￻i͏⃝𓐶￹j︀⃝𓐷￺k͏⃝𓐸￻l︀⃝𓐰￹m͏⃝𓐱￺n︀⃝𓐲￻o͏⃝𓐳￹p︀⃝𓐴￺q͏⃝𓐵￻r︀⃝𓐶￹s͏⃝𓐷￺t︀⃝𓐸￻u͏⃝𓐰￹v︀⃝𓐱￺w͏⃝𓐲￻x︀⃝𓐳￹y͏⃝𓐴￺z︀⃝𓐵￻a͏⃝𓐶￹b︀⃝𓐷￺c͏⃝𓐸￻d︀⃝𓐰￹e͏⃝𓐱￺f︀⃝𓐲￻g͏⃝𓐳￹h︀⃝𓐴￺i͏⃝𓐵￻j︀⃝𓐶￹k͏⃝𓐷￺l︀⃝𓐸￻m͏⃝𓐰￹n︀⃝𓐱￺o͏⃝𓐲￻p︀⃝𓐳￹q͏⃝𓐴￺r︀⃝𓐵￻s͏⃝𓐶￹t︀⃝𓐷￺u͏⃝𓐸￻v︀⃝𓐰￹w͏⃝𓐱￺x︀⃝𓐲￻y͏⃝𓐳￹z︀⃝𓐴￺a͏⃝𓐵￻b︀⃝𓐶￹c͏⃝𓐷￺d︀⃝𓐸￻e͏⃝𓐰￹f︀⃝𓐱￺g͏⃝𓐲￻h︀⃝𓐳￹i͏⃝𓐴￺j︀⃝𓐵￻k͏⃝𓐶￹l︀⃝𓐷￺m͏⃝𓐸￻n︀⃝𓐰￹o͏⃝𓐱￺p︀⃝𓐲￻q͏⃝𓐳￹r︀⃝𓐴￺s͏⃝𓐵￻t︀⃝𓐶￹u͏⃝𓐷￺v︀⃝𓐸￻w͏⃝𓐰￹x︀⃝𓐱￺y͏⃝𓐲￻z︀⃝𓐳￹a͏⃝𓐴￺b︀⃝𓐵￻c͏⃝𓐶￹d︀⃝𓐷￺e͏⃝𓐸￻f︀⃝𓐰￹g͏⃝𓐱￺h︀⃝𓐲￻i͏⃝𓐳￹j︀⃝𓐴￺k͏⃝𓐵￻l︀⃝𓐶￹m͏⃝𓐷￺n︀⃝𓐸￻o͏⃝𓐰￹p︀⃝𓐱￺q͏⃝𓐲￻r︀⃝𓐳￹s͏⃝𓐴￺t︀⃝𓐵￻u͏⃝𓐶￹v︀⃝𓐷￺w͏⃝𓐸￻x︀⃝𓐰￹y͏⃝𓐱￺z︀⃝𓐲￻a͏⃝𓐳￹b︀⃝𓐴￺c͏⃝𓐵￻d︀⃝𓐶￹e͏⃝𓐷￺f︀⃝𓐸￻g͏⃝𓐰￹h︀⃝𓐱￺i͏⃝𓐲￻j︀⃝𓐳￹k͏⃝𓐴￺l︀⃝𓐵￻m͏⃝𓐶￹n︀⃝𓐷￺o͏⃝𓐸￻p︀⃝𓐰￹q͏⃝𓐱￺r︀⃝𓐲￻s͏⃝𓐳￹t︀⃝𓐴￺u͏⃝𓐵￻v︀⃝𓐶￹w͏⃝𓐷￺x︀⃝𓐸￻y͏⃝𓐰￹z︀⃝𓐱￺a͏⃝𓐲￻b︀⃝𓐳￹c͏⃝𓐴￺d︀⃝𓐵￻e͏⃝𓐶￹f︀⃝𓐷￺g͏⃝𓐸￻h︀⃝𓐰￹i͏⃝𓐱￺j︀⃝𓐲￻k͏⃝𓐳￹l︀⃝𓐴￺m͏⃝𓐵￻n︀⃝𓐶￹o͏⃝𓐷￺p︀⃝𓐸￻q͏⃝𓐰￹r︀⃝𓐱￺s͏⃝𓐲￻t︀⃝𓐳￹u͏⃝𓐴￺v︀⃝𓐵￻w͏⃝𓐶￹x︀⃝𓐷￺y͏⃝𓐸￻z︀⃝𓐰￹a͏⃝𓐱￺b︀⃝𓐲￻c͏⃝𓐳￹d︀⃝𓐴￺e͏⃝𓐵￻f︀⃝𓐶￹g͏⃝𓐷￺h︀⃝𓐸￻i͏⃝𓐰￹j︀⃝𓐱￺k͏⃝𓐲￻l︀⃝𓐳￹m͏⃝𓐴￺n︀⃝𓐵￻o͏⃝𓐶￹p︀⃝𓐷￺q͏⃝𓐸￻r︀⃝𓐰￹s͏⃝𓐱￺t︀⃝𓐲￻u͏⃝𓐳￹v︀⃝𓐴￺w͏⃝𓐵￻x︀⃝𓐶￹y͏⃝𓐷￺z︀⃝𓐸￻a͏⃝𓐰￹b︀⃝𓐱￺c͏⃝𓐲￻d︀⃝𓐳￹e͏⃝𓐴￺f︀⃝𓐵￻g͏⃝𓐶￹h︀⃝𓐷￺i͏⃝𓐸￻j︀⃝𓐰￹k͏⃝𓐱￺l︀⃝𓐲￻m͏⃝𓐳￹n︀⃝𓐴￺o͏⃝𓐵￻p︀⃝𓐶￹q͏⃝𓐷￺r︀⃝𓐸￻s͏⃝𓐰￹t︀⃝𓐱￺u͏⃝𓐲￻v︀⃝𓐳￹w͏⃝𓐴￺x︀⃝𓐵￻y͏⃝𓐶￹z︀⃝𓐷￺a͏⃝𓐸￻b︀⃝𓐰￹c͏⃝𓐱￺d︀⃝𓐲￻e͏⃝𓐳￹f︀⃝𓐴￺g͏⃝𓐵￻h︀⃝𓐶￹i͏⃝𓐷￺j︀⃝𓐸￻k͏⃝𓐰￹l︀⃝𓐱￺m͏⃝𓐲￻n︀⃝𓐳￹o͏⃝𓐴￺p︀⃝𓐵￻q͏⃝𓐶￹r︀⃝𓐷￺s͏⃝𓐸￻t︀⃝𓐰￹u͏⃝𓐱￺v︀⃝𓐲￻w͏⃝𓐳￹x︀⃝𓐴￺y͏⃝𓐵￻z︀⃝𓐶￹a͏⃝𓐷￺b︀⃝𓐸￻c͏⃝𓐰￹d︀⃝𓐱￺e͏⃝𓐲￻f︀⃝𓐳￹g͏⃝𓐴￺h︀⃝𓐵￻i͏⃝𓐶￹j︀⃝𓐷￺k͏⃝𓐸￻l︀⃝𓐰￹m͏⃝𓐱￺n︀⃝𓐲￻o͏⃝𓐳￹p︀⃝𓐴￺q͏⃝𓐵￻r︀⃝𓐶￹s͏⃝𓐷￺t︀⃝𓐸￻u͏⃝𓐰￹v︀⃝𓐱￺w͏⃝𓐲￻x︀⃝𓐳￹y͏⃝𓐴￺z︀⃝𓐵￻",
     "reason": "transformed",
-    "insertions": 1248,
+    "insertions": 1560,
     "sites": 312,
     "last_index": 311,
     "capped": false,
@@ -474,6 +477,10 @@ code { font-family: var(--mono); font-size: 0.9em; }
       }
       if (cp >= 0x13430 && cp <= 0x13438) {
         html += '<span class="cf" title="' + hex(cp) + '">[' + hex(cp).slice(2) + ']</span>';
+        continue;
+      }
+      if (cp >= 0xFFF9 && cp <= 0xFFFB) {
+        html += '<span class="ia" title="' + hex(cp) + '">[' + hex(cp).slice(2) + ']</span>';
         continue;
       }
       let cls = "";
@@ -550,7 +557,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     if (mode === "escaped") {
       charView.textContent = escaped(active.output);
       renderStatus(active, null);
-      reversalNote.textContent = "Escapes show U+034F / U+FE00 / U+20DD / U+13430 without relying on font rendering.";
+      reversalNote.textContent = "Escapes show U+034F / U+FE00 / U+20DD / U+13430 / U+FFF9 without relying on font rendering.";
       return;
     }
     renderStatus(active, extras);
@@ -560,7 +567,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     });
     if (mode === "mn" || mode === "di") {
       reversalNote.textContent = extras.restored
-        ? "Strip restored the exact source. That should not happen on live four-layer output."
+        ? "Strip restored the exact source. That should not happen on live five-layer output."
         : "Strip did not restore the source. Me/Cc/Cf residuals remain after Mn or default-ignorable removal.";
     } else if (!active.processed) {
       reversalNote.textContent = "This sample is not processed. Exit 0 from the CLI still means I/O succeeded, not that hidden characters were inserted.";
@@ -616,7 +623,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
   }
 
   function isCarrier(cp) {
-    return cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || (cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f) || (cp >= 0x13430 && cp <= 0x13438);
+    return cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || (cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f) || (cp >= 0x13430 && cp <= 0x13438) || (cp >= 0xfff9 && cp <= 0xfffb);
   }
 
   function inspectLive() {

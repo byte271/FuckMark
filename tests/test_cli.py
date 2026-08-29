@@ -326,8 +326,8 @@ def test_cli_version_reports_project_identity(capsys) -> None:
     assert result.value.code == 0
     rendered = capsys.readouterr().out.strip()
     assert rendered == f"FuckMark {__version__}"
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v9"
-    assert "release-cli-v9" not in rendered
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v10"
+    assert "release-cli-v10" not in rendered
     assert "transform-registry" not in rendered
 
 

@@ -32,12 +32,13 @@ from ..hashing import sha256_json
 from ..product.contract import FROZEN_PRODUCT_CONTRACT_HASH
 from ..product.domain import is_supported_product_domain_v1
 from ..product.visible_projection import product_approved_carriers_v1, project_visible_v1
+from ..sanitizer_robustness import strip_unicode_format_characters
 from ..transforms.registry import release_transform_registry
 
 
 PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
 PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
-PRODUCT_AUTHORIZATION_HASH = "815ffe7bfdcc0e03113d5dc9d1e75d9c8e0ff9d8d386aac8ed1c3b7bd700f2cf"
+PRODUCT_AUTHORIZATION_HASH = "f5e9a27d7dacc0c0de8eab4206801a1505c09138872b5bdb5fa5b40d3019edb1"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -56,6 +57,8 @@ def product_authorization_payload() -> dict[str, object]:
     mn_me_us = lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(transformed)))
     di_me_us = lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_default_ignorable(transformed)))
     mn_me_cc = strip_other_controls(strip_enclosing_marks(strip_nonspacing_marks(transformed)))
+    mn_me_us_cf = strip_unicode_format_characters(mn_me_us)
+    di_me_us_cf = strip_unicode_format_characters(di_me_us)
     nfd_mixed = apply_letter_alternating_mix(nfd_pair)
     payload = {
         "algorithm_version": PRODUCT_AUTHORIZATION_VERSION,
@@ -108,16 +111,21 @@ def product_authorization_payload() -> dict[str, object]:
             "mn_me_us_does_not_restore_source": mn_me_us != _AUDIT_SOURCE,
             "di_me_us_does_not_restore_source": di_me_us != _AUDIT_SOURCE,
             "mn_me_cc_does_not_restore_source": mn_me_cc != _AUDIT_SOURCE,
+            "mn_me_us_cf_does_not_restore_source": mn_me_us_cf != _AUDIT_SOURCE,
+            "di_me_us_cf_does_not_restore_source": di_me_us_cf != _AUDIT_SOURCE,
         },
         "notes": (
-            "Product authorization of four-layer u034f-ufe00-cc-me-cf-letter-alt-v1. "
+            "Product authorization of five-layer u034f-ufe00-cc-me-cf-ia-letter-alt-v1. "
             "Mark plus Cc plus enclosing Me (U+20DD) plus cycling Egyptian hieroglyph format "
-            "controls (U+13430-U+13438) keep Mn-strip, default-ignorable-strip, UnicodeSanitizer "
-            "orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle from "
-            "restoring the source. Frozen cf_strip still removes the Cf layer. Visible projection "
-            "strips approved carriers; Me may decorate glyphs in some renderers. Live sites are "
-            "grapheme clusters of Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji, "
-            "including NFD Latin where insertions follow the combining sequence. Historical Gate v2 "
+            "controls (U+13430-U+13438) plus cycling interlinear annotation controls "
+            "(U+FFF9-U+FFFB) keep Mn-strip, default-ignorable-strip, UnicodeSanitizer "
+            "orderings, Mn then Me then UnicodeSanitizer, Mn then Me then UnicodeSanitizer "
+            "then frozen cf_strip, and the required sanitizer bundle from restoring the source. "
+            "UnicodeSanitizer turns the annotation controls into spaces, so cf_strip after it "
+            "cannot rebuild the original spacing. Visible projection strips approved carriers; "
+            "Me may decorate glyphs in some renderers. Live sites are grapheme clusters of "
+            "Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji, including NFD "
+            "Latin where insertions follow the combining sequence. Historical Gate v2 "
             "confirmation remains the frozen GPT-2 evidence for the prior mark-only arm."
         ),
     }
@@ -155,8 +163,8 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("product authorization spec does not match the live payload")
     if disk["product_authorized"] is not True:
         raise ValueError("product authorization spec must authorize")
-    if disk["cli_algorithm_version"] != "release-cli-v9":
-        raise ValueError("product authorization must use release-cli-v9")
+    if disk["cli_algorithm_version"] != "release-cli-v10":
+        raise ValueError("product authorization must use release-cli-v10")
     if disk["mix_sanitizer_gate_v1"] != "PASS":
         raise ValueError("product authorization must record the durable sanitizer gate PASS")
     if disk["identities"]["mix_freeze_hash"] != _MIX_FREEZE_HASH:
@@ -185,6 +193,10 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("authorized mix must resist DI then Me then UnicodeSanitizer restoration")
     if disk["live"]["mn_me_cc_does_not_restore_source"] is not True:
         raise ValueError("authorized mix must resist Mn then Me then Cc-strip restoration")
+    if disk["live"]["mn_me_us_cf_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn then Me then UnicodeSanitizer then Cf-strip restoration")
+    if disk["live"]["di_me_us_cf_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist DI then Me then UnicodeSanitizer then Cf-strip restoration")
     if disk["live"]["latin_letter_only_processed"] is not True:
         raise ValueError("authorized mix must process Latin letters outside ASCII")
     if disk["live"]["han_syllable_processed"] is not True:

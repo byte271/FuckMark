@@ -11,6 +11,7 @@ from fuckmark.cycle8.benchmark import (
 )
 from fuckmark.cycle8.letter_mix import (
     LETTER_MIX_APPROVED_CARRIERS,
+    apply_historical_quad_layer_letter_mix,
     apply_historical_mark_letter_mix,
     apply_letter_alternating_mix,
     select_letter_mix_sites,
@@ -88,10 +89,20 @@ def test_hello_emoji_keeps_ascii_sites_and_adds_the_pictograph() -> None:
     assert project_visible_v1(applied, LETTER_MIX_APPROVED_CARRIERS) == source
 
 
-def test_mn_me_us_still_leaves_cf_and_category_complete_strip_still_restores() -> None:
+def test_mn_me_us_cf_leaves_unicode_sanitizer_spaces() -> None:
     source = "I do not agree."
     live = apply_letter_alternating_mix(source)
     mn_me_us = lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(live)))
     assert mn_me_us != source
     restored = strip_unicode_format_characters(mn_me_us)
-    assert restored == source
+    assert restored != source
+    assert " " in restored
+    historical = apply_historical_quad_layer_letter_mix(source)
+    historical_restored = strip_unicode_format_characters(
+        lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(historical)))
+    )
+    assert historical_restored == source
+    cf_then_us = lm_watermarking_unicode_sanitizer(
+        strip_unicode_format_characters(strip_enclosing_marks(strip_nonspacing_marks(live)))
+    )
+    assert cf_then_us == source

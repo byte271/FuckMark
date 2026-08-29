@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from fuckmark.cycle8.letter_mix import LETTER_MIX_MECHANISM_ID, apply_letter_alternating_mix
+from fuckmark.cycle8.letter_mix import HISTORICAL_QUAD_LAYER_MIX_MECHANISM_ID, apply_letter_alternating_mix
 from fuckmark.hashing import sha256_file, sha256_json
 from fuckmark.product.visible_projection import project_visible_v1
 
@@ -20,7 +20,7 @@ def test_quad_layer_restore_census_keeps_mn_me_us_at_zero() -> None:
     assert disk["visible_ok"] == 192
     assert disk["us_stable_sources"] == 26
     assert disk["cf_residual_after_mn_me_us"] == 192
-    assert disk["mechanism_id"] == LETTER_MIX_MECHANISM_ID
+    assert disk["mechanism_id"] == HISTORICAL_QUAD_LAYER_MIX_MECHANISM_ID
     assert disk["evidence_label"] == "HYPOTHESIS"
     effectiveness = disk["effectiveness"]
     assert effectiveness["quad_mn_me_us"]["restore_rate"] == "0/192"

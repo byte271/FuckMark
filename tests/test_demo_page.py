@@ -88,4 +88,4 @@ def test_demo_samples_match_live_cli_and_reversal() -> None:
     covered = next(sample for sample in samples if sample["id"] == "site-full")
     assert covered["capped"] is False
     assert covered["sites"] == 312
-    assert covered["insertions"] == 1248
+    assert covered["insertions"] == 1560

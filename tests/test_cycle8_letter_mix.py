@@ -18,6 +18,8 @@ from fuckmark.cycle8.letter_mix import (
     LETTER_MIX_CF_CODEPOINTS,
     LETTER_MIX_CF_PAYLOADS,
     LETTER_MIX_CONTROL_PAYLOADS,
+    LETTER_MIX_IA_CODEPOINTS,
+    LETTER_MIX_IA_PAYLOADS,
     LETTER_MIX_INSERTIONS_PER_SITE,
     LETTER_MIX_MAX_SELECTED,
     LETTER_MIX_ME_PAYLOADS,
@@ -41,20 +43,24 @@ def test_letter_mix_uses_alternating_carriers_and_keeps_visible_text() -> None:
         + LETTER_MIX_CONTROL_PAYLOADS[0]
         + LETTER_MIX_ME_PAYLOADS[0]
         + LETTER_MIX_CF_PAYLOADS[0]
+        + LETTER_MIX_IA_PAYLOADS[0]
         + "b\ufe00"
         + LETTER_MIX_CONTROL_PAYLOADS[1]
         + LETTER_MIX_ME_PAYLOADS[0]
         + LETTER_MIX_CF_PAYLOADS[1]
+        + LETTER_MIX_IA_PAYLOADS[1]
         + "c\u034f"
         + LETTER_MIX_CONTROL_PAYLOADS[2]
         + LETTER_MIX_ME_PAYLOADS[0]
         + LETTER_MIX_CF_PAYLOADS[2]
+        + LETTER_MIX_IA_PAYLOADS[2]
         + "d\ufe00"
         + LETTER_MIX_CONTROL_PAYLOADS[3]
         + LETTER_MIX_ME_PAYLOADS[0]
         + LETTER_MIX_CF_PAYLOADS[3]
+        + LETTER_MIX_IA_PAYLOADS[0]
     )
-    assert LETTER_MIX_INSERTIONS_PER_SITE == 4
+    assert LETTER_MIX_INSERTIONS_PER_SITE == 5
     assert is_carrier_insertion_v1(source, applied, LETTER_MIX_APPROVED_CARRIERS)
     assert project_visible_v1(applied, LETTER_MIX_APPROVED_CARRIERS) == source
     assert LETTER_MIX_MAX_SELECTED == 4096
@@ -139,3 +145,11 @@ def test_live_cf_payloads_are_assigned_format_controls() -> None:
     for payload in LETTER_MIX_CF_PAYLOADS:
         assert unicodedata.category(payload) == "Cf"
         assert unicodedata.name(payload)
+
+
+def test_live_ia_payloads_are_unicode_sanitizer_space_bait() -> None:
+    assert LETTER_MIX_IA_CODEPOINTS == (0xFFF9, 0xFFFA, 0xFFFB)
+    for payload in LETTER_MIX_IA_PAYLOADS:
+        assert unicodedata.category(payload) == "Cf"
+        assert unicodedata.name(payload)
+        assert lm_watermarking_unicode_sanitizer(payload) == " "

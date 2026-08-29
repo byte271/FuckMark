@@ -13,10 +13,10 @@ from fuckmark.cycle8.benchmark import (
 from fuckmark.cycle8.control_carrier import apply_required_sanitizer_bundle
 from fuckmark.cycle8.gate_v2 import GATE_V2_CONFIRMATION_SEED_BASES, gate_v2_confirmation_artifact_path
 from fuckmark.cycle8.letter_mix import (
+    HISTORICAL_QUAD_LAYER_MIX_MECHANISM_ID,
     LETTER_MIX_CF_CODEPOINTS,
-    LETTER_MIX_MECHANISM_ID,
+    apply_historical_quad_layer_letter_mix,
     apply_historical_triple_layer_letter_mix,
-    apply_letter_alternating_mix,
 )
 from fuckmark.cycle8.threat_model_audit import lm_watermarking_unicode_sanitizer
 from fuckmark.config import canonical_json_text
@@ -84,7 +84,7 @@ def main() -> int:
         local_cf = 0
         for sample in rows:
             source = str(sample["text"])
-            live = apply_letter_alternating_mix(source)
+            live = apply_historical_quad_layer_letter_mix(source)
             historical = apply_historical_triple_layer_letter_mix(source)
             us_source = lm_watermarking_unicode_sanitizer(source)
             if us_source == source:
@@ -123,7 +123,7 @@ def main() -> int:
         "confirmation_rewritten": False,
         "spent_confirmation_corpora_not_reused_for_generation": True,
         "detector_not_run": True,
-        "mechanism_id": LETTER_MIX_MECHANISM_ID,
+        "mechanism_id": HISTORICAL_QUAD_LAYER_MIX_MECHANISM_ID,
         "watermarked_rows": watermarked_rows,
         "visible_ok": visible_ok,
         "us_stable_sources": us_stable,

@@ -12,10 +12,10 @@ def test_letter_mix_scan_keeps_eligible_prose_bytes_and_invariants() -> None:
     source = "Abcd"
     applied = apply_letter_alternating_mix(source)
     assert applied == (
-        "A\u034f\u007f\u20dd\U00013430"
-        "b\ufe00\u0080\u20dd\U00013431"
-        "c\u034f\u0081\u20dd\U00013432"
-        "d\ufe00\u0082\u20dd\U00013433"
+        "A\u034f\u007f\u20dd\U00013430\ufff9"
+        "b\ufe00\u0080\u20dd\U00013431\ufffa"
+        "c\u034f\u0081\u20dd\U00013432\ufffb"
+        "d\ufe00\u0082\u20dd\U00013433\ufff9"
     )
     prose = "Hello world. This is ordinary English ASCII text without paths."
     mixed = apply_letter_alternating_mix(prose)

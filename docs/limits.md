@@ -6,7 +6,7 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 
 ## L01 — Sanitizers
 
-| Arm | Live four-layer restores source? | Frozen Gate v2 mark-only mix WM |
+| Arm | Live five-layer restores source? | Frozen Gate v2 mark-only mix WM |
 | --- | --- | --- |
 | raw | no | 0/192 |
 | nfc | no | 0/192 |
@@ -19,10 +19,11 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 | Mn-strip / combining-mark strip | **no** (exploratory 0/192) | 188/192 (historical restore) |
 | default-ignorable strip | **no** (exploratory 0/192) | 188/192 (historical restore) |
 | Mn-strip then Me-strip then UnicodeSanitizer | **no** (restore census 0/192) | historical triple-layer matches US(source) 192/192 |
-| Mn then Me then UnicodeSanitizer then frozen cf_strip | **yes** (closed-set remainder) | n/a |
+| Mn then Me then UnicodeSanitizer then frozen cf_strip | **no** (annotation controls become spaces) | n/a |
+| Mn then Me then frozen cf_strip then UnicodeSanitizer | **yes** (closed-set remainder) | n/a |
 | required-bundle then UnicodeSanitizer | **no** (exploratory 0/192) | n/a (bundle already strips marks) |
 
-Live mix (`u034f-ufe00-cc-me-cf-letter-alt-v1`) leaves Me/Cc/Cf residuals after Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle. Frozen Cf-strip still removes the Cf layer. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescores: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/`, `evidence/cycle8-combo-stress-exploratory-n192-2026-08-28/` (historical triple-layer detector scores), and `evidence/cycle8-quad-layer-restore-exploratory-2026-08-29/` (four-layer restore census).
+Live mix (`u034f-ufe00-cc-me-cf-ia-letter-alt-v1`) leaves Me/Cc/Cf residuals after Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle. UnicodeSanitizer turns U+FFF9-U+FFFB into spaces, so frozen Cf-strip after that path does not restore. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescores: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/`, `evidence/cycle8-combo-stress-exploratory-n192-2026-08-28/` (historical triple-layer detector scores), and `evidence/cycle8-quad-layer-restore-exploratory-2026-08-29/` (four-layer restore census).
 
 ## L02 — Input domain
 
@@ -43,7 +44,7 @@ The product does not strip a BOM, normalize accents, or transliterate to force e
 
 ## L03 — Length and the 4096-site cap
 
-Only the first 4096 eligible letter or emoji grapheme clusters receive insertions (four per site: mark, control, Me, Cf). NFD Latin clusters are marked after the combining sequence. For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
+Only the first 4096 eligible letter or emoji grapheme clusters receive insertions (five per site: mark, control, Me, Cf, annotation). NFD Latin clusters are marked after the combining sequence. For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
 
 ## L04 — Detector / model / tokenizer evidence
 

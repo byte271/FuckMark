@@ -9,7 +9,7 @@
 
 # FuckMark
 
-FuckMark is a UTF-8 command for **Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji text**. It inserts Unicode carriers (U+034F, U+FE00, C0/C1 controls, enclosing Me U+20DD, and Egyptian hieroglyph format controls U+13430-U+13438) after those grapheme clusters. Visible projection stays identical; Me may decorate glyphs in some renderers.
+FuckMark is a UTF-8 command for **Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji text**. It inserts Unicode carriers (U+034F, U+FE00, C0/C1 controls, enclosing Me U+20DD, Egyptian hieroglyph format controls U+13430-U+13438, and interlinear annotation controls U+FFF9-U+FFFB) after those grapheme clusters. Visible projection stays identical; Me may decorate glyphs in some renderers.
 
 It is a constrained research/product CLI with measured SynthID / GPT-2 results. It is **not** a general watermark remover, not a paraphraser, and not a claim against unknown or proprietary detectors.
 
@@ -30,9 +30,9 @@ It does **not** score your paste against a detector and does **not** promise the
 
 ## Honest limits (read these)
 
-### 1. Combined sanitizer reversal (live four-layer)
+### 1. Combined sanitizer reversal (live five-layer)
 
-Live mix inserts a mark, a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+13438) after each eligible grapheme cluster. Insertions follow NFD combining sequences instead of splitting them. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle leave Me/Cc/Cf residuals, so the source is not restored. Frozen Cf-strip still removes the Cf layer. Exploratory restore census of frozen Gate v2 watermarked sources on seeds 1200000, 1210000, and 1220000: four-layer **0/192** restore under Mn then Me then UnicodeSanitizer, and **0/192** match to `UnicodeSanitizer(source)`. Historical triple-layer under that path matches `UnicodeSanitizer(source)` **192/192**. Historical GPT-2 / SynthID combo stress on the prior triple-layer mix remains **0/192** after Mn then UnicodeSanitizer. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after Mn/DI strip).
+Live mix inserts a mark, a C0/C1 control, enclosing Me (U+20DD), a cycling Egyptian hieroglyph format control (U+13430-U+13438), and a cycling interlinear annotation control (U+FFF9-U+FFFB) after each eligible grapheme cluster. Insertions follow NFD combining sequences instead of splitting them. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, Mn then Me then UnicodeSanitizer then frozen Cf-strip, and the required sanitizer bundle leave Me/Cc/Cf or space residuals, so the source is not restored. UnicodeSanitizer turns the annotation controls into spaces, so Cf-strip after it cannot rebuild the original. Exploratory restore census of frozen Gate v2 watermarked sources on seeds 1200000, 1210000, and 1220000 remains the historical four-layer **0/192** restore under Mn then Me then UnicodeSanitizer. Historical triple-layer under that path matches `UnicodeSanitizer(source)` **192/192**. Historical GPT-2 / SynthID combo stress on the prior triple-layer mix remains **0/192** after Mn then UnicodeSanitizer. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after Mn/DI strip).
 
 ### 2. Everyday letters and emoji are processed
 
@@ -40,7 +40,7 @@ Latin (including U+00E9), Greek, Cyrillic, Han, Kana, Hangul syllables, and emoj
 
 ### 3. Frozen scores are not “AI detector rate reduction”
 
-Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product fills up to 4096 eligible letter sites (four insertions per site).
+Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product fills up to 4096 eligible letter sites (five insertions per site).
 
 That evidence does **not** answer: “Is this text actually useful on the platform I am using?” Statistical watermarking results on a frozen GPT-2 corpus must not be marketed as a general reduction in AI detection rates. See [`docs/limits.md`](docs/limits.md).
 
@@ -110,7 +110,7 @@ Pipes and files write the payload to stdout. `--visible` prints the original vis
 
 ## What it guarantees
 
-`VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, and a cycling U+13430-U+13438 format control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
+`VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, a cycling U+13430-U+13438 format control, and a cycling U+FFF9-U+FFFB annotation control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
 
 Letter and emoji sites are processed in mixed-Unicode input. Only UTF-8. Inputs with no eligible letter or emoji sites, or that already contain approved carriers, stay unchanged with exit 0 and a stderr reason. That status means I/O succeeded, not that hidden characters were inserted or that a watermark was removed.
 
@@ -125,6 +125,7 @@ Machine text is left intact when recognized: fenced/inline/indented code, HTML t
 | Transformed text after Mn-strip / DI-strip | **188/192** on frozen mark-only; historical triple-layer exploratory **0/192** |
 | Transformed text after Mn then UnicodeSanitizer | Historical dual-layer **182/192**; historical triple-layer exploratory **0/192** |
 | Transformed text after Mn then Me then UnicodeSanitizer | Four-layer restore census **0/192** (Cf residual; detector not run) |
+| Transformed text after Mn then Me then UnicodeSanitizer then Cf-strip | Live five-layer leaves spaces (closed-set remainder is Cf-strip before UnicodeSanitizer) |
 | Transformed unwatermarked text | **0/192** |
 | Exact visible text | **192/192** |
 | Transformed text after UnicodeSanitizer | **0/192** |
@@ -135,9 +136,9 @@ These numbers are frozen Gate v2 confirmation on GPT-2 / SynthID, 64-token sampl
 
 ## Limitations
 
-Live four-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, or the required sanitizer bundle (restore census **0/192** on frozen Gate v2 watermarked sources from seeds 1200000, 1210000, and 1220000). Frozen Gate v2 confirmation is still the historical mark-only arm (**188/192** after Mn/DI strip).
+Live five-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, Mn then Me then UnicodeSanitizer then frozen Cf-strip, or the required sanitizer bundle. Historical four-layer restore census is **0/192** under Mn then Me then UnicodeSanitizer on frozen Gate v2 watermarked sources from seeds 1200000, 1210000, and 1220000. Frozen Gate v2 confirmation is still the historical mark-only arm (**188/192** after Mn/DI strip).
 
-Insertion stops after the first 4096 eligible letter sites (four insertions per site). A longer document is unchanged after that point.
+Insertion stops after the first 4096 eligible letter sites (five insertions per site). A longer document is unchanged after that point.
 
 Primary evidence uses GPT-2-generated 64-token samples and GPT-2 BPE. DistilGPT2 still uses that tokenizer family. This is not evidence against generic AI-authorship classifiers, unknown proprietary detectors, every SynthID deployment, or C2PA.
 
@@ -145,11 +146,11 @@ Hidden characters change raw substring search, some editors, and GPT-2 token cou
 
 Cap 4096 letter sites. See [`docs/limits.md`](docs/limits.md).
 
-Live four-layer mix is Chromium pre-pixel `REJECTED` because enclosing Me (U+20DD) changes glyphs. Historical mark-only mix remains pixel-equal where measured. Older Chromium `contenteditable` VERIFIED rows from 2026-08-26 used a blank-div measurement bug and are not proof of rendering equivalence. Safari/WebKit/terminal pixels remain UNKNOWN. Viewport screenshots cannot prove whole-document equality.
+Live five-layer mix is Chromium pre-pixel `REJECTED` because enclosing Me (U+20DD) changes glyphs. Historical mark-only mix remains pixel-equal where measured. Older Chromium `contenteditable` VERIFIED rows from 2026-08-26 used a blank-div measurement bug and are not proof of rendering equivalence. Safari/WebKit/terminal pixels remain UNKNOWN. Viewport screenshots cannot prove whole-document equality.
 
 ## How it works
 
-Eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji clusters receive an alternating mark (U+034F, then U+FE00), a cycling C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+13438). The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
+Eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji clusters receive an alternating mark (U+034F, then U+FE00), a cycling C0/C1 control, enclosing Me (U+20DD), a cycling Egyptian hieroglyph format control (U+13430-U+13438), and a cycling interlinear annotation control (U+FFF9-U+FFFB). The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
 
 ## Research
 

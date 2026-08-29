@@ -33,7 +33,7 @@ def test_product_authorization_spec_is_committed_and_live() -> None:
     assert disk["algorithm_version"] == PRODUCT_AUTHORIZATION_VERSION
     assert disk["product_authorized"] is True
     assert disk["mechanism_id"] == LETTER_MIX_MECHANISM_ID
-    assert disk["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v9"
+    assert disk["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v10"
     assert disk["mix_sanitizer_gate_v1"] == "PASS"
     assert disk["required_sanitizer_bundle_not_weakened"] is True
     assert disk["release_registry_empty"] is True
@@ -47,6 +47,8 @@ def test_product_authorization_spec_is_committed_and_live() -> None:
     assert disk["live"]["mn_me_us_does_not_restore_source"] is True
     assert disk["live"]["di_me_us_does_not_restore_source"] is True
     assert disk["live"]["mn_me_cc_does_not_restore_source"] is True
+    assert disk["live"]["mn_me_us_cf_does_not_restore_source"] is True
+    assert disk["live"]["di_me_us_cf_does_not_restore_source"] is True
     assert disk["live"]["latin_letter_only_processed"] is True
     assert disk["live"]["han_syllable_processed"] is True
     assert disk["live"]["emoji_only_processed"] is True

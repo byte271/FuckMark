@@ -35,7 +35,7 @@ Processing...
 ✓ Copied to clipboard
 FuckMark: processed: inserted 216 hidden characters.
 FuckMark: processed=yes reason=transformed insertions=216 sites=54 last_index=... source_length=... capped=no.
-FuckMark: Mn-strip, default-ignorable strip, and UnicodeSanitizer combinations leave Me/Cc/Cf residuals.
+FuckMark: Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces.
 ```
 
 Blank lines are kept. `:done` ends the session only when it is the entire line. The transformed payload is copied and not printed. Interactive stderr always states processed vs not processed, insertions, sites, `last_index`, `source_length`, and cap.
@@ -65,7 +65,7 @@ fuckmark --text "I don’t agree." --status
 ```
 
 
-Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and capped unless `-q`. Successful transforms note that Mn-strip, default-ignorable strip, and UnicodeSanitizer combinations leave Me/Cc/Cf residuals. Use `-q` when a pipe must keep stderr empty.
+Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and capped unless `-q`. Successful transforms note that Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces. Use `-q` when a pipe must keep stderr empty.
 
 ## Input modes
 
@@ -107,7 +107,7 @@ Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters 
 
 Example: `I don` + U+2019 + `t agree.` is processed (`reason=transformed`, `first_unsupported=U+2019@5`). U+00E9-only input is processed. A string with no eligible letter or emoji sites is `unsupported-domain` or `no-eligible-sites`.
 
-Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 4096 letter sites, four insertions per site. Insertions fill the first 4096 eligible letter or emoji sites and then stop, so the tail of a long document is unchanged.
+Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 4096 letter sites, five insertions per site. Insertions fill the first 4096 eligible letter or emoji sites and then stop, so the tail of a long document is unchanged.
 
 If the text is already transformed or has no eligible letters, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason, including for `too-large` and internal failure. Exit 0 still means I/O succeeded, not watermark removal.
 
