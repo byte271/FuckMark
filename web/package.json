@@ -1,0 +1,21 @@
+{
+  "name": "fuckmark-web",
+  "private": true,
+  "version": "0.4.1",
+  "type": "module",
+  "description": "Static browser build of FuckMark: insert, detect, and strip in the page. npm run build emits files you can host on GitHub Pages, Netlify, or Cloudflare Pages.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "gen:unicode": "python3 scripts/gen_unicode.py",
+    "gen:fixtures": "python3 scripts/gen_fixtures.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^7.1.3",
+    "vitest": "^3.2.4"
+  }
+}

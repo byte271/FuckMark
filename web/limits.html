@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FuckMark limits</title>
+  <meta name="color-scheme" content="dark" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="wrap limits">
+    <nav class="top" id="nav"></nav>
+    <h1>Limits</h1>
+    <p class="lead">Public limit list for FuckMark 0.4.1. Frozen detector numbers are not regenerated here. The static website runs the product mix in the browser; it still is not a general watermark remover.</p>
+
+    <h2>L01 — Sanitizers</h2>
+    <p>Live five-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, Mn then Me then UnicodeSanitizer then frozen Cf-strip, or the required sanitizer bundle. Frozen Gate v2 confirmation remains the historical mark-only arm (188/192 after Mn/DI strip).</p>
+
+    <h2>L02 — Input domain</h2>
+    <p>Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji clusters are processed. Curly apostrophes and other punctuation stay in the visible text and are reported as <code>first_unsupported</code>. Arabic and other joining scripts are left unchanged. Inputs with no eligible letter or emoji sites stay unchanged.</p>
+
+    <h2>L03 — Length and the 4096-site cap</h2>
+    <p>Only the first 4096 eligible letter or emoji grapheme clusters receive insertions (five per site). A longer document is unchanged after that point. Status fields <code>sites</code>, <code>last_index</code>, and <code>capped</code> report that limit.</p>
+
+    <h2>L04 — Detector evidence is not a product guarantee</h2>
+    <p>Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 still used the GPT-2 tokenizer. Zero detections in a finite set is not a universal zero-rate. Not claimed: generic AI-authorship classifiers, unknown proprietary detectors, every SynthID deployment, C2PA, or a general reduction in AI detection rates.</p>
+
+    <h2>L05 — This website</h2>
+    <p>The npm static build ports the product CLI engine (insert, detect, strip, hard-machine spans). HuggingFace / SynthID research tools stay in Python. Opening these pages does not send your paste anywhere; there is no application server.</p>
+
+    <h2>L06 — Chromium pixels</h2>
+    <p>Live five-layer mix is Chromium pre-pixel REJECTED because enclosing Me (U+20DD) changes glyphs. Historical mark-only mix remains pixel-equal where measured. Safari/WebKit/terminal pixels remain UNKNOWN.</p>
+
+    <footer>
+      Full matrix: repository <code>docs/limits.md</code>. Tool: <a href="./">Mark</a> / <a href="./mark.html">Unmark</a>.
+    </footer>
+  </div>
+  <script type="module" src="/src/limits.ts"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FuckMark — remove statistical marks</title>
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="Strip FuckMark insertions in the browser. Closed-set scan only." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+</head>
+<body data-mode="unmark">
+  <div class="glow" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="wrap">
+    <nav class="top" id="nav"></nav>
+    <h1>FuckMark</h1>
+    <p class="lead" id="lead">Closed-set scan of FuckMark insertion characters only. Not a general AI-watermark detector. A miss is not proof that some other watermark is absent.</p>
+    <div class="modes" role="tablist" aria-label="Mode">
+      <button type="button" id="modeMark">Mark</button>
+      <button type="button" id="modeUnmark" class="on">Unmark</button>
+    </div>
+    <div class="label"><span>Input</span><b id="inMeta">0 chars</b></div>
+    <textarea id="input" spellcheck="false" placeholder="Paste text to scan for FuckMark insertions…"></textarea>
+    <button class="go" id="go" type="button">Remove marks</button>
+    <div class="row">
+      <button class="btn" id="sample" type="button">Load sample</button>
+      <button class="btn" id="clearHist" type="button">Clear history</button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="viewer" id="view" aria-live="polite"></div>
+    <div class="panel" id="miss" hidden>
+      <p class="fail-title">We did not detect a watermark in this text.</p>
+      <p class="note">Closed-set scan of FuckMark insertion characters only. Not a general AI-watermark detector. What? You think there is a watermark in this? <a href="mailto:Fhelp@q1z.org">Contact us</a></p>
+    </div>
+    <section class="history">
+      <div class="label"><span>History</span><b id="histCount">0</b></div>
+      <ul class="history-list" id="histList"></ul>
+    </section>
+    <p class="fine">Same engine as Mark, inverted. Contact <a href="mailto:Fhelp@q1z.org">Fhelp@q1z.org</a> if a miss is wrong.</p>
+    <footer>
+      Product insert UI: <a href="./">index</a>. Research walkthrough: <a href="./demo.html">demo</a>.
+    </footer>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="/src/tool.ts"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="color-scheme" content="dark" />
+<title>Mark</title>
+<style>html,body{height:100%;margin:0;background:#050505}</style>
+</head>
+<body>
+<script>
+async function waitGo() {
+  for (;;) {
+    try {
+      const r = await fetch("go.txt?t=" + Date.now(), { cache: "no-store" });
+      if (r.ok) {
+        location.replace("mark.html?demo=1&v=" + Date.now());
+        return;
+      }
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, 150));
+  }
+}
+waitGo();
+</script>
+</body>
+</html>

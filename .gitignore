@@ -14,3 +14,6 @@ venv/
 .env.*
 .DS_Store
 artifacts/
+node_modules/
+web/dist/
+

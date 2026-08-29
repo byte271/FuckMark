@@ -15,6 +15,21 @@ It is a constrained research/product CLI with measured SynthID / GPT-2 results. 
 
 Website: [mark.q1z.org](https://mark.q1z.org) · License: MIT
 
+## Online website (static npm build)
+
+The product engine (insert, detect, strip) runs in the browser. No Python process, no app server.
+
+```text
+cd web
+npm install
+npm test
+npm run build
+```
+
+Host `web/dist/` on GitHub Pages, Netlify, Cloudflare Pages, or copy it to [mark.q1z.org](https://mark.q1z.org). Details: [`web/README.md`](web/README.md).
+
+HuggingFace / SynthID research jobs stay in this Python tree. The static site does not query them.
+
 ## Browser tool (start here if you dislike the CLI)
 
 ```text
@@ -28,7 +43,7 @@ Opens a local page at `http://127.0.0.1:8765/mark.html`. Paste text in the brows
 - Product paste UI source: [`docs/mark.html`](docs/mark.html) (packaged as `fuckmark/webui/mark.html`) — after deploy: [mark.q1z.org/mark.html](https://mark.q1z.org/mark.html)
 - Research demo: [`docs/demo.html`](docs/demo.html) — `file://` works; after deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html)
 
-`mark.html` runs a local closed-set FuckMark scan, strips approved insertions when found, and on a miss shows an English no-watermark card with contact to `Fhelp@q1z.org`. Under `fuckmark web` that scan is the Python detector; the JS copy is the fallback.
+The npm site at [`web/`](web/) is the full in-browser product (Mark + Unmark). `mark.html` in `docs/` remains the packaged local-web fallback: it runs a closed-set FuckMark scan, strips approved insertions when found, and on a miss shows an English no-watermark card with contact to `Fhelp@q1z.org`. Under `fuckmark web` that scan is the Python detector; the JS copy is the fallback.
 
 The research demo also includes:
 

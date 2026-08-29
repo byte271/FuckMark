@@ -1,0 +1,10 @@
+{
+  "name": "fuckmark",
+  "private": true,
+  "description": "Convenience scripts for the static website in web/",
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "test:web": "npm --prefix web test"
+  }
+}

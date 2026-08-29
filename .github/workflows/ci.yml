@@ -167,3 +167,37 @@ jobs:
           name: middev-calibration-readiness
           path: calibration-readiness/
           if-no-files-found: error
+
+  web:
+    name: Static website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Python package
+        run: python -m pip install -e .
+
+      - name: Install website
+        run: npm ci
+        working-directory: web
+
+      - name: Test TypeScript engine against Python goldens
+        run: npm test
+        working-directory: web
+
+      - name: Build static site
+        run: npm run build
+        working-directory: web

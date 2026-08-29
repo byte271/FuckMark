@@ -6,7 +6,18 @@ Do not pipe `https://d.q1z.org/mark` into a shell. Do not invoke that URL with `
 
 ## Lead with the browser tool, then the research demo
 
-Deploy these static files (repository CI cannot push them; copy after each release):
+Preferred deploy is the npm static site:
+
+```text
+cd web
+npm ci
+npm test
+npm run build
+```
+
+Copy `web/dist/` to [mark.q1z.org](https://mark.q1z.org), or enable GitHub Pages from [`.github/workflows/pages.yml`](../.github/workflows/pages.yml). That build includes Mark (insert), Unmark (`mark.html`), demo, and limits. The engine is TypeScript and is tested against Python goldens.
+
+The older single-file HTML below still works for `file://` and for `fuckmark web`. Deploy these if you are not using the Vite build (repository CI cannot SSH to q1z.org; copy after each release):
 
 | Repo file | Public URL |
 | --- | --- |

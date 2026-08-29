@@ -150,6 +150,8 @@ def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
     assert "docs/demo.html" in readme
     assert "fuckmark web" in readme
     assert "docs/mark.html" in readme
+    assert "npm run build" in readme
+    assert readme.index("Online website") < readme.index("Browser tool")
     assert readme.index("Browser tool") < readme.index("Install from this repository")
     website = (ROOT / "docs/website.md").read_text(encoding="utf-8")
     assert "| sh" not in website
@@ -157,6 +159,7 @@ def test_install_docs_do_not_recommend_live_main_or_pipe_installers() -> None:
     assert "demo.html" in website
     assert "mark.html" in website
     assert "fuckmark web" in website
+    assert "web/dist" in website or "npm run build" in website
     assert (ROOT / "docs/demo.html").is_file()
     assert (ROOT / "docs/mark.html").is_file()
 

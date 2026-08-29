@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FuckMark no-install demo</title>
+  <meta name="color-scheme" content="dark" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="wrap">
+    <nav class="top" id="nav"></nav>
+    <h1>No-install demo</h1>
+    <p class="lead">Fixed CLI-shaped samples plus a local FuckMark scan. Samples are transformed in this tab by the same engine as the Python product CLI. The paste detector only looks for FuckMark insertion characters. It does not query GPT-2 or SynthID.</p>
+
+    <section class="banner" style="margin-top:24px">
+      <strong>Five-layer mix resists Mn/DI strip, Me-strip, UnicodeSanitizer, and Cf-strip after UnicodeSanitizer.</strong>
+      Each eligible letter or emoji grapheme cluster receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), a cycling Egyptian hieroglyph format control (U+13430-U+13438), and a cycling interlinear annotation control (U+FFF9-U+FFFB). Frozen Gate v2 0/192 numbers below are the historical mark-only confirmation corpus.
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">FuckMark detector</h2>
+      <p class="note">Paste text. Local closed-set scan (U+034F, U+FE00, C0/C1, U+20DD, U+13430–U+13438, U+FFF9–U+FFFB).</p>
+      <textarea id="detect-input" spellcheck="false" placeholder="Paste text to check for a FuckMark watermark."></textarea>
+      <div class="row">
+        <button type="button" class="btn" id="btn-detect" style="background:var(--ink);color:#111;border:0">Detect</button>
+      </div>
+      <div id="detect-result"></div>
+      <div class="status" id="detect-status"></div>
+      <div class="viewer" id="detect-view"></div>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Frozen detection comparison (fixed corpus, not your paste)</h2>
+      <p class="note">Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. Live CLI now uses five-layer mix and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
+      <table>
+        <thead>
+          <tr><th>Arm</th><th>Detections</th><th>What it means</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Unmodified watermarked (freeze)</td><td>188/192</td><td>Baseline still detected</td></tr>
+          <tr><td>Mark-only + required sanitizers (freeze)</td><td>0/192</td><td>Required-path success on this corpus</td></tr>
+          <tr><td>Mark-only + Mn-strip (freeze)</td><td>188/192</td><td>Historical mark-only source restore</td></tr>
+          <tr><td>Live four-layer + Mn then Me then UnicodeSanitizer (restore census n=192)</td><td>0/192 restore</td><td>Cf residual; not a detector rescore</td></tr>
+          <tr><td>Exact visible text</td><td>192/192</td><td>Words on screen unchanged</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Do not treat this table as a guarantee for arbitrary user text, commercial platforms, or unknown detectors.</p>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Live CLI samples</h2>
+      <p class="note">Transformed in-browser from the source strings. Same mix as <code>fuckmark</code>.</p>
+      <div class="tabs" id="sample-tabs"></div>
+      <div class="status" id="status-grid"></div>
+      <div class="viewer" id="char-view"></div>
+      <div class="row">
+        <button type="button" class="btn" id="btn-show-output">Show transformed</button>
+        <button type="button" class="btn" id="btn-show-source">Show source</button>
+        <button type="button" class="btn" id="btn-strip-mn">Strip combining marks (Mn)</button>
+        <button type="button" class="btn" id="btn-strip-di">Strip default-ignorables</button>
+      </div>
+      <p class="note" id="reversal-note"></p>
+    </section>
+
+    <section class="panel">
+      <h2 style="margin:0 0 8px;font-size:1.05rem">Local paste inspector</h2>
+      <p class="note">Runs the live product transform on whatever you paste. No network.</p>
+      <textarea id="live-input" spellcheck="false" placeholder="Paste text to mark and inspect."></textarea>
+      <div class="row">
+        <button type="button" class="btn" id="btn-live" style="background:var(--ink);color:#111;border:0">Inspect paste</button>
+      </div>
+      <div class="status" id="live-status"></div>
+      <div class="viewer" id="live-view"></div>
+    </section>
+
+    <footer>
+      Limits: <a href="./limits.html">limits.html</a>. Live host after deploy: <a href="https://mark.q1z.org/demo.html">mark.q1z.org/demo.html</a>.
+    </footer>
+  </div>
+  <script type="module" src="/src/demo.ts"></script>
+</body>
+</html>
