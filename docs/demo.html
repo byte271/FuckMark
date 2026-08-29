@@ -242,9 +242,10 @@ code { font-family: var(--mono); font-size: 0.9em; }
         <tr><td>Mark-only + Mn-strip (freeze)</td><td>188/192</td><td>Historical mark-only source restore</td></tr>
         <tr><td>Mark-only + default-ignorable strip (freeze)</td><td>188/192</td><td>Historical mark-only source restore</td></tr>
         <tr><td>Live dual-layer + Mn-strip (exploratory n=64)</td><td>0/64</td><td>Historical dual-layer Mn/DI residual</td></tr>
-        <tr><td>Historical dual-layer + Mn then UnicodeSanitizer</td><td>61/64</td><td>Combined attack restores most watermarked rows</td></tr>
-        <tr><td>Live triple-layer + Mn then UnicodeSanitizer (exploratory n=64)</td><td>0/64</td><td>Source not restored; detection stays down</td></tr>
-        <tr><td>Live triple-layer + required-bundle then UnicodeSanitizer (exploratory n=64)</td><td>0/64</td><td>Source not restored; detection stays down</td></tr>
+        <tr><td>Historical dual-layer + Mn then UnicodeSanitizer (exploratory n=192)</td><td>182/192</td><td>Combined attack restores most watermarked rows</td></tr>
+        <tr><td>Live triple-layer + Mn then UnicodeSanitizer (exploratory n=192)</td><td>0/192</td><td>Source not restored; detection stays down</td></tr>
+        <tr><td>Live triple-layer + required-bundle then UnicodeSanitizer (exploratory n=192)</td><td>0/192</td><td>Source not restored; detection stays down</td></tr>
+        <tr><td>DistilGPT2 live triple-layer + Mn then UnicodeSanitizer (exploratory n=16)</td><td>0/16</td><td>HYPOTHESIS second-model sources; not confirmation-scale</td></tr>
         <tr><td>Exact visible text</td><td>192/192</td><td>Words on screen unchanged</td></tr>
       </tbody>
     </table>

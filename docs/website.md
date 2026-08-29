@@ -10,7 +10,7 @@ Deploy [`demo.html`](demo.html) as `https://mark.q1z.org/demo.html`. Keep it a s
 
 - character differences for fixed samples (U+034F / U+FE00 plus C0/C1 residuals)
 - processed vs not processed, reason, insertions, sites, `last_index`, capped
-- Mn-strip / default-ignorable strip leaving control residuals (source not restored; exploratory dual-layer 0/64)
+- Mn-strip / default-ignorable strip leaving control residuals (source not restored; exploratory triple-layer 0/192)
 - frozen Gate v2 numbers with GPT-2 / 64-token / historical mark-only scope
 
 Do not run detectors on visitor paste. Do not present demo numbers as a guarantee for arbitrary user text.
@@ -25,7 +25,7 @@ It is not a general watermark remover.
 
 ## Honest limits on the homepage
 
-1. Live triple-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, or the required sanitizer bundle (exploratory 0/64). Frozen Gate v2 confirmation is the historical mark-only arm (188/192 after Mn/DI strip).
+1. Live triple-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, or the required sanitizer bundle (exploratory 0/192). Frozen Gate v2 confirmation is the historical mark-only arm (188/192 after Mn/DI strip).
 2. Mixed Unicode with ASCII letters is processed. Inputs with no eligible ASCII letters stay unchanged with exit 0. That is not a completed transformation.
 3. Frozen 0/192 results are GPT-2 / SynthID confirmation on 64-token samples. They do not answer whether text is useful on a user's platform and are not a general AI-detector rate reduction.
 4. Install remains Python 3.11+ and a CLI; the static demo is the no-install path.
@@ -54,4 +54,4 @@ Tagged wheel: GitHub Release `SHA256SUMS.txt` only. Last published wheel: v0.4.0
 
 ## Results to show, with boundaries
 
-Gate v2 confirmation (GPT-2 / SynthID, 64-token samples, historical mark-only): unmodified watermarked **188/192**; transformed after required sanitizers **0/192**; visible text **192/192**. Live triple-layer exploratory rescore of seed 1200000 watermarked sources: **0/64** after Mn then UnicodeSanitizer and after required-bundle then UnicodeSanitizer. Cap 4096 letter sites. See [`limits.md`](limits.md) and [`demo.html`](demo.html).
+Gate v2 confirmation (GPT-2 / SynthID, 64-token samples, historical mark-only): unmodified watermarked **188/192**; transformed after required sanitizers **0/192**; visible text **192/192**. Live triple-layer exploratory rescore of frozen Gate v2 watermarked sources (seeds 1200000, 1210000, 1220000): **0/192** after Mn then UnicodeSanitizer and after required-bundle then UnicodeSanitizer. Cap 4096 letter sites. See [`limits.md`](limits.md) and [`demo.html`](demo.html).

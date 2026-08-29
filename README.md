@@ -24,7 +24,7 @@ The demo shows:
 - character-level differences for fixed CLI samples (U+034F / U+FE00 plus C0/C1 residuals)
 - processed vs not processed, reason, insertions, sites, `last_index`, cap
 - Mn-strip / default-ignorable strip leaving control residuals (source not restored)
-- frozen Gate v2 detection numbers on the historical mark-only GPT-2 corpus, plus the dual-layer exploratory rescore
+- frozen Gate v2 detection numbers on the historical mark-only GPT-2 corpus, plus the triple-layer exploratory rescore
 
 It does **not** score your paste against a detector and does **not** promise the same detection outcome for arbitrary user text.
 
@@ -32,7 +32,7 @@ It does **not** score your paste against a detector and does **not** promise the
 
 ### 1. Combined sanitizer reversal (live triple-layer)
 
-Live mix inserts a mark, a C0/C1 control, and enclosing Me (U+20DD) at each eligible ASCII letter. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, and the required sanitizer bundle leave Me/Cc residuals, so the source is not restored. Exploratory GPT-2 / SynthID rescore of frozen Gate v2 seed 1200000 watermarked sources: triple-layer **0/64** on those arms, including Mn then UnicodeSanitizer and required-bundle then UnicodeSanitizer. Historical dual-layer under Mn then UnicodeSanitizer returns to **61/64** detections. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after Mn/DI strip).
+Live mix inserts a mark, a C0/C1 control, and enclosing Me (U+20DD) at each eligible ASCII letter. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, and the required sanitizer bundle leave Me/Cc residuals, so the source is not restored. Exploratory GPT-2 / SynthID rescore of frozen Gate v2 watermarked sources on seeds 1200000, 1210000, and 1220000: triple-layer **0/192** on those arms, including Mn then UnicodeSanitizer and required-bundle then UnicodeSanitizer. Historical dual-layer under Mn then UnicodeSanitizer returns to **182/192** detections. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after Mn/DI strip).
 
 ### 2. Mixed Unicode with ASCII letters is processed
 
@@ -40,7 +40,7 @@ ASCII letter sites are transformed even when the surrounding text contains other
 
 ### 3. Frozen scores are not “AI detector rate reduction”
 
-Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product fills up to 4096 eligible letter sites (two insertions per site).
+Primary confirmation used GPT-2 / SynthID with 64-token samples (192 pairs). DistilGPT2 n=16 still used the GPT-2 tokenizer. The product fills up to 4096 eligible letter sites (three insertions per site).
 
 That evidence does **not** answer: “Is this text actually useful on the platform I am using?” Statistical watermarking results on a frozen GPT-2 corpus must not be marketed as a general reduction in AI detection rates. See [`docs/limits.md`](docs/limits.md).
 
@@ -122,19 +122,19 @@ Machine text is left intact when recognized: fenced/inline/indented code, HTML t
 | --- | --- |
 | Unmodified watermarked text still detected | **188/192** (frozen mark-only corpus) |
 | Transformed text after required sanitizers | **0/192** (frozen mark-only corpus) |
-| Transformed text after Mn-strip / DI-strip | **188/192** on frozen mark-only; live triple-layer exploratory **0/64** |
-| Transformed text after Mn then UnicodeSanitizer | Historical dual-layer **61/64**; live triple-layer exploratory **0/64** |
+| Transformed text after Mn-strip / DI-strip | **188/192** on frozen mark-only; live triple-layer exploratory **0/192** |
+| Transformed text after Mn then UnicodeSanitizer | Historical dual-layer **182/192**; live triple-layer exploratory **0/192** |
 | Transformed unwatermarked text | **0/192** |
 | Exact visible text | **192/192** |
 | Transformed text after UnicodeSanitizer | **0/192** |
 
-Google synthid-text 30-key GPT-2 transformed text: **0/192**.
+Google synthid-text 30-key GPT-2 transformed text: **0/192**. DistilGPT2 combo stress on frozen second-model watermarked sources: live triple-layer **0/16** after Mn then UnicodeSanitizer (`HYPOTHESIS`).
 
 These numbers are frozen Gate v2 confirmation on GPT-2 / SynthID, 64-token samples, threshold and sanitizer paths as recorded. They are not a universal zero-rate guarantee and are not “AI detector rate reduction” for arbitrary platforms. See [`docs/limits.md`](docs/limits.md) and the [no-install demo](docs/demo.html).
 
 ## Limitations
 
-Live triple-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, or the required sanitizer bundle (exploratory **0/64** on seed 1200000 watermarked sources). Frozen Gate v2 confirmation is still the historical mark-only arm (**188/192** after Mn/DI strip).
+Live triple-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, or the required sanitizer bundle (exploratory **0/192** on frozen Gate v2 watermarked sources from seeds 1200000, 1210000, and 1220000). Frozen Gate v2 confirmation is still the historical mark-only arm (**188/192** after Mn/DI strip).
 
 Insertion stops after the first 4096 eligible letter sites (three insertions per site). A longer document is unchanged after that point.
 

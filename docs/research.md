@@ -18,11 +18,12 @@ Frozen scientific records are not the user manual. They stay in the repository s
 - Gate v2 confirmation: [`evidence/cycle8-gate-v2-confirmation-2026-08-27/README.md`](../evidence/cycle8-gate-v2-confirmation-2026-08-27/README.md)
 - DeepMind 30-key transfer: [`evidence/cycle8-mix-deepmind-transfer-2026-08-27/README.md`](../evidence/cycle8-mix-deepmind-transfer-2026-08-27/README.md)
 - DistilGPT2 n=16: [`evidence/cycle8-mix-distilgpt2-1090000-n16-2026-08-27/README.md`](../evidence/cycle8-mix-distilgpt2-1090000-n16-2026-08-27/README.md)
+- DistilGPT2 combo stress exploratory: [`evidence/cycle8-distilgpt2-combo-stress-exploratory-2026-08-28/README.md`](../evidence/cycle8-distilgpt2-combo-stress-exploratory-2026-08-28/README.md)
 - H16 sanitizer audit: [`evidence/h16-local/README.md`](../evidence/h16-local/README.md)
 - F01–F07 render/path notes: [`evidence/audit-fixes-2026-08-27/README.md`](../evidence/audit-fixes-2026-08-27/README.md)
 - 0.4.1 audit follow-up: [`evidence/audit-fixes-2026-08-28/README.md`](../evidence/audit-fixes-2026-08-28/README.md)
 - Dual-layer stress exploratory: [`evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/README.md`](../evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/README.md)
-- Combo stress exploratory: [`evidence/cycle8-combo-stress-exploratory-2026-08-28/README.md`](../evidence/cycle8-combo-stress-exploratory-2026-08-28/README.md)
+- Combo stress exploratory n=192: [`evidence/cycle8-combo-stress-exploratory-n192-2026-08-28/README.md`](../evidence/cycle8-combo-stress-exploratory-n192-2026-08-28/README.md)
 
 Cycle 8 archive pointers:
 

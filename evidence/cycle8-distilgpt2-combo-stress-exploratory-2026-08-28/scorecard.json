@@ -1,0 +1,724 @@
+{
+  "algorithm_version": "cycle8-distilgpt2-combo-stress-exploratory-v1",
+  "confirmation_rewritten": false,
+  "detector": "transformers.SynthIDTextWatermarkLogitsProcessor",
+  "device": "cpu",
+  "effectiveness": {
+    "historical_dual_mn_us": {
+      "detected": 16,
+      "rate": "16/16",
+      "restores_source": 6
+    },
+    "identity": {
+      "detected": 16,
+      "rate": "16/16",
+      "restores_source": 16
+    },
+    "triple_bundle_us": {
+      "detected": 0,
+      "rate": "0/16",
+      "restores_source": 0
+    },
+    "triple_di_us": {
+      "detected": 0,
+      "rate": "0/16",
+      "restores_source": 0
+    },
+    "triple_mn_us": {
+      "detected": 0,
+      "rate": "0/16",
+      "restores_source": 0
+    },
+    "triple_raw": {
+      "detected": 0,
+      "rate": "0/16",
+      "restores_source": 0
+    }
+  },
+  "evidence_label": "HYPOTHESIS",
+  "frozen_second_model_scorecard_not_rewritten": true,
+  "keys_depth": 30,
+  "mechanism_id": "u034f-ufe00-cc-me-letter-alt-v1",
+  "model": "distilbert/distilgpt2",
+  "role": "exploratory_rescore_of_frozen_second_model_sources",
+  "rows": [
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.5611285266457681,
+          "text_sha256": "8ef23517e672c5ae9201e5ee01e77a2cb7100d9312778df1595527f23bb055e3"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6120105722539799,
+          "text_sha256": "61b40a75e9aeb495fe569d389d4cec796281548541469491dc5d471282fabc29"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49298832863999437,
+          "text_sha256": "6bdc3412916ae1f0583eebc9af3f6a1c7590fc7904a6494baa9e6df711d25db0"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49298832863999437,
+          "text_sha256": "6bdc3412916ae1f0583eebc9af3f6a1c7590fc7904a6494baa9e6df711d25db0"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49298832863999437,
+          "text_sha256": "6bdc3412916ae1f0583eebc9af3f6a1c7590fc7904a6494baa9e6df711d25db0"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4926229105452974,
+          "text_sha256": "dd9b27d215b1ab75275bb013a58f691cacfbf8684ce2e87e971eec3a47f2b810"
+        }
+      },
+      "sample_id": "cycle8-1090000-00-general_explanatory-watermarked",
+      "source_sha256": "61b40a75e9aeb495fe569d389d4cec796281548541469491dc5d471282fabc29"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6123120258052792,
+          "text_sha256": "833c4f03bd7c913b29f6f6b42d4347eef17699d34c05166263b49ebc2b3d0e6b"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6123120258052792,
+          "text_sha256": "833c4f03bd7c913b29f6f6b42d4347eef17699d34c05166263b49ebc2b3d0e6b"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4986541274817137,
+          "text_sha256": "91c814c6e20f7a3004b489fc53b14d15f53e06dfa4ef9c5cb5f33dec75baac2e"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4986541274817137,
+          "text_sha256": "91c814c6e20f7a3004b489fc53b14d15f53e06dfa4ef9c5cb5f33dec75baac2e"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4986541274817137,
+          "text_sha256": "91c814c6e20f7a3004b489fc53b14d15f53e06dfa4ef9c5cb5f33dec75baac2e"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4938598816149837,
+          "text_sha256": "e6f7ccbc9816b9ea6f53a2b77ef8d5010c84f46ec2fe70c273041cb34ae36f79"
+        }
+      },
+      "sample_id": "cycle8-1090000-01-technical_explanation-watermarked",
+      "source_sha256": "833c4f03bd7c913b29f6f6b42d4347eef17699d34c05166263b49ebc2b3d0e6b"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.5828703203257306,
+          "text_sha256": "e3e25ffe3f9c04e518c82339db4271c79ccf8cf495abb1806fba894e69ccdb9c"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.5828703203257306,
+          "text_sha256": "e3e25ffe3f9c04e518c82339db4271c79ccf8cf495abb1806fba894e69ccdb9c"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48335906673528906,
+          "text_sha256": "298b45730756698fb04e61f7862482a7e28040075ee146937c4d7d84dc5ca3e2"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48335906673528906,
+          "text_sha256": "298b45730756698fb04e61f7862482a7e28040075ee146937c4d7d84dc5ca3e2"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48335906673528906,
+          "text_sha256": "298b45730756698fb04e61f7862482a7e28040075ee146937c4d7d84dc5ca3e2"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5058767895415266,
+          "text_sha256": "98d128be8dcd996ca732ec37c981e598e9a04ff0c717666a9208b0c4d2b2939e"
+        }
+      },
+      "sample_id": "cycle8-1090000-02-conversational_prose-watermarked",
+      "source_sha256": "e3e25ffe3f9c04e518c82339db4271c79ccf8cf495abb1806fba894e69ccdb9c"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.6243000756674955,
+          "text_sha256": "b5ef99380b7d067903506afa1a6dcd98f42a894c2a76e415c12fd234d3a9c99a"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6366527342389412,
+          "text_sha256": "20fd5aa60982171ba09d8b06af6994923c14fa4bf6035cb0ed7280804823ff5e"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49793461710703096,
+          "text_sha256": "2c1f3112251d0ba90db9d5bafad7b24c0dc74d70b7d570e6fa7c6f75cd3e23a7"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49793461710703096,
+          "text_sha256": "2c1f3112251d0ba90db9d5bafad7b24c0dc74d70b7d570e6fa7c6f75cd3e23a7"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49793461710703096,
+          "text_sha256": "2c1f3112251d0ba90db9d5bafad7b24c0dc74d70b7d570e6fa7c6f75cd3e23a7"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.508258629855726,
+          "text_sha256": "42b902272bea4ec3d9e594198adb16b670d17112034756ec6d9f0915c6c10d9e"
+        }
+      },
+      "sample_id": "cycle8-1090000-03-structured_instructional-watermarked",
+      "source_sha256": "20fd5aa60982171ba09d8b06af6994923c14fa4bf6035cb0ed7280804823ff5e"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6338124248338952,
+          "text_sha256": "0f94000be5a34325d0d0ca2b217f0c80ca32e2ad7de056b55024e63416d069e8"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6338124248338952,
+          "text_sha256": "0f94000be5a34325d0d0ca2b217f0c80ca32e2ad7de056b55024e63416d069e8"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4890065938817425,
+          "text_sha256": "fd5dc737b61938272cd4efa5c238ecca66ddd399045031a113b2bb8bea35a46f"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4890065938817425,
+          "text_sha256": "fd5dc737b61938272cd4efa5c238ecca66ddd399045031a113b2bb8bea35a46f"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4890065938817425,
+          "text_sha256": "fd5dc737b61938272cd4efa5c238ecca66ddd399045031a113b2bb8bea35a46f"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.502632183908046,
+          "text_sha256": "a4279f8b64d5646f6ffa1c8cc96471a84fe46e1248139dd9cf3981252424d7a0"
+        }
+      },
+      "sample_id": "cycle8-1090000-04-general_explanatory-watermarked",
+      "source_sha256": "0f94000be5a34325d0d0ca2b217f0c80ca32e2ad7de056b55024e63416d069e8"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.5882929609575378,
+          "text_sha256": "1ffd14f4a491935f8c2f460decafa666a100d3fccaabea99f1210c668baf18ba"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6135228623932548,
+          "text_sha256": "11f027aaf13ffd6f3bb7ccc458156220959a3dc7ab5150ad4a9ebaccdd41d9dc"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4926453868548859,
+          "text_sha256": "1c505393b4bd824bf9416f0a056c02bc79b634c546ccc4b438be938390b6f1cf"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4926453868548859,
+          "text_sha256": "1c505393b4bd824bf9416f0a056c02bc79b634c546ccc4b438be938390b6f1cf"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4926453868548859,
+          "text_sha256": "1c505393b4bd824bf9416f0a056c02bc79b634c546ccc4b438be938390b6f1cf"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5050536215146015,
+          "text_sha256": "e89adedc4d7b7302c0a9a02929cb8a3799e9200f0896a1a91ef8aa5ae7a82c66"
+        }
+      },
+      "sample_id": "cycle8-1090000-05-technical_explanation-watermarked",
+      "source_sha256": "11f027aaf13ffd6f3bb7ccc458156220959a3dc7ab5150ad4a9ebaccdd41d9dc"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6272378962034134,
+          "text_sha256": "435d63248d21460ff0097f552893b4a0666f4786d806e347981a266a11d908df"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6272378962034134,
+          "text_sha256": "435d63248d21460ff0097f552893b4a0666f4786d806e347981a266a11d908df"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5045666871835979,
+          "text_sha256": "57c1fddfbe6e1b9f9c2f90c826be493158b90d4a5ee7dc1e8c2a2f46c11dcad6"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5045666871835979,
+          "text_sha256": "57c1fddfbe6e1b9f9c2f90c826be493158b90d4a5ee7dc1e8c2a2f46c11dcad6"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5045666871835979,
+          "text_sha256": "57c1fddfbe6e1b9f9c2f90c826be493158b90d4a5ee7dc1e8c2a2f46c11dcad6"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.509864300997306,
+          "text_sha256": "c7754f2ba9dfda2342eb91c6bec341f622d98607aa0e91737f37d609b713b7ef"
+        }
+      },
+      "sample_id": "cycle8-1090000-06-conversational_prose-watermarked",
+      "source_sha256": "435d63248d21460ff0097f552893b4a0666f4786d806e347981a266a11d908df"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.5996006866696523,
+          "text_sha256": "50c2fa6946d4eabc7102f6711ab91dc37f78b84d4b4699579a7ec97af26f7741"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6117136886102404,
+          "text_sha256": "bc744ece68b2cf73dee941ecbb6ceedb2f8e499fe4d52581a356dfe9d5eda3e4"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49352142110762803,
+          "text_sha256": "6600e068891a9d4c4cfb6e675c46dd568e0318856a2183ac22330df40cc4b7f5"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49352142110762803,
+          "text_sha256": "6600e068891a9d4c4cfb6e675c46dd568e0318856a2183ac22330df40cc4b7f5"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49352142110762803,
+          "text_sha256": "6600e068891a9d4c4cfb6e675c46dd568e0318856a2183ac22330df40cc4b7f5"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5035239801249654,
+          "text_sha256": "9b33ea8c007530fa7eb51c675fbbb61168fd55733b91bfdc379700ce170ae75c"
+        }
+      },
+      "sample_id": "cycle8-1090000-07-structured_instructional-watermarked",
+      "source_sha256": "bc744ece68b2cf73dee941ecbb6ceedb2f8e499fe4d52581a356dfe9d5eda3e4"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.6133643209743092,
+          "text_sha256": "69b434a6a9a9223b30e2a2cca77f5fbce518d2b3b06bb1a3c1471e6afd83c2e4"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6200313479623826,
+          "text_sha256": "67c37a80ef14dd0e5dcb03adb6ec0fb38067a829f79d127f6f5bc56a5f6df038"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.496124251923625,
+          "text_sha256": "6c8720db0cfbc342065cedbd06d1c9cb17670447e7e4f2bf8e6085b416029fa8"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.496124251923625,
+          "text_sha256": "6c8720db0cfbc342065cedbd06d1c9cb17670447e7e4f2bf8e6085b416029fa8"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.496124251923625,
+          "text_sha256": "6c8720db0cfbc342065cedbd06d1c9cb17670447e7e4f2bf8e6085b416029fa8"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5011212716769264,
+          "text_sha256": "3d7ee7abf9379e57a1b9c01d0f907c32830fbf055ab4527162fc5ef89b48fa4a"
+        }
+      },
+      "sample_id": "cycle8-1090000-08-general_explanatory-watermarked",
+      "source_sha256": "67c37a80ef14dd0e5dcb03adb6ec0fb38067a829f79d127f6f5bc56a5f6df038"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.5684389534288116,
+          "text_sha256": "b62a6f46bc8669e8046fea5fc7b3f44012958c9b3d74e0b43324c1bf3e263c04"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.5684389534288116,
+          "text_sha256": "b62a6f46bc8669e8046fea5fc7b3f44012958c9b3d74e0b43324c1bf3e263c04"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5100519622687111,
+          "text_sha256": "8a5b70eccf60bb40d132137a7be13f03c84e0f7009ba8eb26d36bcbe91a7dae4"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5100519622687111,
+          "text_sha256": "8a5b70eccf60bb40d132137a7be13f03c84e0f7009ba8eb26d36bcbe91a7dae4"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5100519622687111,
+          "text_sha256": "8a5b70eccf60bb40d132137a7be13f03c84e0f7009ba8eb26d36bcbe91a7dae4"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4993228840125392,
+          "text_sha256": "c17f6b00c4bbcd4324b7a973302a4fb25ed8365eec505638da8a09ed1b37a8fd"
+        }
+      },
+      "sample_id": "cycle8-1090000-09-technical_explanation-watermarked",
+      "source_sha256": "b62a6f46bc8669e8046fea5fc7b3f44012958c9b3d74e0b43324c1bf3e263c04"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.5876294707510679,
+          "text_sha256": "92c8457b2cda024c113e64c49d8fd41793db0c700454cc91b6c7a6253decc94e"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.596797903051556,
+          "text_sha256": "1e2a83c068728ab6a91eb894386267fd4bc00fd5147dbfd2dcda585b2c42f1da"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5006937000707857,
+          "text_sha256": "65cb2e8fbf9a5cdb93902be43f096506cc9dcfe102001d15d672b1b09bfde5c6"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5006937000707857,
+          "text_sha256": "65cb2e8fbf9a5cdb93902be43f096506cc9dcfe102001d15d672b1b09bfde5c6"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5006937000707857,
+          "text_sha256": "65cb2e8fbf9a5cdb93902be43f096506cc9dcfe102001d15d672b1b09bfde5c6"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5022508244485,
+          "text_sha256": "a613f53255a5285f577d8e8f8143e45ad8efbd506755c18e693c4d8025b3060b"
+        }
+      },
+      "sample_id": "cycle8-1090000-10-conversational_prose-watermarked",
+      "source_sha256": "1e2a83c068728ab6a91eb894386267fd4bc00fd5147dbfd2dcda585b2c42f1da"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.5927937005523213,
+          "text_sha256": "edcde3d56311df8e72e40ce9290066e36ac933429599f4998ef1f64e85234802"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.5956002859814112,
+          "text_sha256": "015b769a9c6b5fa12b3563887554486c7b7256af0b8441abc1e147b8db6746e8"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48788207382872323,
+          "text_sha256": "ba3e36911cb1cf993a9812a7604ff1fdaa1a59afca13cd54c3ea18a20ea68a8e"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48788207382872323,
+          "text_sha256": "ba3e36911cb1cf993a9812a7604ff1fdaa1a59afca13cd54c3ea18a20ea68a8e"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48788207382872323,
+          "text_sha256": "ba3e36911cb1cf993a9812a7604ff1fdaa1a59afca13cd54c3ea18a20ea68a8e"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.49839258320549595,
+          "text_sha256": "9302c450ce5944a31b0c6f0269a4a6e0d7b709f1080978e08b611f655347a9d2"
+        }
+      },
+      "sample_id": "cycle8-1090000-11-structured_instructional-watermarked",
+      "source_sha256": "015b769a9c6b5fa12b3563887554486c7b7256af0b8441abc1e147b8db6746e8"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.631468395232276,
+          "text_sha256": "c4e0addbffd3fbe39a6a4347d4c4eef5e86c2dc86ac125ffefa50b9911ac97bb"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6381748519679554,
+          "text_sha256": "71881679f12a06f87e14d761ec5b7087687be4b91d469faac023470066fa0ccd"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5006810074586532,
+          "text_sha256": "507e1a7772dc34731d09955d5f3ee44d285d352cbc4891db1295180a05271256"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5006810074586532,
+          "text_sha256": "507e1a7772dc34731d09955d5f3ee44d285d352cbc4891db1295180a05271256"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5006810074586532,
+          "text_sha256": "507e1a7772dc34731d09955d5f3ee44d285d352cbc4891db1295180a05271256"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4958679969455832,
+          "text_sha256": "990f05cf28d7c0cb0192be6ee9dbc29804328f48600e9c2a2a6a462402a91468"
+        }
+      },
+      "sample_id": "cycle8-1090000-12-general_explanatory-watermarked",
+      "source_sha256": "71881679f12a06f87e14d761ec5b7087687be4b91d469faac023470066fa0ccd"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.5853709508881924,
+          "text_sha256": "88050efe759573b5fe71bf76e2674d9462ce8a3d4224f082ee99cf5e3e49a6a5"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6087719298245615,
+          "text_sha256": "95fa359a8e0747237c4b3fecaa461b2aa5e7011adc5f83d1a1f197bf2f8ec4b6"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4903551337656204,
+          "text_sha256": "6d9130315c590acd0bbda023f931a49eb19116cc101234fb9aeb5eb09899c593"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4903551337656204,
+          "text_sha256": "6d9130315c590acd0bbda023f931a49eb19116cc101234fb9aeb5eb09899c593"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4903551337656204,
+          "text_sha256": "6d9130315c590acd0bbda023f931a49eb19116cc101234fb9aeb5eb09899c593"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5090921101622649,
+          "text_sha256": "b5c5d06be6946a0ebacf372e0ec22cc421f013de0afbebe2328900110754be88"
+        }
+      },
+      "sample_id": "cycle8-1090000-13-technical_explanation-watermarked",
+      "source_sha256": "95fa359a8e0747237c4b3fecaa461b2aa5e7011adc5f83d1a1f197bf2f8ec4b6"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.5861807732497388,
+          "text_sha256": "4b16bb7c0f5fe7ade41558018e4f8e7d543e2b11b670b24f781292fb486b4ec9"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.5861807732497388,
+          "text_sha256": "4b16bb7c0f5fe7ade41558018e4f8e7d543e2b11b670b24f781292fb486b4ec9"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4928037859357324,
+          "text_sha256": "a654a93e9d1cb97093ceb0d646206f9c508de04c4addb9b758e6a01a9ce93d2d"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4928037859357324,
+          "text_sha256": "a654a93e9d1cb97093ceb0d646206f9c508de04c4addb9b758e6a01a9ce93d2d"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.4928037859357324,
+          "text_sha256": "a654a93e9d1cb97093ceb0d646206f9c508de04c4addb9b758e6a01a9ce93d2d"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5023107467245399,
+          "text_sha256": "881154c7992eb816f0fd370be0ae677af94c8304f2e1a8549398d4596ead76b9"
+        }
+      },
+      "sample_id": "cycle8-1090000-14-conversational_prose-watermarked",
+      "source_sha256": "4b16bb7c0f5fe7ade41558018e4f8e7d543e2b11b670b24f781292fb486b4ec9"
+    },
+    {
+      "arms": {
+        "historical_dual_mn_us": {
+          "detected": true,
+          "restores_source": false,
+          "score": 0.5911785733927295,
+          "text_sha256": "1105f04eecaf09455462383ed81feebcf66f15bf9fb7666fd00f7d318e5a8f57"
+        },
+        "identity": {
+          "detected": true,
+          "restores_source": true,
+          "score": 0.6272796934865901,
+          "text_sha256": "eb9052d0bbd073492d18d63f50daf7a84ac3a00506eec81916577ada15578833"
+        },
+        "triple_bundle_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48903735632183915,
+          "text_sha256": "a27e4e17bcf717361ca72da5ab184ad62879f3ba78b9c2e2879d9e0b8a47ecb6"
+        },
+        "triple_di_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48903735632183915,
+          "text_sha256": "a27e4e17bcf717361ca72da5ab184ad62879f3ba78b9c2e2879d9e0b8a47ecb6"
+        },
+        "triple_mn_us": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.48903735632183915,
+          "text_sha256": "a27e4e17bcf717361ca72da5ab184ad62879f3ba78b9c2e2879d9e0b8a47ecb6"
+        },
+        "triple_raw": {
+          "detected": false,
+          "restores_source": false,
+          "score": 0.5001379310344828,
+          "text_sha256": "09ac42a2985afabab64789d2f2fc4591df6a944d5817451e61643c81d26f7d2b"
+        }
+      },
+      "sample_id": "cycle8-1090000-15-structured_instructional-watermarked",
+      "source_sha256": "eb9052d0bbd073492d18d63f50daf7a84ac3a00506eec81916577ada15578833"
+    }
+  ],
+  "sampling_table_size": 65536,
+  "scorecard_hash": "3b0d11a3ae783ca0af34ac2c6bba969528c9ec07ed33bc4bf1cb0ae7f087b2ff",
+  "seed_base": 1090000,
+  "source_corpus": "evidence/cycle8-mix-distilgpt2-1090000-n16-2026-08-27/samples.json",
+  "threshold": 0.5570987654320988,
+  "watermarked_rows": 16
+}
