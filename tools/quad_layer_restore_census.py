@@ -13,6 +13,7 @@ from fuckmark.cycle8.benchmark import (
 from fuckmark.cycle8.control_carrier import apply_required_sanitizer_bundle
 from fuckmark.cycle8.gate_v2 import GATE_V2_CONFIRMATION_SEED_BASES, gate_v2_confirmation_artifact_path
 from fuckmark.cycle8.letter_mix import (
+    LETTER_MIX_CF_CODEPOINTS,
     LETTER_MIX_MECHANISM_ID,
     apply_historical_triple_layer_letter_mix,
     apply_letter_alternating_mix,
@@ -34,7 +35,7 @@ ARMS = (
     "quad_mn_me_us_cf",
     "historical_triple_mn_me_us",
 )
-CF_RANGE = range(0x13430, 0x13440)
+CF_RANGE = LETTER_MIX_CF_CODEPOINTS
 
 
 def _has_cf(text: str) -> bool:

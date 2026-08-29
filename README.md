@@ -9,7 +9,7 @@
 
 # FuckMark
 
-FuckMark is a UTF-8 command for **Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji text**. It inserts Unicode carriers (U+034F, U+FE00, C0/C1 controls, enclosing Me U+20DD, and Egyptian hieroglyph format controls U+13430-U+1343F) after those grapheme clusters. Visible projection stays identical; Me may decorate glyphs in some renderers.
+FuckMark is a UTF-8 command for **Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji text**. It inserts Unicode carriers (U+034F, U+FE00, C0/C1 controls, enclosing Me U+20DD, and Egyptian hieroglyph format controls U+13430-U+13438) after those grapheme clusters. Visible projection stays identical; Me may decorate glyphs in some renderers.
 
 It is a constrained research/product CLI with measured SynthID / GPT-2 results. It is **not** a general watermark remover, not a paraphraser, and not a claim against unknown or proprietary detectors.
 
@@ -32,7 +32,7 @@ It does **not** score your paste against a detector and does **not** promise the
 
 ### 1. Combined sanitizer reversal (live four-layer)
 
-Live mix inserts a mark, a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F) after each eligible grapheme cluster. Insertions follow NFD combining sequences instead of splitting them. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle leave Me/Cc/Cf residuals, so the source is not restored. Frozen Cf-strip still removes the Cf layer. Exploratory restore census of frozen Gate v2 watermarked sources on seeds 1200000, 1210000, and 1220000: four-layer **0/192** restore under Mn then Me then UnicodeSanitizer, and **0/192** match to `UnicodeSanitizer(source)`. Historical triple-layer under that path matches `UnicodeSanitizer(source)` **192/192**. Historical GPT-2 / SynthID combo stress on the prior triple-layer mix remains **0/192** after Mn then UnicodeSanitizer. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after Mn/DI strip).
+Live mix inserts a mark, a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+13438) after each eligible grapheme cluster. Insertions follow NFD combining sequences instead of splitting them. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle leave Me/Cc/Cf residuals, so the source is not restored. Frozen Cf-strip still removes the Cf layer. Exploratory restore census of frozen Gate v2 watermarked sources on seeds 1200000, 1210000, and 1220000: four-layer **0/192** restore under Mn then Me then UnicodeSanitizer, and **0/192** match to `UnicodeSanitizer(source)`. Historical triple-layer under that path matches `UnicodeSanitizer(source)` **192/192**. Historical GPT-2 / SynthID combo stress on the prior triple-layer mix remains **0/192** after Mn then UnicodeSanitizer. Frozen Gate v2 confirmation remains the historical mark-only corpus (**0/192** after required sanitizers, **188/192** after Mn/DI strip).
 
 ### 2. Everyday letters and emoji are processed
 
@@ -110,7 +110,7 @@ Pipes and files write the payload to stdout. `--visible` prints the original vis
 
 ## What it guarantees
 
-`VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, and a cycling U+13430-U+1343F format control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
+`VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, and a cycling U+13430-U+13438 format control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
 
 Letter and emoji sites are processed in mixed-Unicode input. Only UTF-8. Inputs with no eligible letter or emoji sites, or that already contain approved carriers, stay unchanged with exit 0 and a stderr reason. That status means I/O succeeded, not that hidden characters were inserted or that a watermark was removed.
 
@@ -149,7 +149,7 @@ Live four-layer mix is Chromium pre-pixel `REJECTED` because enclosing Me (U+20D
 
 ## How it works
 
-Eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji clusters receive an alternating mark (U+034F, then U+FE00), a cycling C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F). The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
+Eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji clusters receive an alternating mark (U+034F, then U+FE00), a cycling C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+13438). The public command is `fuckmark` / `FuckMark` / `Fuckmark`.
 
 ## Research
 

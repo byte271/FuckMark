@@ -1,3 +1,5 @@
+import unicodedata
+
 from fuckmark.cli import process_text
 from fuckmark.cycle8.benchmark import (
     strip_default_ignorable,
@@ -13,6 +15,7 @@ from fuckmark.cycle8.compare import (
 )
 from fuckmark.cycle8.letter_mix import (
     LETTER_MIX_APPROVED_CARRIERS,
+    LETTER_MIX_CF_CODEPOINTS,
     LETTER_MIX_CF_PAYLOADS,
     LETTER_MIX_CONTROL_PAYLOADS,
     LETTER_MIX_INSERTIONS_PER_SITE,
@@ -124,6 +127,15 @@ def test_live_four_layer_resists_mn_me_unicode_sanitizer() -> None:
     assert mn_me_us != source
     assert di_me_us != source
     assert mn_me_cc != source
-    assert any(ord(character) in range(0x13430, 0x13440) for character in mn_me_us)
+    assert any(ord(character) in LETTER_MIX_CF_CODEPOINTS for character in mn_me_us)
     assert lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(historical))) == source
     assert strip_other_controls(strip_enclosing_marks(strip_nonspacing_marks(historical))) == source
+
+
+def test_live_cf_payloads_are_assigned_format_controls() -> None:
+    assert LETTER_MIX_CF_CODEPOINTS == tuple(range(0x13430, 0x13439))
+    assert 0x13439 not in LETTER_MIX_CF_CODEPOINTS
+    assert LETTER_MIX_CF_PAYLOADS == tuple(chr(codepoint) for codepoint in LETTER_MIX_CF_CODEPOINTS)
+    for payload in LETTER_MIX_CF_PAYLOADS:
+        assert unicodedata.category(payload) == "Cf"
+        assert unicodedata.name(payload)

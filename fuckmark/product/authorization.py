@@ -37,7 +37,7 @@ from ..transforms.registry import release_transform_registry
 
 PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
 PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
-PRODUCT_AUTHORIZATION_HASH = "fb1b8f964c6dca96fd4fa36fc0abc893b40e9053de26798969d7167be14e29eb"
+PRODUCT_AUTHORIZATION_HASH = "815ffe7bfdcc0e03113d5dc9d1e75d9c8e0ff9d8d386aac8ed1c3b7bd700f2cf"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -112,7 +112,7 @@ def product_authorization_payload() -> dict[str, object]:
         "notes": (
             "Product authorization of four-layer u034f-ufe00-cc-me-cf-letter-alt-v1. "
             "Mark plus Cc plus enclosing Me (U+20DD) plus cycling Egyptian hieroglyph format "
-            "controls (U+13430-U+1343F) keep Mn-strip, default-ignorable-strip, UnicodeSanitizer "
+            "controls (U+13430-U+13438) keep Mn-strip, default-ignorable-strip, UnicodeSanitizer "
             "orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle from "
             "restoring the source. Frozen cf_strip still removes the Cf layer. Visible projection "
             "strips approved carriers; Me may decorate glyphs in some renderers. Live sites are "

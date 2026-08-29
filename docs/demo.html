@@ -228,12 +228,12 @@ code { font-family: var(--mono); font-size: 0.9em; }
 <main>
   <section class="banner" id="reversal-banner">
     <strong>Four-layer mix resists Mn/DI strip, Me-strip, and UnicodeSanitizer combinations.</strong>
-    Each eligible letter or emoji grapheme cluster receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F). Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. NFD clusters are marked after the combining sequence. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle no longer restore the source. Frozen Cf-strip still removes the Cf layer. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
+    Each eligible letter or emoji grapheme cluster receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+13438). Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. NFD clusters are marked after the combining sequence. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle no longer restore the source. Frozen Cf-strip still removes the Cf layer. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
   </section>
 
   <section class="panel" id="frozen-scores">
     <h2>Frozen detection comparison (fixed corpus, not your paste)</h2>
-    <p>Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. Live CLI now uses four-layer mark plus Cc plus Me plus Cf (U+13430-U+1343F) and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
+    <p>Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. Live CLI now uses four-layer mark plus Cc plus Me plus Cf (U+13430-U+13438) and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
     <table>
       <thead>
         <tr><th>Arm</th><th>Detections</th><th>What it means</th></tr>
@@ -306,7 +306,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "ascii-eligible",
     "title": "Eligible ASCII",
     "source": "I do not agree.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐹e͏⃝𓐺.",
+    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐰e͏⃝𓐱.",
     "reason": "transformed",
     "insertions": 44,
     "sites": 11,
@@ -320,7 +320,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "ascii-apostrophe",
     "title": "Straight ASCII apostrophe",
     "source": "I don't agree.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲n︀⃝𓐳't͏⃝𓐴 a︀⃝𓐵g͏⃝𓐶r︀⃝𓐷e͏⃝𓐸e︀⃝𓐹.",
+    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲n︀⃝𓐳't͏⃝𓐴 a︀⃝𓐵g͏⃝𓐶r︀⃝𓐷e͏⃝𓐸e︀⃝𓐰.",
     "reason": "transformed",
     "insertions": 40,
     "sites": 10,
@@ -334,7 +334,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "curly-apostrophe",
     "title": "Curly apostrophe (letters mixed)",
     "source": "I don’t agree.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲n︀⃝𓐳’t͏⃝𓐴 a︀⃝𓐵g͏⃝𓐶r︀⃝𓐷e͏⃝𓐸e︀⃝𓐹.",
+    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲n︀⃝𓐳’t͏⃝𓐴 a︀⃝𓐵g͏⃝𓐶r︀⃝𓐷e͏⃝𓐸e︀⃝𓐰.",
     "reason": "transformed",
     "insertions": 40,
     "sites": 10,
@@ -348,7 +348,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "accented",
     "title": "Accented Latin letter is a site",
     "source": "I do not agree é.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐹e͏⃝𓐺 é︀⃝𓐻.",
+    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐰e͏⃝𓐱 é︀⃝𓐲.",
     "reason": "transformed",
     "insertions": 48,
     "sites": 12,
@@ -404,7 +404,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
     "id": "site-full",
     "title": "312-letter coverage (under 4096 cap)",
     "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
-    "output": "a͏⃝𓐰b︀⃝𓐱c͏⃝𓐲d︀⃝𓐳e͏⃝𓐴f︀⃝𓐵g͏⃝𓐶h︀⃝𓐷i͏⃝𓐸j︀⃝𓐹k͏⃝𓐺l︀⃝𓐻m͏⃝𓐼n︀⃝𓐽o͏⃝𓐾p︀⃝𓐿q͏⃝𓐰r︀⃝𓐱s͏⃝𓐲t︀⃝𓐳u͏⃝𓐴v︀⃝𓐵w͏⃝𓐶x︀⃝𓐷y͏⃝𓐸z︀⃝𓐹a͏⃝𓐺b︀⃝𓐻c͏⃝𓐼d︀⃝𓐽e͏⃝𓐾f︀⃝𓐿g͏⃝𓐰h︀⃝𓐱i͏⃝𓐲j︀⃝𓐳k͏⃝𓐴l︀⃝𓐵m͏⃝𓐶n︀⃝𓐷o͏⃝𓐸p︀⃝𓐹q͏⃝𓐺r︀⃝𓐻s͏⃝𓐼t︀⃝𓐽u͏⃝𓐾v︀⃝𓐿w͏⃝𓐰x︀⃝𓐱y͏⃝𓐲z︀⃝𓐳a͏⃝𓐴b︀⃝𓐵c͏⃝𓐶d︀⃝𓐷e͏⃝𓐸f︀⃝𓐹g͏⃝𓐺h︀⃝𓐻i͏⃝𓐼j︀⃝𓐽k͏⃝𓐾l︀⃝𓐿m͏⃝𓐰n︀⃝𓐱o͏⃝𓐲p︀⃝𓐳q͏⃝𓐴r︀⃝𓐵s͏⃝𓐶t︀⃝𓐷u͏⃝𓐸v︀⃝𓐹w͏⃝𓐺x︀⃝𓐻y͏⃝𓐼z︀⃝𓐽a͏⃝𓐾b︀⃝𓐿c͏⃝𓐰d︀⃝𓐱e͏⃝𓐲f︀⃝𓐳g͏⃝𓐴h︀⃝𓐵i͏⃝𓐶j︀⃝𓐷k͏⃝𓐸l︀⃝𓐹m͏⃝𓐺n︀⃝𓐻o͏⃝𓐼p︀⃝𓐽q͏⃝𓐾r︀⃝𓐿s͏⃝𓐰t︀⃝𓐱u͏⃝𓐲v︀⃝𓐳w͏⃝𓐴x︀⃝𓐵y͏⃝𓐶z︀⃝𓐷a͏⃝𓐸b︀⃝𓐹c͏⃝𓐺d︀⃝𓐻e͏⃝𓐼f︀⃝𓐽g͏⃝𓐾h︀⃝𓐿i͏⃝𓐰j︀⃝𓐱k͏⃝𓐲l︀⃝𓐳m͏⃝𓐴n︀⃝𓐵o͏⃝𓐶p︀⃝𓐷q͏⃝𓐸r︀⃝𓐹s͏⃝𓐺t︀⃝𓐻u͏⃝𓐼v︀⃝𓐽w͏⃝𓐾x︀⃝𓐿y͏⃝𓐰z︀⃝𓐱a͏⃝𓐲b︀⃝𓐳c͏⃝𓐴d︀⃝𓐵e͏⃝𓐶f︀⃝𓐷g͏⃝𓐸h︀⃝𓐹i͏⃝𓐺j︀⃝𓐻k͏⃝𓐼l︀⃝𓐽m͏⃝𓐾n︀⃝𓐿o͏⃝𓐰p︀⃝𓐱q͏⃝𓐲r︀⃝𓐳s͏⃝𓐴t︀⃝𓐵u͏⃝𓐶v︀⃝𓐷w͏⃝𓐸x︀⃝𓐹y͏⃝𓐺z︀⃝𓐻a͏⃝𓐼b︀⃝𓐽c͏⃝𓐾d︀⃝𓐿e͏⃝𓐰f︀⃝𓐱g͏⃝𓐲h︀⃝𓐳i͏⃝𓐴j︀⃝𓐵k͏⃝𓐶l︀⃝𓐷m͏⃝𓐸n︀⃝𓐹o͏⃝𓐺p︀⃝𓐻q͏⃝𓐼r︀⃝𓐽s͏⃝𓐾t︀⃝𓐿u͏⃝𓐰v︀⃝𓐱w͏⃝𓐲x︀⃝𓐳y͏⃝𓐴z︀⃝𓐵a͏⃝𓐶b︀⃝𓐷c͏⃝𓐸d︀⃝𓐹e͏⃝𓐺f︀⃝𓐻g͏⃝𓐼h︀⃝𓐽i͏⃝𓐾j︀⃝𓐿k͏⃝𓐰l︀⃝𓐱m͏⃝𓐲n︀⃝𓐳o͏⃝𓐴p︀⃝𓐵q͏⃝𓐶r︀⃝𓐷s͏⃝𓐸t︀⃝𓐹u͏⃝𓐺v︀⃝𓐻w͏⃝𓐼x︀⃝𓐽y͏⃝𓐾z︀⃝𓐿a͏⃝𓐰b︀⃝𓐱c͏⃝𓐲d︀⃝𓐳e͏⃝𓐴f︀⃝𓐵g͏⃝𓐶h︀⃝𓐷i͏⃝𓐸j︀⃝𓐹k͏⃝𓐺l︀⃝𓐻m͏⃝𓐼n︀⃝𓐽o͏⃝𓐾p︀⃝𓐿q͏⃝𓐰r︀⃝𓐱s͏⃝𓐲t︀⃝𓐳u͏⃝𓐴v︀⃝𓐵w͏⃝𓐶x︀⃝𓐷y͏⃝𓐸z︀⃝𓐹a͏⃝𓐺b︀⃝𓐻c͏⃝𓐼d︀⃝𓐽e͏⃝𓐾f︀⃝𓐿g͏⃝𓐰h︀⃝𓐱i͏⃝𓐲j︀⃝𓐳k͏⃝𓐴l︀⃝𓐵m͏⃝𓐶n︀⃝𓐷o͏⃝𓐸p︀⃝𓐹q͏⃝𓐺r︀⃝𓐻s͏⃝𓐼t︀⃝𓐽u͏⃝𓐾v︀⃝𓐿w͏⃝𓐰x︀⃝𓐱y͏⃝𓐲z︀⃝𓐳a͏⃝𓐴b︀⃝𓐵c͏⃝𓐶d︀⃝𓐷e͏⃝𓐸f︀⃝𓐹g͏⃝𓐺h︀⃝𓐻i͏⃝𓐼j︀⃝𓐽k͏⃝𓐾l︀⃝𓐿m͏⃝𓐰n︀⃝𓐱o͏⃝𓐲p︀⃝𓐳q͏⃝𓐴r︀⃝𓐵s͏⃝𓐶t︀⃝𓐷u͏⃝𓐸v︀⃝𓐹w͏⃝𓐺x︀⃝𓐻y͏⃝𓐼z︀⃝𓐽a͏⃝𓐾b︀⃝𓐿c͏⃝𓐰d︀⃝𓐱e͏⃝𓐲f︀⃝𓐳g͏⃝𓐴h︀⃝𓐵i͏⃝𓐶j︀⃝𓐷k͏⃝𓐸l︀⃝𓐹m͏⃝𓐺n︀⃝𓐻o͏⃝𓐼p︀⃝𓐽q͏⃝𓐾r︀⃝𓐿s͏⃝𓐰t︀⃝𓐱u͏⃝𓐲v︀⃝𓐳w͏⃝𓐴x︀⃝𓐵y͏⃝𓐶z︀⃝𓐷",
+    "output": "a͏⃝𓐰b︀⃝𓐱c͏⃝𓐲d︀⃝𓐳e͏⃝𓐴f︀⃝𓐵g͏⃝𓐶h︀⃝𓐷i͏⃝𓐸j︀⃝𓐰k͏⃝𓐱l︀⃝𓐲m͏⃝𓐳n︀⃝𓐴o͏⃝𓐵p︀⃝𓐶q͏⃝𓐷r︀⃝𓐸s͏⃝𓐰t︀⃝𓐱u͏⃝𓐲v︀⃝𓐳w͏⃝𓐴x︀⃝𓐵y͏⃝𓐶z︀⃝𓐷a͏⃝𓐸b︀⃝𓐰c͏⃝𓐱d︀⃝𓐲e͏⃝𓐳f︀⃝𓐴g͏⃝𓐵h︀⃝𓐶i͏⃝𓐷j︀⃝𓐸k͏⃝𓐰l︀⃝𓐱m͏⃝𓐲n︀⃝𓐳o͏⃝𓐴p︀⃝𓐵q͏⃝𓐶r︀⃝𓐷s͏⃝𓐸t︀⃝𓐰u͏⃝𓐱v︀⃝𓐲w͏⃝𓐳x︀⃝𓐴y͏⃝𓐵z︀⃝𓐶a͏⃝𓐷b︀⃝𓐸c͏⃝𓐰d︀⃝𓐱e͏⃝𓐲f︀⃝𓐳g͏⃝𓐴h︀⃝𓐵i͏⃝𓐶j︀⃝𓐷k͏⃝𓐸l︀⃝𓐰m͏⃝𓐱n︀⃝𓐲o͏⃝𓐳p︀⃝𓐴q͏⃝𓐵r︀⃝𓐶s͏⃝𓐷t︀⃝𓐸u͏⃝𓐰v︀⃝𓐱w͏⃝𓐲x︀⃝𓐳y͏⃝𓐴z︀⃝𓐵a͏⃝𓐶b︀⃝𓐷c͏⃝𓐸d︀⃝𓐰e͏⃝𓐱f︀⃝𓐲g͏⃝𓐳h︀⃝𓐴i͏⃝𓐵j︀⃝𓐶k͏⃝𓐷l︀⃝𓐸m͏⃝𓐰n︀⃝𓐱o͏⃝𓐲p︀⃝𓐳q͏⃝𓐴r︀⃝𓐵s͏⃝𓐶t︀⃝𓐷u͏⃝𓐸v︀⃝𓐰w͏⃝𓐱x︀⃝𓐲y͏⃝𓐳z︀⃝𓐴a͏⃝𓐵b︀⃝𓐶c͏⃝𓐷d︀⃝𓐸e͏⃝𓐰f︀⃝𓐱g͏⃝𓐲h︀⃝𓐳i͏⃝𓐴j︀⃝𓐵k͏⃝𓐶l︀⃝𓐷m͏⃝𓐸n︀⃝𓐰o͏⃝𓐱p︀⃝𓐲q͏⃝𓐳r︀⃝𓐴s͏⃝𓐵t︀⃝𓐶u͏⃝𓐷v︀⃝𓐸w͏⃝𓐰x︀⃝𓐱y͏⃝𓐲z︀⃝𓐳a͏⃝𓐴b︀⃝𓐵c͏⃝𓐶d︀⃝𓐷e͏⃝𓐸f︀⃝𓐰g͏⃝𓐱h︀⃝𓐲i͏⃝𓐳j︀⃝𓐴k͏⃝𓐵l︀⃝𓐶m͏⃝𓐷n︀⃝𓐸o͏⃝𓐰p︀⃝𓐱q͏⃝𓐲r︀⃝𓐳s͏⃝𓐴t︀⃝𓐵u͏⃝𓐶v︀⃝𓐷w͏⃝𓐸x︀⃝𓐰y͏⃝𓐱z︀⃝𓐲a͏⃝𓐳b︀⃝𓐴c͏⃝𓐵d︀⃝𓐶e͏⃝𓐷f︀⃝𓐸g͏⃝𓐰h︀⃝𓐱i͏⃝𓐲j︀⃝𓐳k͏⃝𓐴l︀⃝𓐵m͏⃝𓐶n︀⃝𓐷o͏⃝𓐸p︀⃝𓐰q͏⃝𓐱r︀⃝𓐲s͏⃝𓐳t︀⃝𓐴u͏⃝𓐵v︀⃝𓐶w͏⃝𓐷x︀⃝𓐸y͏⃝𓐰z︀⃝𓐱a͏⃝𓐲b︀⃝𓐳c͏⃝𓐴d︀⃝𓐵e͏⃝𓐶f︀⃝𓐷g͏⃝𓐸h︀⃝𓐰i͏⃝𓐱j︀⃝𓐲k͏⃝𓐳l︀⃝𓐴m͏⃝𓐵n︀⃝𓐶o͏⃝𓐷p︀⃝𓐸q͏⃝𓐰r︀⃝𓐱s͏⃝𓐲t︀⃝𓐳u͏⃝𓐴v︀⃝𓐵w͏⃝𓐶x︀⃝𓐷y͏⃝𓐸z︀⃝𓐰a͏⃝𓐱b︀⃝𓐲c͏⃝𓐳d︀⃝𓐴e͏⃝𓐵f︀⃝𓐶g͏⃝𓐷h︀⃝𓐸i͏⃝𓐰j︀⃝𓐱k͏⃝𓐲l︀⃝𓐳m͏⃝𓐴n︀⃝𓐵o͏⃝𓐶p︀⃝𓐷q͏⃝𓐸r︀⃝𓐰s͏⃝𓐱t︀⃝𓐲u͏⃝𓐳v︀⃝𓐴w͏⃝𓐵x︀⃝𓐶y͏⃝𓐷z︀⃝𓐸a͏⃝𓐰b︀⃝𓐱c͏⃝𓐲d︀⃝𓐳e͏⃝𓐴f︀⃝𓐵g͏⃝𓐶h︀⃝𓐷i͏⃝𓐸j︀⃝𓐰k͏⃝𓐱l︀⃝𓐲m͏⃝𓐳n︀⃝𓐴o͏⃝𓐵p︀⃝𓐶q͏⃝𓐷r︀⃝𓐸s͏⃝𓐰t︀⃝𓐱u͏⃝𓐲v︀⃝𓐳w͏⃝𓐴x︀⃝𓐵y͏⃝𓐶z︀⃝𓐷a͏⃝𓐸b︀⃝𓐰c͏⃝𓐱d︀⃝𓐲e͏⃝𓐳f︀⃝𓐴g͏⃝𓐵h︀⃝𓐶i͏⃝𓐷j︀⃝𓐸k͏⃝𓐰l︀⃝𓐱m͏⃝𓐲n︀⃝𓐳o͏⃝𓐴p︀⃝𓐵q͏⃝𓐶r︀⃝𓐷s͏⃝𓐸t︀⃝𓐰u͏⃝𓐱v︀⃝𓐲w͏⃝𓐳x︀⃝𓐴y͏⃝𓐵z︀⃝𓐶a͏⃝𓐷b︀⃝𓐸c͏⃝𓐰d︀⃝𓐱e͏⃝𓐲f︀⃝𓐳g͏⃝𓐴h︀⃝𓐵i͏⃝𓐶j︀⃝𓐷k͏⃝𓐸l︀⃝𓐰m͏⃝𓐱n︀⃝𓐲o͏⃝𓐳p︀⃝𓐴q͏⃝𓐵r︀⃝𓐶s͏⃝𓐷t︀⃝𓐸u͏⃝𓐰v︀⃝𓐱w͏⃝𓐲x︀⃝𓐳y͏⃝𓐴z︀⃝𓐵",
     "reason": "transformed",
     "insertions": 1248,
     "sites": 312,
@@ -472,7 +472,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
         html += '<span class="me" title="U+20DD">[20DD]</span>';
         continue;
       }
-      if (cp >= 0x13430 && cp <= 0x1343f) {
+      if (cp >= 0x13430 && cp <= 0x13438) {
         html += '<span class="cf" title="' + hex(cp) + '">[' + hex(cp).slice(2) + ']</span>';
         continue;
       }
@@ -616,7 +616,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
   }
 
   function isCarrier(cp) {
-    return cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || (cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f) || (cp >= 0x13430 && cp <= 0x1343f);
+    return cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || (cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f) || (cp >= 0x13430 && cp <= 0x13438);
   }
 
   function inspectLive() {

@@ -19,7 +19,7 @@ Homepage copy should link the demo before install instructions.
 
 ## What the product does
 
-FuckMark inserts U+034F or U+FE00, a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F) into eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters. Visible projection stays identical; Me may decorate glyphs. v0.4.1 (this tree) already inserts those characters. Accented Latin, Han, and emoji-only inputs are processed.
+FuckMark inserts U+034F or U+FE00, a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+13438) into eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters. Visible projection stays identical; Me may decorate glyphs. v0.4.1 (this tree) already inserts those characters. Accented Latin, Han, and emoji-only inputs are processed.
 
 It is not a general watermark remover.
 
