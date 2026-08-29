@@ -267,7 +267,7 @@ def test_status_flag_reports_too_large_and_inspect_map() -> None:
     inspect_err = inspected.stderr.decode("utf-8")
     assert "fuckmark-inspect" in inspect_err
     assert "[U+034F]" in inspect_err
-    assert "Me/Cc residuals" in inspect_err
+    assert "Me/Cc/Cf residuals" in inspect_err
 
 
 def test_internal_failure_emits_status_when_requested(monkeypatch) -> None:

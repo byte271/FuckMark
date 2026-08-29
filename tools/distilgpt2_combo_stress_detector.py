@@ -11,9 +11,9 @@ from transformers import SynthIDTextWatermarkLogitsProcessor
 from fuckmark.cycle8.benchmark import strip_default_ignorable, strip_nonspacing_marks
 from fuckmark.cycle8.control_carrier import apply_required_sanitizer_bundle
 from fuckmark.cycle8.letter_mix import (
-    LETTER_MIX_APPROVED_CARRIERS,
+    HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS,
     apply_historical_dual_layer_letter_mix,
-    apply_letter_alternating_mix,
+    apply_historical_triple_layer_letter_mix,
 )
 from fuckmark.cycle8.threat_model_audit import lm_watermarking_unicode_sanitizer
 from fuckmark.detectors.mean import weighted_mean_score
@@ -112,9 +112,9 @@ def main() -> int:
     for sample in samples:
         source = str(sample["text"])
         dual = apply_historical_dual_layer_letter_mix(source)
-        live = apply_letter_alternating_mix(source)
-        if project_visible_v1(live, LETTER_MIX_APPROVED_CARRIERS) != source:
-            raise RuntimeError("triple-layer mix changed visible text")
+        live = apply_historical_triple_layer_letter_mix(source)
+        if project_visible_v1(live, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS) != source:
+            raise RuntimeError("historical triple-layer mix changed visible text")
         texts = {
             "identity": source,
             "historical_dual_mn_us": lm_watermarking_unicode_sanitizer(strip_nonspacing_marks(dual)),

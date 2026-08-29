@@ -6,7 +6,7 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 
 ## L01 — Sanitizers
 
-| Arm | Live dual-layer restores source? | Frozen Gate v2 mark-only mix WM |
+| Arm | Live four-layer restores source? | Frozen Gate v2 mark-only mix WM |
 | --- | --- | --- |
 | raw | no | 0/192 |
 | nfc | no | 0/192 |
@@ -18,10 +18,10 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 | lm-watermarking UnicodeSanitizer | no (mangles; does not reconstruct) | 0/192 |
 | Mn-strip / combining-mark strip | **no** (exploratory 0/192) | 188/192 (historical restore) |
 | default-ignorable strip | **no** (exploratory 0/192) | 188/192 (historical restore) |
-| Mn-strip then UnicodeSanitizer | **no** (exploratory 0/192) | historical dual-layer 182/192 |
+| Mn-strip then Me-strip then UnicodeSanitizer | **no** (restore census 0/192) | historical triple-layer matches US(source) 192/192 |
 | required-bundle then UnicodeSanitizer | **no** (exploratory 0/192) | n/a (bundle already strips marks) |
 
-Live mix (`u034f-ufe00-cc-me-letter-alt-v1`) leaves Me/Cc residuals after those paths. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescores: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/` and `evidence/cycle8-combo-stress-exploratory-n192-2026-08-28/`.
+Live mix (`u034f-ufe00-cc-me-cf-letter-alt-v1`) leaves Me/Cc/Cf residuals after Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle. Frozen Cf-strip still removes the Cf layer. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescores: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/`, `evidence/cycle8-combo-stress-exploratory-n192-2026-08-28/` (historical triple-layer detector scores), and `evidence/cycle8-quad-layer-restore-exploratory-2026-08-29/` (four-layer restore census).
 
 ## L02 — Input domain
 
@@ -40,7 +40,7 @@ The product does not strip a BOM, normalize accents, or transliterate to force e
 
 ## L03 — Length and the 4096-site cap
 
-Only the first 4096 eligible ASCII-letter sites receive insertions (three per site: mark, control, Me). For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
+Only the first 4096 eligible ASCII-letter sites receive insertions (four per site: mark, control, Me, Cf). For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
 
 ## L04 — Detector / model / tokenizer evidence
 
@@ -49,7 +49,8 @@ Only the first 4096 eligible ASCII-letter sites receive insertions (three per si
 | Gate v2 confirmation | GPT-2 | GPT-2 BPE | 192 pairs | VERIFIED on that protocol |
 | DeepMind 30-key transfer | GPT-2 | GPT-2 BPE | 192 pairs | HYPOTHESIS / configuration check |
 | DistilGPT2 n=16 | DistilGPT2 | GPT-2 BPE | 16 pairs | HYPOTHESIS; not a second tokenizer family |
-| DistilGPT2 combo stress | DistilGPT2 | GPT-2 BPE | 16 watermarked | HYPOTHESIS; live triple-layer 0/16 under Mn then US |
+| DistilGPT2 combo stress | DistilGPT2 | GPT-2 BPE | 16 watermarked | HYPOTHESIS; historical triple-layer 0/16 under Mn then US |
+| Four-layer restore census | n/a (no detector) | n/a | 192 watermarked | HYPOTHESIS; live four-layer 0/192 restore under Mn then Me then US |
 
 Zero detections in a finite set is not a universal zero-rate. This evidence does not answer whether text is useful on a specific commercial platform. Not claimed: generic AI-authorship classifiers, unknown proprietary detectors, every SynthID deployment, C2PA, or a general reduction in AI detection rates.
 

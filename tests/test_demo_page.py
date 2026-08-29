@@ -42,7 +42,7 @@ def test_demo_page_is_self_contained_and_honest() -> None:
     assert "192" in html
     assert '<script src=' not in html.casefold()
     assert 'href="http' not in html or "mark.q1z.org" in html
-    assert "triple-layer" in html.casefold() or "u+20dd" in html.casefold()
+    assert "four-layer" in html.casefold() or "u+13430" in html.casefold()
 
 
 def test_demo_samples_match_live_cli_and_reversal() -> None:
@@ -76,4 +76,4 @@ def test_demo_samples_match_live_cli_and_reversal() -> None:
     covered = next(sample for sample in samples if sample["id"] == "site-full")
     assert covered["capped"] is False
     assert covered["sites"] == 312
-    assert covered["insertions"] == 936
+    assert covered["insertions"] == 1248

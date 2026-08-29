@@ -48,7 +48,8 @@ def test_invisible_carrier_closed_set_has_no_priority_zero_safe_survivor() -> No
     transformed = apply_letter_alternating_mix(source)
     assert sanitize_benchmark_stress("mn_strip", transformed) != source
     assert sanitize_benchmark_stress("default_ignorable_strip", transformed) != source
-    assert strip_unicode_format_characters(transformed) == transformed
+    assert strip_unicode_format_characters(transformed) != transformed
+    assert strip_unicode_format_characters(transformed) != source
 
 
 def test_all_width0_enclosing_marks_change_chromium_pre_pixels() -> None:

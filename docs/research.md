@@ -10,7 +10,7 @@ Frozen scientific records are not the user manual. They stay in the repository s
 | --- | --- | --- |
 | Gate v2 confirmation READMEs | Frozen 188/192 identity and 0/192 mix after required sanitizers | Historical sentence "CLI remains empty" / `process_text` identity **at confirmation time**. Live product is authorized letter-mix. |
 | `cycle8-product-authorization-v1` | Historical mark-only authorization | Public CLI applied U+034F / U+FE00 (`release-cli-v5`) |
-| `cycle8-product-authorization-v2` | Live triple-layer authorization | Public CLI applies mark plus C0/C1 plus Me (`release-cli-v7`) |
+| `cycle8-product-authorization-v2` | Live four-layer authorization | Public CLI applies mark plus C0/C1 plus Me plus Cf (`release-cli-v8`) |
 | mix-freeze / mix-confirmation 830000+ | Historical 0/192 on earlier seeds | Not rewritten |
 
 ## Evidence index

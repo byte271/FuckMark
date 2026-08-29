@@ -6,7 +6,7 @@ from pathlib import Path
 from ..config import canonical_json_text
 from ..experiments.cycle6_confirmation import CYCLE6_THRESHOLD
 from ..hashing import sha256_json
-from .letter_mix import LETTER_MIX_MECHANISM_ID
+from .letter_mix import HISTORICAL_TRIPLE_LAYER_MIX_MECHANISM_ID
 
 
 CYCLE8_COMBO_STRESS_N192_VERSION = "cycle8-combo-stress-exploratory-n192-v1"
@@ -76,8 +76,8 @@ def build_combo_stress_n192_scorecard(artifacts: list[dict[str, object]]) -> dic
             raise ValueError("combo stress corpus scorecard hash mismatch")
         if artifact.get("confirmation_rewritten") is True:
             raise ValueError("combo stress must not rewrite confirmation")
-        if artifact.get("mechanism_id") != LETTER_MIX_MECHANISM_ID:
-            raise ValueError("combo stress must use live triple-layer mechanism")
+        if artifact.get("mechanism_id") != HISTORICAL_TRIPLE_LAYER_MIX_MECHANISM_ID:
+            raise ValueError("combo stress must use historical triple-layer mechanism")
         if artifact.get("role") != "exploratory_rescore_of_frozen_sources":
             raise ValueError("combo stress must remain an exploratory rescore")
         effectiveness = artifact["effectiveness"]
@@ -106,7 +106,7 @@ def build_combo_stress_n192_scorecard(artifacts: list[dict[str, object]]) -> dic
         "role": "exploratory_rescore_of_frozen_sources",
         "confirmation_rewritten": False,
         "spent_confirmation_corpora_not_reused_for_generation": True,
-        "mechanism_id": LETTER_MIX_MECHANISM_ID,
+        "mechanism_id": HISTORICAL_TRIPLE_LAYER_MIX_MECHANISM_ID,
         "watermarked_rows": 192,
         "threshold": CYCLE6_THRESHOLD,
         "detector": "huggingface-synthid-weighted-mean-gpt2",

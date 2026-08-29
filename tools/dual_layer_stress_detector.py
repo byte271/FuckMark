@@ -7,9 +7,9 @@ from pathlib import Path
 from fuckmark.cycle8.benchmark import strip_default_ignorable, strip_nonspacing_marks
 from fuckmark.cycle8.gate_v2 import gate_v2_confirmation_artifact_path
 from fuckmark.cycle8.letter_mix import (
-    LETTER_MIX_APPROVED_CARRIERS,
+    HISTORICAL_DUAL_LAYER_MIX_CARRIERS,
+    apply_historical_dual_layer_letter_mix,
     apply_historical_mark_letter_mix,
-    apply_letter_alternating_mix,
 )
 from fuckmark.experiments.cycle6_confirmation import CYCLE6_THRESHOLD
 from fuckmark.hashing import sha256_json, sha256_text
@@ -56,9 +56,9 @@ def main() -> int:
     for sample in samples:
         source = str(sample["text"])
         historical = apply_historical_mark_letter_mix(source)
-        live = apply_letter_alternating_mix(source)
-        if project_visible_v1(live, LETTER_MIX_APPROVED_CARRIERS) != source:
-            raise RuntimeError("dual-layer mix changed visible text")
+        live = apply_historical_dual_layer_letter_mix(source)
+        if project_visible_v1(live, HISTORICAL_DUAL_LAYER_MIX_CARRIERS) != source:
+            raise RuntimeError("historical dual-layer mix changed visible text")
         payloads = {
             "identity": source,
             "historical_mark_raw": historical,

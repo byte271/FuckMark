@@ -151,7 +151,7 @@ def test_cli_main_interactive_copies_without_printing_payload() -> None:
     assert "Copied to clipboard" in ui
     assert "processed=yes" in ui
     assert "source_length=" in ui
-    assert "Me/Cc residuals" in ui
+    assert "Me/Cc/Cf residuals" in ui
     assert expected not in ui
     assert "I don't agree." not in ui
     assert project_visible_v1(expected, APPROVED) == "I do not agree."
@@ -326,8 +326,8 @@ def test_cli_version_reports_project_identity(capsys) -> None:
     assert result.value.code == 0
     rendered = capsys.readouterr().out.strip()
     assert rendered == f"FuckMark {__version__}"
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v7"
-    assert "release-cli-v7" not in rendered
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v8"
+    assert "release-cli-v8" not in rendered
     assert "transform-registry" not in rendered
 
 
@@ -459,7 +459,7 @@ def test_cli_stream_success_reports_processed_coverage_and_reversal() -> None:
     assert "processed=yes" in stderr
     assert "insertions=" in stderr
     assert "source_length=15" in stderr
-    assert "Me/Cc residuals" in stderr
+    assert "Me/Cc/Cf residuals" in stderr
     quiet_out = StringIO()
     quiet_err = StringIO()
     quiet = main(

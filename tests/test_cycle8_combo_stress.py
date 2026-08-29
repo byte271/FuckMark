@@ -1,7 +1,12 @@
 import json
 from pathlib import Path
 
-from fuckmark.cycle8.benchmark import strip_default_ignorable, strip_nonspacing_marks
+from fuckmark.cycle8.benchmark import (
+    strip_default_ignorable,
+    strip_enclosing_marks,
+    strip_nonspacing_marks,
+    strip_other_controls,
+)
 from fuckmark.cycle8.combo_stress import (
     CYCLE8_COMBO_STRESS_N192_HASH,
     CYCLE8_COMBO_STRESS_N192_PATH,
@@ -16,6 +21,7 @@ from fuckmark.cycle8.control_carrier import apply_required_sanitizer_bundle
 from fuckmark.cycle8.letter_mix import (
     apply_historical_dual_layer_letter_mix,
     apply_historical_mark_letter_mix,
+    apply_historical_triple_layer_letter_mix,
     apply_letter_alternating_mix,
 )
 from fuckmark.cycle8.second_model_transfer import CYCLE8_MIX_SECOND_MODEL_TRANSFER_PATH
@@ -136,4 +142,17 @@ def test_live_triple_layer_resists_mn_then_unicode_sanitizer() -> None:
     assert lm_watermarking_unicode_sanitizer(strip_nonspacing_marks(dual)) == source
     assert lm_watermarking_unicode_sanitizer(strip_nonspacing_marks(live)) != source
     assert lm_watermarking_unicode_sanitizer(strip_default_ignorable(live)) != source
+    assert lm_watermarking_unicode_sanitizer(apply_required_sanitizer_bundle(live)) != source
+
+
+def test_live_four_layer_resists_mn_me_unicode_sanitizer() -> None:
+    source = "I do not agree."
+    historical = apply_historical_triple_layer_letter_mix(source)
+    live = apply_letter_alternating_mix(source)
+    assert project_visible_v1(live) == source
+    assert lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(historical))) == source
+    assert strip_other_controls(strip_enclosing_marks(strip_nonspacing_marks(historical))) == source
+    assert lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(live))) != source
+    assert lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_default_ignorable(live))) != source
+    assert strip_other_controls(strip_enclosing_marks(strip_nonspacing_marks(live))) != source
     assert lm_watermarking_unicode_sanitizer(apply_required_sanitizer_bundle(live)) != source

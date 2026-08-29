@@ -46,7 +46,10 @@ from .detector_transfer import (
     try_load_mix_mean_transfer_scorecard,
 )
 from .feasibility import CYCLE8_FEASIBILITY_HASH, load_invisible_carrier_feasibility
-from .letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
+from .letter_mix import (
+    HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS,
+    apply_historical_triple_layer_letter_mix,
+)
 from .mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION, build_mix_confirmation_scorecard
 from .mix_freeze import (
     CYCLE8_MIX_FREEZE_VERSION,
@@ -145,19 +148,19 @@ def measure_mix_fixtures() -> dict[str, object]:
     email_preserved = 0
     email_total = 0
     source = "I do not agree."
-    transformed = apply_letter_alternating_mix(source)
-    hashes = tuple(sha256_text(apply_letter_alternating_mix(source)) for _ in range(5))
+    transformed = apply_historical_triple_layer_letter_mix(source)
+    hashes = tuple(sha256_text(apply_historical_triple_layer_letter_mix(source)) for _ in range(5))
     for _fixture_id, _category, text in benchmark_fixtures():
         if not is_supported_product_domain_v1(text):
             unsupported += 1
             continue
         supported += 1
-        applied = apply_letter_alternating_mix(text)
-        visible = is_carrier_insertion_v1(text, applied, LETTER_MIX_APPROVED_CARRIERS) and project_visible_v1(
-            applied, LETTER_MIX_APPROVED_CARRIERS
+        applied = apply_historical_triple_layer_letter_mix(text)
+        visible = is_carrier_insertion_v1(text, applied, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS) and project_visible_v1(
+            applied, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS
         ) == text
         visible_pass += int(visible)
-        report = roundtrip_report(text, applied, LETTER_MIX_APPROVED_CARRIERS)
+        report = roundtrip_report(text, applied, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS)
         utf8_pass += int(bool(report["utf8_roundtrip_equals_transformed"]))
         nfc_pass += int(bool(report["nfc_equals_transformed"]))
         stdio_pass += int(bool(report["stdin_stdout_equals_transformed"]))
@@ -167,7 +170,7 @@ def measure_mix_fixtures() -> dict[str, object]:
         if _LITERAL in text:
             search_candidates += 1
             search_breaks += int(_LITERAL not in applied)
-            visible_search_hits += int(visible_contains(applied, _LITERAL, LETTER_MIX_APPROVED_CARRIERS))
+            visible_search_hits += int(visible_contains(applied, _LITERAL, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS))
         if _URL in text:
             url_total += 1
             url_preserved += int(_URL in applied)
@@ -211,7 +214,7 @@ def measure_mix_fixtures() -> dict[str, object]:
         "cli_identity": True,
         "cli_preserves_transformed": process_text(transformed) == transformed,
         "short_paragraph_search_breaks": _LITERAL in source and _LITERAL not in transformed,
-        "short_paragraph_visible_search": visible_contains(transformed, _LITERAL, LETTER_MIX_APPROVED_CARRIERS),
+        "short_paragraph_visible_search": visible_contains(transformed, _LITERAL, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS),
         "short_paragraph_latin1_fails": latin1_roundtrip_survives(transformed) is False,
         "short_paragraph_frozen_survives": _frozen_carriers_survive(transformed),
         "short_paragraph_mn_kills": _stress_restores_source(source, transformed)["mn_strip"],
