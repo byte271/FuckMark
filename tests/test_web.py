@@ -109,6 +109,7 @@ def test_fuckmark_web_serves_mark_page() -> None:
         seen["port"] = port
         with urlopen(url, timeout=2) as response:
             seen["body"] = response.read().decode("utf-8")
+            seen["cache"] = response.headers.get("Cache-Control")
         with urlopen(f"http://127.0.0.1:{port}/", timeout=2) as response:
             seen["index"] = response.read().decode("utf-8")
         health_status, health = _get_json(f"http://127.0.0.1:{port}/api/health")
@@ -151,6 +152,7 @@ def test_fuckmark_web_serves_mark_page() -> None:
     assert "/api/remove-marks" in body
     assert "We did not detect a watermark in this text." in body
     assert "detectFuckMark" in str(seen["index"])
+    assert "no-store" in str(seen.get("cache", "")).casefold()
     assert seen["health_status"] == 200
     health = seen["health"]
     assert isinstance(health, dict)

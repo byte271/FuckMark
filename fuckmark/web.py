@@ -144,6 +144,15 @@ class _MarkHandler(http.server.SimpleHTTPRequestHandler):
     def log_message(self, format: str, *args) -> None:
         return
 
+    def end_headers(self) -> None:
+        buffer = getattr(self, "_headers_buffer", None)
+        already = False
+        if buffer:
+            already = any(line.lower().startswith(b"cache-control:") for line in buffer)
+        if not already:
+            self.send_header("Cache-Control", "no-store")
+        return super().end_headers()
+
     def _json_response(self, status: int, payload: dict[str, object]) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
