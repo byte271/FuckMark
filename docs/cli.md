@@ -105,7 +105,7 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 ### `fuckmark web`
 
-Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags.
+Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health` and `POST /api/remove-marks`. Detect and strip on that page use `detect_fuckmark_insertions` and `project_visible_v1` when the API is up.
 
 ```text
 fuckmark web

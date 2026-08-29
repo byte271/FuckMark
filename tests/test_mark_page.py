@@ -33,6 +33,10 @@ def test_mark_page_is_closed_set_detector_with_contact() -> None:
     assert "FM_CCS" in html
     assert "FM_CFS" in html
     assert "No CLI needed" in html
+    assert "/api/health" in html
+    assert "/api/remove-marks" in html
+    assert "scanViaPython" in html
+    assert "scanLocal" in html
 
 
 def test_mark_page_demo_sample_is_detectable_by_python_detector() -> None:

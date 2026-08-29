@@ -1,13 +1,42 @@
+import json
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
-from urllib.request import urlopen
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
 
-from fuckmark.cli import RELEASE_CLI_ALGORITHM_VERSION, main
-from fuckmark.web import mark_html_path, serve_mark_web, web_root
+from fuckmark.cli import RELEASE_CLI_ALGORITHM_VERSION, main, process_text
+from fuckmark.product.detect import DETECT_CONTACT_EMAIL
+from fuckmark.product.domain import PRODUCT_MAX_INPUT_CHARS
+from fuckmark.product.visible_projection import product_approved_carriers_v1, project_visible_v1
+from fuckmark.web import health_payload, mark_html_path, remove_marks_payload, serve_mark_web, web_root
 
 
 ROOT = Path(__file__).resolve().parents[1]
+DEMO_SOURCE = "Hello from Q1z. Visible text stays."
+
+
+def _get_json(url: str) -> tuple[int, dict[str, object]]:
+    with urlopen(url, timeout=2) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+        return response.status, payload
+
+
+def _post_json(url: str, body: dict[str, object]) -> tuple[int, dict[str, object]]:
+    encoded = json.dumps(body, ensure_ascii=False).encode("utf-8")
+    request = Request(
+        url,
+        data=encoded,
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=5) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+            return response.status, payload
+    except HTTPError as error:
+        payload = json.loads(error.read().decode("utf-8"))
+        return error.code, payload
 
 
 def test_packaged_mark_html_matches_docs_source() -> None:
@@ -28,6 +57,49 @@ def test_mark_html_miss_copy_is_english() -> None:
     assert "\u8054\u7cfb" not in html
 
 
+def test_mark_html_calls_python_remove_marks_api() -> None:
+    html = mark_html_path().read_text(encoding="utf-8")
+    assert "/api/health" in html
+    assert "/api/remove-marks" in html
+    assert 'payload.backend === "python"' in html
+    assert "scanViaPython" in html
+    assert "scanLocal" in html
+    assert "detectFuckMark" in html
+
+
+def test_health_and_remove_marks_payloads_use_python_detector() -> None:
+    health = health_payload()
+    assert health["ok"] is True
+    assert health["backend"] == "python"
+    assert health["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v12"
+    assert health["contact"] == DETECT_CONTACT_EMAIL
+
+    miss = remove_marks_payload(DEMO_SOURCE)
+    assert miss["ok"] is False
+    assert miss["reason"] == "not-detected"
+    assert miss["backend"] == "python"
+    assert miss["text"] == DEMO_SOURCE
+    assert miss["detect"]["detected"] is False
+
+    mixed = process_text(DEMO_SOURCE)
+    assert mixed != DEMO_SOURCE
+    hit = remove_marks_payload(mixed)
+    assert hit["ok"] is True
+    assert hit["reason"] == "stripped"
+    assert hit["backend"] == "python"
+    assert hit["text"] == DEMO_SOURCE
+    assert hit["text"] == project_visible_v1(mixed, product_approved_carriers_v1())
+    assert int(hit["removed"]) > 0
+    assert hit["detect"]["detected"] is True
+    assert hit["contact"] == DETECT_CONTACT_EMAIL
+
+    huge = remove_marks_payload("a" * (PRODUCT_MAX_INPUT_CHARS + 1))
+    assert huge["ok"] is False
+    assert huge["reason"] == "too-large"
+    assert huge["text"] == ""
+    assert huge["max"] == PRODUCT_MAX_INPUT_CHARS
+
+
 def test_fuckmark_web_serves_mark_page() -> None:
     errors = StringIO()
     seen: dict[str, object] = {}
@@ -39,6 +111,23 @@ def test_fuckmark_web_serves_mark_page() -> None:
             seen["body"] = response.read().decode("utf-8")
         with urlopen(f"http://127.0.0.1:{port}/", timeout=2) as response:
             seen["index"] = response.read().decode("utf-8")
+        health_status, health = _get_json(f"http://127.0.0.1:{port}/api/health")
+        seen["health_status"] = health_status
+        seen["health"] = health
+        mixed = process_text(DEMO_SOURCE)
+        hit_status, hit = _post_json(f"http://127.0.0.1:{port}/api/remove-marks", {"text": mixed})
+        seen["hit_status"] = hit_status
+        seen["hit"] = hit
+        miss_status, miss = _post_json(
+            f"http://127.0.0.1:{port}/api/remove-marks", {"text": DEMO_SOURCE}
+        )
+        seen["miss_status"] = miss_status
+        seen["miss"] = miss
+        detect_status, detect = _post_json(
+            f"http://127.0.0.1:{port}/api/detect", {"text": mixed}
+        )
+        seen["detect_status"] = detect_status
+        seen["detect"] = detect
 
     url, port = serve_mark_web(
         host="127.0.0.1",
@@ -51,12 +140,43 @@ def test_fuckmark_web_serves_mark_page() -> None:
     assert port > 0
     assert url == seen["url"]
     assert url.endswith("/mark.html")
-    assert "FuckMark web:" in errors.getvalue()
+    log = errors.getvalue()
+    assert "FuckMark web:" in log
+    assert "Python API" in log
+    assert "/api/remove-marks" in log
     body = str(seen["body"])
     assert "FuckMark" in body
     assert "detectFuckMark" in body
+    assert "scanViaPython" in body
+    assert "/api/remove-marks" in body
     assert "We did not detect a watermark in this text." in body
     assert "detectFuckMark" in str(seen["index"])
+    assert seen["health_status"] == 200
+    health = seen["health"]
+    assert isinstance(health, dict)
+    assert health["backend"] == "python"
+    assert health["ok"] is True
+    assert seen["hit_status"] == 200
+    hit = seen["hit"]
+    assert isinstance(hit, dict)
+    assert hit["backend"] == "python"
+    assert hit["ok"] is True
+    assert hit["reason"] == "stripped"
+    assert hit["text"] == DEMO_SOURCE
+    assert int(hit["removed"]) > 0
+    miss = seen["miss"]
+    assert isinstance(miss, dict)
+    assert seen["miss_status"] == 200
+    assert miss["ok"] is False
+    assert miss["reason"] == "not-detected"
+    detect = seen["detect"]
+    assert isinstance(detect, dict)
+    assert seen["detect_status"] == 200
+    assert detect["backend"] == "python"
+    assert detect["ok"] is True
+    inner = detect["detect"]
+    assert isinstance(inner, dict)
+    assert inner["detected"] is True
 
 
 def test_cli_web_help_documents_browser_tool() -> None:
@@ -68,4 +188,5 @@ def test_cli_web_help_documents_browser_tool() -> None:
     assert status == 0
     help_text = out.getvalue() + errors.getvalue()
     assert "fuckmark web" in help_text
+    assert "Python API" in help_text
     assert "browser" in help_text.casefold() or "beginner" in help_text.casefold()

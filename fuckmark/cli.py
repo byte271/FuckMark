@@ -234,6 +234,7 @@ def _parser() -> argparse.ArgumentParser:
             "If --detect finds none, the report tells you to contact "
             f"{DETECT_CONTACT_EMAIL}.\n"
             "Use fuckmark web to open the local browser tool (beginner-friendly).\n"
+            "That server also runs the Python detect/strip API.\n"
             "Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,

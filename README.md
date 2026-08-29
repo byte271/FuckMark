@@ -23,10 +23,12 @@ fuckmark web
 
 Opens a local page at `http://127.0.0.1:8765/mark.html`. Paste text in the browser. No other CLI flags required. Use `--no-open` to print the URL only, or `--port 0` to pick a free port.
 
+`fuckmark web` also serves a local Python API. Detect and strip POST to `/api/remove-marks` and run the same engine as `fuckmark --detect`. Opening `mark.html` with `file://` or the static website has no Python process, so those paths keep the in-browser fallback.
+
 - Product paste UI source: [`docs/mark.html`](docs/mark.html) (packaged as `fuckmark/webui/mark.html`) — after deploy: [mark.q1z.org/mark.html](https://mark.q1z.org/mark.html)
 - Research demo: [`docs/demo.html`](docs/demo.html) — `file://` works; after deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html)
 
-`mark.html` runs a local closed-set FuckMark scan, strips approved insertions when found, and on a miss shows an English no-watermark card with contact to `Fhelp@q1z.org`.
+`mark.html` runs a local closed-set FuckMark scan, strips approved insertions when found, and on a miss shows an English no-watermark card with contact to `Fhelp@q1z.org`. Under `fuckmark web` that scan is the Python detector; the JS copy is the fallback.
 
 The research demo also includes:
 

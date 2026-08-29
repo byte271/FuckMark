@@ -637,7 +637,7 @@
   </button>
   <div class="sheet-back" id="sheetBack"></div>
   <div class="sheet" id="sheet" role="dialog" aria-label="Settings">
-    <p>Runs entirely in your browser.</p>
+    <p id="sheetCopy">Uses the local FuckMark Python server when available. Falls back to in-browser detect.</p>
     <button class="clear" id="clearHist" type="button">Clear history</button>
   </div>
 
@@ -681,7 +681,7 @@
           </div>
         </div>
 
-        <p class="fine" id="fine">Runs entirely in your browser. Local FuckMark scan only — nothing is uploaded.</p>
+        <p class="fine" id="fine">Uses the local FuckMark Python server when available. Falls back to in-browser detect if the API is down. Contact Fhelp@q1z.org if a miss is wrong.</p>
       </div>
 
       <div class="fail-view" id="failView" aria-live="polite">
@@ -801,6 +801,7 @@ let failLoopGen = 0;
 let lastSrc = "";
 let lastMailto = "";
 let demoRun = false;
+let backendReady = false;
 const copyMorphs = [];
 
 function sleep(ms) {
@@ -907,6 +908,69 @@ function detectFuckMark(text) {
     index += 1;
   }
   return { detected: found > 0, found, mark, cc, me, cf, ia, first };
+}
+
+async function probeBackend() {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 800);
+    const response = await fetch("/api/health", { cache: "no-store", signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!response.ok) return false;
+    const payload = await response.json();
+    return !!(payload && payload.ok === true && payload.backend === "python");
+  } catch {
+    return false;
+  }
+}
+
+function applyBackendCopy(connected) {
+  fine.textContent = connected
+    ? "Talks to the local FuckMark Python server. Detect and strip use the same engine as fuckmark --detect. Contact Fhelp@q1z.org if a miss is wrong."
+    : "Uses the local FuckMark Python server when available. Falls back to in-browser detect if the API is down. Contact Fhelp@q1z.org if a miss is wrong.";
+  const sheetCopy = document.getElementById("sheetCopy");
+  if (sheetCopy) {
+    sheetCopy.textContent = connected
+      ? "Talks to the local FuckMark Python server. Same engine as fuckmark --detect."
+      : "Uses the local FuckMark Python server when available. Falls back to in-browser detect.";
+  }
+}
+
+function scanLocal(src) {
+  const scan = detectFuckMark(src);
+  if (!scan.detected) return { detected: false, text: src, removed: 0 };
+  const stripped = stripMarks(src);
+  return { detected: true, text: stripped.text, removed: stripped.removed };
+}
+
+async function scanViaPython(src) {
+  const response = await fetch("/api/remove-marks", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: src }),
+  });
+  const payload = await response.json();
+  if (!payload || payload.backend !== "python") throw new Error("not-python");
+  if (payload.reason === "too-large") throw new Error("too-large");
+  if (payload.reason === "not-detected") {
+    return { detected: false, text: src, removed: 0 };
+  }
+  if (payload.ok === true && payload.reason === "stripped" && typeof payload.text === "string") {
+    return { detected: true, text: payload.text, removed: Number(payload.removed) || 0 };
+  }
+  throw new Error("bad");
+}
+
+async function scanText(src) {
+  if (backendReady) {
+    try {
+      return await scanViaPython(src);
+    } catch (err) {
+      if (String(err && err.message) === "too-large") throw err;
+      return scanLocal(src);
+    }
+  }
+  return scanLocal(src);
 }
 
 function morphIcon(m, icon, spring) {
@@ -1441,8 +1505,20 @@ async function run() {
 
   await sleep(reduce ? 0 : 480);
 
-  const scan = detectFuckMark(src);
-  if (!scan.detected) {
+  let outcome;
+  try {
+    outcome = await scanText(src);
+  } catch (err) {
+    field.classList.remove("is-work");
+    go.classList.remove("is-load");
+    await setLabel("Remove marks");
+    go.disabled = false;
+    busy = false;
+    tip(String(err && err.message) === "too-large" ? "Text is too large" : "Could not scan this text");
+    return;
+  }
+
+  if (!outcome.detected) {
     field.classList.remove("is-work");
     go.classList.remove("is-load");
     await setLabel("Remove marks");
@@ -1452,7 +1528,8 @@ async function run() {
     return;
   }
 
-  const { text, removed } = stripMarks(src);
+  const text = outcome.text;
+  const removed = outcome.removed;
   const copied = await copyText(text, { avoidPrompt: demoRun });
 
   const list = loadHist();
@@ -1522,6 +1599,9 @@ async function typeInto(sample) {
 }
 
 async function boot() {
+  backendReady = await probeBackend();
+  applyBackendCopy(backendReady);
+
   const list = loadHist();
   if (list.length) renderHist(list);
 

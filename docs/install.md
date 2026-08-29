@@ -22,7 +22,7 @@ python3 -m venv .venv
 printf 'I do not agree.\n' | .venv/bin/fuckmark --visible
 ```
 
-`fuckmark web` opens `http://127.0.0.1:8765/mark.html` for beginners who do not want pipes or flags.
+`fuckmark web` opens `http://127.0.0.1:8765/mark.html` for beginners who do not want pipes or flags. Detect and strip on that page talk to the local Python API.
 
 Keep using `.venv/bin/fuckmark` unless you activate the venv:
 

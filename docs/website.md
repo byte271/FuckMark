@@ -16,14 +16,19 @@ Deploy these static files (repository CI cannot push them; copy after each relea
 
 ### `mark.html` (product paste UI)
 
-Runs in the browser. On **Remove marks** it first runs the same closed-set FuckMark insertion scan as `fuckmark --detect` (U+034F, U+FE00, C0/C1, U+20DD, U+13430-U+13438, U+FFF9-U+FFFB).
+On **Remove marks** it runs the same closed-set FuckMark insertion scan as `fuckmark --detect` (U+034F, U+FE00, C0/C1, U+20DD, U+13430-U+13438, U+FFF9-U+FFFB).
 
 - Hit: strip those insertions, copy the cleaned text, keep visible words.
 - Miss: show the English no-watermark card and the contact form that mails `Fhelp@q1z.org`.
 
-Do not strip emoji variation selectors, ZWJ, or other non-approved characters. Do not query GPT-2, SynthID, or any remote detector. Icon scripts may load from a CDN; the scan itself is local.
+Do not strip emoji variation selectors, ZWJ, or other non-approved characters. Do not query GPT-2, SynthID, or any remote detector. Icon scripts may load from a CDN.
 
-Local beginners can run `fuckmark web` after install. That serves the same `mark.html` tool from the package (`fuckmark/webui/mark.html`, kept identical to `docs/mark.html`) on `http://127.0.0.1:8765/mark.html`.
+Local beginners can run `fuckmark web` after install. That serves the same `mark.html` tool from the package (`fuckmark/webui/mark.html`, kept identical to `docs/mark.html`) on `http://127.0.0.1:8765/mark.html`, plus a local Python API:
+
+- `GET /api/health` reports `backend: "python"`
+- `POST /api/remove-marks` with `{ "text": "..." }` calls `detect_fuckmark_insertions` and `project_visible_v1`
+
+The page uses that API when the local server is up. Static `https://mark.q1z.org/mark.html` and `file://` have no Python process, so those deploys keep the in-browser scan.
 
 ### `demo.html` (research walkthrough)
 
