@@ -9,10 +9,11 @@ from fuckmark.cycle8.deepmind_transfer import (
     assert_mix_deepmind_transfer_committed,
     transfer_corpus_paths,
 )
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
-from tests.audit_mix_replay import live_mix_hash
+from tests.audit_mix_replay import assert_live_mix_matches_stored
 
 
 _920000 = "evidence/cycle8-mix-deepmind-30key-920000-n16-2026-08-27"
@@ -53,14 +54,19 @@ def test_deepmind_920000_n16_is_independent_configuration_hypothesis() -> None:
         assert "text" not in row
         assert "text" not in row["mix"]
         assert row["source_sha256"] == sample["text_sha256"] == sha256_text(source)
-        live_mix_hash(source)
+        assert_live_mix_matches_stored(
+            str(sample["sample_id"]),
+            source,
+            row["mix"]["text_sha256"],
+            label=str(row.get("label", sample.get("label", ""))),
+        )
         assert row["visible_ok"] is True
     sums = (root / "SHA256SUMS.txt").read_text(encoding="utf-8")
     for line in sums.splitlines():
         digest, name = line.split()
         assert sha256_file(root / name) == digest
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
 
 
 def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> None:
@@ -108,7 +114,12 @@ def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> Non
             assert "text" not in row
             assert "text" not in row["mix"]
             assert row["source_sha256"] == sample["text_sha256"] == sha256_text(source)
-            live_mix_hash(source)
+            assert_live_mix_matches_stored(
+                str(sample["sample_id"]),
+                source,
+                row["mix"]["text_sha256"],
+                label=str(row.get("label", sample.get("label", ""))),
+            )
             assert row["visible_ok"] is True
         sums_root = root / Path(relative).parent
         for line in (sums_root / "SHA256SUMS.txt").read_text(encoding="utf-8").splitlines():
@@ -119,4 +130,4 @@ def test_deepmind_n192_transfer_is_independent_configuration_hypothesis() -> Non
         file_digest, name = line.split()
         assert sha256_file(combined_root / name) == file_digest
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)

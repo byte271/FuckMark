@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FuckMark no-install demo</title>
+<style>
+:root {
+  --bg: #0a0a0a;
+  --panel: #121212;
+  --ink: #f4f1ea;
+  --muted: #9a968c;
+  --line: #2a2a2a;
+  --star: #d8ff00;
+  --ok: #7dffb3;
+  --warn: #ffb14a;
+  --bad: #ff6b6b;
+  --c034f: #7aa2ff;
+  --cfe00: #d59bff;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.45;
+}
+a { color: var(--star); }
+header {
+  border-bottom: 1px solid var(--line);
+  padding: 1.25rem 1.5rem 1.5rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+}
+header img { width: 72px; height: auto; display: block; }
+h1 { margin: 0 0 0.35rem; font-size: 1.55rem; letter-spacing: -0.02em; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+main {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+  display: grid;
+  gap: 1.25rem;
+}
+.banner {
+  border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--line));
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+}
+.banner strong { color: var(--warn); }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1rem 1.1rem 1.15rem;
+}
+.panel h2 {
+  margin: 0 0 0.65rem;
+  font-size: 1.05rem;
+}
+.panel p, .panel li { color: var(--muted); }
+.panel p { margin: 0 0 0.7rem; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.86rem;
+}
+th, td {
+  text-align: left;
+  padding: 0.45rem 0.4rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+th { color: var(--muted); font-weight: 600; }
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+.tabs button {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #0e0e0e;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+.tabs button[aria-selected="true"] {
+  border-color: var(--star);
+  color: #111;
+  background: var(--star);
+  font-weight: 650;
+}
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.55rem;
+  margin: 0.75rem 0 1rem;
+}
+.stat {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  background: #0e0e0e;
+}
+.stat .k { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat .v { font-family: var(--mono); font-size: 0.95rem; margin-top: 0.2rem; word-break: break-word; }
+.stat .v.ok { color: var(--ok); }
+.stat .v.warn { color: var(--warn); }
+.stat .v.bad { color: var(--bad); }
+.viewer {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0e0e0e;
+  padding: 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 280px;
+  overflow: auto;
+}
+.viewer .cgj { color: var(--c034f); background: color-mix(in srgb, var(--c034f) 18%, transparent); }
+.viewer .cc { color: #7dffb3; background: color-mix(in srgb, #7dffb3 16%, transparent); }
+.viewer .me { color: #ffd27a; background: color-mix(in srgb, #ffd27a 18%, transparent); }
+.viewer .cf { color: #7ad7ff; background: color-mix(in srgb, #7ad7ff 18%, transparent); }
+.viewer .ia { color: #d7a6ff; background: color-mix(in srgb, #d7a6ff 18%, transparent); }
+.viewer .badch { color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, transparent); }
+.viewer .tail { opacity: 0.45; }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.65rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.legend span::before {
+  content: "";
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-right: 0.35rem;
+  border-radius: 2px;
+  vertical-align: -0.05rem;
+}
+.legend .l034f::before { background: var(--c034f); }
+.legend .lfe00::before { background: var(--cfe00); }
+.legend .lcc::before { background: #7dffb3; }
+.legend .lme::before { background: #ffd27a; }
+.legend .lcf::before { background: #7ad7ff; }
+.legend .lia::before { background: #d7a6ff; }
+.legend .lbad::before { background: var(--bad); }
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+.actions button, .actions label.filebtn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: #171717;
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  font: inherit;
+  cursor: pointer;
+}
+.actions button.primary {
+  background: var(--star);
+  color: #111;
+  border-color: var(--star);
+  font-weight: 650;
+}
+textarea {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0e0e0e;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  padding: 0.7rem;
+}
+.note {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.coverage {
+  height: 10px;
+  border-radius: 999px;
+  background: #222;
+  overflow: hidden;
+  display: flex;
+  margin: 0.5rem 0 0.25rem;
+}
+.coverage .filled { background: var(--ok); }
+.coverage .rest { background: #3a3a3a; flex: 1; }
+footer {
+  color: var(--muted);
+  font-size: 0.88rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+code { font-family: var(--mono); font-size: 0.9em; }
+.detect-card {
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-top: 0.85rem;
+}
+.detect-card.hit {
+  border: 1px solid color-mix(in srgb, var(--ok) 55%, var(--line));
+  background: color-mix(in srgb, var(--ok) 10%, var(--panel));
+}
+.detect-card.miss {
+  border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--line));
+  background: color-mix(in srgb, var(--warn) 10%, var(--panel));
+}
+.detect-card.empty {
+  border: 1px solid var(--line);
+  background: #0e0e0e;
+}
+.detect-card h3 { margin: 0 0 0.45rem; font-size: 1.05rem; }
+.detect-card.hit h3 { color: var(--ok); }
+.detect-card.miss h3 { color: var(--warn); }
+.detect-card p { margin: 0 0 0.45rem; color: var(--ink); }
+.detect-card a.contact {
+  color: var(--star);
+  font-weight: 650;
+}
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/fuckmark-logo-dark.png" alt="FuckMark" width="72" height="72">
+  <div>
+    <h1>FuckMark no-install demo</h1>
+    <p class="lede">Fixed CLI samples plus a local FuckMark watermark scan. Shows character differences, processing status, sanitizer reversal, and frozen GPT-2 / SynthID numbers. The paste detector only looks for FuckMark insertion characters. It does not query GPT-2 or SynthID and does not guarantee results on any platform.</p>
+  </div>
+</header>
+<main>
+  <section class="banner" id="reversal-banner">
+    <strong>Five-layer mix resists Mn/DI strip, Me-strip, UnicodeSanitizer, and Cf-strip after UnicodeSanitizer.</strong>
+    Each eligible letter or emoji grapheme cluster receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), a cycling Egyptian hieroglyph format control (U+13430-U+13438), and a cycling interlinear annotation control (U+FFF9-U+FFFB). Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. NFD clusters are marked after the combining sequence. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, Mn then Me then UnicodeSanitizer then frozen Cf-strip, and the required sanitizer bundle no longer restore the source. UnicodeSanitizer turns annotation controls into spaces. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
+  </section>
+
+  <section class="panel" id="detector">
+    <h2>FuckMark detector</h2>
+    <p>Paste text. This page first checks whether FuckMark insertion characters are present. It is a local closed-set scan (U+034F, U+FE00, C0/C1, U+20DD, U+13430–U+13438, U+FFF9–U+FFFB). It does not query GPT-2, SynthID, or any network service.</p>
+    <textarea id="detect-input" spellcheck="false" placeholder="Paste text to check for a FuckMark watermark."></textarea>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-detect">Detect</button>
+      <button type="button" id="btn-detect-clear">Clear</button>
+    </div>
+    <div id="detect-result"></div>
+    <div class="status-grid" id="detect-status" style="margin-top:0.85rem"></div>
+    <div class="viewer" id="detect-view"></div>
+  </section>
+
+  <section class="panel" id="frozen-scores">
+    <h2>Frozen detection comparison (fixed corpus, not your paste)</h2>
+    <p>Gate v2 confirmation (mark-only freeze): GPT-2 / SynthID, 64-token samples, 192 pairs. DistilGPT2 n=16 still used the GPT-2 tokenizer. Live CLI now uses five-layer mark plus Cc plus Me plus Cf (U+13430-U+13438) plus annotation (U+FFF9-U+FFFB) and a 4096-site cap. These freeze numbers are not a general AI-detector rate reduction.</p>
+    <table>
+      <thead>
+        <tr><th>Arm</th><th>Detections</th><th>What it means</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Unmodified watermarked (freeze)</td><td>188/192</td><td>Baseline still detected</td></tr>
+        <tr><td>Mark-only + required sanitizers (freeze)</td><td>0/192</td><td>Required-path success on this corpus</td></tr>
+        <tr><td>Mark-only + Mn-strip (freeze)</td><td>188/192</td><td>Historical mark-only source restore</td></tr>
+        <tr><td>Mark-only + default-ignorable strip (freeze)</td><td>188/192</td><td>Historical mark-only source restore</td></tr>
+        <tr><td>Live dual-layer + Mn-strip (exploratory n=64)</td><td>0/64</td><td>Historical dual-layer Mn/DI residual</td></tr>
+        <tr><td>Historical dual-layer + Mn then UnicodeSanitizer (exploratory n=192)</td><td>182/192</td><td>Combined attack restores most watermarked rows</td></tr>
+        <tr><td>Historical triple-layer + Mn then UnicodeSanitizer (exploratory n=192)</td><td>0/192</td><td>Source not restored; detection stays down</td></tr>
+        <tr><td>Historical triple-layer + required-bundle then UnicodeSanitizer (exploratory n=192)</td><td>0/192</td><td>Source not restored; detection stays down</td></tr>
+        <tr><td>Live four-layer + Mn then Me then UnicodeSanitizer (restore census n=192)</td><td>0/192 restore</td><td>Cf residual; not a detector rescore</td></tr>
+        <tr><td>DistilGPT2 historical triple-layer + Mn then UnicodeSanitizer (exploratory n=16)</td><td>0/16</td><td>HYPOTHESIS second-model sources; not confirmation-scale</td></tr>
+        <tr><td>Exact visible text</td><td>192/192</td><td>Words on screen unchanged</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Do not treat this table as a guarantee for arbitrary user text, commercial platforms, or unknown detectors. The live CLI cap is 4096 letter sites.</p>
+  </section>
+
+  <section class="panel" id="samples">
+    <h2>Fixed CLI samples</h2>
+    <p>Outputs were produced by the repository CLI and baked into this file so <code>file://</code> works with no network.</p>
+    <div class="tabs" role="tablist" aria-label="Fixed samples" id="sample-tabs"></div>
+    <div class="status-grid" id="status-grid"></div>
+    <div id="coverage-wrap" hidden>
+      <div class="coverage" aria-hidden="true"><div class="filled" id="coverage-filled"></div><div class="rest"></div></div>
+      <p class="note" id="coverage-caption"></p>
+    </div>
+    <div class="viewer" id="char-view" aria-live="polite"></div>
+    <div class="legend">
+      <span class="l034f">U+034F insertion</span>
+      <span class="lfe00">U+FE00 insertion</span>
+      <span class="lcc">Cc residual</span>
+      <span class="lme">U+20DD Me</span>
+      <span class="lcf">U+13430 Cf</span>
+      <span class="lia">U+FFF9 annotation</span>
+      <span class="lbad">Unsupported / restored mismatch</span>
+    </div>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-show-output">Show transformed</button>
+      <button type="button" id="btn-show-source">Show source</button>
+      <button type="button" id="btn-strip-mn">Strip combining marks (Mn)</button>
+      <button type="button" id="btn-strip-di">Strip default-ignorables</button>
+      <button type="button" id="btn-escaped">Show escapes</button>
+    </div>
+    <p class="note" id="reversal-note">Use the strip buttons on a transformed sample. Four-layer residuals should keep the source from coming back after Mn-strip or default-ignorable strip.</p>
+  </section>
+
+  <section class="panel" id="live-inspect">
+    <h2>Local paste inspector (eligibility, no network)</h2>
+    <p>Checks letter and emoji eligibility the way the live CLI does. Punctuation can remain in the visible text while letters and emoji are mixed. The local FuckMark scan above is the watermark check; this box is for site eligibility.</p>
+    <textarea id="live-input" spellcheck="false" placeholder="Paste text to check letter and emoji eligibility."></textarea>
+    <div class="actions">
+      <button type="button" class="primary" id="btn-live">Inspect paste</button>
+      <button type="button" id="btn-live-clear">Clear</button>
+    </div>
+    <div class="status-grid" id="live-status" style="margin-top:0.85rem"></div>
+    <div class="viewer" id="live-view"></div>
+    <p class="note">Input with no eligible letter or emoji sites returns exit 0 from the CLI with reason <code>unsupported-domain</code> or <code>no-eligible-sites</code>. Accented Latin, Han, and emoji-only text is processed.</p>
+  </section>
+
+  <footer>
+    <p>Install and CLI docs: <a href="install.md">install.md</a>, <a href="cli.md">cli.md</a>, <a href="limits.md">limits.md</a>. Website deploy source: <a href="website.md">website.md</a>. Live host after deploy: <a href="https://mark.q1z.org/demo.html">mark.q1z.org/demo.html</a>.</p>
+  </footer>
+</main>
+<script id="demo-samples" type="application/json">
+[
+  {
+    "id": "ascii-eligible",
+    "title": "Eligible ASCII",
+    "source": "I do not agree.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻ n︀⃝𓐳￹o͏⃝𓐴￺t︀⃝𓐵￻ a͏⃝𓐶￹g︀⃝𓐷￺r͏⃝𓐸￻e︀⃝𓐰￹e͏⃝𓐱￺.",
+    "reason": "transformed",
+    "insertions": 55,
+    "sites": 11,
+    "last_index": 13,
+    "capped": false,
+    "source_length": 15,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "ascii-apostrophe",
+    "title": "Straight ASCII apostrophe",
+    "source": "I don't agree.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻n︀⃝𓐳￹'t͏⃝𓐴￺ a︀⃝𓐵￻g͏⃝𓐶￹r︀⃝𓐷￺e͏⃝𓐸￻e︀⃝𓐰￹.",
+    "reason": "transformed",
+    "insertions": 50,
+    "sites": 10,
+    "last_index": 12,
+    "capped": false,
+    "source_length": 14,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "curly-apostrophe",
+    "title": "Curly apostrophe (letters mixed)",
+    "source": "I don’t agree.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻n︀⃝𓐳￹’t͏⃝𓐴￺ a︀⃝𓐵￻g͏⃝𓐶￹r︀⃝𓐷￺e͏⃝𓐸￻e︀⃝𓐰￹.",
+    "reason": "transformed",
+    "insertions": 50,
+    "sites": 10,
+    "last_index": 12,
+    "capped": false,
+    "source_length": 14,
+    "first_unsupported": "U+2019@5",
+    "processed": true
+  },
+  {
+    "id": "accented",
+    "title": "Accented Latin letter is a site",
+    "source": "I do not agree é.",
+    "output": "I͏⃝𓐰￹ d︀⃝𓐱￺o͏⃝𓐲￻ n︀⃝𓐳￹o͏⃝𓐴￺t︀⃝𓐵￻ a͏⃝𓐶￹g︀⃝𓐷￺r͏⃝𓐸￻e︀⃝𓐰￹e͏⃝𓐱￺ é︀⃝𓐲￻.",
+    "reason": "transformed",
+    "insertions": 60,
+    "sites": 12,
+    "last_index": 15,
+    "capped": false,
+    "source_length": 17,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "latin-only",
+    "title": "Latin letters without ASCII",
+    "source": "ééé",
+    "output": "é͏⃝𓐰￹é︀⃝𓐱￺é͏⃝𓐲￻",
+    "reason": "transformed",
+    "insertions": 15,
+    "sites": 3,
+    "last_index": 2,
+    "capped": false,
+    "source_length": 3,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "han-only",
+    "title": "Han syllables",
+    "source": "中文",
+    "output": "中͏⃝𓐰￹文︀⃝𓐱￺",
+    "reason": "transformed",
+    "insertions": 10,
+    "sites": 2,
+    "last_index": 1,
+    "capped": false,
+    "source_length": 2,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "emoji-only",
+    "title": "Emoji-only input",
+    "source": "😀",
+    "output": "😀͏⃝𓐰￹",
+    "reason": "transformed",
+    "insertions": 5,
+    "sites": 1,
+    "last_index": 0,
+    "capped": false,
+    "source_length": 1,
+    "first_unsupported": "",
+    "processed": true
+  },
+  {
+    "id": "site-full",
+    "title": "312-letter coverage (under 4096 cap)",
+    "source": "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
+    "output": "a͏⃝𓐰￹b︀⃝𓐱￺c͏⃝𓐲￻d︀⃝𓐳￹e͏⃝𓐴￺f︀⃝𓐵￻g͏⃝𓐶￹h︀⃝𓐷￺i͏⃝𓐸￻j︀⃝𓐰￹k͏⃝𓐱￺l︀⃝𓐲￻m͏⃝𓐳￹n︀⃝𓐴￺o͏⃝𓐵￻p︀⃝𓐶￹q͏⃝𓐷￺r︀⃝𓐸￻s͏⃝𓐰￹t︀⃝𓐱￺u͏⃝𓐲￻v︀⃝𓐳￹w͏⃝𓐴￺x︀⃝𓐵￻y͏⃝𓐶￹z︀⃝𓐷￺a͏⃝𓐸￻b︀⃝𓐰￹c͏⃝𓐱￺d︀⃝𓐲￻e͏⃝𓐳￹f︀⃝𓐴￺g͏⃝𓐵￻h︀⃝𓐶￹i͏⃝𓐷￺j︀⃝𓐸￻k͏⃝𓐰￹l︀⃝𓐱￺m͏⃝𓐲￻n︀⃝𓐳￹o͏⃝𓐴￺p︀⃝𓐵￻q͏⃝𓐶￹r︀⃝𓐷￺s͏⃝𓐸￻t︀⃝𓐰￹u͏⃝𓐱￺v︀⃝𓐲￻w͏⃝𓐳￹x︀⃝𓐴￺y͏⃝𓐵￻z︀⃝𓐶￹a͏⃝𓐷￺b︀⃝𓐸￻c͏⃝𓐰￹d︀⃝𓐱￺e͏⃝𓐲￻f︀⃝𓐳￹g͏⃝𓐴￺h︀⃝𓐵￻i͏⃝𓐶￹j︀⃝𓐷￺k͏⃝𓐸￻l︀⃝𓐰￹m͏⃝𓐱￺n︀⃝𓐲￻o͏⃝𓐳￹p︀⃝𓐴￺q͏⃝𓐵￻r︀⃝𓐶￹s͏⃝𓐷￺t︀⃝𓐸￻u͏⃝𓐰￹v︀⃝𓐱￺w͏⃝𓐲￻x︀⃝𓐳￹y͏⃝𓐴￺z︀⃝𓐵￻a͏⃝𓐶￹b︀⃝𓐷￺c͏⃝𓐸￻d︀⃝𓐰￹e͏⃝𓐱￺f︀⃝𓐲￻g͏⃝𓐳￹h︀⃝𓐴￺i͏⃝𓐵￻j︀⃝𓐶￹k͏⃝𓐷￺l︀⃝𓐸￻m͏⃝𓐰￹n︀⃝𓐱￺o͏⃝𓐲￻p︀⃝𓐳￹q͏⃝𓐴￺r︀⃝𓐵￻s͏⃝𓐶￹t︀⃝𓐷￺u͏⃝𓐸￻v︀⃝𓐰￹w͏⃝𓐱￺x︀⃝𓐲￻y͏⃝𓐳￹z︀⃝𓐴￺a͏⃝𓐵￻b︀⃝𓐶￹c͏⃝𓐷￺d︀⃝𓐸￻e͏⃝𓐰￹f︀⃝𓐱￺g͏⃝𓐲￻h︀⃝𓐳￹i͏⃝𓐴￺j︀⃝𓐵￻k͏⃝𓐶￹l︀⃝𓐷￺m͏⃝𓐸￻n︀⃝𓐰￹o͏⃝𓐱￺p︀⃝𓐲￻q͏⃝𓐳￹r︀⃝𓐴￺s͏⃝𓐵￻t︀⃝𓐶￹u͏⃝𓐷￺v︀⃝𓐸￻w͏⃝𓐰￹x︀⃝𓐱￺y͏⃝𓐲￻z︀⃝𓐳￹a͏⃝𓐴￺b︀⃝𓐵￻c͏⃝𓐶￹d︀⃝𓐷￺e͏⃝𓐸￻f︀⃝𓐰￹g͏⃝𓐱￺h︀⃝𓐲￻i͏⃝𓐳￹j︀⃝𓐴￺k͏⃝𓐵￻l︀⃝𓐶￹m͏⃝𓐷￺n︀⃝𓐸￻o͏⃝𓐰￹p︀⃝𓐱￺q͏⃝𓐲￻r︀⃝𓐳￹s͏⃝𓐴￺t︀⃝𓐵￻u͏⃝𓐶￹v︀⃝𓐷￺w͏⃝𓐸￻x︀⃝𓐰￹y͏⃝𓐱￺z︀⃝𓐲￻a͏⃝𓐳￹b︀⃝𓐴￺c͏⃝𓐵￻d︀⃝𓐶￹e͏⃝𓐷￺f︀⃝𓐸￻g͏⃝𓐰￹h︀⃝𓐱￺i͏⃝𓐲￻j︀⃝𓐳￹k͏⃝𓐴￺l︀⃝𓐵￻m͏⃝𓐶￹n︀⃝𓐷￺o͏⃝𓐸￻p︀⃝𓐰￹q͏⃝𓐱￺r︀⃝𓐲￻s͏⃝𓐳￹t︀⃝𓐴￺u͏⃝𓐵￻v︀⃝𓐶￹w͏⃝𓐷￺x︀⃝𓐸￻y͏⃝𓐰￹z︀⃝𓐱￺a͏⃝𓐲￻b︀⃝𓐳￹c͏⃝𓐴￺d︀⃝𓐵￻e͏⃝𓐶￹f︀⃝𓐷￺g͏⃝𓐸￻h︀⃝𓐰￹i͏⃝𓐱￺j︀⃝𓐲￻k͏⃝𓐳￹l︀⃝𓐴￺m͏⃝𓐵￻n︀⃝𓐶￹o͏⃝𓐷￺p︀⃝𓐸￻q͏⃝𓐰￹r︀⃝𓐱￺s͏⃝𓐲￻t︀⃝𓐳￹u͏⃝𓐴￺v︀⃝𓐵￻w͏⃝𓐶￹x︀⃝𓐷￺y͏⃝𓐸￻z︀⃝𓐰￹a͏⃝𓐱￺b︀⃝𓐲￻c͏⃝𓐳￹d︀⃝𓐴￺e͏⃝𓐵￻f︀⃝𓐶￹g͏⃝𓐷￺h︀⃝𓐸￻i͏⃝𓐰￹j︀⃝𓐱￺k͏⃝𓐲￻l︀⃝𓐳￹m͏⃝𓐴￺n︀⃝𓐵￻o͏⃝𓐶￹p︀⃝𓐷￺q͏⃝𓐸￻r︀⃝𓐰￹s͏⃝𓐱￺t︀⃝𓐲￻u͏⃝𓐳￹v︀⃝𓐴￺w͏⃝𓐵￻x︀⃝𓐶￹y͏⃝𓐷￺z︀⃝𓐸￻a͏⃝𓐰￹b︀⃝𓐱￺c͏⃝𓐲￻d︀⃝𓐳￹e͏⃝𓐴￺f︀⃝𓐵￻g͏⃝𓐶￹h︀⃝𓐷￺i͏⃝𓐸￻j︀⃝𓐰￹k͏⃝𓐱￺l︀⃝𓐲￻m͏⃝𓐳￹n︀⃝𓐴￺o͏⃝𓐵￻p︀⃝𓐶￹q͏⃝𓐷￺r︀⃝𓐸￻s͏⃝𓐰￹t︀⃝𓐱￺u͏⃝𓐲￻v︀⃝𓐳￹w͏⃝𓐴￺x︀⃝𓐵￻y͏⃝𓐶￹z︀⃝𓐷￺a͏⃝𓐸￻b︀⃝𓐰￹c͏⃝𓐱￺d︀⃝𓐲￻e͏⃝𓐳￹f︀⃝𓐴￺g͏⃝𓐵￻h︀⃝𓐶￹i͏⃝𓐷￺j︀⃝𓐸￻k͏⃝𓐰￹l︀⃝𓐱￺m͏⃝𓐲￻n︀⃝𓐳￹o͏⃝𓐴￺p︀⃝𓐵￻q͏⃝𓐶￹r︀⃝𓐷￺s͏⃝𓐸￻t︀⃝𓐰￹u͏⃝𓐱￺v︀⃝𓐲￻w͏⃝𓐳￹x︀⃝𓐴￺y͏⃝𓐵￻z︀⃝𓐶￹a͏⃝𓐷￺b︀⃝𓐸￻c͏⃝𓐰￹d︀⃝𓐱￺e͏⃝𓐲￻f︀⃝𓐳￹g͏⃝𓐴￺h︀⃝𓐵￻i͏⃝𓐶￹j︀⃝𓐷￺k͏⃝𓐸￻l︀⃝𓐰￹m͏⃝𓐱￺n︀⃝𓐲￻o͏⃝𓐳￹p︀⃝𓐴￺q͏⃝𓐵￻r︀⃝𓐶￹s͏⃝𓐷￺t︀⃝𓐸￻u͏⃝𓐰￹v︀⃝𓐱￺w͏⃝𓐲￻x︀⃝𓐳￹y͏⃝𓐴￺z︀⃝𓐵￻",
+    "reason": "transformed",
+    "insertions": 1560,
+    "sites": 312,
+    "last_index": 311,
+    "capped": false,
+    "source_length": 312,
+    "first_unsupported": "",
+    "processed": true
+  }
+]
+</script>
+<script>
+(function () {
+  const samples = JSON.parse(document.getElementById("demo-samples").textContent);
+  const tabs = document.getElementById("sample-tabs");
+  const statusGrid = document.getElementById("status-grid");
+  const charView = document.getElementById("char-view");
+  const coverageWrap = document.getElementById("coverage-wrap");
+  const coverageFilled = document.getElementById("coverage-filled");
+  const coverageCaption = document.getElementById("coverage-caption");
+  const reversalNote = document.getElementById("reversal-note");
+  let active = samples[0];
+  let mode = "output";
+
+
+  function formatUnsupported(token) {
+    if (!token) return "";
+    const match = /^U\+([0-9A-Fa-f]+)@(\d+)$/.exec(token);
+    if (!match) return token;
+    return "U+" + match[1].toUpperCase() + " at index " + match[2];
+  }
+
+  function hex(cp) {
+    return "U+" + cp.toString(16).toUpperCase().padStart(4, "0");
+  }
+
+  function stripMn(text) {
+    return text.replace(/\p{Mn}/gu, "");
+  }
+
+  function stripDI(text) {
+    return text.replace(/\p{Default_Ignorable_Code_Point}/gu, "");
+  }
+
+  function renderChars(text, options) {
+    options = options || {};
+    const lastIndex = options.lastIndex;
+    let sourceIndex = 0;
+    let html = "";
+    for (const ch of text) {
+      const cp = ch.codePointAt(0);
+      if (cp === 0x034f) {
+        html += '<span class="cgj" title="U+034F">[034F]</span>';
+        continue;
+      }
+      if (cp === 0xfe00) {
+        html += '<span class="vs" title="U+FE00">[FE00]</span>';
+        continue;
+      }
+      if ((cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f)) {
+        html += '<span class="cc" title="' + hex(cp) + '">[' + hex(cp).slice(2) + ']</span>';
+        continue;
+      }
+      if (cp === 0x20dd) {
+        html += '<span class="me" title="U+20DD">[20DD]</span>';
+        continue;
+      }
+      if (cp >= 0x13430 && cp <= 0x13438) {
+        html += '<span class="cf" title="' + hex(cp) + '">[' + hex(cp).slice(2) + ']</span>';
+        continue;
+      }
+      if (cp >= 0xFFF9 && cp <= 0xFFFB) {
+        html += '<span class="ia" title="' + hex(cp) + '">[' + hex(cp).slice(2) + ']</span>';
+        continue;
+      }
+      let cls = "";
+      if (options.markUnsupported && cp > 0x7e) cls = "badch";
+      if (options.dimAfter != null && sourceIndex > options.dimAfter) cls = (cls ? cls + " " : "") + "tail";
+      const shown = ch === "\n" ? "\\n" : ch === "\r" ? "\\r" : ch === "\t" ? "\\t" : ch;
+      html += cls ? '<span class="' + cls + '" title="' + hex(cp) + '">' + shown + "</span>" : shown;
+      sourceIndex += 1;
+    }
+    return html || '<span style="color:var(--muted)">(empty)</span>';
+  }
+
+  function escaped(text) {
+    let out = "";
+    for (const ch of text) {
+      const cp = ch.codePointAt(0);
+      if (cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || cp === 0x7f || (cp >= 0x80 && cp <= 0x9f) || cp > 0x7e || cp < 0x20) {
+        out += "\\u" + cp.toString(16).padStart(4, "0");
+      } else if (ch === "\\") {
+        out += "\\\\";
+      } else {
+        out += ch;
+      }
+    }
+    return out;
+  }
+
+  function setStat(label, value, tone) {
+    const el = document.createElement("div");
+    el.className = "stat";
+    el.innerHTML = '<div class="k">' + label + '</div><div class="v' + (tone ? " " + tone : "") + '">' + value + "</div>";
+    return el;
+  }
+
+  function renderStatus(sample, extras) {
+    statusGrid.replaceChildren();
+    const processed = sample.processed ? "yes" : "no";
+    const tone = sample.processed ? "ok" : "warn";
+    statusGrid.append(
+      setStat("processed", processed, tone),
+      setStat("reason", sample.reason, tone),
+      setStat("insertions", String(sample.insertions), tone),
+      setStat("sites", String(sample.sites)),
+      setStat("last_index", sample.last_index == null ? "" : String(sample.last_index)),
+      setStat("source_length", String(sample.source_length)),
+      setStat("capped", sample.capped ? "yes" : "no", sample.capped ? "warn" : ""),
+      setStat("first_unsupported", formatUnsupported(sample.first_unsupported))
+    );
+    if (extras && extras.restored != null) {
+      statusGrid.append(setStat("strip restores source", extras.restored ? "yes" : "no", extras.restored ? "bad" : "ok"));
+    }
+    if (sample.capped) {
+      coverageWrap.hidden = false;
+      const ratio = Math.min(1, sample.sites / Math.max(1, sample.source_length));
+      coverageFilled.style.flex = String(sample.sites);
+      coverageCaption.textContent = "Coverage: insertions stop after source index " + sample.last_index + " (" + sample.sites + " sites). Remaining letters are unchanged.";
+    } else {
+      coverageWrap.hidden = true;
+    }
+  }
+
+  function renderActive() {
+    let text = active.output;
+    let extras = null;
+    if (mode === "source") text = active.source;
+    if (mode === "mn") {
+      text = stripMn(active.output);
+      extras = { restored: text === active.source };
+    }
+    if (mode === "di") {
+      text = stripDI(active.output);
+      extras = { restored: text === active.source };
+    }
+    if (mode === "escaped") {
+      charView.textContent = escaped(active.output);
+      renderStatus(active, null);
+      reversalNote.textContent = "Escapes show U+034F / U+FE00 / U+20DD / U+13430 / U+FFF9 without relying on font rendering.";
+      return;
+    }
+    renderStatus(active, extras);
+    charView.innerHTML = renderChars(text, {
+      markUnsupported: active.reason === "unsupported-domain" || mode === "source",
+      dimAfter: active.capped ? active.last_index : null
+    });
+    if (mode === "mn" || mode === "di") {
+      reversalNote.textContent = extras.restored
+        ? "Strip restored the exact source. That should not happen on live five-layer output."
+        : "Strip did not restore the source. Me/Cc/Cf residuals remain after Mn or default-ignorable removal.";
+    } else if (!active.processed) {
+      reversalNote.textContent = "This sample is not processed. Exit 0 from the CLI still means I/O succeeded, not that hidden characters were inserted.";
+    } else {
+      reversalNote.textContent = "Use the strip buttons on a transformed sample. Four-layer residuals should keep the source from coming back.";
+    }
+  }
+
+  samples.forEach(function (sample, index) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = sample.title;
+    button.setAttribute("role", "tab");
+    button.setAttribute("aria-selected", index === 0 ? "true" : "false");
+    button.addEventListener("click", function () {
+      active = sample;
+      mode = sample.processed ? "output" : "source";
+      Array.prototype.forEach.call(tabs.children, function (child) {
+        child.setAttribute("aria-selected", child === button ? "true" : "false");
+      });
+      renderActive();
+    });
+    tabs.appendChild(button);
+  });
+
+  document.getElementById("btn-show-output").addEventListener("click", function () { mode = "output"; renderActive(); });
+  document.getElementById("btn-show-source").addEventListener("click", function () { mode = "source"; renderActive(); });
+  document.getElementById("btn-strip-mn").addEventListener("click", function () { mode = "mn"; renderActive(); });
+  document.getElementById("btn-strip-di").addEventListener("click", function () { mode = "di"; renderActive(); });
+  document.getElementById("btn-escaped").addEventListener("click", function () { mode = "escaped"; renderActive(); });
+
+  function allowedCodepoint(cp) {
+    return cp === 9 || cp === 10 || cp === 13 || (cp >= 0x20 && cp <= 0x7e);
+  }
+
+  function isLiveLetter(ch) {
+    try {
+      if (/\p{Extended_Pictographic}/u.test(ch)) return true;
+      if (/\p{Regional_Indicator}/u.test(ch)) return true;
+      if (!/\p{L}/u.test(ch)) return false;
+      if (/\p{Script=Latin}/u.test(ch)) return true;
+      if (/\p{Script=Greek}/u.test(ch)) return true;
+      if (/\p{Script=Cyrillic}/u.test(ch)) return true;
+      if (/\p{Script=Han}/u.test(ch)) return true;
+      if (/\p{Script=Hiragana}/u.test(ch)) return true;
+      if (/\p{Script=Katakana}/u.test(ch)) return true;
+      if (/\p{Script=Bopomofo}/u.test(ch)) return true;
+      const cp = ch.codePointAt(0);
+      return cp >= 0xAC00 && cp <= 0xD7A3;
+    } catch (err) {
+      const cp = ch.codePointAt(0);
+      return (cp >= 65 && cp <= 90) || (cp >= 97 && cp <= 122);
+    }
+  }
+
+  function isKeycapBase(chars, index) {
+    const ch = chars[index];
+    if ("#*0123456789".indexOf(ch) < 0) return false;
+    if (index + 1 >= chars.length) return false;
+    const nxt = chars[index + 1].codePointAt(0);
+    return nxt === 0xFE0F || nxt === 0x20E3;
+  }
+
+  function isLiveClusterBase(chars, index) {
+    return isLiveLetter(chars[index]) || isKeycapBase(chars, index);
+  }
+
+  function isClusterExtender(ch) {
+    const cp = ch.codePointAt(0);
+    if (cp === 0xFE0E || cp === 0xFE0F) return true;
+    if (cp >= 0xE0020 && cp <= 0xE007F) return true;
+    try {
+      return /\p{Mn}|\p{Mc}|\p{Me}/u.test(ch);
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function clusterEnd(chars, start) {
+    let index = start + 1;
+    const first = chars[start].codePointAt(0);
+    if (first >= 0x1F1E6 && first <= 0x1F1FF && index < chars.length) {
+      const second = chars[index].codePointAt(0);
+      if (second >= 0x1F1E6 && second <= 0x1F1FF) index += 1;
+    }
+    while (index < chars.length) {
+      const ch = chars[index];
+      const cp = ch.codePointAt(0);
+      if (isClusterExtender(ch)) {
+        index += 1;
+        continue;
+      }
+      if (cp === 0x200D) {
+        index += 1;
+        if (index < chars.length) index += 1;
+        continue;
+      }
+      break;
+    }
+    return index;
+  }
+
+  function firstUnmixed(chars) {
+    const covered = [];
+    let i = 0;
+    while (i < chars.length) {
+      if (!isLiveClusterBase(chars, i)) {
+        i += 1;
+        continue;
+      }
+      const end = clusterEnd(chars, i);
+      covered.push([i, end]);
+      i = end;
+    }
+    let ci = 0;
+    for (let j = 0; j < chars.length; j++) {
+      const cp = chars[j].codePointAt(0);
+      if (allowedCodepoint(cp) || isCarrier(cp)) continue;
+      while (ci < covered.length && covered[ci][1] <= j) ci += 1;
+      if (ci < covered.length && covered[ci][0] <= j && j < covered[ci][1]) continue;
+      return { index: j, cp: cp };
+    }
+    return null;
+  }
+
+  function scanInsertions(chars) {
+    let found = 0;
+    let mark = 0;
+    let cc = 0;
+    let me = 0;
+    let cf = 0;
+    let ia = 0;
+    let first = null;
+    for (let i = 0; i < chars.length; i++) {
+      const cp = chars[i].codePointAt(0);
+      if (!isCarrier(cp)) continue;
+      if (first === null) first = { index: i, cp: cp };
+      found += 1;
+      if (cp === 0x034f || cp === 0xfe00) mark += 1;
+      else if (cp === 0x20dd) me += 1;
+      else if (cp >= 0x13430 && cp <= 0x13438) cf += 1;
+      else if (cp >= 0xfff9 && cp <= 0xfffb) ia += 1;
+      else cc += 1;
+    }
+    return { found: found, mark: mark, cc: cc, me: me, cf: cf, ia: ia, first: first };
+  }
+
+  function isCarrier(cp) {
+    return cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || (cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f) || (cp >= 0x13430 && cp <= 0x13438) || (cp >= 0xfff9 && cp <= 0xfffb);
+  }
+
+  function inspectLive() {
+    const text = document.getElementById("live-input").value;
+    const liveStatus = document.getElementById("live-status");
+    const liveView = document.getElementById("live-view");
+    liveStatus.replaceChildren();
+    const chars = [...text];
+    const scan = scanInsertions(chars);
+    const first = firstUnmixed(chars);
+    let liveLetters = 0;
+    for (let i = 0; i < chars.length; i++) {
+      if (isLiveClusterBase(chars, i)) liveLetters += 1;
+    }
+    let reason = "ascii-domain";
+    let processedHint = "CLI may process (site selection only in CLI)";
+    let tone = "ok";
+    if (scan.found > 0) {
+      reason = "already-transformed";
+      processedHint = "not processed by CLI";
+      tone = "warn";
+    } else if (first && liveLetters === 0) {
+      reason = "unsupported-domain";
+      processedHint = "not processed by CLI";
+      tone = "warn";
+    } else if (liveLetters > 0) {
+      reason = "transformed";
+      processedHint = "CLI mixes letter and emoji sites; other Unicode stays visible";
+      tone = "ok";
+    } else if (!text) {
+      reason = "empty";
+      processedHint = "no input";
+      tone = "warn";
+    } else {
+      reason = "no-eligible-sites";
+      processedHint = "not processed by CLI";
+      tone = "warn";
+    }
+    liveStatus.append(
+      setStat("local verdict", processedHint, tone),
+      setStat("reason hint", reason, tone),
+      setStat("payload marks found", String(scan.found)),
+      setStat("first_unsupported", first ? formatUnsupported(hex(first.cp) + "@" + first.index) : ""),
+      setStat("source_length", String(chars.length)),
+      setStat("local FuckMark scan", scan.found > 0 ? "detected" : "not detected", scan.found > 0 ? "ok" : "warn")
+    );
+    liveView.innerHTML = renderChars(text, { markUnsupported: true });
+  }
+
+  function runDetect() {
+    const text = document.getElementById("detect-input").value;
+    const resultBox = document.getElementById("detect-result");
+    const statusBox = document.getElementById("detect-status");
+    const view = document.getElementById("detect-view");
+    statusBox.replaceChildren();
+    const chars = [...text];
+    const scan = scanInsertions(chars);
+    if (!text) {
+      resultBox.innerHTML = '<div class="detect-card empty"><h3>Paste text first</h3><p>The detector checks this box only. It does not query a network service.</p></div>';
+      statusBox.append(setStat("local scan", "no input", "warn"), setStat("found", "0"));
+      view.textContent = "";
+      return;
+    }
+    if (scan.found > 0) {
+      const first = scan.first ? formatUnsupported(hex(scan.first.cp) + "@" + scan.first.index) : "";
+      resultBox.innerHTML = '<div class="detect-card hit"><h3>Detected FuckMark insertions</h3><p>This text contains FuckMark insertion characters.</p><p>Closed-set scan only. Not a general AI-watermark detector.</p></div>';
+      statusBox.append(
+        setStat("local scan", "detected", "ok"),
+        setStat("found", String(scan.found), "ok"),
+        setStat("mark", String(scan.mark)),
+        setStat("cc", String(scan.cc)),
+        setStat("me", String(scan.me)),
+        setStat("cf", String(scan.cf)),
+        setStat("ia", String(scan.ia)),
+        setStat("first", first)
+      );
+    } else {
+      resultBox.innerHTML = '<div class="detect-card miss"><h3>We did not detect a watermark in this text.</h3><p>What? You think there is a watermark in this?</p><p><a class="contact" href="mailto:Fhelp@q1z.org">Contact us</a></p></div>';
+      statusBox.append(
+        setStat("local scan", "not detected", "warn"),
+        setStat("found", "0"),
+        setStat("contact", "Fhelp@q1z.org")
+      );
+    }
+    view.innerHTML = renderChars(text, { markUnsupported: false });
+  }
+
+  document.getElementById("btn-live").addEventListener("click", inspectLive);
+  document.getElementById("btn-live-clear").addEventListener("click", function () {
+    document.getElementById("live-input").value = "";
+    document.getElementById("live-status").replaceChildren();
+    document.getElementById("live-view").textContent = "";
+  });
+  document.getElementById("btn-detect").addEventListener("click", runDetect);
+  document.getElementById("btn-detect-clear").addEventListener("click", function () {
+    document.getElementById("detect-input").value = "";
+    document.getElementById("detect-result").textContent = "";
+    document.getElementById("detect-status").replaceChildren();
+    document.getElementById("detect-view").textContent = "";
+  });
+
+  renderActive();
+})();
+</script>
+</body>
+</html>

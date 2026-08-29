@@ -37,13 +37,13 @@ These are not product success:
 
 ## Current product path
 
-`release_transform_registry()` stays empty. The public CLI (`release-cli-v5`) applies `apply_letter_alternating_mix` directly: U+034F on even selected ASCII-letter sites, U+FE00 on odd sites, cap 192, outside hard machine spans. Live protection now also covers common relative paths without a leading `./`, Windows paths that use `/`, and Markdown reference labels at both uses and definitions. Those protection changes can change outputs versus the v0.4.0 freeze of `letter_mix.py` (`cycle8-mix-freeze-v1`, `letter_mix_source_sha256` `b1ceec24e584c0e9e7135ef0c89a3bd249b0bda4a45e07aa7190b1b010ba56d4`). Frozen confirmation hashes stay historical. They are not silently rewritten.
+`release_transform_registry()` stays empty. The public CLI (`release-cli-v12`) applies `apply_letter_alternating_mix` directly: U+034F on even selected letter/emoji grapheme clusters, U+FE00 on odd sites, plus a cycling C0/C1 control, enclosing Me (U+20DD), a cycling Egyptian hieroglyph format control (U+13430-U+13438), and a cycling interlinear annotation control (U+FFF9-U+FFFB), cap 4096, outside hard machine spans. Latin (including U+00E9), Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. NFD clusters receive insertions after the combining sequence. Live protection covers fenced/inline/indented code, HTML tags and entities, Markdown destinations and reference labels (including multiline and container forms), URLs including `ftp://`, and paths including `src/main.py`, `scripts/build`, and last-component spaces. Those protection changes can change outputs versus the v0.4.0 freeze of `letter_mix.py` (`cycle8-mix-freeze-v1`, `letter_mix_source_sha256` `b1ceec24e584c0e9e7135ef0c89a3bd249b0bda4a45e07aa7190b1b010ba56d4`). Frozen confirmation hashes stay historical. They are not silently rewritten. `--detect` is a closed-set scan of those approved insertions and is not a general AI-watermark detector.
 
-Live `product_approved_carriers_v1()` is `{U+034F, U+FE00}`. The v1 contract's empty `product_authorized_carriers_v1` list is a historical snapshot of that file.
+Live `product_approved_carriers_v1()` is the five-layer set `{U+034F, U+FE00}` plus C0/C1 controls (DEL and C1 except NEL) plus U+20DD plus U+13430-U+13438 plus U+FFF9-U+FFFB. Visible projection strips those carriers; Me may decorate glyphs in some renderers. The v1 contract's empty `product_authorized_carriers_v1` list is a historical snapshot of that file.
 
-Authorization is recorded in `cycle8-publishability-gate-v2` (`confirmed_and_product_authorized`) and `cycle8-product-authorization-v1`. Confirmation does not by itself enable the CLI; the engineering step did.
+Authorization is recorded in `cycle8-publishability-gate-v2` (`confirmed_and_product_authorized`) and `cycle8-product-authorization-v2`. Confirmation does not by itself enable the CLI; the engineering step did.
 
-The Cycle 8 v1 mix publishability report (`cycle8-mix-publishability-v1`) stays `product_publishable: false` because sanitizer weaknesses FAIL: Mn-strip and default-ignorable-strip remove the mix carriers. Gate v2 treats those two as `stress_only_not_frozen` / `KNOWN_DESTRUCTIVE_COUNTERMEASURE` and does not weaken `required_sanitizers_keep`. See `specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json` and `specs/cycle8/fuckmark-cycle8-publishability-gate-v2.json`.
+The Cycle 8 v1 mix publishability report (`cycle8-mix-publishability-v1`) now records dual-layer stress-strip PASS (`product_publishable: true`) while remaining `product_authorized: false` as a historical CLI snapshot (`release-cli-v4`). Gate v2 still records the historical `mix_sanitizer_gate_v1` FAIL and does not weaken `required_sanitizers_keep`. See `specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json`, `specs/cycle8/fuckmark-cycle8-publishability-gate-v2.json`, and `specs/cycle8/fuckmark-cycle8-product-authorization-v2.json`.
 
 U+200C is not authorized. It is a diagnostic baseline and is removed by Cf stripping. H12 control-mix is not authorized.
 
@@ -64,4 +64,4 @@ Output is ordinary Unicode plain text. HTML overlays, custom fonts, canvas, clip
 
 ## Failure behavior
 
-If a candidate would change visible projection, if the input is outside ordinary English ASCII v1, if carrier safety is uncertain, or if a protected machine span would be broken, the product path leaves that region unchanged. It never falls back to a visible edit.
+If a candidate would change visible projection, if there are no eligible letter or emoji sites, if carrier safety is uncertain, or if a protected machine span would be broken, the product path leaves that region unchanged. It never falls back to a visible edit.

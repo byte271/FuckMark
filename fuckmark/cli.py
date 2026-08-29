@@ -13,8 +13,24 @@ from pathlib import Path
 from typing import TextIO
 
 from . import __project_name__, __version__
-from .cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
-from .product.domain import is_supported_product_domain_v1
+from .cycle8.letter_mix import (
+    LETTER_MIX_APPROVED_CARRIERS,
+    LETTER_MIX_MAX_SELECTED,
+    compose_letter_mix,
+    first_unmixed_non_ascii,
+    select_letter_mix_sites,
+)
+from .product.detect import (
+    DETECT_CONTACT_EMAIL,
+    detect_fuckmark_insertions,
+    detect_human_report,
+    detect_machine_line,
+)
+from .web import run_web_argv
+from .product.domain import (
+    PRODUCT_MAX_INPUT_CHARS,
+    is_supported_product_domain_v1,
+)
 from .product.encodings import require_supported_product_encoding
 from .product.visible_projection import (
     is_carrier_insertion_v1,
@@ -24,7 +40,7 @@ from .product.visible_projection import (
 
 
 INTERACTIVE_DONE = ":done"
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v5"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v12"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -37,37 +53,116 @@ class ClipboardUnavailableError(RuntimeError):
     pass
 
 
+EXIT_OK = 0
+EXIT_ERROR = 1
+EXIT_USAGE = 2
+EXIT_CLIPBOARD = 3
+EXIT_INTERNAL = 4
+EXIT_INTERRUPT = 130
+REASON_TRANSFORMED = "transformed"
+REASON_SITE_CAP = "site-cap"
+REASON_UNSUPPORTED_DOMAIN = "unsupported-domain"
+REASON_ALREADY_TRANSFORMED = "already-transformed"
+REASON_NO_ELIGIBLE_SITES = "no-eligible-sites"
+REASON_INTERNAL_ERROR = "internal-error"
+REASON_TOO_LARGE = "too-large"
+
+
 @dataclass(frozen=True, slots=True)
 class ProcessResult:
     output_text: str
     change_count: int
+    reason: str = REASON_TRANSFORMED
+    last_source_index: int | None = None
+    site_count: int = 0
+    capped: bool = False
+    source_length: int = 0
+    first_unsupported: str = ""
 
     @property
     def changed(self) -> bool:
         return self.change_count > 0
+
+    @property
+    def processed(self) -> bool:
+        return self.change_count > 0
+
+
+def _unsupported_token(text: str) -> str:
+    found = first_unmixed_non_ascii(text)
+    if found is None:
+        return ""
+    return f"U+{found[1]:04X}@{found[0]}"
+
+
+def _unchanged(text: str, reason: str) -> ProcessResult:
+    token = _unsupported_token(text) if reason == REASON_UNSUPPORTED_DOMAIN else ""
+    return ProcessResult(
+        text,
+        0,
+        reason=reason,
+        source_length=len(text),
+        first_unsupported=token,
+    )
 
 
 def transform_text(text: str) -> ProcessResult:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     try:
+        if len(text) > PRODUCT_MAX_INPUT_CHARS:
+            return _unchanged(text, REASON_TOO_LARGE)
         approved = product_approved_carriers_v1()
         if approved != frozenset(LETTER_MIX_APPROVED_CARRIERS):
-            return ProcessResult(text, 0)
-        if not is_supported_product_domain_v1(text):
-            return ProcessResult(text, 0)
+            return _unchanged(text, REASON_INTERNAL_ERROR)
         if any(ord(character) in approved for character in text):
-            return ProcessResult(text, 0)
-        applied = apply_letter_alternating_mix(text)
+            return _unchanged(text, REASON_ALREADY_TRANSFORMED)
+        unsupported = _unsupported_token(text)
+        probe = select_letter_mix_sites(text, max_selected=LETTER_MIX_MAX_SELECTED + 1)
+        capped = len(probe) > LETTER_MIX_MAX_SELECTED
+        sites = probe[:LETTER_MIX_MAX_SELECTED]
+        if not sites:
+            if unsupported and not is_supported_product_domain_v1(text):
+                return ProcessResult(
+                    text,
+                    0,
+                    reason=REASON_UNSUPPORTED_DOMAIN,
+                    source_length=len(text),
+                    first_unsupported=unsupported,
+                )
+            return ProcessResult(
+                text,
+                0,
+                reason=REASON_NO_ELIGIBLE_SITES,
+                source_length=len(text),
+                first_unsupported=unsupported,
+            )
+        applied = compose_letter_mix(text, sites)
         if applied == text:
-            return ProcessResult(text, 0)
+            return ProcessResult(
+                text,
+                0,
+                reason=REASON_NO_ELIGIBLE_SITES,
+                source_length=len(text),
+                first_unsupported=unsupported,
+            )
         if not is_carrier_insertion_v1(text, applied, approved):
-            return ProcessResult(text, 0)
+            return _unchanged(text, REASON_INTERNAL_ERROR)
         if project_visible_v1(applied, approved) != text:
-            return ProcessResult(text, 0)
-        return ProcessResult(applied, len(applied) - len(text))
+            return _unchanged(text, REASON_INTERNAL_ERROR)
+        reason = REASON_SITE_CAP if capped else REASON_TRANSFORMED
+        return ProcessResult(
+            applied,
+            len(applied) - len(text),
+            reason=reason,
+            last_source_index=sites[-1],
+            site_count=len(sites),
+            capped=capped,
+            source_length=len(text),
+            first_unsupported=unsupported,
+        )
     except (KeyError, TypeError, ValueError, RuntimeError):
-        return ProcessResult(text, 0)
+        return _unchanged(text, REASON_INTERNAL_ERROR)
 
 
 def process_text(text: str) -> str:
@@ -79,7 +174,8 @@ def read_interactive_text(input_stream: TextIO, ui_stream: TextIO, *, color: boo
     ui_stream.write(
         "\n"
         "Paste or type your text below.\n"
-        "Enter :done on a new line when finished.\n"
+        "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed.\n"
+        "Other characters stay in the visible text. Enter :done on a new line when finished.\n"
         "\n"
     )
     ui_stream.flush()
@@ -101,7 +197,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="fuckmark",
         description=(
-            "FuckMark inserts hidden Unicode into ordinary English ASCII text "
+            "FuckMark inserts hidden Unicode into ordinary letters and emoji "
             "without changing the visible words."
         ),
         epilog=(
@@ -119,12 +215,27 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark notes.txt -o notes.fm.txt\n"
             "  fuckmark --stdin --copy < notes.txt\n"
             "  fuckmark --stdin --visible < notes.fm.txt\n"
+            "  fuckmark --detect --text \"I do not agree.\"\n"
+            "  printf 'paste\\n' | fuckmark --detect\n"
+            "  fuckmark web\n"
             "\n"
-            "Supported input: tab, newline, carriage return, and ASCII space through tilde.\n"
-            "Other Unicode is returned unchanged with exit 0. That status means I/O\n"
-            "succeeded, not that a transformation occurred. Only UTF-8 is supported.\n"
-            "Visible text stays the same. Use --visible to print that visible text.\n"
-            "Use --text for literal strings and --file for existing UTF-8 files."
+            "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed\n"
+            "even when surrounding text has other Unicode, including curly apostrophes.\n"
+            "Inputs with no eligible letter or emoji sites are returned unchanged with exit 0.\n"
+            "Exit 0 means I/O succeeded, not that hidden characters were inserted.\n"
+            "Only UTF-8 is supported. Visible text stays the same.\n"
+            "Use --visible to print that visible text.\n"
+            "Use --text for literal strings and --file for existing UTF-8 files.\n"
+            "By default, stderr reports processed vs not processed, reason,\n"
+            "insertions, sites, last_index, source_length, and capped. Use -q to hide that.\n"
+            "Use --status for a machine-readable outcome line on stderr.\n"
+            "Use --inspect for a character-level insertion map on stderr.\n"
+            "Use --detect to scan for FuckMark insertions without transforming.\n"
+            "If --detect finds none, the report tells you to contact "
+            f"{DETECT_CONTACT_EMAIL}.\n"
+            "Use fuckmark web to open the local browser tool (beginner-friendly).\n"
+            "That server also runs the Python detect/strip API.\n"
+            "Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -184,7 +295,28 @@ def _parser() -> argparse.ArgumentParser:
         "-q",
         "--quiet",
         action="store_true",
-        help="hide non-essential status messages",
+        help="hide processed/reason/coverage status messages on stderr",
+    )
+    parser.add_argument(
+        "--status",
+        dest="status_report",
+        action="store_true",
+        help="write a machine-readable outcome line to stderr",
+    )
+    parser.add_argument(
+        "--inspect",
+        dest="inspect_report",
+        action="store_true",
+        help="write a character-level coverage map to stderr; stdout stays the payload",
+    )
+    parser.add_argument(
+        "--detect",
+        dest="detect_mode",
+        action="store_true",
+        help=(
+            "scan for FuckMark insertions without transforming; "
+            f"if none are found, print how to contact {DETECT_CONTACT_EMAIL}"
+        ),
     )
     parser.add_argument(
         "--no-color",
@@ -340,19 +472,49 @@ def _ensure_utf8(stream: TextIO) -> None:
             return
 
 
-def _write_stdout_utf8(output_stream: TextIO, text: str) -> None:
-    buffer = getattr(output_stream, "buffer", None)
-    if buffer is not None:
-        try:
-            output_stream.flush()
-        except UnicodeError:
-            pass
-        buffer.write(text.encode("utf-8"))
-        buffer.flush()
+def _abandon_stdio(stream: TextIO) -> None:
+    try:
+        handle = stream.fileno()
+    except (OSError, ValueError, AttributeError):
         return
     try:
+        stream.flush()
+    except (OSError, ValueError, UnicodeError, BrokenPipeError):
+        pass
+    try:
+        null_fd = os.open(os.devnull, os.O_WRONLY)
+        try:
+            os.dup2(null_fd, handle)
+        finally:
+            os.close(null_fd)
+    except OSError:
+        pass
+    try:
+        stream.close()
+    except (OSError, ValueError):
+        pass
+
+
+def _write_stdout_utf8(output_stream: TextIO, text: str) -> None:
+    buffer = getattr(output_stream, "buffer", None)
+    try:
+        if buffer is not None:
+            try:
+                output_stream.flush()
+            except UnicodeError:
+                pass
+            buffer.write(text.encode("utf-8"))
+            buffer.flush()
+            return
         output_stream.write(text)
         output_stream.flush()
+    except BrokenPipeError as error:
+        _abandon_stdio(output_stream)
+        raise ValueError("standard output pipe closed") from error
+    except OSError as error:
+        _abandon_stdio(output_stream)
+        detail = getattr(error, "strerror", None) or str(error)
+        raise ValueError(f"cannot write standard output: {detail}") from error
     except UnicodeError as error:
         raise ValueError("standard output cannot encode UTF-8 product payload") from error
 
@@ -402,6 +564,189 @@ def _status(errors: TextIO, message: str, *, enabled: bool, code: str) -> None:
     errors.flush()
 
 
+def _human_reason(result: ProcessResult) -> str:
+    if result.reason == REASON_TRANSFORMED:
+        extra = ""
+        if result.first_unsupported:
+            extra = f"; letter sites mixed, {result.first_unsupported} left in visible text"
+        return f"processed: inserted {result.change_count} hidden characters{extra}"
+    if result.reason == REASON_SITE_CAP:
+        return (
+            f"processed with coverage limit: inserted {result.change_count} hidden characters, "
+            f"then stopped at the {LETTER_MIX_MAX_SELECTED}-site cap; trailing text is unchanged"
+        )
+    if result.reason == REASON_UNSUPPORTED_DOMAIN:
+        loc = result.first_unsupported or "non-ASCII"
+        return (
+            f"not processed: no eligible letter or emoji sites ({loc}). "
+            "Exit 0 means I/O succeeded, not that hidden characters were inserted"
+        )
+    if result.reason == REASON_ALREADY_TRANSFORMED:
+        return "not processed: input already contains the payload"
+    if result.reason == REASON_NO_ELIGIBLE_SITES:
+        return "not processed: no eligible letter or emoji sites"
+    if result.reason == REASON_TOO_LARGE:
+        return f"not processed: input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)"
+    return "not processed: transformation failed internally; source returned unchanged"
+
+
+def _coverage_line(result: ProcessResult) -> str:
+    last = "" if result.last_source_index is None else str(result.last_source_index)
+    capped = "yes" if result.capped else "no"
+    processed = "yes" if result.processed else "no"
+    return (
+        f"processed={processed} reason={result.reason} "
+        f"insertions={result.change_count} sites={result.site_count} "
+        f"last_index={last} source_length={result.source_length} capped={capped}"
+    )
+
+
+def _machine_status_line(result: ProcessResult) -> str:
+    last = "" if result.last_source_index is None else str(result.last_source_index)
+    capped = "yes" if result.capped else "no"
+    processed = "yes" if result.processed else "no"
+    unsupported = result.first_unsupported
+    return (
+        "fuckmark-status "
+        f"result={result.reason} processed={processed} insertions={result.change_count} "
+        f"sites={result.site_count} last_index={last} "
+        f"source_length={result.source_length} capped={capped} "
+        f"first_unsupported={unsupported}"
+    )
+
+
+def _inspect_map(text: str) -> str:
+    pieces: list[str] = []
+    for character in text:
+        codepoint = ord(character)
+        if codepoint == 0x034F:
+            pieces.append("[U+034F]")
+        elif codepoint == 0xFE00:
+            pieces.append("[U+FE00]")
+        elif codepoint in LETTER_MIX_APPROVED_CARRIERS:
+            pieces.append(f"[U+{codepoint:04X}]")
+        elif character == "\n":
+            pieces.append("\\n")
+        elif character == "\r":
+            pieces.append("\\r")
+        elif character == "\t":
+            pieces.append("\\t")
+        else:
+            pieces.append(character)
+    blob = "".join(pieces)
+    if len(blob) > 8000:
+        return blob[:8000] + "..."
+    return blob
+
+
+def _emit_inspect(errors: TextIO, result: ProcessResult) -> None:
+    errors.write(f"fuckmark-inspect {_coverage_line(result)}\n")
+    if result.first_unsupported:
+        errors.write(f"fuckmark-inspect-unsupported {result.first_unsupported}\n")
+    if result.change_count > 0:
+        errors.write(f"fuckmark-inspect-map {_inspect_map(result.output_text)}\n")
+        errors.write(
+            "fuckmark-inspect-note Mn-strip, default-ignorable strip, and "
+            "UnicodeSanitizer combinations leave Me/Cc/Cf residuals and spaces; "
+            "the source is not restored\n"
+        )
+    elif result.reason == REASON_UNSUPPORTED_DOMAIN:
+        errors.write(
+            "fuckmark-inspect-note the whole input is returned unchanged; "
+            "exit 0 is not proof of insertion\n"
+        )
+    errors.flush()
+
+
+def _emit_outcome(
+    errors: TextIO,
+    result: ProcessResult,
+    *,
+    interactive: bool,
+    quiet: bool,
+    status_report: bool,
+    inspect_report: bool,
+    color: bool,
+) -> None:
+    if status_report:
+        errors.write(_machine_status_line(result) + "\n")
+        errors.flush()
+    if inspect_report:
+        _emit_inspect(errors, result)
+    if result.reason == REASON_INTERNAL_ERROR or result.reason == REASON_TOO_LARGE:
+        return
+    if quiet:
+        return
+    warn = result.reason != REASON_TRANSFORMED and result.reason != REASON_SITE_CAP
+    code = _ANSI_YELLOW if warn else _ANSI_GREEN
+    _status(errors, f"FuckMark: {_human_reason(result)}.", enabled=color, code=code)
+    _status(errors, f"FuckMark: {_coverage_line(result)}.", enabled=color, code=code)
+    if result.change_count > 0:
+        _status(
+            errors,
+            "FuckMark: Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces.",
+            enabled=color,
+            code=_ANSI_YELLOW,
+        )
+
+
+def _run_detect(
+    text: str,
+    arguments: argparse.Namespace,
+    output: TextIO,
+    errors: TextIO,
+    clipboard_writer: Callable[[str], None] | None,
+    *,
+    interactive: bool,
+    color: bool,
+) -> int:
+    if arguments.visible:
+        return _error(errors, "pass --detect without --visible")
+    if len(text) > PRODUCT_MAX_INPUT_CHARS:
+        return _error(errors, f"not processed: input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)")
+    found = detect_fuckmark_insertions(text)
+    if arguments.quiet:
+        payload = detect_machine_line(found) + "\n"
+    else:
+        payload = detect_human_report(found)
+    if arguments.status_report:
+        errors.write(detect_machine_line(found) + "\n")
+        errors.flush()
+    if arguments.inspect_report:
+        errors.write(f"fuckmark-inspect-map {_inspect_map(text)}\n")
+        errors.flush()
+    wrote_payload = False
+    if (not interactive) or arguments.output not in (None, "-"):
+        try:
+            _write_result(payload, arguments.output, output)
+            wrote_payload = True
+        except (ValueError, OSError) as error:
+            return _error(errors, str(error))
+    elif interactive:
+        errors.write(payload)
+        errors.flush()
+        wrote_payload = True
+    tone = _ANSI_GREEN if found.detected else _ANSI_YELLOW
+    if interactive and not arguments.quiet:
+        _status(errors, f"FuckMark: {found.verdict}.", enabled=color, code=tone)
+    should_copy = arguments.copy
+    if should_copy:
+        writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
+        try:
+            writer(payload)
+        except Exception as error:
+            tool_failed = "no supported clipboard command found" not in str(error)
+            follow = "The detect report was still written." if wrote_payload else "Nothing was printed."
+            _status(
+                errors,
+                f"FuckMark: clipboard copy failed ({error}). {_clipboard_hint(tool_failed=tool_failed)} {follow}",
+                enabled=color,
+                code=_ANSI_YELLOW,
+            )
+            return EXIT_CLIPBOARD
+    return EXIT_OK
+
+
 def main(
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
@@ -424,13 +769,30 @@ def main(
                 for value in (input_stream, output_stream, clipboard_writer, error_stream)
             ),
         )
+    except BrokenPipeError:
+        try:
+            errors.write("FuckMark: standard output pipe closed\n")
+            errors.flush()
+        except (OSError, UnicodeError, ValueError, BrokenPipeError):
+            pass
+        _abandon_stdio(output)
+        return EXIT_ERROR
     except KeyboardInterrupt:
         try:
             errors.write("\n")
             errors.flush()
-        except (OSError, UnicodeError, ValueError):
+        except (OSError, UnicodeError, ValueError, BrokenPipeError):
             pass
-        return 130
+        return EXIT_INTERRUPT
+    except OSError as error:
+        try:
+            detail = getattr(error, "strerror", None) or str(error)
+            errors.write(f"FuckMark: cannot write standard output: {detail}\n")
+            errors.flush()
+        except (OSError, UnicodeError, ValueError, BrokenPipeError):
+            pass
+        _abandon_stdio(output)
+        return EXIT_ERROR
 
 
 def _run(
@@ -445,6 +807,9 @@ def _run(
     parser_argv = argv
     if parser_argv is None and injected:
         parser_argv = ()
+    raw_argv = list(sys.argv[1:] if parser_argv is None else parser_argv)
+    if raw_argv and raw_argv[0] == "web":
+        return run_web_argv(raw_argv[1:], errors)
     arguments = _parser().parse_args(parser_argv)
     _ensure_utf8(source)
     _ensure_utf8(output)
@@ -521,6 +886,19 @@ def _run(
             "no input. Pipe text, pass a file, or quote a string. Example: printf 'I do not agree.\\n' | fuckmark",
         )
 
+    if arguments.detect_mode:
+        if interactive:
+            _status(errors, "Checking...", enabled=color, code=_ANSI_BLUE)
+        return _run_detect(
+            text,
+            arguments,
+            output,
+            errors,
+            clipboard_writer,
+            interactive=interactive,
+            color=color,
+        )
+
     if interactive:
         _status(errors, "Processing...", enabled=color, code=_ANSI_BLUE)
     try:
@@ -528,9 +906,41 @@ def _run(
     except (KeyError, TypeError, ValueError) as error:
         return _error(errors, f"could not transform the text: {error}")
 
+    if result.reason == REASON_TOO_LARGE:
+        _emit_outcome(
+            errors,
+            result,
+            interactive=interactive,
+            quiet=arguments.quiet,
+            status_report=arguments.status_report,
+            inspect_report=arguments.inspect_report,
+            color=color,
+        )
+        return _error(errors, _human_reason(result))
+    if result.reason == REASON_INTERNAL_ERROR:
+        _emit_outcome(
+            errors,
+            result,
+            interactive=interactive,
+            quiet=arguments.quiet,
+            status_report=arguments.status_report,
+            inspect_report=arguments.inspect_report,
+            color=color,
+        )
+        _error(errors, _human_reason(result))
+        return EXIT_INTERNAL
+
     output_text = result.output_text
     if arguments.visible:
         output_text = project_visible_v1(output_text, product_approved_carriers_v1())
+
+    wrote_payload = False
+    if (not interactive) or arguments.output not in (None, "-"):
+        try:
+            _write_result(output_text, arguments.output, output)
+            wrote_payload = True
+        except (ValueError, OSError) as error:
+            return _error(errors, str(error))
 
     should_copy = arguments.copy or interactive
     copy_failed: Exception | None = None
@@ -541,16 +951,18 @@ def _run(
         except Exception as error:
             copy_failed = error
 
-    wrote_payload = False
-    if (not interactive) or arguments.output not in (None, "-"):
-        try:
-            _write_result(output_text, arguments.output, output)
-            wrote_payload = True
-        except ValueError as error:
-            return _error(errors, str(error))
-
     if interactive and copy_failed is None:
         _status(errors, _COPIED, enabled=color, code=_ANSI_GREEN)
+
+    _emit_outcome(
+        errors,
+        result,
+        interactive=interactive,
+        quiet=arguments.quiet,
+        status_report=arguments.status_report,
+        inspect_report=arguments.inspect_report,
+        color=color,
+    )
 
     if copy_failed is not None:
         tool_failed = "no supported clipboard command found" not in str(copy_failed)
@@ -568,9 +980,32 @@ def _run(
             enabled=color,
             code=_ANSI_YELLOW,
         )
-        return 2
-    return 0
+        return EXIT_CLIPBOARD
+    return EXIT_OK
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    status = EXIT_ERROR
+    try:
+        status = main()
+    except SystemExit as error:
+        code = error.code
+        if code is None:
+            status = EXIT_OK
+        elif isinstance(code, int):
+            status = code
+        else:
+            status = EXIT_ERROR
+    except BrokenPipeError:
+        status = EXIT_ERROR
+    except KeyboardInterrupt:
+        status = EXIT_INTERRUPT
+    except OSError:
+        status = EXIT_ERROR
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.flush()
+        except (OSError, ValueError, BrokenPipeError):
+            pass
+    _abandon_stdio(sys.stdout)
+    os._exit(status)

@@ -11,8 +11,26 @@ from pathlib import Path
 from ..hashing import sha256_json, sha256_text
 
 
-RENDERING_HARNESS_VERSION = "product-reference-render-v1"
+RENDERING_HARNESS_VERSION = "product-reference-render-v2"
 _CHROME_NAMES = ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome")
+_RENDER_MAX_HEIGHT = 8000
+_RENDER_WIDTH = 800
+
+
+def render_window_size(text: str, *, min_height: int) -> tuple[int, int, bool, int]:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    columns = max(1, (_RENDER_WIDTH - 40) // 10)
+    wrapped = 0
+    lines = text.splitlines() or [""]
+    if text.endswith(("\n", "\r")):
+        lines = [*lines, ""]
+    for line in lines:
+        wrapped += max(1, (len(line) + columns - 1) // columns)
+    content_height = 16 + wrapped * 24 + 32
+    complete = content_height <= _RENDER_MAX_HEIGHT
+    height = min(max(content_height, min_height), _RENDER_MAX_HEIGHT)
+    return _RENDER_WIDTH, height, complete, content_height
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,8 +89,31 @@ def compare_chrome_pre_screenshots(original: str, transformed: str) -> Reference
     try:
         with tempfile.TemporaryDirectory(prefix="fuckmark-render-") as directory:
             root = Path(directory)
-            original_png = _render_pre(executable, root, "original", original)
-            transformed_png = _render_pre(executable, root, "transformed", transformed)
+            width, height, complete, content_height = render_window_size(original if len(original) >= len(transformed) else transformed, min_height=200)
+            if not complete:
+                payload = {
+                    "algorithm_version": RENDERING_HARNESS_VERSION,
+                    "environment": "chromium_headless",
+                    "status": "INCOMPLETE",
+                    "original_sha256": sha256_text(original),
+                    "transformed_sha256": sha256_text(transformed),
+                    "equal": None,
+                    "detail": "content exceeds captured window",
+                    "window_width": width,
+                    "window_height": height,
+                    "content_height": content_height,
+                }
+                return ReferenceRenderComparison(
+                    "chromium_headless",
+                    "INCOMPLETE",
+                    sha256_text(original),
+                    sha256_text(transformed),
+                    None,
+                    "content exceeds captured window",
+                    sha256_json(payload),
+                )
+            original_png = _render_pre(executable, root, "original", original, width=width, height=height)
+            transformed_png = _render_pre(executable, root, "transformed", transformed, width=width, height=height)
     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
         payload = {
             "algorithm_version": RENDERING_HARNESS_VERSION,
@@ -127,10 +168,12 @@ def _html_page(text: str) -> str:
     )
 
 
-def _render_pre(executable: str, root: Path, name: str, text: str) -> bytes:
+def _render_pre(executable: str, root: Path, name: str, text: str, *, width: int = 800, height: int = 200) -> bytes:
     html_path = root / f"{name}.html"
     png_path = root / f"{name}.png"
     html_path.write_text(_html_page(text), encoding="utf-8")
+    profile = root / f"{name}-chrome-profile"
+    profile.mkdir(parents=True, exist_ok=True)
     process = subprocess.Popen(
         [
             executable,
@@ -141,8 +184,9 @@ def _render_pre(executable: str, root: Path, name: str, text: str) -> bytes:
             "--hide-scrollbars",
             "--no-first-run",
             "--disable-background-networking",
+            f"--user-data-dir={profile}",
             "--virtual-time-budget=5000",
-            "--window-size=800,200",
+            f"--window-size={width},{height}",
             f"--screenshot={png_path}",
             html_path.as_uri(),
         ],

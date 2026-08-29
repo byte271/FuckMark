@@ -11,7 +11,7 @@ from .closed_set import CYCLE8_CLOSED_SET_HASH
 from .control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_keep
 from .feasibility import CYCLE8_FEASIBILITY_HASH
 from .post_sanitizer_class import CYCLE8_POST_SANITIZER_CLASS_HASH
-from .publishability import CYCLE8_MIX_PUBLISHABILITY_HASH
+from .publishability import CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH
 from .unicode_meta import DEFAULT_IGNORABLE_RANGES_V1, is_default_ignorable_v1
 
 
@@ -273,7 +273,7 @@ def post_sanitizer_extended_class_payload() -> dict[str, object]:
         "assigned_width0_feasibility_hash": CYCLE8_FEASIBILITY_HASH,
         "control_carrier_hash": CYCLE8_CONTROL_CARRIER_HASH,
         "post_sanitizer_class_hash": CYCLE8_POST_SANITIZER_CLASS_HASH,
-        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_HASH,
+        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH,
         "mix_sanitizer_gate": "FAIL",
         "di_list_complete_vs_ucd15": di_complete,
         "mc_sanitizer_survivor_count": survivors["mc_sanitizer_survivor_count"],

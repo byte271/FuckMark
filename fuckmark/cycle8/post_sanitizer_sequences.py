@@ -12,7 +12,7 @@ from .control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_ke
 from .feasibility import CYCLE8_FEASIBILITY_HASH
 from .post_sanitizer_class import CYCLE8_POST_SANITIZER_CLASS_HASH
 from .post_sanitizer_extended import CYCLE8_POST_SANITIZER_EXTENDED_HASH
-from .publishability import CYCLE8_MIX_PUBLISHABILITY_HASH
+from .publishability import CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH
 
 
 CYCLE8_POST_SANITIZER_SEQUENCES_VERSION = "cycle8-post-sanitizer-sequences-v1"
@@ -274,7 +274,7 @@ def post_sanitizer_sequences_payload() -> dict[str, object]:
         "control_carrier_hash": CYCLE8_CONTROL_CARRIER_HASH,
         "post_sanitizer_class_hash": CYCLE8_POST_SANITIZER_CLASS_HASH,
         "post_sanitizer_extended_hash": CYCLE8_POST_SANITIZER_EXTENDED_HASH,
-        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_HASH,
+        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH,
         "mix_sanitizer_gate": "FAIL",
         "prepend_sanitizer_survivor_labels": list(prepend),
         "prepend_sanitizer_survivor_count": len(prepend),

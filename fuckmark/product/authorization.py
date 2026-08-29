@@ -3,27 +3,43 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text
+from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text, transform_text
+from ..product.detect import DETECT_MECHANISM_ID, detect_fuckmark_insertions
 from ..config import canonical_json_text
+from ..cycle8.benchmark import (
+    strip_default_ignorable,
+    strip_enclosing_marks,
+    strip_nonspacing_marks,
+    strip_other_controls,
+)
+from ..cycle8.control_carrier import apply_required_sanitizer_bundle
 from ..cycle8.gate_v2 import (
     CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH,
     CYCLE8_PUBLISHABILITY_GATE_V2_HASH,
     assert_gate_v2_committed,
 )
-from ..cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, LETTER_MIX_MAX_SELECTED, apply_letter_alternating_mix
+from ..cycle8.letter_mix import (
+    LETTER_MIX_APPROVED_CARRIERS,
+    LETTER_MIX_MAX_SELECTED,
+    LETTER_MIX_MECHANISM_ID,
+    apply_letter_alternating_mix,
+    select_letter_mix_sites,
+)
 from ..cycle8.mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION
 from ..cycle8.mix_freeze import CYCLE8_MIX_FREEZE_VERSION, mix_freeze_hash
 from ..cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_HASH
+from ..cycle8.threat_model_audit import lm_watermarking_unicode_sanitizer
 from ..hashing import sha256_json
 from ..product.contract import FROZEN_PRODUCT_CONTRACT_HASH
 from ..product.domain import is_supported_product_domain_v1
 from ..product.visible_projection import product_approved_carriers_v1, project_visible_v1
+from ..sanitizer_robustness import strip_unicode_format_characters
 from ..transforms.registry import release_transform_registry
 
 
-PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v1"
-PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v1.json"
-PRODUCT_AUTHORIZATION_HASH = "98517b3fbad64f9ded5a7d5b62f1804bd246f233f015f66f2ae416eeed71c748"
+PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
+PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
+PRODUCT_AUTHORIZATION_HASH = "b919483473fb98be0242db86c5eee827874f06508e2e5042b97102d50476967f"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -31,23 +47,38 @@ _AUDIT_SOURCE = "I do not agree."
 
 def product_authorization_payload() -> dict[str, object]:
     transformed = apply_letter_alternating_mix(_AUDIT_SOURCE)
+    mixed = "I do not agree " + chr(0x00E9) + "."
+    latin_only = chr(0x00E9) * 3
+    han_only = chr(0x4E2D) + chr(0x6587)
+    emoji_only = chr(0x1F600)
+    nfd_pair = "e" + chr(0x0301)
+    mn_then_us = lm_watermarking_unicode_sanitizer(strip_nonspacing_marks(transformed))
+    di_then_us = lm_watermarking_unicode_sanitizer(strip_default_ignorable(transformed))
+    bundle_then_us = lm_watermarking_unicode_sanitizer(apply_required_sanitizer_bundle(transformed))
+    mn_me_us = lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(transformed)))
+    di_me_us = lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_default_ignorable(transformed)))
+    mn_me_cc = strip_other_controls(strip_enclosing_marks(strip_nonspacing_marks(transformed)))
+    mn_me_us_cf = strip_unicode_format_characters(mn_me_us)
+    di_me_us_cf = strip_unicode_format_characters(di_me_us)
+    nfd_mixed = apply_letter_alternating_mix(nfd_pair)
     payload = {
         "algorithm_version": PRODUCT_AUTHORIZATION_VERSION,
         "product_authorized": True,
-        "mechanism_id": "u034f-ufe00-letter-alt-v1",
+        "mechanism_id": LETTER_MIX_MECHANISM_ID,
         "carriers": [int(codepoint) for codepoint in LETTER_MIX_APPROVED_CARRIERS],
         "max_selected": LETTER_MIX_MAX_SELECTED,
         "cli_algorithm_version": RELEASE_CLI_ALGORITHM_VERSION,
+        "detect_mechanism_id": DETECT_MECHANISM_ID,
         "release_registry_empty": release_transform_registry().rules == (),
         "apply_path": "apply_letter_alternating_mix",
         "fail_closed": [
-            "unsupported_product_domain",
             "source_already_contains_approved_carriers",
             "visible_projection_mismatch",
             "carrier_insertion_mismatch",
             "apply_error",
+            "no_eligible_letter_sites",
         ],
-        "mix_sanitizer_gate_v1": "FAIL",
+        "mix_sanitizer_gate_v1": "PASS",
         "required_sanitizer_bundle_not_weakened": True,
         "do_not_generate_950000": True,
         "do_not_retag_v030": True,
@@ -66,16 +97,48 @@ def product_authorization_payload() -> dict[str, object]:
             "visible_projection_equals_source": project_visible_v1(transformed) == _AUDIT_SOURCE,
             "approved_carriers": sorted(product_approved_carriers_v1()),
             "supported_domain": is_supported_product_domain_v1(_AUDIT_SOURCE),
-            "outside_domain_identity": process_text("I do not agree " + chr(0x00E9) + ".")
-            == "I do not agree " + chr(0x00E9) + ".",
+            "mixed_unicode_processed": process_text(mixed) != mixed,
+            "latin_letter_only_processed": process_text(latin_only) != latin_only,
+            "han_syllable_processed": process_text(han_only) != han_only,
+            "emoji_only_processed": process_text(emoji_only) != emoji_only,
+            "nfd_cluster_inserts_after_combining_mark": select_letter_mix_sites(nfd_pair) == (1,),
+            "nfd_cluster_keeps_base_then_mark": nfd_mixed.startswith("e" + chr(0x0301)),
             "no_letter_identity": process_text("123.") == "123.",
             "already_mixed_identity": process_text(transformed) == transformed,
+            "latin_only_first_unsupported_empty": transform_text(latin_only).first_unsupported == "",
+            "han_only_first_unsupported_empty": transform_text(han_only).first_unsupported == "",
+            "emoji_only_first_unsupported_empty": transform_text(emoji_only).first_unsupported == "",
+            "curly_apostrophe_leftover_reported": transform_text("I don" + chr(0x2019) + "t agree.").first_unsupported
+            == "U+2019@5",
+            "detector_finds_live_mix": detect_fuckmark_insertions(transformed).detected is True,
+            "detector_rejects_plain_source": detect_fuckmark_insertions(_AUDIT_SOURCE).detected is False,
+            "mn_strip_does_not_restore_source": strip_nonspacing_marks(transformed) != _AUDIT_SOURCE,
+            "di_strip_does_not_restore_source": strip_default_ignorable(transformed) != _AUDIT_SOURCE,
+            "mn_then_us_does_not_restore_source": mn_then_us != _AUDIT_SOURCE,
+            "di_then_us_does_not_restore_source": di_then_us != _AUDIT_SOURCE,
+            "required_bundle_then_us_does_not_restore_source": bundle_then_us != _AUDIT_SOURCE,
+            "mn_me_us_does_not_restore_source": mn_me_us != _AUDIT_SOURCE,
+            "di_me_us_does_not_restore_source": di_me_us != _AUDIT_SOURCE,
+            "mn_me_cc_does_not_restore_source": mn_me_cc != _AUDIT_SOURCE,
+            "mn_me_us_cf_does_not_restore_source": mn_me_us_cf != _AUDIT_SOURCE,
+            "di_me_us_cf_does_not_restore_source": di_me_us_cf != _AUDIT_SOURCE,
         },
         "notes": (
-            "Product authorization of frozen u034f-ufe00-letter-alt-v1 after Gate v2 confirmation. "
-            "The v1 mix publishability sanitizer gate stays FAIL. "
-            "Mn-strip and default-ignorable-strip remain STRESS_ONLY / KNOWN_DESTRUCTIVE_COUNTERMEASURE. "
-            "This does not claim removal of every watermark."
+            "Product authorization of five-layer u034f-ufe00-cc-me-cf-ia-letter-alt-v1. "
+            "Mark plus Cc plus enclosing Me (U+20DD) plus cycling Egyptian hieroglyph format "
+            "controls (U+13430-U+13438) plus cycling interlinear annotation controls "
+            "(U+FFF9-U+FFFB) keep Mn-strip, default-ignorable-strip, UnicodeSanitizer "
+            "orderings, Mn then Me then UnicodeSanitizer, Mn then Me then UnicodeSanitizer "
+            "then frozen cf_strip, and the required sanitizer bundle from restoring the source. "
+            "UnicodeSanitizer turns the annotation controls into spaces, so cf_strip after it "
+            "cannot rebuild the original spacing. Visible projection strips approved carriers; "
+            "Me may decorate glyphs in some renderers. Live sites are grapheme clusters of "
+            "Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji, including NFD "
+            "Latin where insertions follow the combining sequence. Historical Gate v2 "
+            "confirmation remains the frozen GPT-2 evidence for the prior mark-only arm. "
+            "first_unsupported reports leftover non-ASCII that is not inside an eligible "
+            "letter or emoji cluster. --detect is a closed-set scan of approved insertions, "
+            "not a general AI-watermark detector."
         ),
     }
     return {**payload, "authorization_hash": sha256_json(payload)}
@@ -112,10 +175,10 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("product authorization spec does not match the live payload")
     if disk["product_authorized"] is not True:
         raise ValueError("product authorization spec must authorize")
-    if disk["cli_algorithm_version"] != "release-cli-v5":
-        raise ValueError("product authorization must use release-cli-v5")
-    if disk["mix_sanitizer_gate_v1"] != "FAIL":
-        raise ValueError("product authorization must not rewrite the v1 sanitizer gate")
+    if disk["cli_algorithm_version"] != "release-cli-v12":
+        raise ValueError("product authorization must use release-cli-v12")
+    if disk["mix_sanitizer_gate_v1"] != "PASS":
+        raise ValueError("product authorization must record the durable sanitizer gate PASS")
     if disk["identities"]["mix_freeze_hash"] != _MIX_FREEZE_HASH:
         raise ValueError("product authorization must pin the mix freeze hash")
     if disk["identities"]["gate_v2_hash"] != CYCLE8_PUBLISHABILITY_GATE_V2_HASH:
@@ -123,7 +186,49 @@ def assert_product_authorization_committed() -> None:
     if release_transform_registry().rules != ():
         raise ValueError("release_transform_registry must stay empty")
     if product_approved_carriers_v1() != frozenset(LETTER_MIX_APPROVED_CARRIERS):
-        raise ValueError("product_approved_carriers_v1 must be the frozen mix carriers")
+        raise ValueError("product_approved_carriers_v1 must be the durable mix carriers")
     if process_text(_AUDIT_SOURCE) != apply_letter_alternating_mix(_AUDIT_SOURCE):
         raise ValueError("authorized CLI must equal apply_letter_alternating_mix")
+    if disk["live"]["mn_strip_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn-strip source restoration")
+    if disk["live"]["di_strip_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist default-ignorable-strip source restoration")
+    if disk["live"]["mn_then_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn-strip then UnicodeSanitizer restoration")
+    if disk["live"]["di_then_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist DI-strip then UnicodeSanitizer restoration")
+    if disk["live"]["required_bundle_then_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist required-bundle then UnicodeSanitizer restoration")
+    if disk["live"]["mn_me_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn then Me then UnicodeSanitizer restoration")
+    if disk["live"]["di_me_us_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist DI then Me then UnicodeSanitizer restoration")
+    if disk["live"]["mn_me_cc_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn then Me then Cc-strip restoration")
+    if disk["live"]["mn_me_us_cf_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist Mn then Me then UnicodeSanitizer then Cf-strip restoration")
+    if disk["live"]["di_me_us_cf_does_not_restore_source"] is not True:
+        raise ValueError("authorized mix must resist DI then Me then UnicodeSanitizer then Cf-strip restoration")
+    if disk["live"]["latin_letter_only_processed"] is not True:
+        raise ValueError("authorized mix must process Latin letters outside ASCII")
+    if disk["live"]["han_syllable_processed"] is not True:
+        raise ValueError("authorized mix must process Han syllables")
+    if disk["live"]["emoji_only_processed"] is not True:
+        raise ValueError("authorized mix must process emoji-only input")
+    if disk["live"]["nfd_cluster_inserts_after_combining_mark"] is not True:
+        raise ValueError("authorized mix must insert after NFD combining clusters")
+    if disk["live"]["nfd_cluster_keeps_base_then_mark"] is not True:
+        raise ValueError("authorized mix must not split NFD letter clusters")
+    if disk["live"]["latin_only_first_unsupported_empty"] is not True:
+        raise ValueError("authorized leftover scan must skip mixed Latin letters")
+    if disk["live"]["han_only_first_unsupported_empty"] is not True:
+        raise ValueError("authorized leftover scan must skip mixed Han syllables")
+    if disk["live"]["emoji_only_first_unsupported_empty"] is not True:
+        raise ValueError("authorized leftover scan must skip mixed emoji")
+    if disk["live"]["curly_apostrophe_leftover_reported"] is not True:
+        raise ValueError("authorized leftover scan must still report curly apostrophes")
+    if disk["live"]["detector_finds_live_mix"] is not True:
+        raise ValueError("authorized detector must find live mix insertions")
+    if disk["live"]["detector_rejects_plain_source"] is not True:
+        raise ValueError("authorized detector must reject plain source text")
     assert_gate_v2_committed()

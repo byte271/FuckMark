@@ -56,8 +56,8 @@ def test_mix_carriers_are_nonspacing_and_default_ignorable() -> None:
         assert is_default_ignorable_v1(ord(character)) is True
     source = "I do not agree."
     transformed = apply_letter_alternating_mix(source)
-    assert sanitize_benchmark_stress("mn_strip", transformed) == source
-    assert sanitize_benchmark_stress("default_ignorable_strip", transformed) == source
+    assert sanitize_benchmark_stress("mn_strip", transformed) != source
+    assert sanitize_benchmark_stress("default_ignorable_strip", transformed) != source
     enclosing = f"A{chr(ENCLOSING_MARK_PROBE)}B"
     assert sanitize_benchmark_stress("mn_strip", enclosing) == enclosing
     assert sanitize_benchmark_stress("default_ignorable_strip", enclosing) == enclosing

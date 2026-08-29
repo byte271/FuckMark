@@ -11,10 +11,10 @@ from ..product.contract import FROZEN_PRODUCT_CONTRACT_HASH, product_contract_pa
 from ..sanitizer_robustness import strip_unicode_format_characters
 from .benchmark import strip_default_ignorable, strip_nonspacing_marks
 from .control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_keep
-from .letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
+from .letter_mix import HISTORICAL_MARK_MIX_CARRIERS, apply_historical_mark_letter_mix
 from .post_sanitizer_sequences import CYCLE8_POST_SANITIZER_SEQUENCES_HASH
 from .publishability import (
-    CYCLE8_MIX_PUBLISHABILITY_HASH,
+    CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH,
     build_mix_confirmation_scorecard,
     measure_mix_fixtures,
 )
@@ -229,9 +229,9 @@ def lm_watermarking_unicode_sanitizer(text: str) -> str:
 
 
 def real_world_sanitizer_observations() -> dict[str, object]:
-    mixed = apply_letter_alternating_mix(REAL_SANITIZER_SOURCE)
+    mixed = apply_historical_mark_letter_mix(REAL_SANITIZER_SOURCE)
     cleaned = lm_watermarking_unicode_sanitizer(mixed)
-    carriers = sorted(LETTER_MIX_APPROVED_CARRIERS)
+    carriers = sorted(HISTORICAL_MARK_MIX_CARRIERS)
     surviving = [
         codepoint
         for codepoint in carriers
@@ -425,7 +425,7 @@ def threat_model_audit_payload() -> dict[str, object]:
         "does_not_repeat_codepoint_enumeration": True,
         "control_carrier_hash": CYCLE8_CONTROL_CARRIER_HASH,
         "post_sanitizer_sequences_hash": CYCLE8_POST_SANITIZER_SEQUENCES_HASH,
-        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_HASH,
+        "mix_publishability_hash": CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH,
         "product_contract_hash": FROZEN_PRODUCT_CONTRACT_HASH,
         "closure": {
             "assigned_codepoints_scanned": ASSIGNED_CODEPOINTS_SCANNED,

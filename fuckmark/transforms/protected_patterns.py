@@ -8,7 +8,7 @@ from .schema import ProtectedSpanKind
 
 _MAX_PROTECTED_ITEMS = 100_000
 _HWS = r"[^\S\r\n]"
-_URL_RE = re.compile(r"\b(?ai:https?://|www\.)[^\s<>\"']+")
+_URL_RE = re.compile(r"\b(?ai:(?:https?|ftps?|sftp|file|ws|wss|git|ssh|s3)://|www\.)[^\s<>\"']+")
 _BARE_DOMAIN_RE = re.compile(r"(?<![@\\/\w.-])(?ai:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:xn--[A-Z0-9-]{2,59}|[A-Z]{2,63})(?![A-Z0-9-]))(?::\d{1,5})?(?:[/?#][^\s<>\"']*)?")
 _EMAIL_RE = re.compile(r"(?<![\w.+-])(?ai:[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+)(?![\w-])")
 _IPV4_RE = re.compile(r"(?<![\d.])(?:\d{1,3}\.){3}\d{1,3}(?![\d.])")
@@ -54,6 +54,64 @@ def _is_escaped(text: str, index: int) -> bool:
 def _line_end(text: str, start: int) -> int:
     end = text.find("\n", start)
     return len(text) if end < 0 else end
+
+
+def _line_starts(text: str) -> tuple[int, ...]:
+    starts = [0]
+    index = 0
+    length = len(text)
+    while index < length:
+        character = text[index]
+        if character == "\r":
+            index += 1
+            if index < length and text[index] == "\n":
+                index += 1
+            starts.append(index)
+            continue
+        if character == "\n":
+            starts.append(index + 1)
+            index += 1
+            continue
+        index += 1
+    return tuple(starts)
+
+
+def _line_content_end(text: str, line_start: int, next_line_start: int) -> int:
+    end = next_line_start
+    if end > line_start and text[end - 1] == "\n":
+        end -= 1
+        if end > line_start and text[end - 1] == "\r":
+            end -= 1
+        return end
+    if end > line_start and text[end - 1] == "\r":
+        return end - 1
+    return end
+
+
+def _skip_spaces_tabs(text: str, index: int, limit: int | None = None) -> int:
+    end = len(text) if limit is None else limit
+    while index < end and text[index] in " \t":
+        index += 1
+    return index
+
+
+def _skip_one_line_ending(text: str, index: int) -> int:
+    if index < len(text) and text[index] == "\r":
+        index += 1
+        if index < len(text) and text[index] == "\n":
+            index += 1
+        return index
+    if index < len(text) and text[index] == "\n":
+        return index + 1
+    return index
+
+
+def _skip_reference_whitespace(text: str, index: int) -> int:
+    index = _skip_spaces_tabs(text, index)
+    advanced = _skip_one_line_ending(text, index)
+    if advanced != index:
+        index = _skip_spaces_tabs(text, advanced)
+    return index
 
 
 def _trim_terminal_punctuation(text: str, start: int, end: int) -> tuple[int, int]:

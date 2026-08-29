@@ -31,6 +31,7 @@ from fuckmark.cycle8.threat_model_audit import (
     substitution_class_survivors,
     threat_model_audit_payload,
 )
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
 from fuckmark.cycle8.publishability import measure_mix_fixtures
 from fuckmark.product.visible_projection import product_approved_carriers_v1
 from fuckmark.transforms.registry import release_transform_registry
@@ -74,8 +75,9 @@ def test_mix_still_fails_only_on_the_stress_only_sanitizers():
     measured = measure_mix_fixtures()
     assert measured["frozen_sanitizer_total"] > 0
     assert measured["frozen_sanitizer_survive"] == measured["frozen_sanitizer_total"]
-    assert measured["mn_strip_kills"] == measured["stress_total"]
-    assert measured["default_ignorable_strip_kills"] == measured["stress_total"]
+    assert measured["mn_strip_kills"] == 0
+    assert measured["default_ignorable_strip_kills"] == 0
+    assert measured["stress_total"] > 0
     assert measured["nfkd_kills"] == 0
 
 
@@ -260,7 +262,7 @@ def test_gate_findings_do_not_authorize_the_product():
     assert disk["product_authorized"] is False
     assert disk["mix_sanitizer_gate"] == "FAIL"
     assert disk["proposed_gate_v2"]["status"] == "proposal_only_not_active"
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
     assert release_transform_registry().rules == ()
 
 

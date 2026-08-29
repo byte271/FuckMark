@@ -15,7 +15,7 @@ from fuckmark.cycle8.control_mix import (
     apply_control_alternating_mix,
     select_control_mix_sites,
 )
-from fuckmark.cycle8.letter_mix import LETTER_MIX_MAX_SELECTED, apply_letter_alternating_mix, hard_machine_intervals
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, LETTER_MIX_MAX_SELECTED, apply_letter_alternating_mix, hard_machine_intervals
 from fuckmark.cycle8.sanitize import CYCLE8_SCALE_SANITIZER_VARIANT_IDS, sanitize_cycle8_scale_variant
 from fuckmark.cycle8.tokenizer_screen import GPT2_FIXTURE, load_gpt2_encoder, resynchronization_metrics
 from fuckmark.product.roundtrip import latin1_roundtrip_survives
@@ -29,10 +29,10 @@ def test_control_mix_cycles_eligible_controls_and_keeps_visible_text() -> None:
     assert applied == "A\u007fb\u0080c\u0081d\u0082"
     assert is_carrier_insertion_v1(source, applied, CONTROL_MIX_APPROVED_CARRIERS)
     assert project_visible_v1(applied, CONTROL_MIX_APPROVED_CARRIERS) == source
-    assert CONTROL_MIX_MAX_SELECTED == LETTER_MIX_MAX_SELECTED == 192
+    assert CONTROL_MIX_MAX_SELECTED == 192
     assert process_text(source) == apply_letter_alternating_mix(source)
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
 
 
 def test_control_mix_blocks_numbers_and_urls_and_survives_required_sanitizers() -> None:
@@ -57,7 +57,7 @@ def test_control_mix_blocks_numbers_and_urls_and_survives_required_sanitizers() 
     assert apply_required_sanitizer_bundle(control) == control
     for variant in CYCLE8_SCALE_SANITIZER_VARIANT_IDS:
         assert sanitize_cycle8_scale_variant(variant, control) == control
-    assert sanitize_benchmark_stress("mn_strip", mix) == source
+    assert sanitize_benchmark_stress("mn_strip", mix) != source
     assert sanitize_benchmark_stress("mn_strip", control) == control
     assert latin1_roundtrip_survives(control) is True
     assert json.loads(json.dumps(control, ensure_ascii=False)) == control

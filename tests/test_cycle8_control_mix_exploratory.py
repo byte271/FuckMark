@@ -1,3 +1,4 @@
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
 import json
 from pathlib import Path
 
@@ -75,4 +76,4 @@ def test_control_mix_1100000_is_independent_hypothesis_zero() -> None:
     for name, digest in files.items():
         assert sha256_file(root / name) == digest
     assert release_transform_registry().rules == ()
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)

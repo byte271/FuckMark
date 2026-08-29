@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import unicodedata
+from collections.abc import Iterable
 
 from ..hashing import sha256_json, sha256_text
 from .visible_projection import is_carrier_insertion_v1, project_visible_v1
@@ -16,11 +17,14 @@ def nfc_normalize(text: str) -> str:
     return unicodedata.normalize("NFC", text)
 
 
-def display_column_width(text: str) -> int:
+def display_column_width(text: str, skip_codepoints: Iterable[int] | None = None) -> int:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
+    skip = frozenset() if skip_codepoints is None else frozenset(skip_codepoints)
     width = 0
     for character in text:
+        if ord(character) in skip:
+            continue
         if unicodedata.category(character) in {"Mn", "Me", "Cf"}:
             continue
         if character in {"\n", "\r"}:
@@ -69,7 +73,8 @@ def roundtrip_report(original: str, transformed: str, approved_carriers: tuple[i
         "stdin_stdout_equals_transformed": stdout == transformed,
         "nfc_equals_transformed": nfc == transformed,
         "latin1_roundtrip_survives": latin1_roundtrip_survives(transformed),
-        "display_column_width_equal": display_column_width(original) == display_column_width(transformed),
+        "display_column_width_equal": display_column_width(original, approved_carriers)
+        == display_column_width(transformed, approved_carriers),
         "newline_count_equal": original.count("\n") == transformed.count("\n"),
         "ascii_space_count_equal": original.count(" ") == transformed.count(" "),
     }

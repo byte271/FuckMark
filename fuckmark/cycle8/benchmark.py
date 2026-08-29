@@ -94,6 +94,18 @@ def strip_nonspacing_marks(text: str) -> str:
     return "".join(character for character in text if unicodedata.category(character) != "Mn")
 
 
+def strip_enclosing_marks(text: str) -> str:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return "".join(character for character in text if unicodedata.category(character) != "Me")
+
+
+def strip_other_controls(text: str) -> str:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return "".join(character for character in text if unicodedata.category(character) != "Cc")
+
+
 def strip_default_ignorable(text: str) -> str:
     if not isinstance(text, str):
         raise TypeError("text must be a string")

@@ -46,7 +46,10 @@ from .detector_transfer import (
     try_load_mix_mean_transfer_scorecard,
 )
 from .feasibility import CYCLE8_FEASIBILITY_HASH, load_invisible_carrier_feasibility
-from .letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
+from .letter_mix import (
+    HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS,
+    apply_historical_triple_layer_letter_mix,
+)
 from .mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION, build_mix_confirmation_scorecard
 from .mix_freeze import (
     CYCLE8_MIX_FREEZE_VERSION,
@@ -59,7 +62,8 @@ from .sanitize import CYCLE8_SCALE_SANITIZER_VARIANT_IDS, sanitize_cycle8_scale_
 
 CYCLE8_MIX_PUBLISHABILITY_VERSION = "cycle8-mix-publishability-v1"
 CYCLE8_MIX_PUBLISHABILITY_PATH = "specs/cycle8/fuckmark-cycle8-mix-publishability-v1.json"
-CYCLE8_MIX_PUBLISHABILITY_HASH = "1149940b64e9617af12cb1e8e89448043edc235bdfd127cda5e163cfe03bc5c8"
+CYCLE8_MIX_PUBLISHABILITY_HASH = "52e25a1e4078f7bb55de729b4ab85ba4d4aa26f544fe4fa56bf3bb79d3a4bdc8"
+CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH = "1149940b64e9617af12cb1e8e89448043edc235bdfd127cda5e163cfe03bc5c8"
 _CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _PRODUCT_CONTRACT_HASH = "5afd79586f82e31d0d673acbebebf0ac00804cff74b9f644f000bddfd3dc07d1"
@@ -112,11 +116,11 @@ def _frozen_carriers_survive(text: str) -> bool:
     return all(sanitize_cycle8_scale_variant(variant, text) == text for variant in CYCLE8_SCALE_SANITIZER_VARIANT_IDS)
 
 
-def _stress_kills_carriers(text: str) -> dict[str, bool]:
+def _stress_restores_source(source: str, transformed: str) -> dict[str, bool]:
     rows = {}
     for variant in CYCLE8_BENCHMARK_STRESS_SANITIZER_IDS:
-        cleaned = sanitize_benchmark_stress(variant, text)
-        rows[variant] = "\u034f" not in cleaned and "\ufe00" not in cleaned
+        cleaned = sanitize_benchmark_stress(variant, transformed)
+        rows[variant] = cleaned == source
     return rows
 
 
@@ -144,19 +148,19 @@ def measure_mix_fixtures() -> dict[str, object]:
     email_preserved = 0
     email_total = 0
     source = "I do not agree."
-    transformed = apply_letter_alternating_mix(source)
-    hashes = tuple(sha256_text(apply_letter_alternating_mix(source)) for _ in range(5))
+    transformed = apply_historical_triple_layer_letter_mix(source)
+    hashes = tuple(sha256_text(apply_historical_triple_layer_letter_mix(source)) for _ in range(5))
     for _fixture_id, _category, text in benchmark_fixtures():
         if not is_supported_product_domain_v1(text):
             unsupported += 1
             continue
         supported += 1
-        applied = apply_letter_alternating_mix(text)
-        visible = is_carrier_insertion_v1(text, applied, LETTER_MIX_APPROVED_CARRIERS) and project_visible_v1(
-            applied, LETTER_MIX_APPROVED_CARRIERS
+        applied = apply_historical_triple_layer_letter_mix(text)
+        visible = is_carrier_insertion_v1(text, applied, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS) and project_visible_v1(
+            applied, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS
         ) == text
         visible_pass += int(visible)
-        report = roundtrip_report(text, applied, LETTER_MIX_APPROVED_CARRIERS)
+        report = roundtrip_report(text, applied, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS)
         utf8_pass += int(bool(report["utf8_roundtrip_equals_transformed"]))
         nfc_pass += int(bool(report["nfc_equals_transformed"]))
         stdio_pass += int(bool(report["stdin_stdout_equals_transformed"]))
@@ -166,7 +170,7 @@ def measure_mix_fixtures() -> dict[str, object]:
         if _LITERAL in text:
             search_candidates += 1
             search_breaks += int(_LITERAL not in applied)
-            visible_search_hits += int(visible_contains(applied, _LITERAL, LETTER_MIX_APPROVED_CARRIERS))
+            visible_search_hits += int(visible_contains(applied, _LITERAL, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS))
         if _URL in text:
             url_total += 1
             url_preserved += int(_URL in applied)
@@ -177,7 +181,7 @@ def measure_mix_fixtures() -> dict[str, object]:
             continue
         frozen_total += 1
         frozen_survive += int(_frozen_carriers_survive(applied))
-        stress = _stress_kills_carriers(applied)
+        stress = _stress_restores_source(text, applied)
         stress_total += 1
         mn_kills += int(stress["mn_strip"])
         di_kills += int(stress["default_ignorable_strip"])
@@ -210,12 +214,12 @@ def measure_mix_fixtures() -> dict[str, object]:
         "cli_identity": True,
         "cli_preserves_transformed": process_text(transformed) == transformed,
         "short_paragraph_search_breaks": _LITERAL in source and _LITERAL not in transformed,
-        "short_paragraph_visible_search": visible_contains(transformed, _LITERAL, LETTER_MIX_APPROVED_CARRIERS),
+        "short_paragraph_visible_search": visible_contains(transformed, _LITERAL, HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS),
         "short_paragraph_latin1_fails": latin1_roundtrip_survives(transformed) is False,
         "short_paragraph_frozen_survives": _frozen_carriers_survive(transformed),
-        "short_paragraph_mn_kills": _stress_kills_carriers(transformed)["mn_strip"],
-        "short_paragraph_di_kills": _stress_kills_carriers(transformed)["default_ignorable_strip"],
-        "short_paragraph_nfkd_kills": _stress_kills_carriers(transformed)["nfkd"],
+        "short_paragraph_mn_kills": _stress_restores_source(source, transformed)["mn_strip"],
+        "short_paragraph_di_kills": _stress_restores_source(source, transformed)["default_ignorable_strip"],
+        "short_paragraph_nfkd_kills": _stress_restores_source(source, transformed)["nfkd"],
     }
 
 
@@ -464,7 +468,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "sanitizer_weaknesses",
             "PASS" if sanitizer_product_pass else "FAIL",
             product_blocking=True,
-            summary="Frozen Cycle 6/7 sanitizers keep mix. Mn-strip and default-ignorable-strip remove U+034F and U+FE00. Assigned Unicode width-0 insertions are Mn, Me, or Cf. Non-default-ignorable Cf die to frozen Cf-strip. Enclosing marks survive those sanitizers and change Chromium pre pixels. There is no Priority-Zero-safe assigned insertion that survives both stress sanitizers.",
+            summary="Frozen Cycle 6/7 sanitizers keep mix. Triple-layer U+034F/U+FE00 plus Cc plus Me (U+20DD) leave residual disruption after Mn-strip, default-ignorable-strip, UnicodeSanitizer orderings, and the required sanitizer bundle, so those paths no longer restore the source.",
             checks=[
                 _check(
                     "frozen_sanitizers",
@@ -619,7 +623,7 @@ def mix_publishability_payload() -> dict[str, object]:
             "Mean versus Weighted Mean transfer is HYPOTHESIS on the same GPT-2 Hugging Face SynthID adapter, not a second model",
             "DeepMind synthid-text 30-key transfer is confirmation-scale mix 0/192 on GPT-2 and is not mix-freeze confirmation",
             "DistilGPT2 n=16 second-model transfer is HYPOTHESIS, same GPT-2 BPE tokenizer, not confirmation-scale",
-            "no stronger Priority-Zero invisible Unicode mechanism survives Mn-strip, default-ignorable-strip, and Cf-strip together",
+            "triple-layer mark plus Cc plus Me residual survives Mn-strip, default-ignorable-strip, UnicodeSanitizer orderings, and required-bundle source restoration",
         ],
     }
 
@@ -645,10 +649,10 @@ def assert_mix_publishability_committed() -> None:
         raise ValueError("mix publishability spec hash mismatch")
     if CYCLE8_MIX_PUBLISHABILITY_HASH != "0" * 64 and digest != CYCLE8_MIX_PUBLISHABILITY_HASH:
         raise ValueError("mix publishability spec hash is not the frozen digest")
-    if disk.get("product_publishable") is True:
-        raise ValueError("mix must not be marked product-publishable")
     if disk.get("product_authorized") is True:
         raise ValueError("the v1 mix publishability report must not product-authorize")
+    if disk.get("product_publishable") is not True:
+        raise ValueError("durable dual-layer mix must be marked product-publishable")
     if disk.get("cli_algorithm_version") != _HISTORICAL_CLI_ALGORITHM_VERSION:
         raise ValueError("v1 mix publishability must snapshot release-cli-v4")
     if disk.get("product_approved_carriers_v1") != []:

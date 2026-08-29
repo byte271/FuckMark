@@ -8,7 +8,7 @@ import time
 from pathlib import Path
 
 from ..hashing import sha256_json, sha256_text
-from ..product.rendering import chrome_executable, compare_chrome_pre_screenshots
+from ..product.rendering import chrome_executable, compare_chrome_pre_screenshots, render_window_size
 
 
 BENCHMARK_RENDER_VERSION = "cycle8-benchmark-render-v2"
@@ -29,12 +29,12 @@ def chrome_version(executable: str | None = None) -> str | None:
         return None
 
 
-def _html_surface(text: str, surface: str) -> str:
+def _html_surface(text: str, surface: str, *, box_height: int = 160) -> str:
     payload = json.dumps(text, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e")
     if surface == "textarea":
         body = (
             "<textarea id='t' spellcheck='false' "
-            "style=\"margin:16px;width:760px;height:160px;border:0;resize:none;"
+            f"style=\"margin:16px;width:760px;height:{box_height}px;border:0;resize:none;"
             "caret-color:transparent;outline:none;font:16px/24px 'DejaVu Sans Mono',monospace;"
             "color:#000;background:#fff\"></textarea>"
         )
@@ -42,7 +42,7 @@ def _html_surface(text: str, surface: str) -> str:
     elif surface == "contenteditable":
         body = (
             "<div id='t' contenteditable='true' spellcheck='false' "
-            "style=\"margin:16px;width:760px;min-height:160px;caret-color:transparent;"
+            f"style=\"margin:16px;width:760px;min-height:{box_height}px;caret-color:transparent;"
             "font:16px/24px 'DejaVu Sans Mono',monospace;color:#000;background:#fff;"
             "white-space:pre-wrap\"></div>"
         )
@@ -73,7 +73,7 @@ def displayed_js_property(surface: str) -> str:
     raise ValueError("unknown render surface")
 
 
-def _screenshot(executable: str, root: Path, name: str, html: str) -> bytes:
+def _screenshot(executable: str, root: Path, name: str, html: str, *, width: int, height: int) -> bytes:
     html_path = root / f"{name}.html"
     png_path = root / f"{name}.png"
     html_path.write_text(html, encoding="utf-8")
@@ -88,7 +88,7 @@ def _screenshot(executable: str, root: Path, name: str, html: str) -> bytes:
             "--no-first-run",
             "--disable-background-networking",
             "--virtual-time-budget=5000",
-            "--window-size=800,240",
+            f"--window-size={width},{height}",
             f"--screenshot={png_path}",
             html_path.as_uri(),
         ],
@@ -140,16 +140,34 @@ def compare_chrome_surface(original: str, transformed: str, surface: str) -> dic
         }
         return {**payload, "comparison_hash": sha256_json(payload)}
     try:
+        longest = original if len(original) >= len(transformed) else transformed
+        width, height, complete, content_height = render_window_size(longest, min_height=240)
+        if not complete:
+            payload = {
+                "algorithm_version": BENCHMARK_RENDER_VERSION,
+                "environment": environment,
+                "status": "INCOMPLETE",
+                "original_sha256": original_sha,
+                "transformed_sha256": transformed_sha,
+                "equal": None,
+                "detail": "content exceeds captured window",
+                "font": BENCHMARK_RENDER_FONT,
+                "browser_version": browser,
+                "window_width": width,
+                "window_height": height,
+                "content_height": content_height,
+            }
+            return {**payload, "comparison_hash": sha256_json(payload)}
         with tempfile.TemporaryDirectory(prefix="fuckmark-bench-render-") as directory:
             root = Path(directory)
-            original_html = _html_surface(original, surface)
-            transformed_html = _html_surface(transformed, surface)
+            original_html = _html_surface(original, surface, box_height=max(160, height - 80))
+            transformed_html = _html_surface(transformed, surface, box_height=max(160, height - 80))
             if original and "el.textContent=" not in original_html and surface == "contenteditable":
                 raise RuntimeError("contenteditable assignment missing")
             if original and "el.value=" not in original_html and surface == "textarea":
                 raise RuntimeError("textarea assignment missing")
-            original_png = _screenshot(executable, root, "original", original_html)
-            transformed_png = _screenshot(executable, root, "transformed", transformed_html)
+            original_png = _screenshot(executable, root, "original", original_html, width=width, height=height)
+            transformed_png = _screenshot(executable, root, "transformed", transformed_html, width=width, height=height)
     except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired, RuntimeError) as error:
         payload = {
             "algorithm_version": BENCHMARK_RENDER_VERSION,

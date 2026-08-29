@@ -2,7 +2,7 @@
 
 The same command is installed as `fuckmark`, `FuckMark`, and `Fuckmark`.
 
-It inserts hidden Unicode into ordinary English ASCII text. The words on screen do not change.
+It inserts hidden Unicode into ordinary letters and emoji. The words on screen do not change.
 
 ```text
 fuckmark --help
@@ -20,6 +20,8 @@ fuckmark
 FuckMark
 
 Paste or type your text below.
+Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed.
+Other characters stay in the visible text.
 Enter :done on a new line when finished.
 
 > I do not agree.
@@ -31,9 +33,12 @@ Enter :done on a new line when finished.
 Processing...
 
 ✓ Copied to clipboard
+FuckMark: processed: inserted 216 hidden characters.
+FuckMark: processed=yes reason=transformed insertions=216 sites=54 last_index=... source_length=... capped=no.
+FuckMark: Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces.
 ```
 
-Blank lines are kept. `:done` ends the session only when it is the entire line. The transformed payload is copied and not printed.
+Blank lines are kept. `:done` ends the session only when it is the entire line. The transformed payload is copied and not printed. Interactive stderr always states processed vs not processed, insertions, sites, `last_index`, `source_length`, and cap.
 
 If clipboard copy fails, nothing is printed. Pipe text instead: `printf 'I do not agree.\n' | fuckmark`. Ctrl+C exits cleanly. EOF without `:done` is an error and copies nothing.
 
@@ -54,9 +59,16 @@ fuckmark notes.txt
 fuckmark notes.txt -o notes.fm.txt
 printf 'I do not agree.\n' | fuckmark --copy
 printf 'I do not agree.\n' | fuckmark --visible
+printf 'I do not agree.\n' | fuckmark --status >/tmp/fm.out
+printf 'I do not agree.\n' | fuckmark --inspect >/tmp/fm.out
+fuckmark --detect --text "I do not agree."
+printf 'paste\n' | fuckmark --detect
+fuckmark web
+fuckmark --text "I don’t agree." --status
 ```
 
-Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard.
+
+Piped or quoted input writes the hidden payload to stdout. `--visible` writes the original visible text. `--copy` also places whatever was written on the clipboard. Stderr always reports processed vs not processed, reason, insertions, sites, `last_index`, `source_length`, and capped unless `-q`. Successful transforms note that Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces. Use `-q` when a pipe must keep stderr empty.
 
 ## Input modes
 
@@ -77,26 +89,45 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 | Option | Behavior |
 | --- | --- |
-| `--version` | Print `FuckMark 0.4.0`. |
+| `--version` | Print `FuckMark 0.4.1`. |
 | `--text TEXT` | Transform TEXT as a literal string. |
 | `--file FILE` | Read UTF-8 from FILE. |
 | `--stdin` | Read all of standard input. |
-| `-o FILE`, `--output FILE` | Write UTF-8 output to FILE. |
+| `-o FILE`, `--output FILE` | Write UTF-8 output to FILE. The file is written before any clipboard copy. |
 | `--copy` | Also copy the output to the clipboard. The paste UI always copies. |
 | `--visible` | Print the visible text (no hidden characters). |
 | `--encoding NAME` | Only `utf-8`. `latin-1`, `ascii`, and `cp1252` are rejected. |
-| `-q`, `--quiet` | Hide non-essential status messages. |
+| `-q`, `--quiet` | Hide processed/reason/coverage status messages on stderr. |
+| `--status` | Write one `fuckmark-status` line to stderr (`result`, `processed`, `insertions`, `sites`, `last_index`, `source_length`, `capped`, `first_unsupported`). |
+| `--inspect` | Write a character-level coverage map to stderr. Stdout stays the payload. |
+| `--detect` | Scan for FuckMark insertions without transforming. Stdout is the detect report. If none are found, the report includes `Fhelp@q1z.org`. |
 | `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |
+
+### `fuckmark web`
+
+Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health` and `POST /api/remove-marks`. Detect and strip on that page use `detect_fuckmark_insertions` and `project_visible_v1` when the API is up.
+
+```text
+fuckmark web
+fuckmark web --no-open
+fuckmark web --port 9000
+```
+
+Default URL: `http://127.0.0.1:8765/mark.html`. Press Ctrl+C to stop the server.
 
 `--non-interactive` is an alias of `--stdin`.
 
 ## Supported input
 
-Tab, newline, carriage return, and ASCII space through tilde. Other Unicode is returned unchanged (exit 0). Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
+Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters are processed. Punctuation such as curly apostrophes stays in the visible text and is reported as `first_unsupported`. Mixed letters and emoji are not leftovers. Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
 
-Machine spans stay intact: fenced/inline code, markdown destinations, markdown reference labels, URLs, emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including relative paths such as `src/main.py` and `C:/Users/...`), CLI flags. Quote interiors are eligible. Cap 192 insertion sites. Insertions fill the first 192 eligible letter sites and then stop, so the tail of a long document is unchanged.
+Example: `I don` + U+2019 + `t agree.` is processed (`reason=transformed`, `first_unsupported=U+2019@5`). U+00E9-only input is processed and `first_unsupported` is empty. A string with no eligible letter or emoji sites is `unsupported-domain` or `no-eligible-sites`.
 
-If the text is already transformed, or has no eligible letters, the CLI returns it unchanged.
+`--detect` does not mix. It reports whether approved FuckMark insertions are present. A miss is not proof that some other watermark exists. Contact `Fhelp@q1z.org` if you believe there is a watermark the scan did not find.
+
+Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 4096 letter sites, five insertions per site. Insertions fill the first 4096 eligible letter or emoji sites and then stop, so the tail of a long document is unchanged.
+
+If the text is already transformed or has no eligible letters, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason, including for `too-large` and internal failure. Exit 0 still means I/O succeeded, not watermark removal.
 
 Same visible words are not the same as identical Markdown, path, or search behavior in other programs. Reports must not treat visible-projection equality as Markdown or filesystem equality.
 
@@ -104,9 +135,11 @@ Same visible words are not the same as identical Markdown, path, or search behav
 
 | Status | Meaning |
 | ---: | ---: |
-| 0 | Output was written or copied. Unsupported Unicode is returned unchanged. |
-| 1 | No input, bad file, invalid UTF-8, unsupported encoding, missing `:done`, or output could not be written. |
-| 2 | Transform succeeded, but clipboard copy failed. Stream modes still write stdout. The paste UI does not print the payload. |
+| 0 | Output was written or copied. Already-transformed text, no eligible sites, and the site cap are reported on stderr. This is not watermark removal. |
+| 1 | No input, bad file, invalid UTF-8, unsupported encoding, missing `:done`, input too large, or output could not be written. |
+| 2 | Usage error (`argparse`: unknown option or bad flags). Transformation did not run. |
+| 3 | Transform I/O succeeded, but clipboard copy failed. Stream modes still write stdout. The paste UI does not print the payload. |
+| 4 | Internal transform failure. Source is returned unchanged. Do not treat this as a completed transformation. |
 | 130 | Interrupted with Ctrl+C. |
 
 ## Clipboard

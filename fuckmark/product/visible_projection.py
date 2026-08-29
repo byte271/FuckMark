@@ -10,7 +10,9 @@ PRODUCT_CONTRACT_ID = "fuckmark-user-visible-invariance-v1"
 
 
 def product_approved_carriers_v1() -> frozenset[int]:
-    return frozenset({0x034F, 0xFE00})
+    from ..cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
+
+    return frozenset(LETTER_MIX_APPROVED_CARRIERS)
 
 
 def normalize_approved_carriers(carriers: Iterable[int] | None) -> frozenset[int]:

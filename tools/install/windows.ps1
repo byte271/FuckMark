@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$ReleaseTag = if ($env:FUCKMARK_RELEASE_TAG) { $env:FUCKMARK_RELEASE_TAG } else { "v0.4.0" }
+$ReleaseTag = if ($env:FUCKMARK_RELEASE_TAG) { $env:FUCKMARK_RELEASE_TAG } else { "v0.4.1" }
 $PackageVersion = $ReleaseTag.TrimStart("v")
 $WheelName = "fuckmark-$PackageVersion-py3-none-any.whl"
 $ReleaseBase = "https://github.com/byte271/FuckMark/releases/download/$ReleaseTag"
@@ -97,8 +97,47 @@ if ($LASTEXITCODE -ne 0) {
     throw "FuckMark installation failed."
 }
 
-$LauncherBody = "@echo off`r`n`"$Python`" -m fuckmark.cli %*`r`n"
-[IO.File]::WriteAllText($Launcher, $LauncherBody, [Text.Encoding]::ASCII)
+$ModuleInvoke = "-m fuckmark.cli"
+$Ascii = New-Object System.Text.ASCIIEncoding
+$Utf8NoBom = New-Object System.Text.UTF8Encoding $false
+
+function Test-AsciiText([string]$Value) {
+    return [regex]::IsMatch($Value, '^[\x20-\x7E\\]+$')
+}
+
+function Get-RelativeLauncherPath([string]$FromDir, [string]$ToFile) {
+    $fromFull = (Resolve-Path -LiteralPath $FromDir).Path
+    if (-not $fromFull.EndsWith([IO.Path]::DirectorySeparatorChar)) {
+        $fromFull += [IO.Path]::DirectorySeparatorChar
+    }
+    $fromUri = New-Object System.Uri $fromFull
+    $toUri = New-Object System.Uri ((Resolve-Path -LiteralPath $ToFile).Path)
+    $relative = [Uri]::UnescapeDataString($fromUri.MakeRelativeUri($toUri).ToString())
+    return $relative -replace '/', '\'
+}
+
+$RelativePython = $null
+try {
+    $RelativePython = Get-RelativeLauncherPath $Bin $Python
+}
+catch {}
+
+if ($RelativePython -and -not [IO.Path]::IsPathRooted($RelativePython) -and (Test-AsciiText $RelativePython)) {
+    $LauncherBody = "@echo off`r`n`"%~dp0$RelativePython`" $ModuleInvoke %*`r`n"
+    [IO.File]::WriteAllBytes($Launcher, $Ascii.GetBytes($LauncherBody))
+}
+elseif (Test-AsciiText $Python) {
+    $LauncherBody = "@echo off`r`n`"$Python`" $ModuleInvoke %*`r`n"
+    [IO.File]::WriteAllBytes($Launcher, $Ascii.GetBytes($LauncherBody))
+}
+else {
+    $Ps1Path = Join-Path $Bin "fuckmark.ps1"
+    $EscapedPython = $Python.Replace("'", "''")
+    $Ps1Body = "& '$EscapedPython' $ModuleInvoke @args`r`n"
+    [IO.File]::WriteAllBytes($Ps1Path, $Utf8NoBom.GetBytes($Ps1Body))
+    $LauncherBody = "@echo off`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0fuckmark.ps1`" %*`r`n"
+    [IO.File]::WriteAllBytes($Launcher, $Ascii.GetBytes($LauncherBody))
+}
 
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 $Entries = @()
@@ -114,7 +153,8 @@ if (($env:Path -split ";") -notcontains $Bin) {
 
 Write-Host ""
 Write-Host "FuckMark $PackageVersion installed."
-Write-Host "The public CLI currently returns input text unchanged."
+Write-Host "The public CLI inserts hidden Unicode into ordinary English ASCII text."
+Write-Host "Installation success is not watermark removal. Check --status for the outcome."
 Write-Host "Command: fuckmark --help"
 Write-Host "Open a new terminal if the command is not on PATH yet."
 Write-Host ""

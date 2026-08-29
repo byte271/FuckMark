@@ -15,9 +15,8 @@ CARRIERS = ("\u034f", "\ufe00")
 
 
 def _strip(text: str) -> str:
-    for carrier in CARRIERS:
-        text = text.replace(carrier, "")
-    return text
+    from fuckmark.product.visible_projection import project_visible_v1
+    return project_visible_v1(text)
 
 
 def _cli_bytes(*args: str, stdin: bytes | None = None) -> subprocess.CompletedProcess[bytes]:
@@ -80,7 +79,7 @@ def test_explicit_text_mode_accepts_sentences_decimals_and_slashes() -> None:
     for source in cases:
         output = StringIO()
         errors = StringIO()
-        status = main(StringIO(""), output, error_stream=errors, argv=("--text", source))
+        status = main(StringIO(""), output, error_stream=errors, argv=("--text", source, "-q"))
         assert status == 0, errors.getvalue()
         assert output.getvalue() == apply_letter_alternating_mix(source)
         assert errors.getvalue() == ""
@@ -170,7 +169,8 @@ def test_real_subprocess_accepts_ascii_and_non_ascii_utf8() -> None:
     non_ascii = ("I do not agree " + chr(0x00E9) + ".\n").encode("utf-8")
     latin = _cli_bytes("--stdin", stdin=non_ascii)
     assert latin.returncode == 0
-    assert latin.stdout == non_ascii
+    assert latin.stdout != non_ascii
+    assert _strip(latin.stdout.decode("utf-8")).encode("utf-8") == non_ascii
 
 
 def test_surrogateescape_wrapper_is_rejected_as_invalid_utf8() -> None:

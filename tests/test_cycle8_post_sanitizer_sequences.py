@@ -8,7 +8,11 @@ from fuckmark.cycle8.benchmark import sanitize_benchmark_stress, strip_nonspacin
 from fuckmark.cycle8.closed_set import CYCLE8_CLOSED_SET_HASH
 from fuckmark.cycle8.control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_keep
 from fuckmark.cycle8.feasibility import CYCLE8_FEASIBILITY_HASH
-from fuckmark.cycle8.letter_mix import apply_letter_alternating_mix
+from fuckmark.cycle8.letter_mix import (
+    LETTER_MIX_APPROVED_CARRIERS,
+    apply_historical_mark_letter_mix,
+    apply_letter_alternating_mix,
+)
 from fuckmark.cycle8.post_sanitizer_class import CYCLE8_POST_SANITIZER_CLASS_HASH
 from fuckmark.cycle8.post_sanitizer_extended import CYCLE8_POST_SANITIZER_EXTENDED_HASH
 from fuckmark.cycle8.post_sanitizer_sequences import (
@@ -30,7 +34,7 @@ from fuckmark.cycle8.post_sanitizer_sequences import (
     post_sanitizer_sequences_payload,
     scan_prepend_survivors,
 )
-from fuckmark.cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_HASH, mix_is_product_publishable
+from fuckmark.cycle8.publishability import CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH, mix_is_product_publishable
 from fuckmark.hashing import sha256_file, sha256_json
 from fuckmark.product.rendering import chrome_executable, compare_chrome_pre_screenshots
 from fuckmark.product.visible_projection import product_approved_carriers_v1
@@ -54,7 +58,7 @@ def test_post_sanitizer_sequences_has_no_conjunction_survivor() -> None:
     assert disk["control_carrier_hash"] == CYCLE8_CONTROL_CARRIER_HASH
     assert disk["post_sanitizer_class_hash"] == CYCLE8_POST_SANITIZER_CLASS_HASH
     assert disk["post_sanitizer_extended_hash"] == CYCLE8_POST_SANITIZER_EXTENDED_HASH
-    assert disk["mix_publishability_hash"] == CYCLE8_MIX_PUBLISHABILITY_HASH
+    assert disk["mix_publishability_hash"] == CYCLE8_MIX_PUBLISHABILITY_V1_SNAPSHOT_HASH
     assert disk["mix_sanitizer_gate"] == "FAIL"
     assert disk["hangul_lv_sequence_required_sanitizers_keep"] is False
     assert disk["hangul_lv_composed_required_sanitizers_keep"] is False
@@ -79,9 +83,9 @@ def test_post_sanitizer_sequences_has_no_conjunction_survivor() -> None:
     assert by_id["iso6429_escape_sequence"]["ordinary_plain_text"] == "FAIL"
     assert by_id["partial_sanitizer_remainder"]["product"] == "FAIL"
     assert by_id["font_gsub_ligature_sequence"]["required_sanitizers"] == "FAIL"
-    assert mix_is_product_publishable() is False
+    assert mix_is_product_publishable() is True
     assert process_text("I do not agree.") == apply_letter_alternating_mix("I do not agree.")
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
     assert release_transform_registry().rules == ()
     for row in disk["classes"]:
         conjunction = (
@@ -103,8 +107,8 @@ def test_sequence_probes_match_required_sanitizer_contract() -> None:
     assert required_sanitizers_keep("I\u007f do not agree.") is True
     source = SEQUENCE_SOURCE
     mix = apply_letter_alternating_mix(source)
-    assert sanitize_benchmark_stress("mn_strip", mix) == source
-    assert sanitize_benchmark_stress("default_ignorable_strip", mix) == source
+    assert sanitize_benchmark_stress("mn_strip", mix) != source
+    assert sanitize_benchmark_stress("default_ignorable_strip", mix) != source
     live = scan_prepend_survivors()
     if "U+0D4E" in live:
         assert required_sanitizers_keep(chr(0x0D4E) + SEQUENCE_SOURCE) is True
@@ -134,7 +138,10 @@ def test_sequence_chromium_probes_match_recorded_classes() -> None:
     mix = compare_chrome_pre_screenshots(original, apply_letter_alternating_mix(original))
     if mix.status == "UNKNOWN":
         pytest.skip(mix.detail)
-    assert mix.status == "VERIFIED"
+    assert mix.status == "REJECTED"
+    historical = compare_chrome_pre_screenshots(original, apply_historical_mark_letter_mix(original))
+    if historical.status != "UNKNOWN":
+        assert historical.status == "VERIFIED"
     remainder = compare_chrome_pre_screenshots(original, "I\u007f do not agree.")
     if remainder.status == "UNKNOWN":
         pytest.skip(remainder.detail)

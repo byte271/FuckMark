@@ -1,3 +1,4 @@
+from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS
 import json
 from pathlib import Path
 
@@ -6,7 +7,7 @@ from fuckmark.cycle8.control_mix import CONTROL_MIX_APPROVED_CARRIERS, apply_con
 from fuckmark.hashing import sha256_file, sha256_json, sha256_text
 from fuckmark.product.visible_projection import is_carrier_insertion_v1, product_approved_carriers_v1, project_visible_v1
 from fuckmark.transforms.registry import release_transform_registry
-from tests.audit_mix_replay import live_mix_hash
+from tests.audit_mix_replay import assert_live_mix_matches_stored
 
 
 _DIAGNOSTIC = "evidence/cycle8-control-mix-diagnostic-920000-n16-2026-08-27"
@@ -40,7 +41,7 @@ def test_control_mix_diagnostic_920000_is_seen_hypothesis_zero() -> None:
     assert effectiveness["control_mix_uw"]["rate"] == "0/16"
     assert effectiveness["mix_uw"]["rate"] == "0/16"
     assert float(effectiveness["control_mix_wm_max_score"]) == 0.505336937084192
-    assert product_approved_carriers_v1() == frozenset({0x034F, 0xFE00})
+    assert product_approved_carriers_v1() == frozenset(LETTER_MIX_APPROVED_CARRIERS)
     assert release_transform_registry().rules == ()
     samples = json.loads((Path(__file__).resolve().parents[1] / _SAMPLES).read_text(encoding="utf-8"))["samples"]
     by_id = {row["sample_id"]: row for row in samples}
@@ -48,7 +49,12 @@ def test_control_mix_diagnostic_920000_is_seen_hypothesis_zero() -> None:
         source = by_id[row["sample_id"]]["text"]
         assert sha256_text(source) == row["source_sha256"]
         control = apply_control_alternating_mix(source)
-        live_mix_hash(source)
+        assert_live_mix_matches_stored(
+            str(row["sample_id"]),
+            source,
+            row["mix"]["text_sha256"],
+            label=str(row.get("label", "")),
+        )
         assert sha256_text(control) == row["control_mix"]["text_sha256"]
         assert is_carrier_insertion_v1(source, control, CONTROL_MIX_APPROVED_CARRIERS)
         assert project_visible_v1(control, CONTROL_MIX_APPROVED_CARRIERS) == source
