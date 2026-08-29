@@ -17,11 +17,17 @@ from .cycle8.letter_mix import (
     LETTER_MIX_APPROVED_CARRIERS,
     LETTER_MIX_MAX_SELECTED,
     compose_letter_mix,
+    first_unmixed_non_ascii,
     select_letter_mix_sites,
+)
+from .product.detect import (
+    DETECT_CONTACT_EMAIL,
+    detect_fuckmark_insertions,
+    detect_human_report,
+    detect_machine_line,
 )
 from .product.domain import (
     PRODUCT_MAX_INPUT_CHARS,
-    first_unsupported_product_domain_v1,
     is_supported_product_domain_v1,
 )
 from .product.encodings import require_supported_product_encoding
@@ -33,7 +39,7 @@ from .product.visible_projection import (
 
 
 INTERACTIVE_DONE = ":done"
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v10"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v11"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -82,7 +88,7 @@ class ProcessResult:
 
 
 def _unsupported_token(text: str) -> str:
-    found = first_unsupported_product_domain_v1(text)
+    found = first_unmixed_non_ascii(text)
     if found is None:
         return ""
     return f"U+{found[1]:04X}@{found[0]}"
@@ -208,6 +214,8 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark notes.txt -o notes.fm.txt\n"
             "  fuckmark --stdin --copy < notes.txt\n"
             "  fuckmark --stdin --visible < notes.fm.txt\n"
+            "  fuckmark --detect --text \"I do not agree.\"\n"
+            "  printf 'paste\\n' | fuckmark --detect\n"
             "\n"
             "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed\n"
             "even when surrounding text has other Unicode, including curly apostrophes.\n"
@@ -220,6 +228,9 @@ def _parser() -> argparse.ArgumentParser:
             "insertions, sites, last_index, source_length, and capped. Use -q to hide that.\n"
             "Use --status for a machine-readable outcome line on stderr.\n"
             "Use --inspect for a character-level insertion map on stderr.\n"
+            "Use --detect to scan for FuckMark insertions without transforming.\n"
+            "If --detect finds none, the report tells you to contact "
+            f"{DETECT_CONTACT_EMAIL}.\n"
             "Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -293,6 +304,15 @@ def _parser() -> argparse.ArgumentParser:
         dest="inspect_report",
         action="store_true",
         help="write a character-level coverage map to stderr; stdout stays the payload",
+    )
+    parser.add_argument(
+        "--detect",
+        dest="detect_mode",
+        action="store_true",
+        help=(
+            "scan for FuckMark insertions without transforming; "
+            f"if none are found, print how to contact {DETECT_CONTACT_EMAIL}"
+        ),
     )
     parser.add_argument(
         "--no-color",
@@ -591,9 +611,9 @@ def _machine_status_line(result: ProcessResult) -> str:
     )
 
 
-def _inspect_map(result: ProcessResult) -> str:
+def _inspect_map(text: str) -> str:
     pieces: list[str] = []
-    for character in result.output_text:
+    for character in text:
         codepoint = ord(character)
         if codepoint == 0x034F:
             pieces.append("[U+034F]")
@@ -620,7 +640,7 @@ def _emit_inspect(errors: TextIO, result: ProcessResult) -> None:
     if result.first_unsupported:
         errors.write(f"fuckmark-inspect-unsupported {result.first_unsupported}\n")
     if result.change_count > 0:
-        errors.write(f"fuckmark-inspect-map {_inspect_map(result)}\n")
+        errors.write(f"fuckmark-inspect-map {_inspect_map(result.output_text)}\n")
         errors.write(
             "fuckmark-inspect-note Mn-strip, default-ignorable strip, and "
             "UnicodeSanitizer combinations leave Me/Cc/Cf residuals and spaces; "
@@ -664,6 +684,63 @@ def _emit_outcome(
             enabled=color,
             code=_ANSI_YELLOW,
         )
+
+
+def _run_detect(
+    text: str,
+    arguments: argparse.Namespace,
+    output: TextIO,
+    errors: TextIO,
+    clipboard_writer: Callable[[str], None] | None,
+    *,
+    interactive: bool,
+    color: bool,
+) -> int:
+    if arguments.visible:
+        return _error(errors, "pass --detect without --visible")
+    if len(text) > PRODUCT_MAX_INPUT_CHARS:
+        return _error(errors, f"not processed: input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)")
+    found = detect_fuckmark_insertions(text)
+    if arguments.quiet:
+        payload = detect_machine_line(found) + "\n"
+    else:
+        payload = detect_human_report(found)
+    if arguments.status_report:
+        errors.write(detect_machine_line(found) + "\n")
+        errors.flush()
+    if arguments.inspect_report:
+        errors.write(f"fuckmark-inspect-map {_inspect_map(text)}\n")
+        errors.flush()
+    wrote_payload = False
+    if (not interactive) or arguments.output not in (None, "-"):
+        try:
+            _write_result(payload, arguments.output, output)
+            wrote_payload = True
+        except (ValueError, OSError) as error:
+            return _error(errors, str(error))
+    elif interactive:
+        errors.write(payload)
+        errors.flush()
+        wrote_payload = True
+    tone = _ANSI_GREEN if found.detected else _ANSI_YELLOW
+    if interactive and not arguments.quiet:
+        _status(errors, f"FuckMark: {found.verdict}.", enabled=color, code=tone)
+    should_copy = arguments.copy
+    if should_copy:
+        writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
+        try:
+            writer(payload)
+        except Exception as error:
+            tool_failed = "no supported clipboard command found" not in str(error)
+            follow = "The detect report was still written." if wrote_payload else "Nothing was printed."
+            _status(
+                errors,
+                f"FuckMark: clipboard copy failed ({error}). {_clipboard_hint(tool_failed=tool_failed)} {follow}",
+                enabled=color,
+                code=_ANSI_YELLOW,
+            )
+            return EXIT_CLIPBOARD
+    return EXIT_OK
 
 
 def main(
@@ -800,6 +877,19 @@ def _run(
         return _error(
             errors,
             "no input. Pipe text, pass a file, or quote a string. Example: printf 'I do not agree.\\n' | fuckmark",
+        )
+
+    if arguments.detect_mode:
+        if interactive:
+            _status(errors, "Checking...", enabled=color, code=_ANSI_BLUE)
+        return _run_detect(
+            text,
+            arguments,
+            output,
+            errors,
+            clipboard_writer,
+            interactive=interactive,
+            color=color,
         )
 
     if interactive:

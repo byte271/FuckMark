@@ -68,6 +68,8 @@ def test_arabic_letters_stay_unsupported_to_avoid_joining_breaks() -> None:
     assert result.output_text == source
     assert process_text("123.") == "123."
     assert transform_text("123.").reason == REASON_NO_ELIGIBLE_SITES
+    assert transform_text(chr(0x00E9) * 3).first_unsupported == ""
+    assert transform_text("I don" + chr(0x2019) + "t agree.").first_unsupported == "U+2019@5"
 
 
 def test_ascii_english_sites_match_historical_ascii_selection() -> None:

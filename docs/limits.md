@@ -27,7 +27,7 @@ Live mix (`u034f-ufe00-cc-me-cf-ia-letter-alt-v1`) leaves Me/Cc/Cf residuals aft
 
 ## L02 — Input domain
 
-Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters are processed. Other characters remain in the visible text and are reported as `first_unsupported`.
+Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters are processed. Other leftover characters remain in the visible text and are reported as `first_unsupported`. Mixed letters and emoji are not leftovers.
 
 | Input | Behavior |
 | --- | --- |
@@ -35,12 +35,14 @@ Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters 
 | `I don't agree.` (U+2019) | transformed (exit 0, `first_unsupported=U+2019@5`) |
 | `Hello` + U+1F600 | transformed (ASCII letters and the emoji cluster) |
 | `caf` + U+00E9 | transformed (the precomposed Latin letter is a site) |
-| U+00E9 only | transformed |
+| U+00E9 only | transformed (`first_unsupported` empty) |
 | U+4E2D U+6587 | transformed (Han syllables) |
 | BOM / NBSP with no letter or emoji sites | unchanged (`unsupported-domain` or `no-eligible-sites`) |
 | already contains an approved carrier | unchanged (`already-transformed`) |
 
 The product does not strip a BOM, normalize accents, or transliterate to force eligibility.
+
+`fuckmark --detect` and the demo detector scan for approved FuckMark insertions only. A miss is not a general AI-watermark result. Contact `Fhelp@q1z.org` if you believe a watermark is present.
 
 ## L03 — Length and the 4096-site cap
 

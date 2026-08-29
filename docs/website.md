@@ -10,10 +10,11 @@ Deploy [`demo.html`](demo.html) as `https://mark.q1z.org/demo.html`. Keep it a s
 
 - character differences for fixed samples (U+034F / U+FE00 plus C0/C1 / Me / Cf / annotation residuals)
 - processed vs not processed, reason, insertions, sites, `last_index`, capped
+- local closed-set FuckMark insertion scan on visitor paste (not GPT-2 / SynthID)
 - Mn-strip / default-ignorable strip leaving control residuals (source not restored; four-layer restore census 0/192)
 - frozen Gate v2 numbers with GPT-2 / 64-token / historical mark-only scope
 
-Do not run detectors on visitor paste. Do not present demo numbers as a guarantee for arbitrary user text.
+Do not query GPT-2, SynthID, or any remote detector on visitor paste. The local scan only looks for FuckMark insertion characters. If none are found, the demo offers contact at `Fhelp@q1z.org`. Do not present demo numbers as a guarantee for arbitrary user text.
 
 Homepage copy should link the demo before install instructions.
 

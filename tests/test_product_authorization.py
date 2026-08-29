@@ -33,7 +33,7 @@ def test_product_authorization_spec_is_committed_and_live() -> None:
     assert disk["algorithm_version"] == PRODUCT_AUTHORIZATION_VERSION
     assert disk["product_authorized"] is True
     assert disk["mechanism_id"] == LETTER_MIX_MECHANISM_ID
-    assert disk["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v10"
+    assert disk["cli_algorithm_version"] == RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v11"
     assert disk["mix_sanitizer_gate_v1"] == "PASS"
     assert disk["required_sanitizer_bundle_not_weakened"] is True
     assert disk["release_registry_empty"] is True
@@ -53,6 +53,9 @@ def test_product_authorization_spec_is_committed_and_live() -> None:
     assert disk["live"]["han_syllable_processed"] is True
     assert disk["live"]["emoji_only_processed"] is True
     assert disk["live"]["nfd_cluster_inserts_after_combining_mark"] is True
+    assert disk["live"]["detector_finds_live_mix"] is True
+    assert disk["live"]["detector_rejects_plain_source"] is True
+    assert disk["live"]["latin_only_first_unsupported_empty"] is True
     assert process_text(chr(0x00E9) * 3) != chr(0x00E9) * 3
     assert process_text(chr(0x4E2D) + chr(0x6587)) != chr(0x4E2D) + chr(0x6587)
     assert process_text(chr(0x1F600)) != chr(0x1F600)

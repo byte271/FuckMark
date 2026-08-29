@@ -36,7 +36,12 @@ def test_demo_page_is_self_contained_and_honest() -> None:
     assert "Mn" in html
     assert "Default_Ignorable_Code_Point" in html
     assert "unsupported-domain" in html
-    assert "detector score" in html.casefold()
+    assert "Fhelp@q1z.org" in html
+    assert "mailto:Fhelp@q1z.org" in html
+    assert "id=\"detector\"" in html
+    assert "\u6211\u4eec\u6ca1\u6709\u4ece\u8fd9\u91cc\u9762\u68c0\u6d4b\u5230\u6c34\u5370" in html
+    assert "\u8054\u7cfb\u6211\u4eec" in html
+    assert "local FuckMark scan" in html or "FuckMark detector" in html
     assert "file://" in html or "file://" in html.casefold()
     assert "GPT-2" in html
     assert "192" in html
@@ -79,12 +84,17 @@ def test_demo_samples_match_live_cli_and_reversal() -> None:
     latin_only = next(sample for sample in samples if sample["id"] == "latin-only")
     assert latin_only["processed"] is True
     assert latin_only["sites"] == 3
+    assert latin_only["first_unsupported"] == ""
     han_only = next(sample for sample in samples if sample["id"] == "han-only")
     assert han_only["processed"] is True
     assert han_only["sites"] == 2
+    assert han_only["first_unsupported"] == ""
     emoji_only = next(sample for sample in samples if sample["id"] == "emoji-only")
     assert emoji_only["processed"] is True
     assert emoji_only["sites"] == 1
+    assert emoji_only["first_unsupported"] == ""
+    accented = next(sample for sample in samples if sample["id"] == "accented")
+    assert accented["first_unsupported"] == ""
     covered = next(sample for sample in samples if sample["id"] == "site-full")
     assert covered["capped"] is False
     assert covered["sites"] == 312

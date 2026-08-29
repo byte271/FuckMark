@@ -21,12 +21,13 @@ Open [`docs/demo.html`](docs/demo.html) in a browser. `file://` works; no Python
 
 The demo shows:
 
+- a local FuckMark detector: paste text, scan for FuckMark insertion characters, and if none are found, contact `Fhelp@q1z.org`
 - character-level differences for fixed CLI samples (U+034F / U+FE00 plus C0/C1 / Me / Cf residuals)
 - processed vs not processed, reason, insertions, sites, `last_index`, cap
 - Mn-strip / default-ignorable strip leaving control residuals (source not restored)
 - frozen Gate v2 detection numbers on the historical mark-only GPT-2 corpus, plus historical triple-layer exploratory rescore and the four-layer restore census
 
-It does **not** score your paste against a detector and does **not** promise the same detection outcome for arbitrary user text.
+The paste detector is a closed-set scan of FuckMark insertions. It does **not** query GPT-2 or SynthID and does **not** promise the same detection outcome for arbitrary user text.
 
 ## Honest limits (read these)
 
@@ -36,7 +37,9 @@ Live mix inserts a mark, a C0/C1 control, enclosing Me (U+20DD), a cycling Egypt
 
 ### 2. Everyday letters and emoji are processed
 
-Latin (including U+00E9), Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji clusters are transformed. Curly apostrophes and other punctuation stay in the visible text and are reported as `first_unsupported`. `--status` still reports that field. Arabic and other joining scripts are left unchanged so cursive joining is not broken. Inputs with **no** eligible letter or emoji sites stay unchanged with exit 0. Exit 0 means I/O succeeded, not that hidden characters were inserted.
+Latin (including U+00E9), Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji clusters are transformed. Curly apostrophes and other punctuation stay in the visible text and are reported as `first_unsupported`. Processed letters and emoji are not reported in that field. `--status` still reports it. Arabic and other joining scripts are left unchanged so cursive joining is not broken. Inputs with **no** eligible letter or emoji sites stay unchanged with exit 0. Exit 0 means I/O succeeded, not that hidden characters were inserted.
+
+`fuckmark --detect` scans for those same insertion characters without transforming. If none are found, it prints that no FuckMark watermark was detected and how to contact `Fhelp@q1z.org`. That scan is not a general AI-watermark detector.
 
 ### 3. Frozen scores are not “AI detector rate reduction”
 

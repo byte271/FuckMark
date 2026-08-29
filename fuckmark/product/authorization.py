@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text
+from ..cli import RELEASE_CLI_ALGORITHM_VERSION, process_text, transform_text
+from ..product.detect import DETECT_MECHANISM_ID, detect_fuckmark_insertions
 from ..config import canonical_json_text
 from ..cycle8.benchmark import (
     strip_default_ignorable,
@@ -38,7 +39,7 @@ from ..transforms.registry import release_transform_registry
 
 PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
 PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
-PRODUCT_AUTHORIZATION_HASH = "f5e9a27d7dacc0c0de8eab4206801a1505c09138872b5bdb5fa5b40d3019edb1"
+PRODUCT_AUTHORIZATION_HASH = "07499a27e8abcfca5d6d524bc577c59b7631a052959d8e2b46970d27fe35cecf"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -67,6 +68,7 @@ def product_authorization_payload() -> dict[str, object]:
         "carriers": [int(codepoint) for codepoint in LETTER_MIX_APPROVED_CARRIERS],
         "max_selected": LETTER_MIX_MAX_SELECTED,
         "cli_algorithm_version": RELEASE_CLI_ALGORITHM_VERSION,
+        "detect_mechanism_id": DETECT_MECHANISM_ID,
         "release_registry_empty": release_transform_registry().rules == (),
         "apply_path": "apply_letter_alternating_mix",
         "fail_closed": [
@@ -103,6 +105,13 @@ def product_authorization_payload() -> dict[str, object]:
             "nfd_cluster_keeps_base_then_mark": nfd_mixed.startswith("e" + chr(0x0301)),
             "no_letter_identity": process_text("123.") == "123.",
             "already_mixed_identity": process_text(transformed) == transformed,
+            "latin_only_first_unsupported_empty": transform_text(latin_only).first_unsupported == "",
+            "han_only_first_unsupported_empty": transform_text(han_only).first_unsupported == "",
+            "emoji_only_first_unsupported_empty": transform_text(emoji_only).first_unsupported == "",
+            "curly_apostrophe_leftover_reported": transform_text("I don" + chr(0x2019) + "t agree.").first_unsupported
+            == "U+2019@5",
+            "detector_finds_live_mix": detect_fuckmark_insertions(transformed).detected is True,
+            "detector_rejects_plain_source": detect_fuckmark_insertions(_AUDIT_SOURCE).detected is False,
             "mn_strip_does_not_restore_source": strip_nonspacing_marks(transformed) != _AUDIT_SOURCE,
             "di_strip_does_not_restore_source": strip_default_ignorable(transformed) != _AUDIT_SOURCE,
             "mn_then_us_does_not_restore_source": mn_then_us != _AUDIT_SOURCE,
@@ -126,7 +135,10 @@ def product_authorization_payload() -> dict[str, object]:
             "Me may decorate glyphs in some renderers. Live sites are grapheme clusters of "
             "Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji, including NFD "
             "Latin where insertions follow the combining sequence. Historical Gate v2 "
-            "confirmation remains the frozen GPT-2 evidence for the prior mark-only arm."
+            "confirmation remains the frozen GPT-2 evidence for the prior mark-only arm. "
+            "first_unsupported reports leftover non-ASCII that is not inside an eligible "
+            "letter or emoji cluster. --detect is a closed-set scan of approved insertions, "
+            "not a general AI-watermark detector."
         ),
     }
     return {**payload, "authorization_hash": sha256_json(payload)}
@@ -163,8 +175,8 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("product authorization spec does not match the live payload")
     if disk["product_authorized"] is not True:
         raise ValueError("product authorization spec must authorize")
-    if disk["cli_algorithm_version"] != "release-cli-v10":
-        raise ValueError("product authorization must use release-cli-v10")
+    if disk["cli_algorithm_version"] != "release-cli-v11":
+        raise ValueError("product authorization must use release-cli-v11")
     if disk["mix_sanitizer_gate_v1"] != "PASS":
         raise ValueError("product authorization must record the durable sanitizer gate PASS")
     if disk["identities"]["mix_freeze_hash"] != _MIX_FREEZE_HASH:
@@ -207,4 +219,16 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("authorized mix must insert after NFD combining clusters")
     if disk["live"]["nfd_cluster_keeps_base_then_mark"] is not True:
         raise ValueError("authorized mix must not split NFD letter clusters")
+    if disk["live"]["latin_only_first_unsupported_empty"] is not True:
+        raise ValueError("authorized leftover scan must skip mixed Latin letters")
+    if disk["live"]["han_only_first_unsupported_empty"] is not True:
+        raise ValueError("authorized leftover scan must skip mixed Han syllables")
+    if disk["live"]["emoji_only_first_unsupported_empty"] is not True:
+        raise ValueError("authorized leftover scan must skip mixed emoji")
+    if disk["live"]["curly_apostrophe_leftover_reported"] is not True:
+        raise ValueError("authorized leftover scan must still report curly apostrophes")
+    if disk["live"]["detector_finds_live_mix"] is not True:
+        raise ValueError("authorized detector must find live mix insertions")
+    if disk["live"]["detector_rejects_plain_source"] is not True:
+        raise ValueError("authorized detector must reject plain source text")
     assert_gate_v2_committed()

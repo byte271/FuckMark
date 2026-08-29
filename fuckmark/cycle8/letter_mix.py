@@ -3,6 +3,7 @@ from __future__ import annotations
 import unicodedata
 from collections.abc import Sequence
 
+from ..product.domain import PRODUCT_DOMAIN_ALLOWED_CODEPOINTS
 from ..product.invariants import validate_user_visible_invariants
 from ..product.visible_projection import is_carrier_insertion_v1, project_visible_v1
 from ..transforms.protected import add_hard_machine_spans
@@ -468,6 +469,35 @@ def apply_historical_quad_layer_letter_mix(
         ascii_only=True,
     )
     return compose_historical_quad_layer_letter_mix(text, sites)
+
+
+def first_unmixed_non_ascii(text: str) -> tuple[int, int] | None:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    blocked = hard_machine_intervals(text)
+    covered: list[tuple[int, int]] = []
+    index = 0
+    length = len(text)
+    while index < length:
+        if not _is_live_cluster_base(text, index):
+            index += 1
+            continue
+        cluster_end = _extend_cluster(text, index)
+        if not _range_overlaps_blocked(index, cluster_end, blocked):
+            covered.append((index, cluster_end))
+        index = cluster_end
+    covered_index = 0
+    covered_count = len(covered)
+    for position, character in enumerate(text):
+        codepoint = ord(character)
+        if codepoint in PRODUCT_DOMAIN_ALLOWED_CODEPOINTS:
+            continue
+        while covered_index < covered_count and covered[covered_index][1] <= position:
+            covered_index += 1
+        if covered_index < covered_count and covered[covered_index][0] <= position < covered[covered_index][1]:
+            continue
+        return position, codepoint
+    return None
 
 
 def letter_mix_protected_blocked_count(text: str) -> int:

@@ -61,6 +61,8 @@ printf 'I do not agree.\n' | fuckmark --copy
 printf 'I do not agree.\n' | fuckmark --visible
 printf 'I do not agree.\n' | fuckmark --status >/tmp/fm.out
 printf 'I do not agree.\n' | fuckmark --inspect >/tmp/fm.out
+fuckmark --detect --text "I do not agree."
+printf 'paste\n' | fuckmark --detect
 fuckmark --text "I don’t agree." --status
 ```
 
@@ -97,15 +99,18 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 | `-q`, `--quiet` | Hide processed/reason/coverage status messages on stderr. |
 | `--status` | Write one `fuckmark-status` line to stderr (`result`, `processed`, `insertions`, `sites`, `last_index`, `source_length`, `capped`, `first_unsupported`). |
 | `--inspect` | Write a character-level coverage map to stderr. Stdout stays the payload. |
+| `--detect` | Scan for FuckMark insertions without transforming. Stdout is the detect report. If none are found, the report includes `Fhelp@q1z.org`. |
 | `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |
 
 `--non-interactive` is an alias of `--stdin`.
 
 ## Supported input
 
-Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters are processed. Punctuation such as curly apostrophes stays in the visible text and is reported as `first_unsupported`. Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
+Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters are processed. Punctuation such as curly apostrophes stays in the visible text and is reported as `first_unsupported`. Mixed letters and emoji are not leftovers. Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
 
-Example: `I don` + U+2019 + `t agree.` is processed (`reason=transformed`, `first_unsupported=U+2019@5`). U+00E9-only input is processed. A string with no eligible letter or emoji sites is `unsupported-domain` or `no-eligible-sites`.
+Example: `I don` + U+2019 + `t agree.` is processed (`reason=transformed`, `first_unsupported=U+2019@5`). U+00E9-only input is processed and `first_unsupported` is empty. A string with no eligible letter or emoji sites is `unsupported-domain` or `no-eligible-sites`.
+
+`--detect` does not mix. It reports whether approved FuckMark insertions are present. A miss is not proof that some other watermark exists. Contact `Fhelp@q1z.org` if you believe there is a watermark the scan did not find.
 
 Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 4096 letter sites, five insertions per site. Insertions fill the first 4096 eligible letter or emoji sites and then stop, so the tail of a long document is unchanged.
 
