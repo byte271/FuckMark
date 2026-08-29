@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import unicodedata
 from collections.abc import Sequence
 
 from ..product.invariants import validate_user_visible_invariants
@@ -40,6 +41,98 @@ HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS = (
 HISTORICAL_TRIPLE_LAYER_MIX_MAX_SELECTED = 4096
 HISTORICAL_TRIPLE_LAYER_MIX_INSERTIONS_PER_SITE = 3
 HISTORICAL_TRIPLE_LAYER_MIX_MECHANISM_ID = "u034f-ufe00-cc-me-letter-alt-v1"
+_CLUSTER_EXTEND_CATEGORIES = frozenset({"Mn", "Mc", "Me"})
+_VS_CODEPOINTS = frozenset({0xFE0E, 0xFE0F})
+_KEYCAP_BASES = frozenset("#*0123456789")
+_LIVE_NAME_PREFIXES = (
+    "LATIN ",
+    "GREEK ",
+    "CYRILLIC ",
+    "CJK UNIFIED IDEOGRAPH",
+    "CJK COMPATIBILITY IDEOGRAPH",
+    "HIRAGANA ",
+    "KATAKANA ",
+    "KATAKANA-HIRAGANA ",
+    "HANGUL SYLLABLE ",
+    "BOPOMOFO ",
+)
+
+
+def _assigned_name(character: str) -> str:
+    try:
+        return unicodedata.name(character)
+    except ValueError:
+        return ""
+
+
+def _is_regional_indicator(character: str) -> bool:
+    code = ord(character)
+    return 0x1F1E6 <= code <= 0x1F1FF
+
+
+def _is_emoji_base(character: str) -> bool:
+    code = ord(character)
+    if 0x1F1E6 <= code <= 0x1F1FF:
+        return True
+    if 0x1F000 <= code <= 0x1FAFF:
+        return True
+    if 0x2600 <= code <= 0x27BF and unicodedata.category(character) == "So":
+        return True
+    return code in {0x00A9, 0x00AE, 0x203C, 0x2049, 0x2122, 0x2139, 0x3030, 0x303D, 0x3297, 0x3299}
+
+
+def _is_live_letter_base(character: str) -> bool:
+    if not character.isalpha():
+        return False
+    if character.isascii():
+        return True
+    name = _assigned_name(character)
+    return any(name.startswith(prefix) for prefix in _LIVE_NAME_PREFIXES)
+
+
+def _is_keycap_base(text: str, index: int) -> bool:
+    if text[index] not in _KEYCAP_BASES:
+        return False
+    nxt = index + 1
+    return nxt < len(text) and ord(text[nxt]) in {0xFE0F, 0x20E3}
+
+
+def _is_live_cluster_base(text: str, index: int) -> bool:
+    character = text[index]
+    return _is_live_letter_base(character) or _is_emoji_base(character) or _is_keycap_base(text, index)
+
+
+def _extend_cluster(text: str, start: int) -> int:
+    index = start + 1
+    length = len(text)
+    if _is_regional_indicator(text[start]) and index < length and _is_regional_indicator(text[index]):
+        index += 1
+    while index < length:
+        code = ord(text[index])
+        category = unicodedata.category(text[index])
+        if category in _CLUSTER_EXTEND_CATEGORIES:
+            index += 1
+            continue
+        if code in _VS_CODEPOINTS:
+            index += 1
+            continue
+        if 0xE0020 <= code <= 0xE007F:
+            index += 1
+            continue
+        if code == 0x200D:
+            index += 1
+            if index < length:
+                index += 1
+            continue
+        break
+    return index
+
+
+def _range_overlaps_blocked(start: int, end: int, blocked: Sequence[tuple[int, int]]) -> bool:
+    for left, right in blocked:
+        if start < right and end > left:
+            return True
+    return False
 
 
 def hard_machine_intervals(text: str) -> tuple[tuple[int, int], ...]:
@@ -67,6 +160,7 @@ def select_letter_mix_sites(
     *,
     max_selected: int | None = LETTER_MIX_MAX_SELECTED,
     approved_carriers: Sequence[int] | None = None,
+    ascii_only: bool = False,
 ) -> tuple[int, ...]:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
@@ -80,17 +174,33 @@ def select_letter_mix_sites(
         return ()
     blocked = hard_machine_intervals(text)
     sites: list[int] = []
-    interval_index = 0
-    blocked_count = len(blocked)
-    for index, character in enumerate(text):
-        while interval_index < blocked_count and blocked[interval_index][1] <= index:
-            interval_index += 1
-        if interval_index < blocked_count and blocked[interval_index][0] <= index:
+    if ascii_only:
+        interval_index = 0
+        blocked_count = len(blocked)
+        for index, character in enumerate(text):
+            while interval_index < blocked_count and blocked[interval_index][1] <= index:
+                interval_index += 1
+            if interval_index < blocked_count and blocked[interval_index][0] <= index:
+                continue
+            if character.isascii() and character.isalpha():
+                sites.append(index)
+                if max_selected is not None and len(sites) >= max_selected:
+                    break
+        return tuple(sites)
+    index = 0
+    length = len(text)
+    while index < length:
+        if not _is_live_cluster_base(text, index):
+            index += 1
             continue
-        if character.isascii() and character.isalpha():
-            sites.append(index)
-            if max_selected is not None and len(sites) >= max_selected:
-                break
+        cluster_end = _extend_cluster(text, index)
+        if _range_overlaps_blocked(index, cluster_end, blocked):
+            index = cluster_end
+            continue
+        sites.append(cluster_end - 1)
+        if max_selected is not None and len(sites) >= max_selected:
+            break
+        index = cluster_end
     return tuple(sites)
 
 
@@ -259,6 +369,7 @@ def apply_historical_mark_letter_mix(
         text,
         max_selected=max_selected,
         approved_carriers=HISTORICAL_MARK_MIX_CARRIERS,
+        ascii_only=True,
     )
     return compose_historical_mark_letter_mix(text, sites)
 
@@ -272,6 +383,7 @@ def apply_historical_dual_layer_letter_mix(
         text,
         max_selected=max_selected,
         approved_carriers=HISTORICAL_DUAL_LAYER_MIX_CARRIERS,
+        ascii_only=True,
     )
     return compose_historical_dual_layer_letter_mix(text, sites)
 
@@ -285,6 +397,7 @@ def apply_historical_triple_layer_letter_mix(
         text,
         max_selected=max_selected,
         approved_carriers=HISTORICAL_TRIPLE_LAYER_MIX_CARRIERS,
+        ascii_only=True,
     )
     return compose_historical_triple_layer_letter_mix(text, sites)
 
@@ -294,13 +407,14 @@ def letter_mix_protected_blocked_count(text: str) -> int:
         raise TypeError("text must be a string")
     blocked = hard_machine_intervals(text)
     count = 0
-    interval_index = 0
-    blocked_count = len(blocked)
-    for index, character in enumerate(text):
-        while interval_index < blocked_count and blocked[interval_index][1] <= index:
-            interval_index += 1
-        if not (character.isascii() and character.isalpha()):
+    index = 0
+    length = len(text)
+    while index < length:
+        if not _is_live_cluster_base(text, index):
+            index += 1
             continue
-        if interval_index < blocked_count and blocked[interval_index][0] <= index:
+        cluster_end = _extend_cluster(text, index)
+        if _range_overlaps_blocked(index, cluster_end, blocked):
             count += 1
+        index = cluster_end
     return count

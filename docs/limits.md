@@ -19,28 +19,31 @@ No-install walkthrough of these limits: [`demo.html`](demo.html).
 | Mn-strip / combining-mark strip | **no** (exploratory 0/192) | 188/192 (historical restore) |
 | default-ignorable strip | **no** (exploratory 0/192) | 188/192 (historical restore) |
 | Mn-strip then Me-strip then UnicodeSanitizer | **no** (restore census 0/192) | historical triple-layer matches US(source) 192/192 |
+| Mn then Me then UnicodeSanitizer then frozen cf_strip | **yes** (closed-set remainder) | n/a |
 | required-bundle then UnicodeSanitizer | **no** (exploratory 0/192) | n/a (bundle already strips marks) |
 
 Live mix (`u034f-ufe00-cc-me-cf-letter-alt-v1`) leaves Me/Cc/Cf residuals after Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle. Frozen Cf-strip still removes the Cf layer. Frozen Gate v2 confirmation is the historical mark-only arm and is not rewritten. Exploratory rescores: `evidence/cycle8-dual-layer-stress-exploratory-2026-08-28/`, `evidence/cycle8-combo-stress-exploratory-n192-2026-08-28/` (historical triple-layer detector scores), and `evidence/cycle8-quad-layer-restore-exploratory-2026-08-29/` (four-layer restore census).
 
 ## L02 — Input domain
 
-ASCII letter sites are processed. Other Unicode remains in the visible text and is reported as `first_unsupported`.
+Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters are processed. Other characters remain in the visible text and are reported as `first_unsupported`.
 
 | Input | Behavior |
 | --- | --- |
 | `I do not agree.` | transformed (exit 0, reason `transformed`) |
 | `I don't agree.` (U+2019) | transformed (exit 0, `first_unsupported=U+2019@5`) |
-| `Hello 😀` | transformed (eligible ASCII letters) |
-| `café` | transformed (`caf` plus visible `é`) |
-| BOM / NBSP with no ASCII letters | unchanged (`unsupported-domain` or `no-eligible-sites`) |
+| `Hello` + U+1F600 | transformed (ASCII letters and the emoji cluster) |
+| `caf` + U+00E9 | transformed (the precomposed Latin letter is a site) |
+| U+00E9 only | transformed |
+| U+4E2D U+6587 | transformed (Han syllables) |
+| BOM / NBSP with no letter or emoji sites | unchanged (`unsupported-domain` or `no-eligible-sites`) |
 | already contains an approved carrier | unchanged (`already-transformed`) |
 
 The product does not strip a BOM, normalize accents, or transliterate to force eligibility.
 
 ## L03 — Length and the 4096-site cap
 
-Only the first 4096 eligible ASCII-letter sites receive insertions (four per site: mark, control, Me, Cf). For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
+Only the first 4096 eligible letter or emoji grapheme clusters receive insertions (four per site: mark, control, Me, Cf). NFD Latin clusters are marked after the combining sequence. For a long document, report `--status` fields `sites`, `last_index`, and `capped=yes`. That is a coverage limit, not a long-document detection result.
 
 ## L04 — Detector / model / tokenizer evidence
 

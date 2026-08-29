@@ -17,7 +17,6 @@ from fuckmark.cli import (
     REASON_SITE_CAP,
     REASON_TOO_LARGE,
     REASON_TRANSFORMED,
-    REASON_UNSUPPORTED_DOMAIN,
     main,
     transform_text,
 )
@@ -146,9 +145,9 @@ def test_transform_reasons_are_distinct() -> None:
     changed = transform_text("I do not agree.")
     assert changed.reason == REASON_TRANSFORMED
     assert changed.change_count > 0
-    unsupported = transform_text("\u00e9\u00e9\u00e9")
-    assert unsupported.reason == REASON_UNSUPPORTED_DOMAIN
-    assert unsupported.change_count == 0
+    latin_only = transform_text(chr(0x00E9) * 3)
+    assert latin_only.reason == REASON_TRANSFORMED
+    assert latin_only.change_count > 0
     mixed = transform_text(changed.output_text)
     assert mixed.reason == "already-transformed"
     none = transform_text("123.")

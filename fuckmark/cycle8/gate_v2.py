@@ -316,8 +316,8 @@ def assert_gate_v2_committed() -> None:
         raise ValueError("product_approved_carriers_v1 must be the frozen mix carriers")
     if process_text("I do not agree.") == "I do not agree.":
         raise ValueError("authorized CLI must apply the frozen letter mix")
-    if RELEASE_CLI_ALGORITHM_VERSION != "release-cli-v8":
-        raise ValueError("authorized CLI must report release-cli-v8")
+    if RELEASE_CLI_ALGORITHM_VERSION != "release-cli-v9":
+        raise ValueError("authorized CLI must report release-cli-v9")
     scorecard = build_gate_v2_confirmation_scorecard()
     if scorecard["confirmation"] is not True:
         raise ValueError("Gate v2 confirmation scorecard must pass")

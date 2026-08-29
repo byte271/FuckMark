@@ -2,7 +2,7 @@
 
 The same command is installed as `fuckmark`, `FuckMark`, and `Fuckmark`.
 
-It inserts hidden Unicode into English text at eligible ASCII letters. The words on screen do not change.
+It inserts hidden Unicode into ordinary letters and emoji. The words on screen do not change.
 
 ```text
 fuckmark --help
@@ -20,7 +20,8 @@ fuckmark
 FuckMark
 
 Paste or type your text below.
-ASCII letter sites are processed. Other Unicode is left in the visible text.
+Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed.
+Other characters stay in the visible text.
 Enter :done on a new line when finished.
 
 > I do not agree.
@@ -102,11 +103,11 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 ## Supported input
 
-ASCII letter sites are processed. Mixed Unicode (curly apostrophes, accents, emoji) stays in the visible text and is reported as `first_unsupported`. Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
+Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters are processed. Punctuation such as curly apostrophes stays in the visible text and is reported as `first_unsupported`. Exit 0 means I/O succeeded. It does not mean that a transformation occurred or that a watermark was removed. Only UTF-8 files.
 
-Example: `I don` + U+2019 + `t agree.` is processed (`reason=transformed`, `first_unsupported=U+2019@5`). A string with no eligible ASCII letters is `unsupported-domain` or `no-eligible-sites`.
+Example: `I don` + U+2019 + `t agree.` is processed (`reason=transformed`, `first_unsupported=U+2019@5`). U+00E9-only input is processed. A string with no eligible letter or emoji sites is `unsupported-domain` or `no-eligible-sites`.
 
-Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 4096 letter sites, four insertions per site. Insertions fill the first 4096 eligible letter sites and then stop, so the tail of a long document is unchanged.
+Machine spans stay intact: fenced/inline/indented code, HTML tags and entities, markdown destinations (including multiline), markdown reference labels (including multiline, container, and CR line endings), URLs (including `ftp://`), emails, IPs, dates, currency, percents, numbers, POSIX/Windows paths (including `src/main.py`, `scripts/build`, `C:/My final notes.txt`, `C:/Users/Alice/My final notes.txt`), CLI flags. Quote interiors are eligible. Cap 4096 letter sites, four insertions per site. Insertions fill the first 4096 eligible letter or emoji sites and then stop, so the tail of a long document is unchanged.
 
 If the text is already transformed or has no eligible letters, the CLI returns it unchanged and reports that on stderr unless `-q`. `--status` always reports the reason, including for `too-large` and internal failure. Exit 0 still means I/O succeeded, not watermark removal.
 

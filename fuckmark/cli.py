@@ -33,7 +33,7 @@ from .product.visible_projection import (
 
 
 INTERACTIVE_DONE = ":done"
-RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v8"
+RELEASE_CLI_ALGORITHM_VERSION = "release-cli-v9"
 _ANSI_BLUE = "\033[38;5;39m"
 _ANSI_GREEN = "\033[38;5;40m"
 _ANSI_YELLOW = "\033[38;5;214m"
@@ -167,8 +167,8 @@ def read_interactive_text(input_stream: TextIO, ui_stream: TextIO, *, color: boo
     ui_stream.write(
         "\n"
         "Paste or type your text below.\n"
-        "ASCII letter sites are processed. Other Unicode is left in the visible text.\n"
-        "Enter :done on a new line when finished.\n"
+        "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed.\n"
+        "Other characters stay in the visible text. Enter :done on a new line when finished.\n"
         "\n"
     )
     ui_stream.flush()
@@ -190,7 +190,7 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="fuckmark",
         description=(
-            "FuckMark inserts hidden Unicode into ordinary English ASCII text "
+            "FuckMark inserts hidden Unicode into ordinary letters and emoji "
             "without changing the visible words."
         ),
         epilog=(
@@ -209,9 +209,9 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark --stdin --copy < notes.txt\n"
             "  fuckmark --stdin --visible < notes.fm.txt\n"
             "\n"
-            "ASCII letter sites are processed even when surrounding text has other Unicode,\n"
-            "including curly apostrophes. Inputs with no eligible ASCII letters are returned\n"
-            "unchanged with exit 0.\n"
+            "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed\n"
+            "even when surrounding text has other Unicode, including curly apostrophes.\n"
+            "Inputs with no eligible letter or emoji sites are returned unchanged with exit 0.\n"
             "Exit 0 means I/O succeeded, not that hidden characters were inserted.\n"
             "Only UTF-8 is supported. Visible text stays the same.\n"
             "Use --visible to print that visible text.\n"
@@ -544,7 +544,7 @@ def _human_reason(result: ProcessResult) -> str:
     if result.reason == REASON_TRANSFORMED:
         extra = ""
         if result.first_unsupported:
-            extra = f"; ASCII letters mixed, {result.first_unsupported} left in visible text"
+            extra = f"; letter sites mixed, {result.first_unsupported} left in visible text"
         return f"processed: inserted {result.change_count} hidden characters{extra}"
     if result.reason == REASON_SITE_CAP:
         return (
@@ -554,13 +554,13 @@ def _human_reason(result: ProcessResult) -> str:
     if result.reason == REASON_UNSUPPORTED_DOMAIN:
         loc = result.first_unsupported or "non-ASCII"
         return (
-            f"not processed: no eligible ASCII letter sites ({loc}). "
+            f"not processed: no eligible letter or emoji sites ({loc}). "
             "Exit 0 means I/O succeeded, not that hidden characters were inserted"
         )
     if result.reason == REASON_ALREADY_TRANSFORMED:
         return "not processed: input already contains the payload"
     if result.reason == REASON_NO_ELIGIBLE_SITES:
-        return "not processed: no eligible ASCII letter sites"
+        return "not processed: no eligible letter or emoji sites"
     if result.reason == REASON_TOO_LARGE:
         return f"not processed: input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)"
     return "not processed: transformation failed internally; source returned unchanged"

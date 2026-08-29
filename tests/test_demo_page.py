@@ -50,6 +50,9 @@ def test_demo_samples_match_live_cli_and_reversal() -> None:
     ids = {sample["id"] for sample in samples}
     assert "ascii-eligible" in ids
     assert "curly-apostrophe" in ids
+    assert "latin-only" in ids
+    assert "han-only" in ids
+    assert "emoji-only" in ids
     assert "site-full" in ids
     for sample in samples:
         result = transform_text(sample["source"])
@@ -73,6 +76,15 @@ def test_demo_samples_match_live_cli_and_reversal() -> None:
     curly = next(sample for sample in samples if sample["id"] == "curly-apostrophe")
     assert curly["processed"] is True
     assert curly["first_unsupported"].startswith("U+2019@")
+    latin_only = next(sample for sample in samples if sample["id"] == "latin-only")
+    assert latin_only["processed"] is True
+    assert latin_only["sites"] == 3
+    han_only = next(sample for sample in samples if sample["id"] == "han-only")
+    assert han_only["processed"] is True
+    assert han_only["sites"] == 2
+    emoji_only = next(sample for sample in samples if sample["id"] == "emoji-only")
+    assert emoji_only["processed"] is True
+    assert emoji_only["sites"] == 1
     covered = next(sample for sample in samples if sample["id"] == "site-full")
     assert covered["capped"] is False
     assert covered["sites"] == 312

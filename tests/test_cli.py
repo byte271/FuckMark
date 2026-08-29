@@ -124,7 +124,7 @@ def test_cli_reads_multiline_paste_until_done_and_keeps_blank_lines() -> None:
     ui = prompt.getvalue()
     assert ui.startswith("FuckMark\n")
     assert "Paste or type your text below." in ui
-    assert "ASCII letter sites are processed" in ui
+    assert "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed" in ui
     assert ":done" in ui
     assert ui.count("> ") == 5
 
@@ -326,8 +326,8 @@ def test_cli_version_reports_project_identity(capsys) -> None:
     assert result.value.code == 0
     rendered = capsys.readouterr().out.strip()
     assert rendered == f"FuckMark {__version__}"
-    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v8"
-    assert "release-cli-v8" not in rendered
+    assert RELEASE_CLI_ALGORITHM_VERSION == "release-cli-v9"
+    assert "release-cli-v9" not in rendered
     assert "transform-registry" not in rendered
 
 

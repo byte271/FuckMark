@@ -19,14 +19,14 @@ Homepage copy should link the demo before install instructions.
 
 ## What the product does
 
-FuckMark inserts U+034F or U+FE00, a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F) into eligible ASCII letter sites. Visible projection stays identical; Me may decorate glyphs. v0.4.1 (this tree) already inserts those characters. Mixed Unicode with ASCII letters is processed.
+FuckMark inserts U+034F or U+FE00, a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F) into eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji grapheme clusters. Visible projection stays identical; Me may decorate glyphs. v0.4.1 (this tree) already inserts those characters. Accented Latin, Han, and emoji-only inputs are processed.
 
 It is not a general watermark remover.
 
 ## Honest limits on the homepage
 
 1. Live four-layer mix does not restore under Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, or the required sanitizer bundle (restore census 0/192). Frozen Gate v2 confirmation is the historical mark-only arm (188/192 after Mn/DI strip). Frozen Cf-strip still removes the Cf layer.
-2. Mixed Unicode with ASCII letters is processed. Inputs with no eligible ASCII letters stay unchanged with exit 0. That is not a completed transformation.
+2. Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. Inputs with no eligible letter or emoji sites stay unchanged with exit 0. That is not a completed transformation.
 3. Frozen 0/192 results are GPT-2 / SynthID confirmation on 64-token samples. They do not answer whether text is useful on a user's platform and are not a general AI-detector rate reduction.
 4. Install remains Python 3.11+ and a CLI; the static demo is the no-install path.
 

@@ -1,6 +1,6 @@
 # v0.4.1 Release Process
 
-FuckMark v0.4.1 is the audit-fix and four-layer mix release on top of the Gate v2 product-authorization CLI. The public CLI algorithm identity is `release-cli-v8`. Do not retag `v0.4.0`. The historical `v0.3.0` tag is the identity CLI (`release-cli-v4`). The historical `v0.2.0` tag still applies contractions.
+FuckMark v0.4.1 is the audit-fix and four-layer mix release on top of the Gate v2 product-authorization CLI. The public CLI algorithm identity is `release-cli-v9`. Do not retag `v0.4.0`. The historical `v0.3.0` tag is the identity CLI (`release-cli-v4`). The historical `v0.2.0` tag still applies contractions.
 
 ## Release invariants
 

@@ -228,7 +228,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
 <main>
   <section class="banner" id="reversal-banner">
     <strong>Four-layer mix resists Mn/DI strip, Me-strip, and UnicodeSanitizer combinations.</strong>
-    Each eligible ASCII letter site receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F). Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle no longer restore the source. Frozen Cf-strip still removes the Cf layer. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
+    Each eligible letter or emoji grapheme cluster receives a mark (U+034F or U+FE00), a C0/C1 control, enclosing Me (U+20DD), and a cycling Egyptian hieroglyph format control (U+13430-U+1343F). Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji are processed. NFD clusters are marked after the combining sequence. Mn-strip, default-ignorable strip, UnicodeSanitizer orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle no longer restore the source. Frozen Cf-strip still removes the Cf layer. Visible projection strips approved carriers; Me may decorate glyphs. The frozen Gate v2 0/192 table below is the historical mark-only confirmation corpus.
   </section>
 
   <section class="panel" id="frozen-scores">
@@ -285,15 +285,15 @@ code { font-family: var(--mono); font-size: 0.9em; }
 
   <section class="panel" id="live-inspect">
     <h2>Local paste inspector (no detector, no insertion)</h2>
-    <p>Checks ASCII-letter eligibility the way the live CLI does: non-ASCII can remain in the visible text while ASCII letters are mixed. It does not query any detector.</p>
-    <textarea id="live-input" spellcheck="false" placeholder="Paste text to check ASCII eligibility. Example that fails: I don’t agree. (U+2019)"></textarea>
+    <p>Checks letter and emoji eligibility the way the live CLI does. Punctuation can remain in the visible text while letters and emoji are mixed. It does not query any detector.</p>
+    <textarea id="live-input" spellcheck="false" placeholder="Paste text to check letter and emoji eligibility."></textarea>
     <div class="actions">
       <button type="button" class="primary" id="btn-live">Inspect paste</button>
       <button type="button" id="btn-live-clear">Clear</button>
     </div>
     <div class="status-grid" id="live-status" style="margin-top:0.85rem"></div>
     <div class="viewer" id="live-view"></div>
-    <p class="note">Unsupported Unicode with no ASCII letters returns exit 0 from the CLI with reason <code>unsupported-domain</code>. Mixed Unicode that still has ASCII letters is processed.</p>
+    <p class="note">Input with no eligible letter or emoji sites returns exit 0 from the CLI with reason <code>unsupported-domain</code> or <code>no-eligible-sites</code>. Accented Latin, Han, and emoji-only text is processed.</p>
   </section>
 
   <footer>
@@ -332,7 +332,7 @@ code { font-family: var(--mono); font-size: 0.9em; }
   },
   {
     "id": "curly-apostrophe",
-    "title": "Curly apostrophe (ASCII letters mixed)",
+    "title": "Curly apostrophe (letters mixed)",
     "source": "I don’t agree.",
     "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲n︀⃝𓐳’t͏⃝𓐴 a︀⃝𓐵g͏⃝𓐶r︀⃝𓐷e͏⃝𓐸e︀⃝𓐹.",
     "reason": "transformed",
@@ -346,16 +346,58 @@ code { font-family: var(--mono); font-size: 0.9em; }
   },
   {
     "id": "accented",
-    "title": "Accented word with ASCII letters",
+    "title": "Accented Latin letter is a site",
     "source": "I do not agree é.",
-    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐹e͏⃝𓐺 é.",
+    "output": "I͏⃝𓐰 d︀⃝𓐱o͏⃝𓐲 n︀⃝𓐳o͏⃝𓐴t︀⃝𓐵 a͏⃝𓐶g︀⃝𓐷r͏⃝𓐸e︀⃝𓐹e͏⃝𓐺 é︀⃝𓐻.",
     "reason": "transformed",
-    "insertions": 44,
-    "sites": 11,
-    "last_index": 13,
+    "insertions": 48,
+    "sites": 12,
+    "last_index": 15,
     "capped": false,
     "source_length": 17,
     "first_unsupported": "U+00E9@15",
+    "processed": true
+  },
+  {
+    "id": "latin-only",
+    "title": "Latin letters without ASCII",
+    "source": "ééé",
+    "output": "é͏⃝𓐰é︀⃝𓐱é͏⃝𓐲",
+    "reason": "transformed",
+    "insertions": 12,
+    "sites": 3,
+    "last_index": 2,
+    "capped": false,
+    "source_length": 3,
+    "first_unsupported": "U+00E9@0",
+    "processed": true
+  },
+  {
+    "id": "han-only",
+    "title": "Han syllables",
+    "source": "中文",
+    "output": "中͏⃝𓐰文︀⃝𓐱",
+    "reason": "transformed",
+    "insertions": 8,
+    "sites": 2,
+    "last_index": 1,
+    "capped": false,
+    "source_length": 2,
+    "first_unsupported": "U+4E2D@0",
+    "processed": true
+  },
+  {
+    "id": "emoji-only",
+    "title": "Emoji-only input",
+    "source": "😀",
+    "output": "😀͏⃝𓐰",
+    "reason": "transformed",
+    "insertions": 4,
+    "sites": 1,
+    "last_index": 0,
+    "capped": false,
+    "source_length": 1,
+    "first_unsupported": "U+1F600@0",
     "processed": true
   },
   {
@@ -554,6 +596,29 @@ code { font-family: var(--mono); font-size: 0.9em; }
     return cp === 9 || cp === 10 || cp === 13 || (cp >= 0x20 && cp <= 0x7e);
   }
 
+  function isLiveLetter(ch) {
+    try {
+      if (/\p{Extended_Pictographic}/u.test(ch)) return true;
+      if (/\p{Regional_Indicator}/u.test(ch)) return true;
+      if (!/\p{L}/u.test(ch)) return false;
+      if (/\p{Script=Latin}/u.test(ch)) return true;
+      if (/\p{Script=Greek}/u.test(ch)) return true;
+      if (/\p{Script=Cyrillic}/u.test(ch)) return true;
+      if (/\p{Script=Han}/u.test(ch)) return true;
+      if (/\p{Script=Hiragana}/u.test(ch)) return true;
+      if (/\p{Script=Katakana}/u.test(ch)) return true;
+      const cp = ch.codePointAt(0);
+      return cp >= 0xAC00 && cp <= 0xD7A3;
+    } catch (err) {
+      const cp = ch.codePointAt(0);
+      return (cp >= 65 && cp <= 90) || (cp >= 97 && cp <= 122);
+    }
+  }
+
+  function isCarrier(cp) {
+    return cp === 0x034f || cp === 0xfe00 || cp === 0x20dd || (cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f) || (cp >= 0x13430 && cp <= 0x1343f);
+  }
+
   function inspectLive() {
     const text = document.getElementById("live-input").value;
     const liveStatus = document.getElementById("live-status");
@@ -561,13 +626,14 @@ code { font-family: var(--mono); font-size: 0.9em; }
     liveStatus.replaceChildren();
     let carriers = 0;
     let first = null;
-    let asciiLetters = 0;
-    for (let i = 0; i < text.length; ) {
-      const cp = text.codePointAt(i);
-      if (cp === 0x034f || cp === 0xfe00 || (cp === 0x7f) || (cp >= 0x80 && cp <= 0x84) || (cp >= 0x86 && cp <= 0x9f)) carriers += 1;
+    let liveLetters = 0;
+    const chars = [...text];
+    for (let i = 0; i < chars.length; i++) {
+      const ch = chars[i];
+      const cp = ch.codePointAt(0);
+      if (isCarrier(cp)) carriers += 1;
       else if (!allowedCodepoint(cp) && first === null) first = { index: i, cp: cp };
-      else if (cp >= 65 && cp <= 90 || cp >= 97 && cp <= 122) asciiLetters += 1;
-      i += cp > 0xffff ? 2 : 1;
+      if (isLiveLetter(ch)) liveLetters += 1;
     }
     let reason = "ascii-domain";
     let processedHint = "CLI may process (site selection only in CLI)";
@@ -576,17 +642,21 @@ code { font-family: var(--mono); font-size: 0.9em; }
       reason = "already-transformed";
       processedHint = "not processed by CLI";
       tone = "warn";
-    } else if (first && asciiLetters === 0) {
+    } else if (first && liveLetters === 0) {
       reason = "unsupported-domain";
       processedHint = "not processed by CLI";
       tone = "warn";
-    } else if (first && asciiLetters > 0) {
+    } else if (liveLetters > 0) {
       reason = "transformed";
-      processedHint = "CLI mixes ASCII letters; other Unicode stays visible";
+      processedHint = "CLI mixes letter and emoji sites; other Unicode stays visible";
       tone = "ok";
     } else if (!text) {
       reason = "empty";
       processedHint = "no input";
+      tone = "warn";
+    } else {
+      reason = "no-eligible-sites";
+      processedHint = "not processed by CLI";
       tone = "warn";
     }
     liveStatus.append(

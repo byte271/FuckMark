@@ -22,6 +22,7 @@ from ..cycle8.letter_mix import (
     LETTER_MIX_MAX_SELECTED,
     LETTER_MIX_MECHANISM_ID,
     apply_letter_alternating_mix,
+    select_letter_mix_sites,
 )
 from ..cycle8.mix_confirmation import CYCLE8_MIX_CONFIRMATION_SCORECARD_VERSION
 from ..cycle8.mix_freeze import CYCLE8_MIX_FREEZE_VERSION, mix_freeze_hash
@@ -36,7 +37,7 @@ from ..transforms.registry import release_transform_registry
 
 PRODUCT_AUTHORIZATION_VERSION = "cycle8-product-authorization-v2"
 PRODUCT_AUTHORIZATION_PATH = "specs/cycle8/fuckmark-cycle8-product-authorization-v2.json"
-PRODUCT_AUTHORIZATION_HASH = "e4a1d723c22b153c8485a7e2c5a1ba3cb06bc794e26d51893bc1f9771bb44018"
+PRODUCT_AUTHORIZATION_HASH = "fb1b8f964c6dca96fd4fa36fc0abc893b40e9053de26798969d7167be14e29eb"
 _MIX_FREEZE_HASH = "2286aa201bd9cb70136f2895740489136aa1ba7cfd9471c6e233fe201af41986"
 _MIX_CONFIRMATION_SCORECARD_HASH = "a4911189af7f38d34252452821d90df1188bfe05025fe33c028c4b670eecbcce"
 _AUDIT_SOURCE = "I do not agree."
@@ -45,12 +46,17 @@ _AUDIT_SOURCE = "I do not agree."
 def product_authorization_payload() -> dict[str, object]:
     transformed = apply_letter_alternating_mix(_AUDIT_SOURCE)
     mixed = "I do not agree " + chr(0x00E9) + "."
+    latin_only = chr(0x00E9) * 3
+    han_only = chr(0x4E2D) + chr(0x6587)
+    emoji_only = chr(0x1F600)
+    nfd_pair = "e" + chr(0x0301)
     mn_then_us = lm_watermarking_unicode_sanitizer(strip_nonspacing_marks(transformed))
     di_then_us = lm_watermarking_unicode_sanitizer(strip_default_ignorable(transformed))
     bundle_then_us = lm_watermarking_unicode_sanitizer(apply_required_sanitizer_bundle(transformed))
     mn_me_us = lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_nonspacing_marks(transformed)))
     di_me_us = lm_watermarking_unicode_sanitizer(strip_enclosing_marks(strip_default_ignorable(transformed)))
     mn_me_cc = strip_other_controls(strip_enclosing_marks(strip_nonspacing_marks(transformed)))
+    nfd_mixed = apply_letter_alternating_mix(nfd_pair)
     payload = {
         "algorithm_version": PRODUCT_AUTHORIZATION_VERSION,
         "product_authorized": True,
@@ -65,7 +71,7 @@ def product_authorization_payload() -> dict[str, object]:
             "visible_projection_mismatch",
             "carrier_insertion_mismatch",
             "apply_error",
-            "no_eligible_ascii_letter_sites",
+            "no_eligible_letter_sites",
         ],
         "mix_sanitizer_gate_v1": "PASS",
         "required_sanitizer_bundle_not_weakened": True,
@@ -87,6 +93,11 @@ def product_authorization_payload() -> dict[str, object]:
             "approved_carriers": sorted(product_approved_carriers_v1()),
             "supported_domain": is_supported_product_domain_v1(_AUDIT_SOURCE),
             "mixed_unicode_processed": process_text(mixed) != mixed,
+            "latin_letter_only_processed": process_text(latin_only) != latin_only,
+            "han_syllable_processed": process_text(han_only) != han_only,
+            "emoji_only_processed": process_text(emoji_only) != emoji_only,
+            "nfd_cluster_inserts_after_combining_mark": select_letter_mix_sites(nfd_pair) == (1,),
+            "nfd_cluster_keeps_base_then_mark": nfd_mixed.startswith("e" + chr(0x0301)),
             "no_letter_identity": process_text("123.") == "123.",
             "already_mixed_identity": process_text(transformed) == transformed,
             "mn_strip_does_not_restore_source": strip_nonspacing_marks(transformed) != _AUDIT_SOURCE,
@@ -104,8 +115,9 @@ def product_authorization_payload() -> dict[str, object]:
             "controls (U+13430-U+1343F) keep Mn-strip, default-ignorable-strip, UnicodeSanitizer "
             "orderings, Mn then Me then UnicodeSanitizer, and the required sanitizer bundle from "
             "restoring the source. Frozen cf_strip still removes the Cf layer. Visible projection "
-            "strips approved carriers; Me may decorate glyphs in some renderers. ASCII letter sites "
-            "are processed even when the surrounding text contains non-ASCII. Historical Gate v2 "
+            "strips approved carriers; Me may decorate glyphs in some renderers. Live sites are "
+            "grapheme clusters of Latin, Greek, Cyrillic, Han, Kana, Hangul syllables, and emoji, "
+            "including NFD Latin where insertions follow the combining sequence. Historical Gate v2 "
             "confirmation remains the frozen GPT-2 evidence for the prior mark-only arm."
         ),
     }
@@ -143,8 +155,8 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("product authorization spec does not match the live payload")
     if disk["product_authorized"] is not True:
         raise ValueError("product authorization spec must authorize")
-    if disk["cli_algorithm_version"] != "release-cli-v8":
-        raise ValueError("product authorization must use release-cli-v8")
+    if disk["cli_algorithm_version"] != "release-cli-v9":
+        raise ValueError("product authorization must use release-cli-v9")
     if disk["mix_sanitizer_gate_v1"] != "PASS":
         raise ValueError("product authorization must record the durable sanitizer gate PASS")
     if disk["identities"]["mix_freeze_hash"] != _MIX_FREEZE_HASH:
@@ -173,4 +185,14 @@ def assert_product_authorization_committed() -> None:
         raise ValueError("authorized mix must resist DI then Me then UnicodeSanitizer restoration")
     if disk["live"]["mn_me_cc_does_not_restore_source"] is not True:
         raise ValueError("authorized mix must resist Mn then Me then Cc-strip restoration")
+    if disk["live"]["latin_letter_only_processed"] is not True:
+        raise ValueError("authorized mix must process Latin letters outside ASCII")
+    if disk["live"]["han_syllable_processed"] is not True:
+        raise ValueError("authorized mix must process Han syllables")
+    if disk["live"]["emoji_only_processed"] is not True:
+        raise ValueError("authorized mix must process emoji-only input")
+    if disk["live"]["nfd_cluster_inserts_after_combining_mark"] is not True:
+        raise ValueError("authorized mix must insert after NFD combining clusters")
+    if disk["live"]["nfd_cluster_keeps_base_then_mark"] is not True:
+        raise ValueError("authorized mix must not split NFD letter clusters")
     assert_gate_v2_committed()
