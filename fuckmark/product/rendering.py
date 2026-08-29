@@ -172,6 +172,8 @@ def _render_pre(executable: str, root: Path, name: str, text: str, *, width: int
     html_path = root / f"{name}.html"
     png_path = root / f"{name}.png"
     html_path.write_text(_html_page(text), encoding="utf-8")
+    profile = root / f"{name}-chrome-profile"
+    profile.mkdir(parents=True, exist_ok=True)
     process = subprocess.Popen(
         [
             executable,
@@ -182,6 +184,7 @@ def _render_pre(executable: str, root: Path, name: str, text: str, *, width: int
             "--hide-scrollbars",
             "--no-first-run",
             "--disable-background-networking",
+            f"--user-data-dir={profile}",
             "--virtual-time-budget=5000",
             f"--window-size={width},{height}",
             f"--screenshot={png_path}",

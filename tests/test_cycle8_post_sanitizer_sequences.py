@@ -8,7 +8,11 @@ from fuckmark.cycle8.benchmark import sanitize_benchmark_stress, strip_nonspacin
 from fuckmark.cycle8.closed_set import CYCLE8_CLOSED_SET_HASH
 from fuckmark.cycle8.control_carrier import CYCLE8_CONTROL_CARRIER_HASH, required_sanitizers_keep
 from fuckmark.cycle8.feasibility import CYCLE8_FEASIBILITY_HASH
-from fuckmark.cycle8.letter_mix import LETTER_MIX_APPROVED_CARRIERS, apply_letter_alternating_mix
+from fuckmark.cycle8.letter_mix import (
+    LETTER_MIX_APPROVED_CARRIERS,
+    apply_historical_mark_letter_mix,
+    apply_letter_alternating_mix,
+)
 from fuckmark.cycle8.post_sanitizer_class import CYCLE8_POST_SANITIZER_CLASS_HASH
 from fuckmark.cycle8.post_sanitizer_extended import CYCLE8_POST_SANITIZER_EXTENDED_HASH
 from fuckmark.cycle8.post_sanitizer_sequences import (
@@ -134,7 +138,10 @@ def test_sequence_chromium_probes_match_recorded_classes() -> None:
     mix = compare_chrome_pre_screenshots(original, apply_letter_alternating_mix(original))
     if mix.status == "UNKNOWN":
         pytest.skip(mix.detail)
-    assert mix.status == "VERIFIED"
+    assert mix.status == "REJECTED"
+    historical = compare_chrome_pre_screenshots(original, apply_historical_mark_letter_mix(original))
+    if historical.status != "UNKNOWN":
+        assert historical.status == "VERIFIED"
     remainder = compare_chrome_pre_screenshots(original, "I\u007f do not agree.")
     if remainder.status == "UNKNOWN":
         pytest.skip(remainder.detail)

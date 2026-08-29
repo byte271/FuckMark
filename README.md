@@ -144,7 +144,7 @@ Hidden characters change raw substring search, some editors, and GPT-2 token cou
 
 Cap 4096 letter sites. See [`docs/limits.md`](docs/limits.md).
 
-Historical Chromium `contenteditable` VERIFIED rows from 2026-08-26 used a blank-div measurement bug and are not proof of rendering equivalence. Replacement controls exist; actual product-payload pixel requalification and Safari/WebKit/terminal pixels remain UNKNOWN. Viewport screenshots cannot prove whole-document equality.
+Live triple-layer mix is Chromium pre-pixel `REJECTED` because enclosing Me (U+20DD) changes glyphs. Historical mark-only mix remains pixel-equal where measured. Older Chromium `contenteditable` VERIFIED rows from 2026-08-26 used a blank-div measurement bug and are not proof of rendering equivalence. Safari/WebKit/terminal pixels remain UNKNOWN. Viewport screenshots cannot prove whole-document equality.
 
 ## How it works
 
