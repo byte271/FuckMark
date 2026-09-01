@@ -1,0 +1,66 @@
+{
+  "name": "fuckmark-hidden-unicode",
+  "displayName": "FuckMark: Hidden Unicode Reveal",
+  "description": "Reveal and strip hidden or malicious Unicode: Trojan Source bidi overrides, zero-width characters, and tag smuggling.",
+  "version": "0.1.0",
+  "publisher": "byte271",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "unicode",
+    "trojan source",
+    "bidi",
+    "zero-width",
+    "security"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/byte271/FuckMark"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "fuckmark.cleanDocument",
+        "title": "FuckMark: Clean hidden Unicode in file"
+      },
+      {
+        "command": "fuckmark.cleanSelection",
+        "title": "FuckMark: Clean hidden Unicode in selection"
+      },
+      {
+        "command": "fuckmark.toggleReveal",
+        "title": "FuckMark: Toggle hidden-character reveal"
+      },
+      {
+        "command": "fuckmark.rescan",
+        "title": "FuckMark: Rescan active file"
+      }
+    ],
+    "configuration": {
+      "title": "FuckMark",
+      "properties": {
+        "fuckmark.maxFileSize": {
+          "type": "number",
+          "default": 5000000,
+          "description": "Skip files larger than this many characters."
+        },
+        "fuckmark.statusBar.alwaysShow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the status-bar item even when a file is clean."
+        }
+      }
+    }
+  }
+}

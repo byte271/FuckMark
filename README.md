@@ -168,6 +168,10 @@ repos:
 
 Binary, non-UTF-8, oversized, and vendored/VCS paths are skipped; `--exclude GLOB`, `--select`, and `--max-bytes` tune the run. Full reference: [`docs/lint.md`](docs/lint.md).
 
+## See it in your editor (VS Code / Cursor)
+
+The [`editors/vscode`](editors/vscode) extension reveals hidden Unicode inline as you read code: a red box and a visible `‹U+202E›` badge on every hidden character, diagnostics in the Problems panel, a status-bar count, and one-click clean. It is zero-dependency plain JavaScript with no build step, and its scanner is a faithful port of `fuckmark-hidden-scan-v1` — pinned to the Python engine across every Unicode codepoint by [`tests/test_vscode_scanner_parity.py`](tests/test_vscode_scanner_parity.py), so the editor and the CLI agree exactly. Load it with `code --extensionDevelopmentPath=editors/vscode` or open the folder and press `F5`.
+
 ## What it guarantees
 
 `VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, a cycling U+13430-U+13438 format control, and a cycling U+FFF9-U+FFFB annotation control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.
