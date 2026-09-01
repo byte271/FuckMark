@@ -132,9 +132,15 @@ printf 'if (x != \u202eadmin\u202c) {\n' | .venv/bin/fuckmark --scan
 .venv/bin/fuckmark --clean --file suspect.txt -o clean.txt
 ```
 
-`--scan` prints a human report by default, a machine line with `-q`, and a `fuckmark-scan ...` status line to stderr with `--status`. `--clean` removes every flagged category (including FuckMark's own carriers, so `--clean` reverses a mix back to the visible text) and reports how many characters it removed. The same engine is available in the browser tool via `POST /api/scan`, and in Python through `scan_hidden_characters`, `clean_hidden_characters`, and `classify_hidden_codepoint`.
+`--scan` prints a human report by default, a machine line with `-q`, and a `fuckmark-scan ...` status line to stderr with `--status`. Findings include context (`identifier` / `emoji` / `string` / `prose`) and severity (`critical` / `high` / `medium` / `info`): a bidi override inside an identifier is critical; a ZWJ inside an emoji cluster is info. `--clean` removes every flagged category (including FuckMark's own carriers, so `--clean` reverses a mix back to the visible text) and reports how many characters it removed. The same engine is available in the browser tool via `POST /api/scan`, and in Python through `scan_hidden_characters`, `clean_hidden_characters`, and `classify_hidden_codepoint`. Frozen spec: [`specs/fuckmark-hidden-scan-v1.protocol.md`](specs/fuckmark-hidden-scan-v1.protocol.md).
 
 Whitespace tab, newline, carriage return, and space are never flagged, and ordinary combining accents (`Mn`) are left alone. `--clean` strips emoji zero-width joiners and variation selectors as well, so pass a category subset to `clean_hidden_characters(...)` in Python if you need to keep emoji sequences intact.
+
+For pipelines that should canonicalize rather than only strip, `fuckmark normalize` NFC-folds, optionally skeleton-folds a small identifier lookalike subset, strips the security category set, and writes a JSON receipt of what changed. That lookalike table is not a full UTS #39 map. Full reference: [`docs/normalize.md`](docs/normalize.md).
+
+```text
+printf 'notes\n' | .venv/bin/fuckmark normalize --receipt
+```
 
 ## Guard a repository (CI, pre-commit, editors)
 
@@ -170,7 +176,7 @@ Binary, non-UTF-8, oversized, and vendored/VCS paths are skipped; `--exclude GLO
 
 ## See it in your editor (VS Code / Cursor)
 
-The [`editors/vscode`](editors/vscode) extension reveals hidden Unicode inline as you read code: a red box and a visible `‹U+202E›` badge on every hidden character, diagnostics in the Problems panel, a status-bar count, and one-click clean. It is zero-dependency plain JavaScript with no build step, and its scanner is a faithful port of `fuckmark-hidden-scan-v1` — pinned to the Python engine across every Unicode codepoint by [`tests/test_vscode_scanner_parity.py`](tests/test_vscode_scanner_parity.py), so the editor and the CLI agree exactly. Load it with `code --extensionDevelopmentPath=editors/vscode` or open the folder and press `F5`.
+The [`editors/vscode`](editors/vscode) extension reveals hidden Unicode inline as you read code: a red box and a visible `‹U+202E›` badge on every hidden character, hover text with why it matters, diagnostics in the Problems panel (`critical` as Error), a status-bar count, one-click clean, and optional clean-on-save (`fuckmark.cleanOnSave`). It is zero-dependency plain JavaScript with no build step, and its scanner is a faithful port of `fuckmark-hidden-scan-v1` — pinned to the Python engine across every Unicode codepoint by [`tests/test_vscode_scanner_parity.py`](tests/test_vscode_scanner_parity.py), so the editor and the CLI agree exactly. Load it with `code --extensionDevelopmentPath=editors/vscode` or open the folder and press `F5`.
 
 ## Guard model input (LLM prompt-injection smuggling)
 

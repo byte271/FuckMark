@@ -159,20 +159,155 @@ function codepointToken(cp) {
   return "U+" + cp.toString(16).toUpperCase().padStart(4, "0");
 }
 
+function isEmojiish(cp) {
+  if (cp < 0) return false;
+  if (cp >= 0x1f1e6 && cp <= 0x1f1ff) return true;
+  if (cp >= 0x1f000 && cp <= 0x1faff) return true;
+  if (cp >= 0x2600 && cp <= 0x27bf) return true;
+  return cp === 0x200d || [0x00a9, 0x00ae, 0x203c, 0x2049, 0x2122, 0x2139, 0x3030, 0x303d, 0x3297, 0x3299].includes(cp);
+}
+
+function isIdentChar(ch) {
+  return ch === "_" || /\p{L}|\p{N}/u.test(ch);
+}
+
+function neighborBefore(text, offset) {
+  if (offset <= 0) return { cp: -1, ch: "" };
+  if (offset >= 2) {
+    const cp = text.codePointAt(offset - 2);
+    if (cp > 0xffff) return { cp, ch: String.fromCodePoint(cp) };
+  }
+  const cp = text.codePointAt(offset - 1);
+  return { cp, ch: String.fromCodePoint(cp) };
+}
+
+function neighborAfter(text, offset, length) {
+  const nextIndex = offset + length;
+  if (nextIndex >= text.length) return { cp: -1, ch: "" };
+  const cp = text.codePointAt(nextIndex);
+  return { cp, ch: String.fromCodePoint(cp) };
+}
+
+function classifyContext(text, offset, inString) {
+  const length = text.codePointAt(offset) > 0xffff ? 2 : 1;
+  const prev = neighborBefore(text, offset);
+  const next = neighborAfter(text, offset, length);
+  if (
+    isEmojiish(prev.cp) ||
+    isEmojiish(next.cp) ||
+    (prev.cp >= 0xfe00 && prev.cp <= 0xfe0f) ||
+    (next.cp >= 0xfe00 && next.cp <= 0xfe0f)
+  ) {
+    return "emoji";
+  }
+  if (isIdentChar(prev.ch) || isIdentChar(next.ch)) return "identifier";
+  if (inString) return "string";
+  return "prose";
+}
+
+function scoreSeverity(category, context) {
+  if (category === CATEGORY_TAG) return "critical";
+  if (category === CATEGORY_BIDI_CONTROL) return context === "identifier" ? "critical" : "high";
+  if (category === CATEGORY_ZERO_WIDTH) {
+    if (context === "emoji") return "info";
+    if (context === "identifier") return "high";
+    return "medium";
+  }
+  if (category === CATEGORY_VARIATION_SELECTOR) return context === "emoji" ? "info" : "medium";
+  if (category === CATEGORY_CONTROL || category === CATEGORY_NONCHARACTER || category === CATEGORY_SURROGATE) {
+    return "high";
+  }
+  return "medium";
+}
+
+function explainFinding(category, context, severity) {
+  if (category === CATEGORY_BIDI_CONTROL && context === "identifier") {
+    return {
+      why: "Bidirectional override sits inside an identifier, so the glyphs can read differently than the bytes (Trojan Source).",
+      remedy: "Strip the bidi control and keep the identifier left-to-right.",
+    };
+  }
+  if (category === CATEGORY_BIDI_CONTROL) {
+    return {
+      why: "Bidirectional override can reorder nearby glyphs (Trojan Source class, CVE-2021-42574).",
+      remedy: "Strip U+202A-U+202E / U+2066-U+2069 and rewrite the text left-to-right.",
+    };
+  }
+  if (category === CATEGORY_TAG) {
+    return {
+      why: "Unicode tag characters encode a second ASCII string that models read and humans do not.",
+      remedy: "Strip U+E0020-U+E007F; inspect tag_payload for the smuggled text.",
+    };
+  }
+  if (category === CATEGORY_ZERO_WIDTH && context === "emoji") {
+    return {
+      why: "Zero-width joiner or invisible mark inside an emoji cluster; usually a legitimate emoji sequence.",
+      remedy: "Leave emoji ZWJ sequences unless you are sanitizing for a security boundary.",
+    };
+  }
+  if (category === CATEGORY_ZERO_WIDTH && context === "identifier") {
+    return {
+      why: "Zero-width character splits an identifier, breaking search and some compilers while looking unchanged.",
+      remedy: "Strip the zero-width character from the identifier.",
+    };
+  }
+  if (category === CATEGORY_ZERO_WIDTH) {
+    return {
+      why: "Invisible spacing or joining character that changes the byte stream without changing the glyphs.",
+      remedy: "Strip the zero-width character.",
+    };
+  }
+  if (category === CATEGORY_VARIATION_SELECTOR && context === "emoji") {
+    return {
+      why: "Variation selector tunes an emoji glyph; usually benign.",
+      remedy: "Keep emoji variation selectors unless you are stripping all hidden marks.",
+    };
+  }
+  if (severity === "high") {
+    return {
+      why: "Hidden or non-text codepoint that should not appear in ordinary source or prompts.",
+      remedy: "Strip the character.",
+    };
+  }
+  return {
+    why: CATEGORY_DESCRIPTIONS[category] || "Hidden or format codepoint that is invisible or renderer-defined.",
+    remedy: "Strip the character if this text crosses a trust boundary.",
+  };
+}
+
 function scanText(text, categories) {
   const selected = categories ? new Set(categories) : null;
   const counts = {};
   const findings = [];
   let total = 0;
   let offset = 0;
+  let inString = "";
   while (offset < text.length) {
     const cp = text.codePointAt(offset);
     const length = cp > 0xffff ? 2 : 1;
+    const ch = text.slice(offset, offset + length);
+    if (inString) {
+      if (ch === inString) inString = "";
+    } else if (ch === '"' || ch === "'" || ch === "`") {
+      inString = ch;
+    }
     const category = classify(cp);
     if (category !== null && (selected === null || selected.has(category))) {
       total += 1;
       counts[category] = (counts[category] || 0) + 1;
-      findings.push({ offset, length, codepoint: cp, category });
+      const context = classifyContext(text, offset, Boolean(inString));
+      const severity = scoreSeverity(category, context);
+      const explained = explainFinding(category, context, severity);
+      findings.push({
+        offset,
+        length,
+        codepoint: cp,
+        category,
+        context,
+        severity,
+        why: explained.why,
+        remedy: explained.remedy,
+      });
     }
     offset += length;
   }
@@ -204,6 +339,8 @@ module.exports = {
   CATEGORY_DESCRIPTIONS,
   DEFAULT_SECURITY_CATEGORIES,
   classify,
+  classifyContext,
+  scoreSeverity,
   codepointToken,
   scanText,
   cleanText,

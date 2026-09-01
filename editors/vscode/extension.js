@@ -49,13 +49,17 @@ function buildDecorations(document, findings) {
     const { token, description } = categoryLabel(finding);
     const severe = security.has(finding.category);
     const md = new vscode.MarkdownString(
-      "**FuckMark: hidden character**\n\n" +
+      "**FuckMark: " +
+        (finding.severity || "hidden") +
+        "**\n\n" +
         "`" +
         token +
         "` — " +
-        description +
+        (finding.why || description) +
         "\n\ncategory: `" +
         finding.category +
+        "` · context: `" +
+        (finding.context || "prose") +
         "`" +
         (severe ? "\n\n**High risk** (Trojan Source / smuggling class)." : "")
     );
@@ -81,13 +85,17 @@ function buildDiagnostics(document, findings) {
     const start = document.positionAt(finding.offset);
     const end = document.positionAt(finding.offset + finding.length);
     const { token, description } = categoryLabel(finding);
-    const severity = security.has(finding.category)
-      ? vscode.DiagnosticSeverity.Warning
-      : vscode.DiagnosticSeverity.Information;
+    const rank = finding.severity || "";
+    const vscodeSeverity =
+      rank === "critical"
+        ? vscode.DiagnosticSeverity.Error
+        : rank === "high" || security.has(finding.category)
+          ? vscode.DiagnosticSeverity.Warning
+          : vscode.DiagnosticSeverity.Information;
     const diagnostic = new vscode.Diagnostic(
       new vscode.Range(start, end),
-      "Hidden " + token + " [" + finding.category + "]: " + description,
-      severity
+      (finding.why || description) + " [" + token + " " + finding.category + "]",
+      vscodeSeverity
     );
     diagnostic.source = "FuckMark";
     diagnostic.code = SCAN_ALGORITHM_VERSION;
@@ -214,6 +222,24 @@ function activate(context) {
       if (editor && event.document === editor.document) {
         refreshActive();
       }
+    }),
+    vscode.workspace.onWillSaveTextDocument((event) => {
+      if (!config().get("cleanOnSave", false)) {
+        return;
+      }
+      if (shouldSkip(event.document)) {
+        return;
+      }
+      const original = event.document.getText();
+      const { cleaned, removed } = cleanText(original);
+      if (!removed) {
+        return;
+      }
+      const fullRange = new vscode.Range(
+        event.document.positionAt(0),
+        event.document.positionAt(original.length)
+      );
+      event.waitUntil(Promise.resolve([vscode.TextEdit.replace(fullRange, cleaned)]));
     }),
     vscode.workspace.onDidCloseTextDocument((document) => diagnostics.delete(document.uri))
   );

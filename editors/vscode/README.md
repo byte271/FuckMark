@@ -16,14 +16,17 @@ It flags the classes that read as ordinary text but are not:
 
 - **Inline reveal:** every hidden character gets a red box and a visible
   `‹U+202E›` badge, even when the character itself paints nothing.
-- **Problems panel:** each hit is a diagnostic. High-risk classes (bidi, tag,
-  zero-width, control, noncharacter, surrogate) are warnings; the rest are info.
+- **Problems panel:** each hit is a diagnostic. `critical` (Trojan Source in
+  an identifier, tag smuggling) is an Error; `high` and other security classes
+  are warnings; the rest are info. Hover text states why the character matters.
 - **Status bar:** a live hidden-character count. Click it to clean the file.
 - **Commands** (Command Palette):
   - `FuckMark: Clean hidden Unicode in file`
   - `FuckMark: Clean hidden Unicode in selection`
   - `FuckMark: Toggle hidden-character reveal`
   - `FuckMark: Rescan active file`
+- **Clean on save:** set `fuckmark.cleanOnSave` to strip hidden Unicode when
+  the file is saved (off by default).
 
 ## No dependencies, no build
 
@@ -49,11 +52,14 @@ Development Host. Packaging for the marketplace uses `vsce package`.
 - `fuckmark.maxFileSize` (default 5,000,000): skip files larger than this.
 - `fuckmark.statusBar.alwaysShow` (default true): keep the status item visible on
   clean files.
+- `fuckmark.cleanOnSave` (default false): strip hidden Unicode when the file is
+  saved.
 
 ## Related
 
 - CLI and CI: `fuckmark lint`, the GitHub Action, and the pre-commit hook.
-- Library and web API: `fuckmark --scan` / `--clean`, `POST /api/scan`, and `POST /api/guard`.
+- Library and web API: `fuckmark --scan` / `--clean`, `fuckmark normalize`,
+  `POST /api/scan`, `POST /api/guard`, and `POST /api/normalize`.
 - Node guard: `guard.js` (`protect`, `extractTagPayload`) matches `fuckmark.protect`.
 
 MIT. Part of [FuckMark](https://github.com/byte271/FuckMark).

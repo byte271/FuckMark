@@ -33,6 +33,8 @@ security-focused set `bidi_control,zero_width,tag,control,noncharacter,surrogate
 Pass `--select all` to include `variation_selector`, `enclosing_mark`,
 `line_separator`, `deprecated`, `format`, and `private_use`, or pass an explicit
 comma-separated subset. See [`cli.md`](cli.md) for the full category list.
+JSON locations include `context`, `severity`, `why`, and `remedy` from
+`fuckmark-hidden-scan-v1`.
 
 ### What is skipped
 

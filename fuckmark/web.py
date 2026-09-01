@@ -17,6 +17,7 @@ from . import __version__
 from .guard import guard_payload
 from .product.detect import DETECT_CONTACT_EMAIL, detect_fuckmark_insertions
 from .product.domain import PRODUCT_MAX_INPUT_CHARS
+from .product.normalize import normalize_payload
 from .product.scan import clean_hidden_characters, scan_dict, scan_hidden_characters
 from .product.visible_projection import product_approved_carriers_v1, project_visible_v1
 
@@ -270,6 +271,21 @@ class _MarkHandler(http.server.SimpleHTTPRequestHandler):
             except ValueError as error:
                 self._json_response(400, {"ok": False, "reason": "bad-request", "error": str(error)})
             return
+        if path == "/api/normalize":
+            try:
+                payload = self._read_json_object()
+                text = payload.get("text", "")
+                if not isinstance(text, str):
+                    raise ValueError("text must be a string")
+                confusable = payload.get("confusable", False)
+                if not isinstance(confusable, bool):
+                    raise ValueError("confusable must be a boolean")
+                result = normalize_payload(text, confusable=confusable)
+                status = 200 if result.get("reason") != "too-large" else 413
+                self._json_response(status, result)
+            except ValueError as error:
+                self._json_response(400, {"ok": False, "reason": "bad-request", "error": str(error)})
+            return
         if path == "/api/guard":
             try:
                 payload = self._read_json_object()
@@ -321,7 +337,9 @@ def serve_mark_web(
     try:
         if errors is not None:
             errors.write(f"FuckMark web: {url}\n")
-            errors.write("FuckMark web: Python API at /api/health, /api/remove-marks, /api/scan, /api/guard\n")
+            errors.write(
+                "FuckMark web: Python API at /api/health, /api/remove-marks, /api/scan, /api/guard, /api/normalize\n"
+            )
             errors.write("FuckMark web: press Ctrl+C to stop.\n")
             errors.flush()
         if on_ready is not None:

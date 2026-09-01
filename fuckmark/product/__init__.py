@@ -35,6 +35,14 @@ from .invariants import (
     validate_user_visible_invariants,
 )
 from .registry import PRODUCT_REGISTRY_ALGORITHM_VERSION, ProductTransformRegistry, product_transform_registry
+from .normalize import (
+    NORMALIZE_ALGORITHM_VERSION,
+    NormalizeReceipt,
+    normalize_payload,
+    normalize_receipt_dict,
+    normalize_text,
+    skeleton_fold,
+)
 from .scan import (
     SCAN_ALGORITHM_VERSION,
     SCAN_CATEGORIES,
@@ -48,6 +56,19 @@ from .scan import (
     scan_hidden_characters,
     scan_human_report,
     scan_machine_line,
+)
+from .severity import (
+    CONTEXT_EMOJI,
+    CONTEXT_IDENTIFIER,
+    CONTEXT_PROSE,
+    CONTEXT_STRING,
+    SEVERITY_CRITICAL,
+    SEVERITY_HIGH,
+    SEVERITY_INFO,
+    SEVERITY_MEDIUM,
+    annotate_finding,
+    classify_context,
+    score_severity,
 )
 from .search import PRODUCT_SEARCH_ALGORITHM_VERSION, raw_codepoint_contains, visible_contains
 from .visible_projection import (
@@ -74,6 +95,23 @@ __all__ = [
     "SCAN_ALGORITHM_VERSION",
     "SCAN_CATEGORIES",
     "SECURITY_SCAN_CATEGORIES",
+    "NORMALIZE_ALGORITHM_VERSION",
+    "NormalizeReceipt",
+    "normalize_payload",
+    "normalize_receipt_dict",
+    "normalize_text",
+    "skeleton_fold",
+    "CONTEXT_EMOJI",
+    "CONTEXT_IDENTIFIER",
+    "CONTEXT_PROSE",
+    "CONTEXT_STRING",
+    "SEVERITY_CRITICAL",
+    "SEVERITY_HIGH",
+    "SEVERITY_INFO",
+    "SEVERITY_MEDIUM",
+    "annotate_finding",
+    "classify_context",
+    "score_severity",
     "HiddenFinding",
     "ScanResult",
     "classify_hidden_codepoint",

@@ -13,6 +13,7 @@ from .product.scan import (
     CATEGORY_DESCRIPTIONS,
     SCAN_CATEGORIES,
     SECURITY_SCAN_CATEGORIES,
+    HiddenFinding,
     clean_hidden_characters,
     normalize_scan_categories,
     scan_hidden_characters,
@@ -51,7 +52,7 @@ class FileLintResult:
     path: str
     total: int
     counts: dict[str, int]
-    first_locations: tuple[tuple[int, int, str], ...]
+    first_locations: tuple[HiddenFinding, ...]
     fixed: bool
     removed: int
 
@@ -205,11 +206,7 @@ def _lint_file(path: Path, categories: frozenset[str], text: str, fix: bool) -> 
     scan = scan_hidden_characters(text)
     counts = {name: scan.counts.get(name, 0) for name in scan.active_categories() if name in categories}
     total = sum(counts.values())
-    first_locations = tuple(
-        (finding.index, finding.codepoint, finding.category)
-        for finding in scan.findings
-        if finding.category in categories
-    )[:10]
+    first_locations = tuple(finding for finding in scan.findings if finding.category in categories)[:10]
     fixed = False
     removed = 0
     if fix and total > 0:
@@ -269,11 +266,15 @@ def _json_report(
                 "removed": result.removed,
                 "locations": [
                     {
-                        "index": index,
-                        "codepoint": _codepoint_token(codepoint),
-                        "category": category,
+                        "index": finding.index,
+                        "codepoint": _codepoint_token(finding.codepoint),
+                        "category": finding.category,
+                        "context": finding.context,
+                        "severity": finding.severity,
+                        "why": finding.why,
+                        "remedy": finding.remedy,
                     }
-                    for index, codepoint, category in result.first_locations
+                    for finding in result.first_locations
                 ],
             }
             for result in hits
@@ -298,9 +299,13 @@ def _human_report(
             action = " (fixed)" if result.fixed else ""
             counts = ", ".join(f"{name}={result.counts[name]}" for name in result.counts)
             _emit(output, f"{result.path}: {result.total} hidden characters [{counts}]{action}\n")
-            for index, codepoint, category in result.first_locations:
-                name = CATEGORY_DESCRIPTIONS[category]
-                _emit(output, f"    @{index} {_codepoint_token(codepoint)} [{category}] {name}\n")
+            for finding in result.first_locations:
+                name = CATEGORY_DESCRIPTIONS[finding.category]
+                _emit(
+                    output,
+                    f"    @{finding.index} {_codepoint_token(finding.codepoint)} "
+                    f"[{finding.category} {finding.severity}/{finding.context}] {name}\n",
+                )
     if hits:
         if fix:
             fixed_files = sum(1 for result in hits if result.fixed)

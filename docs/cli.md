@@ -67,6 +67,7 @@ fuckmark --scan --file suspect.txt
 fuckmark --clean --file suspect.txt -o clean.txt
 fuckmark lint src/
 fuckmark guard --json < messages.json
+fuckmark normalize --receipt < notes.txt
 fuckmark web
 fuckmark --text "I don’t agree." --status
 ```
@@ -115,7 +116,18 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 `--scan` and `--clean` are the defensive inverse of the mix. The scan is general, not FuckMark-only. Flagged categories: `bidi_control` (Trojan Source, CVE-2021-42574), `zero_width`, `variation_selector`, `tag` (hidden-text / prompt-injection smuggling), `enclosing_mark`, `line_separator`, `deprecated` (interlinear annotation and deprecated format controls), `format` (other `Cf`), `control` (C0/C1), `private_use`, `noncharacter`, and `surrogate`. Tab, newline, carriage return, and space are never flagged; ordinary combining accents (`Mn`) are left alone.
 
+Findings include context (`identifier`, `emoji`, `string`, `prose`) and severity (`critical`, `high`, `medium`, `info`). A bidi override next to an identifier is `critical`; a ZWJ inside an emoji cluster is `info`. The frozen table is [`specs/fuckmark-hidden-scan-v1.protocol.md`](../specs/fuckmark-hidden-scan-v1.protocol.md).
+
 `--clean` removes every flagged category, so it reverses a FuckMark mix back to the visible text. It also removes emoji zero-width joiners and variation selectors; the Python `clean_hidden_characters(text, categories=...)` call accepts a category subset when emoji sequences must be preserved. The browser tool exposes the same engine at `POST /api/scan`.
+
+### `fuckmark normalize`
+
+NFC-fold, optionally skeleton-fold a small identifier lookalike subset, then strip the security hidden-character set. Emits a JSON receipt of hashes and steps. This is the pipeline default; `--clean` is strip-only and has no receipt. The lookalike table is UTS #39-inspired, not a full confusable map. Reference: [`normalize.md`](normalize.md).
+
+```text
+fuckmark normalize --receipt < notes.txt
+fuckmark normalize --confusable --receipt notes.txt
+```
 
 ### `fuckmark guard`
 
@@ -131,7 +143,7 @@ fuckmark guard --refuse --receipt --json < messages.json
 
 ### `fuckmark web`
 
-Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health`, `POST /api/remove-marks`, `POST /api/scan`, and `POST /api/guard` (sanitize text or chat messages before a model call).
+Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health`, `POST /api/remove-marks`, `POST /api/scan`, `POST /api/guard` (sanitize text or chat messages before a model call), and `POST /api/normalize`.
 
 ```text
 fuckmark web

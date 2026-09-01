@@ -100,6 +100,13 @@ from .product.scan import (
     scan_human_report,
     scan_machine_line,
 )
+from .product.normalize import (
+    NORMALIZE_ALGORITHM_VERSION,
+    NormalizeReceipt,
+    normalize_receipt_dict,
+    normalize_text,
+    skeleton_fold,
+)
 from .guard import Guard, GuardReceipt, HiddenTextRefused, inspect, protect, receipt_dict
 from .native_observations import NativeObservationBatch, NativeObservationRecord, build_native_observations
 from .observation_verification import NativeObservationVerificationError, verify_native_observation_batch
@@ -367,6 +374,11 @@ __all__ = [
     "SCAN_ALGORITHM_VERSION",
     "SCAN_CATEGORIES",
     "SECURITY_SCAN_CATEGORIES",
+    "NORMALIZE_ALGORITHM_VERSION",
+    "NormalizeReceipt",
+    "normalize_receipt_dict",
+    "normalize_text",
+    "skeleton_fold",
     "HiddenFinding",
     "ScanResult",
     "classify_hidden_codepoint",

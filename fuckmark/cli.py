@@ -34,6 +34,7 @@ from .product.scan import (
 )
 from .guard import run_guard_argv
 from .lint import run_lint_argv
+from .product.normalize import run_normalize_argv
 from .web import run_web_argv
 from .product.domain import (
     PRODUCT_MAX_INPUT_CHARS,
@@ -229,6 +230,7 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark --clean --file suspect.txt -o clean.txt\n"
             "  fuckmark lint src/\n"
             "  fuckmark guard --json < messages.json\n"
+            "  fuckmark normalize --receipt < notes.txt\n"
             "  fuckmark web\n"
             "\n"
             "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed\n"
@@ -250,6 +252,7 @@ def _parser() -> argparse.ArgumentParser:
             "Use --clean to strip that hidden Unicode while keeping the visible text.\n"
             "Use fuckmark lint PATHS to scan files/directories and fail on findings (CI, pre-commit).\n"
             "Use fuckmark guard to strip hidden Unicode from text or JSON before a model call.\n"
+            "Use fuckmark normalize to NFC-fold, optionally skeleton-fold lookalikes, and strip hidden Unicode.\n"
             "Use fuckmark web to open the local browser tool (beginner-friendly).\n"
             "That server also runs the Python detect/strip API.\n"
             "Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces."
@@ -971,6 +974,11 @@ def _run(
         _ensure_utf8(output)
         _ensure_utf8(errors)
         return run_guard_argv(raw_argv[1:], source, output, errors)
+    if raw_argv and raw_argv[0] == "normalize":
+        _ensure_utf8(source)
+        _ensure_utf8(output)
+        _ensure_utf8(errors)
+        return run_normalize_argv(raw_argv[1:], source, output, errors)
     arguments = _parser().parse_args(parser_argv)
     _ensure_utf8(source)
     _ensure_utf8(output)

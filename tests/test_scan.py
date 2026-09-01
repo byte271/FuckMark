@@ -71,7 +71,9 @@ def test_scan_detects_trojan_source_bidi() -> None:
     report = scan_human_report(result)
     assert "hidden characters found" in report
     assert "RIGHT-TO-LEFT OVERRIDE" in report
+    assert "critical/identifier" in report
     assert "fuckmark-scan found=yes" in scan_machine_line(result)
+    assert "severity=critical" in scan_machine_line(result)
 
 
 def test_scan_detects_tag_smuggling() -> None:
@@ -96,6 +98,10 @@ def test_scan_dict_is_json_serializable() -> None:
     assert '"bidi_control"' in encoded
     assert payload["found"] is True
     assert payload["counts"][CATEGORY_BIDI_CONTROL] == 2
+    assert payload["highest_severity"] == "critical"
+    assert payload["findings"][0]["severity"] == "critical"
+    assert payload["findings"][0]["context"] == "identifier"
+    assert "Trojan Source" in payload["findings"][0]["why"]
 
 
 def test_scan_findings_are_capped() -> None:
@@ -226,3 +232,24 @@ def test_web_scan_payload_and_endpoint() -> None:
     assert isinstance(clean_data, dict)
     assert clean_data["reason"] == "clean"
     assert clean_data["scan"]["found"] is False
+
+
+def test_severity_is_context_aware() -> None:
+    ident = scan_hidden_characters("a\u202eb")
+    assert ident.findings[0].context == "identifier"
+    assert ident.findings[0].severity == "critical"
+    assert ident.highest_severity == "critical"
+
+    emoji = scan_hidden_characters("\U0001F468\u200d\U0001F469")
+    assert emoji.findings[0].category == CATEGORY_ZERO_WIDTH
+    assert emoji.findings[0].context == "emoji"
+    assert emoji.findings[0].severity == "info"
+
+    tags = scan_hidden_characters("".join(chr(c) for c in range(0xE0061, 0xE0063)))
+    assert tags.counts[CATEGORY_TAG] == 2
+    assert tags.highest_severity == "critical"
+    assert all(item.severity == "critical" for item in tags.findings)
+
+    quoted = scan_hidden_characters('"\u202e"')
+    assert quoted.findings[0].context == "string"
+    assert quoted.findings[0].severity == "high"

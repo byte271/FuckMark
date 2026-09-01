@@ -60,6 +60,10 @@ def test_json_report_structure(tmp_path: Path) -> None:
     result = report["results"][0]
     assert result["counts"]["bidi_control"] == 2
     assert result["locations"][0]["codepoint"] == "U+202E"
+    assert result["locations"][0]["severity"] == "critical"
+    assert result["locations"][0]["context"] == "identifier"
+    assert result["locations"][0]["why"]
+    assert result["locations"][0]["remedy"]
 
 
 def test_fix_rewrites_files_and_then_passes(tmp_path: Path) -> None:

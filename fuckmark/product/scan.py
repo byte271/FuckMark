@@ -5,6 +5,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 
 from .._validation import require_int
+from .severity import annotate_finding, advance_string_state
 from .visible_projection import product_approved_carriers_v1
 
 
@@ -191,10 +192,17 @@ class HiddenFinding:
     index: int
     codepoint: int
     category: str
+    context: str = "prose"
+    severity: str = "medium"
+    why: str = ""
+    remedy: str = ""
 
     @property
     def label(self) -> str:
         return codepoint_label(self.codepoint)
+
+
+_SEVERITY_RANK = {"info": 0, "medium": 1, "high": 2, "critical": 3}
 
 
 @dataclass(frozen=True, slots=True)
@@ -221,6 +229,12 @@ class ScanResult:
         first = self.findings[0]
         return f"U+{first.codepoint:04X}@{first.index}({first.category})"
 
+    @property
+    def highest_severity(self) -> str:
+        if not self.findings:
+            return ""
+        return max(self.findings, key=lambda item: _SEVERITY_RANK.get(item.severity, 0)).severity
+
     def active_categories(self) -> tuple[str, ...]:
         return tuple(name for name in SCAN_CATEGORIES if self.counts.get(name, 0) > 0)
 
@@ -237,7 +251,9 @@ def scan_hidden_characters(text: str, *, max_findings: int = DEFAULT_MAX_FINDING
     total = 0
     truncated = False
     carriers = 0
+    in_string = ""
     for index, character in enumerate(text):
+        in_string = advance_string_state(in_string, character)
         code = ord(character)
         if code in approved:
             carriers += 1
@@ -247,7 +263,18 @@ def scan_hidden_characters(text: str, *, max_findings: int = DEFAULT_MAX_FINDING
         total += 1
         counts[category] += 1
         if len(findings) < max_findings:
-            findings.append(HiddenFinding(index=index, codepoint=code, category=category))
+            context, severity, why, remedy = annotate_finding(text, index, category, bool(in_string))
+            findings.append(
+                HiddenFinding(
+                    index=index,
+                    codepoint=code,
+                    category=category,
+                    context=context,
+                    severity=severity,
+                    why=why,
+                    remedy=remedy,
+                )
+            )
         else:
             truncated = True
     return ScanResult(
@@ -297,7 +324,8 @@ def scan_machine_line(result: ScanResult) -> str:
         "fuckmark-scan "
         f"found={found} total={result.total} source_length={result.source_length} "
         f"fuckmark_carriers={result.fuckmark_carriers} truncated={'yes' if result.truncated else 'no'} "
-        f"first={result.first_hit} categories={categories or 'none'}"
+        f"first={result.first_hit} severity={result.highest_severity or 'none'} "
+        f"categories={categories or 'none'}"
     )
 
 
@@ -322,7 +350,11 @@ def scan_human_report(result: ScanResult, *, max_lines: int = 20) -> str:
     if shown:
         lines.append("First locations:")
         for finding in shown:
-            lines.append(f"  @{finding.index} {finding.label} [{finding.category}]")
+            extra = f" {finding.severity}/{finding.context}" if finding.severity else ""
+            lines.append(f"  @{finding.index} {finding.label} [{finding.category}]{extra}")
+            if finding.why:
+                lines.append(f"    {finding.why}")
+                lines.append(f"    {finding.remedy}")
     if result.truncated or len(result.findings) > len(shown):
         lines.append("  ... more locations not listed.")
     if result.fuckmark_carriers:
@@ -340,6 +372,7 @@ def scan_dict(result: ScanResult) -> dict[str, object]:
         "fuckmark_carriers": result.fuckmark_carriers,
         "truncated": result.truncated,
         "first": result.first_hit,
+        "highest_severity": result.highest_severity,
         "counts": {name: result.counts[name] for name in result.active_categories()},
         "findings": [
             {
@@ -347,6 +380,10 @@ def scan_dict(result: ScanResult) -> dict[str, object]:
                 "codepoint": f"U+{finding.codepoint:04X}",
                 "category": finding.category,
                 "label": finding.label,
+                "context": finding.context,
+                "severity": finding.severity,
+                "why": finding.why,
+                "remedy": finding.remedy,
             }
             for finding in result.findings
         ],

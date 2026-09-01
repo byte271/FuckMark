@@ -59,6 +59,11 @@
           "type": "boolean",
           "default": true,
           "description": "Show the status-bar item even when a file is clean."
+        },
+        "fuckmark.cleanOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Strip hidden Unicode from the file when it is saved."
         }
       }
     }
