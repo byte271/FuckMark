@@ -48,6 +48,14 @@ def test_scan_js_exists_and_exports_expected_categories():
         assert name in source
 
 
+def test_egyptian_format_controls_are_stable_across_unicode_versions() -> None:
+    for codepoint in range(0x13430, 0x13440):
+        assert classify_hidden_codepoint(codepoint) == "format"
+    assert classify_hidden_codepoint(0x0890) == "format"
+    assert classify_hidden_codepoint(0x0891) == "format"
+    assert classify_hidden_codepoint(0x110CD) == "format"
+
+
 def test_vscode_scanner_matches_python_engine():
     node = shutil.which("node")
     if node is None:
@@ -78,7 +86,7 @@ def test_vscode_scanner_matches_python_engine():
             continue
         if (
             python_category == "noncharacter"
-            and js_char == "."
+            and js_char in {".", _encode("format")}
             and not _is_true_noncharacter(codepoint)
             and unicodedata.category(chr(codepoint)) == "Cn"
         ):

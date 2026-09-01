@@ -97,12 +97,31 @@ _ZERO_WIDTH = frozenset(
 _VARIATION_SELECTOR = frozenset({*range(0xFE00, 0xFE10), *range(0xE0100, 0xE01F0)})
 
 _TAG = frozenset(range(0xE0000, 0xE0080))
+_FORMAT_RANGES = (
+    (0x0600, 0x0605),
+    (0x06DD, 0x06DD),
+    (0x070F, 0x070F),
+    (0x0890, 0x0891),
+    (0x08E2, 0x08E2),
+    (0x110BD, 0x110BD),
+    (0x110CD, 0x110CD),
+    (0x13430, 0x1343F),
+    (0x1BCA0, 0x1BCA3),
+    (0x1D173, 0x1D17A),
+)
 
 
 def _is_noncharacter(codepoint: int) -> bool:
     if 0xFDD0 <= codepoint <= 0xFDEF:
         return True
     return (codepoint & 0xFFFF) in {0xFFFE, 0xFFFF}
+
+
+def _is_format(codepoint: int) -> bool:
+    for start, end in _FORMAT_RANGES:
+        if start <= codepoint <= end:
+            return True
+    return False
 
 
 def classify_hidden_codepoint(codepoint: int) -> str | None:
@@ -125,6 +144,8 @@ def classify_hidden_codepoint(codepoint: int) -> str | None:
         return CATEGORY_NONCHARACTER
     if 0xD800 <= codepoint <= 0xDFFF:
         return CATEGORY_SURROGATE
+    if _is_format(codepoint):
+        return CATEGORY_FORMAT
     category = unicodedata.category(chr(codepoint))
     if category == "Me":
         return CATEGORY_ENCLOSING_MARK
