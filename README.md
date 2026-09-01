@@ -122,6 +122,20 @@ printf 'I do not agree.\n' | .venv/bin/fuckmark --inspect >/tmp/fm.out
 
 Pipes and files write the payload to stdout. `--visible` prints the original visible text. `--status` writes a machine-readable outcome to stderr. `--inspect` writes a character-level map to stderr. `fuckmark --help` is enough to start.
 
+## Scan and clean hidden Unicode (defensive)
+
+FuckMark also works the other way. `--scan` audits any text for hidden or suspicious Unicode and reports it without changing the text. `--clean` strips those characters while keeping the visible text. This is a general audit, not a FuckMark-only scan: it covers bidirectional controls (the [Trojan Source](https://trojansource.codes/) class, CVE-2021-42574), zero-width and invisible spacing, Unicode tag characters used to smuggle hidden text into LLM prompts, variation selectors, enclosing marks, deprecated interlinear controls, other `Cf` format controls, C0/C1 controls, private-use codepoints, and noncharacters.
+
+```text
+printf 'if (x != \u202eadmin\u202c) {\n' | .venv/bin/fuckmark --scan
+.venv/bin/fuckmark --scan --file suspect.txt
+.venv/bin/fuckmark --clean --file suspect.txt -o clean.txt
+```
+
+`--scan` prints a human report by default, a machine line with `-q`, and a `fuckmark-scan ...` status line to stderr with `--status`. `--clean` removes every flagged category (including FuckMark's own carriers, so `--clean` reverses a mix back to the visible text) and reports how many characters it removed. The same engine is available in the browser tool via `POST /api/scan`, and in Python through `scan_hidden_characters`, `clean_hidden_characters`, and `classify_hidden_codepoint`.
+
+Whitespace tab, newline, carriage return, and space are never flagged, and ordinary combining accents (`Mn`) are left alone. `--clean` strips emoji zero-width joiners and variation selectors as well, so pass a category subset to `clean_hidden_characters(...)` in Python if you need to keep emoji sequences intact.
+
 ## What it guarantees
 
 `VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, a cycling U+13430-U+13438 format control, and a cycling U+FFF9-U+FFFB annotation control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.

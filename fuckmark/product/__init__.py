@@ -35,6 +35,18 @@ from .invariants import (
     validate_user_visible_invariants,
 )
 from .registry import PRODUCT_REGISTRY_ALGORITHM_VERSION, ProductTransformRegistry, product_transform_registry
+from .scan import (
+    SCAN_ALGORITHM_VERSION,
+    SCAN_CATEGORIES,
+    HiddenFinding,
+    ScanResult,
+    classify_hidden_codepoint,
+    clean_hidden_characters,
+    scan_dict,
+    scan_hidden_characters,
+    scan_human_report,
+    scan_machine_line,
+)
 from .search import PRODUCT_SEARCH_ALGORITHM_VERSION, raw_codepoint_contains, visible_contains
 from .visible_projection import (
     PRODUCT_CONTRACT_ID,
@@ -57,6 +69,16 @@ __all__ = [
     "PRODUCT_REGISTRY_ALGORITHM_VERSION",
     "PRODUCT_SEARCH_ALGORITHM_VERSION",
     "PRODUCT_TEXT_ENCODING",
+    "SCAN_ALGORITHM_VERSION",
+    "SCAN_CATEGORIES",
+    "HiddenFinding",
+    "ScanResult",
+    "classify_hidden_codepoint",
+    "clean_hidden_characters",
+    "scan_dict",
+    "scan_hidden_characters",
+    "scan_human_report",
+    "scan_machine_line",
     "ProductTransformRegistry",
     "UNSUPPORTED_PRODUCT_ENCODINGS",
     "USER_VISIBLE_INVARIANT_ALGORITHM_VERSION",

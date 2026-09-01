@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 from . import __version__
 from .product.detect import DETECT_CONTACT_EMAIL, detect_fuckmark_insertions
 from .product.domain import PRODUCT_MAX_INPUT_CHARS
+from .product.scan import clean_hidden_characters, scan_dict, scan_hidden_characters
 from .product.visible_projection import product_approved_carriers_v1, project_visible_v1
 
 
@@ -96,6 +97,30 @@ def remove_marks_payload(text: str) -> dict[str, object]:
         "detect": detect,
         "text": cleaned,
         "removed": int(detect["found"]),
+        "contact": DETECT_CONTACT_EMAIL,
+    }
+
+
+def scan_payload(text: str) -> dict[str, object]:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    if len(text) > PRODUCT_MAX_INPUT_CHARS:
+        return {
+            "ok": False,
+            "reason": "too-large",
+            "backend": "python",
+            "max": PRODUCT_MAX_INPUT_CHARS,
+            "contact": DETECT_CONTACT_EMAIL,
+        }
+    result = scan_hidden_characters(text)
+    cleaned, removed = clean_hidden_characters(text)
+    return {
+        "ok": True,
+        "reason": "found" if result.detected else "clean",
+        "backend": "python",
+        "scan": scan_dict(result),
+        "cleaned": cleaned,
+        "removed": removed,
         "contact": DETECT_CONTACT_EMAIL,
     }
 
@@ -227,6 +252,18 @@ class _MarkHandler(http.server.SimpleHTTPRequestHandler):
                 if not isinstance(text, str):
                     raise ValueError("text must be a string")
                 result = remove_marks_payload(text)
+                status = 200 if result.get("reason") != "too-large" else 413
+                self._json_response(status, result)
+            except ValueError as error:
+                self._json_response(400, {"ok": False, "reason": "bad-request", "error": str(error)})
+            return
+        if path == "/api/scan":
+            try:
+                payload = self._read_json_object()
+                text = payload.get("text", "")
+                if not isinstance(text, str):
+                    raise ValueError("text must be a string")
+                result = scan_payload(text)
                 status = 200 if result.get("reason") != "too-large" else 413
                 self._json_response(status, result)
             except ValueError as error:

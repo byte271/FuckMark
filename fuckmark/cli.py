@@ -26,6 +26,12 @@ from .product.detect import (
     detect_human_report,
     detect_machine_line,
 )
+from .product.scan import (
+    clean_hidden_characters,
+    scan_hidden_characters,
+    scan_human_report,
+    scan_machine_line,
+)
 from .web import run_web_argv
 from .product.domain import (
     PRODUCT_MAX_INPUT_CHARS,
@@ -217,6 +223,8 @@ def _parser() -> argparse.ArgumentParser:
             "  fuckmark --stdin --visible < notes.fm.txt\n"
             "  fuckmark --detect --text \"I do not agree.\"\n"
             "  printf 'paste\\n' | fuckmark --detect\n"
+            "  fuckmark --scan --file suspect.txt\n"
+            "  fuckmark --clean --file suspect.txt -o clean.txt\n"
             "  fuckmark web\n"
             "\n"
             "Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji sites are processed\n"
@@ -233,6 +241,9 @@ def _parser() -> argparse.ArgumentParser:
             "Use --detect to scan for FuckMark insertions without transforming.\n"
             "If --detect finds none, the report tells you to contact "
             f"{DETECT_CONTACT_EMAIL}.\n"
+            "Use --scan to audit any text for hidden Unicode (bidi controls, zero-width,\n"
+            "tag characters, variation selectors, private-use, controls) without changing it.\n"
+            "Use --clean to strip that hidden Unicode while keeping the visible text.\n"
             "Use fuckmark web to open the local browser tool (beginner-friendly).\n"
             "That server also runs the Python detect/strip API.\n"
             "Mn-strip, default-ignorable strip, UnicodeSanitizer combinations, and Cf-strip after UnicodeSanitizer leave Me/Cc/Cf residuals and spaces."
@@ -317,6 +328,21 @@ def _parser() -> argparse.ArgumentParser:
             "scan for FuckMark insertions without transforming; "
             f"if none are found, print how to contact {DETECT_CONTACT_EMAIL}"
         ),
+    )
+    parser.add_argument(
+        "--scan",
+        dest="scan_mode",
+        action="store_true",
+        help=(
+            "audit for hidden/suspicious Unicode (bidi controls, zero-width, tag "
+            "characters, variation selectors, private-use, controls) without transforming"
+        ),
+    )
+    parser.add_argument(
+        "--clean",
+        dest="clean_mode",
+        action="store_true",
+        help="strip hidden/suspicious Unicode, keeping the visible text; the inverse of a mix",
     )
     parser.add_argument(
         "--no-color",
@@ -747,6 +773,126 @@ def _run_detect(
     return EXIT_OK
 
 
+def _run_scan(
+    text: str,
+    arguments: argparse.Namespace,
+    output: TextIO,
+    errors: TextIO,
+    clipboard_writer: Callable[[str], None] | None,
+    *,
+    interactive: bool,
+    color: bool,
+) -> int:
+    if arguments.visible:
+        return _error(errors, "pass --scan without --visible")
+    if len(text) > PRODUCT_MAX_INPUT_CHARS:
+        return _error(errors, f"not processed: input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)")
+    result = scan_hidden_characters(text)
+    payload = scan_machine_line(result) + "\n" if arguments.quiet else scan_human_report(result)
+    if arguments.status_report:
+        errors.write(scan_machine_line(result) + "\n")
+        errors.flush()
+    wrote_payload = False
+    if (not interactive) or arguments.output not in (None, "-"):
+        try:
+            _write_result(payload, arguments.output, output)
+            wrote_payload = True
+        except (ValueError, OSError) as error:
+            return _error(errors, str(error))
+    elif interactive:
+        errors.write(payload)
+        errors.flush()
+        wrote_payload = True
+    tone = _ANSI_YELLOW if result.detected else _ANSI_GREEN
+    if interactive and not arguments.quiet:
+        _status(errors, f"FuckMark: {result.verdict}.", enabled=color, code=tone)
+    if arguments.copy:
+        writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
+        try:
+            writer(payload)
+        except Exception as error:
+            tool_failed = "no supported clipboard command found" not in str(error)
+            follow = "The scan report was still written." if wrote_payload else "Nothing was printed."
+            _status(
+                errors,
+                f"FuckMark: clipboard copy failed ({error}). {_clipboard_hint(tool_failed=tool_failed)} {follow}",
+                enabled=color,
+                code=_ANSI_YELLOW,
+            )
+            return EXIT_CLIPBOARD
+    return EXIT_OK
+
+
+def _run_clean(
+    text: str,
+    arguments: argparse.Namespace,
+    output: TextIO,
+    errors: TextIO,
+    clipboard_writer: Callable[[str], None] | None,
+    *,
+    interactive: bool,
+    color: bool,
+) -> int:
+    if arguments.visible:
+        return _error(errors, "pass --clean without --visible")
+    if len(text) > PRODUCT_MAX_INPUT_CHARS:
+        return _error(errors, f"not processed: input is too large (max {PRODUCT_MAX_INPUT_CHARS} characters)")
+    scan_before = scan_hidden_characters(text)
+    cleaned, removed = clean_hidden_characters(text)
+    if arguments.status_report:
+        errors.write(scan_machine_line(scan_before) + "\n")
+        errors.flush()
+
+    wrote_payload = False
+    if (not interactive) or arguments.output not in (None, "-"):
+        try:
+            _write_result(cleaned, arguments.output, output)
+            wrote_payload = True
+        except (ValueError, OSError) as error:
+            return _error(errors, str(error))
+
+    should_copy = arguments.copy or interactive
+    copy_failed: Exception | None = None
+    if should_copy:
+        writer = copy_to_clipboard if clipboard_writer is None else clipboard_writer
+        try:
+            writer(cleaned)
+        except Exception as error:
+            copy_failed = error
+
+    if interactive and copy_failed is None:
+        _status(errors, _COPIED, enabled=color, code=_ANSI_GREEN)
+
+    if not arguments.quiet:
+        if removed:
+            categories = ", ".join(scan_before.active_categories())
+            _status(
+                errors,
+                f"FuckMark: removed {removed} hidden characters ({categories}); visible text preserved.",
+                enabled=color,
+                code=_ANSI_GREEN,
+            )
+        else:
+            _status(
+                errors,
+                "FuckMark: no hidden characters found; text returned unchanged.",
+                enabled=color,
+                code=_ANSI_YELLOW,
+            )
+
+    if copy_failed is not None:
+        tool_failed = "no supported clipboard command found" not in str(copy_failed)
+        follow = "The cleaned text was still written." if wrote_payload else "Nothing was printed."
+        _status(
+            errors,
+            f"FuckMark: clipboard copy failed ({copy_failed}). {_clipboard_hint(tool_failed=tool_failed)} {follow}",
+            enabled=color,
+            code=_ANSI_YELLOW,
+        )
+        return EXIT_CLIPBOARD
+    return EXIT_OK
+
+
 def main(
     input_stream: TextIO | None = None,
     output_stream: TextIO | None = None,
@@ -886,10 +1032,39 @@ def _run(
             "no input. Pipe text, pass a file, or quote a string. Example: printf 'I do not agree.\\n' | fuckmark",
         )
 
+    if sum(1 for flag in (arguments.detect_mode, arguments.scan_mode, arguments.clean_mode) if flag) > 1:
+        return _error(errors, "pass only one of --detect, --scan, or --clean")
+
     if arguments.detect_mode:
         if interactive:
             _status(errors, "Checking...", enabled=color, code=_ANSI_BLUE)
         return _run_detect(
+            text,
+            arguments,
+            output,
+            errors,
+            clipboard_writer,
+            interactive=interactive,
+            color=color,
+        )
+
+    if arguments.scan_mode:
+        if interactive:
+            _status(errors, "Scanning...", enabled=color, code=_ANSI_BLUE)
+        return _run_scan(
+            text,
+            arguments,
+            output,
+            errors,
+            clipboard_writer,
+            interactive=interactive,
+            color=color,
+        )
+
+    if arguments.clean_mode:
+        if interactive:
+            _status(errors, "Cleaning...", enabled=color, code=_ANSI_BLUE)
+        return _run_clean(
             text,
             arguments,
             output,

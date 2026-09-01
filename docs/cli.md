@@ -63,6 +63,8 @@ printf 'I do not agree.\n' | fuckmark --status >/tmp/fm.out
 printf 'I do not agree.\n' | fuckmark --inspect >/tmp/fm.out
 fuckmark --detect --text "I do not agree."
 printf 'paste\n' | fuckmark --detect
+fuckmark --scan --file suspect.txt
+fuckmark --clean --file suspect.txt -o clean.txt
 fuckmark web
 fuckmark --text "I don’t agree." --status
 ```
@@ -101,11 +103,21 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 | `--status` | Write one `fuckmark-status` line to stderr (`result`, `processed`, `insertions`, `sites`, `last_index`, `source_length`, `capped`, `first_unsupported`). |
 | `--inspect` | Write a character-level coverage map to stderr. Stdout stays the payload. |
 | `--detect` | Scan for FuckMark insertions without transforming. Stdout is the detect report. If none are found, the report includes `Fhelp@q1z.org`. |
+| `--scan` | Audit any text for hidden or suspicious Unicode without transforming. Stdout is the scan report (human by default, `fuckmark-scan ...` machine line with `-q`). |
+| `--clean` | Strip hidden or suspicious Unicode while keeping the visible text. Stdout is the cleaned payload. Reports the count removed on stderr. |
 | `--no-color` | Disable color on stderr. `NO_COLOR` does the same. |
+
+`--detect`, `--scan`, and `--clean` are mutually exclusive. Neither `--scan` nor `--clean` combines with `--visible`.
+
+### Hidden-Unicode scan and clean
+
+`--scan` and `--clean` are the defensive inverse of the mix. The scan is general, not FuckMark-only. Flagged categories: `bidi_control` (Trojan Source, CVE-2021-42574), `zero_width`, `variation_selector`, `tag` (hidden-text / prompt-injection smuggling), `enclosing_mark`, `line_separator`, `deprecated` (interlinear annotation and deprecated format controls), `format` (other `Cf`), `control` (C0/C1), `private_use`, `noncharacter`, and `surrogate`. Tab, newline, carriage return, and space are never flagged; ordinary combining accents (`Mn`) are left alone.
+
+`--clean` removes every flagged category, so it reverses a FuckMark mix back to the visible text. It also removes emoji zero-width joiners and variation selectors; the Python `clean_hidden_characters(text, categories=...)` call accepts a category subset when emoji sequences must be preserved. The browser tool exposes the same engine at `POST /api/scan`.
 
 ### `fuckmark web`
 
-Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health` and `POST /api/remove-marks`. Detect and strip on that page use `detect_fuckmark_insertions` and `project_visible_v1` when the API is up.
+Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health`, `POST /api/remove-marks`, and `POST /api/scan` (general hidden-Unicode audit and clean). Detect and strip on that page use `detect_fuckmark_insertions` and `project_visible_v1` when the API is up.
 
 ```text
 fuckmark web

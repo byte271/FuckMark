@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Defensive hidden-Unicode scanner and cleaner (`fuckmark-hidden-scan-v1`). `fuckmark --scan` audits any text for hidden or suspicious Unicode without changing it; `fuckmark --clean` strips it while keeping the visible text. Coverage is general, not FuckMark-only: bidirectional controls (Trojan Source, CVE-2021-42574), zero-width and invisible spacing, Unicode tag characters (hidden-text / prompt-injection smuggling), variation selectors, enclosing marks, deprecated interlinear controls, other `Cf` format controls, C0/C1 controls, private-use codepoints, and noncharacters. Tab, newline, carriage return, and space are never flagged, and ordinary combining accents (`Mn`) are left alone.
+- `--scan` prints a human report by default, a machine line with `-q`, and a `fuckmark-scan ...` status line to stderr with `--status`. `--clean` removes every flagged category (so it reverses a FuckMark mix back to the visible text) and reports the count removed. `--detect`, `--scan`, and `--clean` are mutually exclusive; neither `--scan` nor `--clean` combines with `--visible`.
+- `fuckmark web` serves the same engine at `POST /api/scan`. New Python API: `scan_hidden_characters`, `clean_hidden_characters`, `classify_hidden_codepoint`, `scan_dict`, `scan_human_report`, `scan_machine_line`, `ScanResult`, and `HiddenFinding` (exported from `fuckmark` and `fuckmark.product`).
+- Frozen confirmation files, hashes, mix mechanisms, and the published wheel are unchanged. Package version stays 0.4.1.
+
 ## v0.4.1
 
 Audit findings D01-D16, E01-E04, L01-L06, P01, and G01 against `d7dc98b7ee99fc46b767c93444a9f051fdbea2ba`. Do not retag v0.4.0. Frozen confirmation files and their SHA-256 sums are unchanged.

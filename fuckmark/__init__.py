@@ -86,6 +86,18 @@ from .detectors import (
     weighted_mean_evidence,
     weighted_mean_score,
 )
+from .product.scan import (
+    SCAN_ALGORITHM_VERSION,
+    SCAN_CATEGORIES,
+    HiddenFinding,
+    ScanResult,
+    classify_hidden_codepoint,
+    clean_hidden_characters,
+    scan_dict,
+    scan_hidden_characters,
+    scan_human_report,
+    scan_machine_line,
+)
 from .native_observations import NativeObservationBatch, NativeObservationRecord, build_native_observations
 from .observation_verification import NativeObservationVerificationError, verify_native_observation_batch
 from .observations import (
@@ -349,6 +361,16 @@ __all__ = [
     "require_complete_lexical_audit_summaries",
     "require_supported_detector",
     "RunIdentity",
+    "SCAN_ALGORITHM_VERSION",
+    "SCAN_CATEGORIES",
+    "HiddenFinding",
+    "ScanResult",
+    "classify_hidden_codepoint",
+    "clean_hidden_characters",
+    "scan_dict",
+    "scan_hidden_characters",
+    "scan_human_report",
+    "scan_machine_line",
     "ScoreDirection",
     "sha256_bytes",
     "sha256_file",
