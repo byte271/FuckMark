@@ -1,0 +1,9 @@
+{
+  "algorithm_version": "fuckmark-hidden-scan-v1",
+  "freeze_record_version": "fuckmark-hidden-scan-v1-freeze-v1",
+  "frozen_at_utc": "2026-09-01T23:30:00+00:00",
+  "protocol_id": "fuckmark-hidden-scan-v1",
+  "protocol_sha256": "859b1b138d8de3795cb09228ea78775b560aeb63520a309f9f9e59a7acc31046",
+  "vectors_file_sha256": "a9fbdb7fc2bf30786d9d9199099e740da1e1b33b52518a2d61b038fd85d80610",
+  "vectors_canonical_sha256": "2602ca87e5480813caf4452f8314e1ff2dbb43e94fa3cd81a6937b1595287915"
+}

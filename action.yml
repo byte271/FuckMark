@@ -1,0 +1,54 @@
+name: "FuckMark hidden-Unicode scan"
+description: "Fail the build on hidden or malicious Unicode: Trojan Source bidi overrides, zero-width characters, and Unicode tag smuggling."
+author: "Byte271"
+branding:
+  icon: "eye"
+  color: "purple"
+
+inputs:
+  paths:
+    description: "Space-separated files or directories to scan."
+    required: false
+    default: "."
+  select:
+    description: "Comma-separated categories to fail on, or 'all' for every category."
+    required: false
+    default: "bidi_control,zero_width,tag,control,noncharacter,surrogate"
+  fix:
+    description: "Strip the selected hidden characters in place instead of only reporting."
+    required: false
+    default: "false"
+  json:
+    description: "Emit a machine-readable JSON report to the step output."
+    required: false
+    default: "false"
+  args:
+    description: "Extra raw arguments passed through to 'fuckmark lint'."
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install FuckMark
+      shell: bash
+      run: python3 -m pip install --disable-pip-version-check --quiet "${{ github.action_path }}"
+    - name: Scan for hidden Unicode
+      shell: bash
+      run: |
+        set -euo pipefail
+        cmd=(fuckmark lint --select "${{ inputs.select }}")
+        if [ "${{ inputs.fix }}" = "true" ]; then
+          cmd+=(--fix)
+        fi
+        if [ "${{ inputs.json }}" = "true" ]; then
+          cmd+=(--json)
+        fi
+        if [ -n "${{ inputs.args }}" ]; then
+          # shellcheck disable=SC2206
+          cmd+=(${{ inputs.args }})
+        fi
+        # shellcheck disable=SC2206
+        cmd+=(${{ inputs.paths }})
+        printf 'Running:'; printf ' %q' "${cmd[@]}"; printf '\n'
+        "${cmd[@]}"

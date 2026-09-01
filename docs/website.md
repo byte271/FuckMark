@@ -27,6 +27,7 @@ Local beginners can run `fuckmark web` after install. That serves the same `mark
 
 - `GET /api/health` reports `backend: "python"`
 - `POST /api/remove-marks` with `{ "text": "..." }` calls `detect_fuckmark_insertions` and `project_visible_v1`
+- Local-only extras on `fuckmark web`: `POST /api/scan`, `POST /api/guard`, `POST /api/normalize`
 
 The page uses that API when the local server is up. Static `https://mark.q1z.org/mark.html` and `file://` have no Python process, so those deploys keep the in-browser scan.
 

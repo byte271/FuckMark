@@ -122,6 +122,81 @@ printf 'I do not agree.\n' | .venv/bin/fuckmark --inspect >/tmp/fm.out
 
 Pipes and files write the payload to stdout. `--visible` prints the original visible text. `--status` writes a machine-readable outcome to stderr. `--inspect` writes a character-level map to stderr. `fuckmark --help` is enough to start.
 
+## Scan and clean hidden Unicode (defensive)
+
+FuckMark also works the other way. `--scan` audits any text for hidden or suspicious Unicode and reports it without changing the text. `--clean` strips those characters while keeping the visible text. This is a general audit, not a FuckMark-only scan: it covers bidirectional controls (the [Trojan Source](https://trojansource.codes/) class, CVE-2021-42574), zero-width and invisible spacing, Unicode tag characters used to smuggle hidden text into LLM prompts, variation selectors, enclosing marks, deprecated interlinear controls, other `Cf` format controls, C0/C1 controls, private-use codepoints, and noncharacters.
+
+```text
+printf 'if (x != \u202eadmin\u202c) {\n' | .venv/bin/fuckmark --scan
+.venv/bin/fuckmark --scan --file suspect.txt
+.venv/bin/fuckmark --clean --file suspect.txt -o clean.txt
+```
+
+`--scan` prints a human report by default, a machine line with `-q`, and a `fuckmark-scan ...` status line to stderr with `--status`. Findings include context (`identifier` / `emoji` / `string` / `prose`) and severity (`critical` / `high` / `medium` / `info`): a bidi override inside an identifier is critical; a ZWJ inside an emoji cluster is info. `--clean` removes every flagged category (including FuckMark's own carriers, so `--clean` reverses a mix back to the visible text) and reports how many characters it removed. The same engine is available in the browser tool via `POST /api/scan`, and in Python through `scan_hidden_characters`, `clean_hidden_characters`, and `classify_hidden_codepoint`. Frozen spec: [`specs/fuckmark-hidden-scan-v1.protocol.md`](specs/fuckmark-hidden-scan-v1.protocol.md).
+
+Whitespace tab, newline, carriage return, and space are never flagged, and ordinary combining accents (`Mn`) are left alone. `--clean` strips emoji zero-width joiners and variation selectors as well, so pass a category subset to `clean_hidden_characters(...)` in Python if you need to keep emoji sequences intact.
+
+For pipelines that should canonicalize rather than only strip, `fuckmark normalize` NFC-folds, optionally skeleton-folds a small identifier lookalike subset, strips the security category set, and writes a JSON receipt of what changed. That lookalike table is not a full UTS #39 map. Full reference: [`docs/normalize.md`](docs/normalize.md).
+
+```text
+printf 'notes\n' | .venv/bin/fuckmark normalize --receipt
+```
+
+## Guard a repository (CI, pre-commit, editors)
+
+`fuckmark lint` scans files and directories and exits non-zero on findings, so you can block hidden Unicode before it lands. It catches [Trojan Source](https://trojansource.codes/) bidi overrides (CVE-2021-42574), zero-width characters, and Unicode tag smuggling by default.
+
+```text
+fuckmark lint .            # scan the tree; exit 1 on findings
+fuckmark lint --json .     # machine-readable report
+fuckmark lint --fix .      # strip findings in place
+```
+
+Drop-in **GitHub Action**:
+
+```yaml
+- uses: actions/checkout@v4
+- uses: actions/setup-python@v5
+  with:
+    python-version: "3.12"
+- uses: byte271/FuckMark@main
+```
+
+Drop-in **pre-commit** hook:
+
+```yaml
+repos:
+  - repo: https://github.com/byte271/FuckMark
+    rev: v0.4.1
+    hooks:
+      - id: fuckmark
+```
+
+Binary, non-UTF-8, oversized, and vendored/VCS paths are skipped; `--exclude GLOB`, `--select`, and `--max-bytes` tune the run. Full reference: [`docs/lint.md`](docs/lint.md).
+
+## See it in your editor (VS Code / Cursor)
+
+The [`editors/vscode`](editors/vscode) extension reveals hidden Unicode inline as you read code: a red box and a visible `‹U+202E›` badge on every hidden character, hover text with why it matters, diagnostics in the Problems panel (`critical` as Error), a status-bar count, one-click clean, and optional clean-on-save (`fuckmark.cleanOnSave`). It is zero-dependency plain JavaScript with no build step, and its scanner is a faithful port of `fuckmark-hidden-scan-v1` — pinned to the Python engine across every Unicode codepoint by [`tests/test_vscode_scanner_parity.py`](tests/test_vscode_scanner_parity.py), so the editor and the CLI agree exactly. Load it with `code --extensionDevelopmentPath=editors/vscode` or open the folder and press `F5`.
+
+## Guard model input (LLM prompt-injection smuggling)
+
+Hidden Unicode — especially Unicode **tag** characters — can smuggle a second instruction into a prompt that a human reviewer will not see. `protect()` strips that payload before the text reaches a model, and can decode the smuggled ASCII so you can log it. It is not a semantic jailbreak detector.
+
+```python
+from fuckmark import protect, inspect
+
+safe = protect(user_text)
+cleaned, receipt = inspect(user_text)
+# receipt.tag_payload is the hidden ASCII, when tags were used
+```
+
+```text
+printf 'user text\n' | .venv/bin/fuckmark guard
+.venv/bin/fuckmark guard --json < messages.json
+```
+
+Wrap an existing complete function with `@Guard().wrap`, or refuse hidden input with `Guard(on_findings="refuse")`. Same engine on `POST /api/guard` and in `editors/vscode/guard.js`. Full reference: [`docs/guard.md`](docs/guard.md).
+
 ## What it guarantees
 
 `VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, a cycling U+13430-U+13438 format control, and a cycling U+FFF9-U+FFFB annotation control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.

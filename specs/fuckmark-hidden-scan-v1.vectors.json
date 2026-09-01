@@ -1,0 +1,190 @@
+{
+  "algorithm_version": "fuckmark-hidden-scan-v1",
+  "index_unit": "unicode-scalar",
+  "vectors": [
+    {
+      "id": "bidi-identifier",
+      "codepoints": [
+        97,
+        8238,
+        98
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "identifier",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "tag-smuggling",
+      "codepoints": [
+        65,
+        917608,
+        917609
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 917608,
+          "category": "tag",
+          "context": "identifier",
+          "severity": "critical"
+        },
+        {
+          "index": 2,
+          "codepoint": 917609,
+          "category": "tag",
+          "context": "prose",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "emoji-zwj",
+      "codepoints": [
+        128104,
+        8205,
+        128105
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 8205,
+          "category": "zero_width",
+          "context": "emoji",
+          "severity": "info"
+        }
+      ]
+    },
+    {
+      "id": "emoji-vs",
+      "codepoints": [
+        10084,
+        65039
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 65039,
+          "category": "variation_selector",
+          "context": "emoji",
+          "severity": "info"
+        }
+      ]
+    },
+    {
+      "id": "zwsp-identifier",
+      "codepoints": [
+        97,
+        8203,
+        98
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 8203,
+          "category": "zero_width",
+          "context": "identifier",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "zwsp-prose",
+      "codepoints": [
+        32,
+        8203,
+        32
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 8203,
+          "category": "zero_width",
+          "context": "prose",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "id": "bidi-prose",
+      "codepoints": [
+        32,
+        8238,
+        32
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "prose",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "bidi-string",
+      "codepoints": [
+        34,
+        8238,
+        34
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "string",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "egyptian-format",
+      "codepoints": [
+        97,
+        78896,
+        98
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 78896,
+          "category": "format",
+          "context": "identifier",
+          "severity": "medium"
+        }
+      ]
+    },
+    {
+      "id": "noncharacter",
+      "codepoints": [
+        97,
+        65534
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 65534,
+          "category": "noncharacter",
+          "context": "identifier",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "clean-ascii",
+      "codepoints": [
+        97,
+        98,
+        99
+      ],
+      "expect": []
+    }
+  ]
+}
