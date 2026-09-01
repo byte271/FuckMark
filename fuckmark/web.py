@@ -14,6 +14,7 @@ from typing import TextIO
 from urllib.parse import urlparse
 
 from . import __version__
+from .guard import guard_payload
 from .product.detect import DETECT_CONTACT_EMAIL, detect_fuckmark_insertions
 from .product.domain import PRODUCT_MAX_INPUT_CHARS
 from .product.scan import clean_hidden_characters, scan_dict, scan_hidden_characters
@@ -269,6 +270,27 @@ class _MarkHandler(http.server.SimpleHTTPRequestHandler):
             except ValueError as error:
                 self._json_response(400, {"ok": False, "reason": "bad-request", "error": str(error)})
             return
+        if path == "/api/guard":
+            try:
+                payload = self._read_json_object()
+                on_findings = payload.get("on_findings", "strip")
+                if not isinstance(on_findings, str):
+                    raise ValueError("on_findings must be a string")
+                if "messages" in payload:
+                    value = payload["messages"]
+                elif "value" in payload:
+                    value = payload["value"]
+                else:
+                    value = payload.get("text", "")
+                    if not isinstance(value, str):
+                        raise ValueError("text must be a string")
+                result = guard_payload(value, on_findings=on_findings)
+                reason = result.get("reason")
+                status = 413 if reason == "too-large" else 200
+                self._json_response(status, result)
+            except ValueError as error:
+                self._json_response(400, {"ok": False, "reason": "bad-request", "error": str(error)})
+            return
         self.send_error(404, "Not Found")
 
 
@@ -299,7 +321,7 @@ def serve_mark_web(
     try:
         if errors is not None:
             errors.write(f"FuckMark web: {url}\n")
-            errors.write("FuckMark web: Python API at /api/health and /api/remove-marks\n")
+            errors.write("FuckMark web: Python API at /api/health, /api/remove-marks, /api/scan, /api/guard\n")
             errors.write("FuckMark web: press Ctrl+C to stop.\n")
             errors.flush()
         if on_ready is not None:

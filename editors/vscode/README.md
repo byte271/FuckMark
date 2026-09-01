@@ -53,6 +53,8 @@ Development Host. Packaging for the marketplace uses `vsce package`.
 ## Related
 
 - CLI and CI: `fuckmark lint`, the GitHub Action, and the pre-commit hook.
-- Library and web API: `fuckmark --scan` / `--clean` and `POST /api/scan`.
+- Library and web API: `fuckmark --scan` / `--clean`, `POST /api/scan`, and `POST /api/guard`.
+- Node guard: `guard.js` (`protect`, `extractTagPayload`) matches `fuckmark.protect`.
 
 MIT. Part of [FuckMark](https://github.com/byte271/FuckMark).
+

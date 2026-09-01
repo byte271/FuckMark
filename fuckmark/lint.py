@@ -12,6 +12,7 @@ from typing import TextIO
 from .product.scan import (
     CATEGORY_DESCRIPTIONS,
     SCAN_CATEGORIES,
+    SECURITY_SCAN_CATEGORIES,
     clean_hidden_characters,
     normalize_scan_categories,
     scan_hidden_characters,
@@ -19,15 +20,7 @@ from .product.scan import (
 
 
 LINT_ALGORITHM_VERSION = "fuckmark-lint-v1"
-
-LINT_DEFAULT_CATEGORIES = (
-    "bidi_control",
-    "zero_width",
-    "tag",
-    "control",
-    "noncharacter",
-    "surrogate",
-)
+LINT_DEFAULT_CATEGORIES = SECURITY_SCAN_CATEGORIES
 
 LINT_DEFAULT_EXCLUDES = (
     ".git",

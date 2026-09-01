@@ -65,6 +65,8 @@ fuckmark --detect --text "I do not agree."
 printf 'paste\n' | fuckmark --detect
 fuckmark --scan --file suspect.txt
 fuckmark --clean --file suspect.txt -o clean.txt
+fuckmark lint src/
+fuckmark guard --json < messages.json
 fuckmark web
 fuckmark --text "I don’t agree." --status
 ```
@@ -115,9 +117,21 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 `--clean` removes every flagged category, so it reverses a FuckMark mix back to the visible text. It also removes emoji zero-width joiners and variation selectors; the Python `clean_hidden_characters(text, categories=...)` call accepts a category subset when emoji sequences must be preserved. The browser tool exposes the same engine at `POST /api/scan`.
 
+### `fuckmark guard`
+
+Sanitize text or JSON before it reaches a model. Strips the security category set by default (same as `fuckmark lint`) and can recover Unicode-tag smuggling as `tag_payload` on the receipt. Does not detect semantic prompt injection.
+
+```text
+printf 'user text\n' | fuckmark guard
+fuckmark guard --json < messages.json
+fuckmark guard --refuse --receipt --json < messages.json
+```
+
+`--json` walks every string. `--refuse` exits 1 and writes nothing when hidden Unicode is present. `--report` scans without changing the payload. `--receipt` writes the JSON receipt to stderr. Python: `protect()`, `inspect()`, `Guard`, `HiddenTextRefused`. Reference: [`guard.md`](guard.md).
+
 ### `fuckmark web`
 
-Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health`, `POST /api/remove-marks`, and `POST /api/scan` (general hidden-Unicode audit and clean). Detect and strip on that page use `detect_fuckmark_insertions` and `project_visible_v1` when the API is up.
+Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health`, `POST /api/remove-marks`, `POST /api/scan`, and `POST /api/guard` (sanitize text or chat messages before a model call).
 
 ```text
 fuckmark web

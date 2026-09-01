@@ -89,15 +89,18 @@ from .detectors import (
 from .product.scan import (
     SCAN_ALGORITHM_VERSION,
     SCAN_CATEGORIES,
+    SECURITY_SCAN_CATEGORIES,
     HiddenFinding,
     ScanResult,
     classify_hidden_codepoint,
     clean_hidden_characters,
+    extract_tag_payload,
     scan_dict,
     scan_hidden_characters,
     scan_human_report,
     scan_machine_line,
 )
+from .guard import Guard, GuardReceipt, HiddenTextRefused, inspect, protect, receipt_dict
 from .native_observations import NativeObservationBatch, NativeObservationRecord, build_native_observations
 from .observation_verification import NativeObservationVerificationError, verify_native_observation_batch
 from .observations import (
@@ -363,14 +366,22 @@ __all__ = [
     "RunIdentity",
     "SCAN_ALGORITHM_VERSION",
     "SCAN_CATEGORIES",
+    "SECURITY_SCAN_CATEGORIES",
     "HiddenFinding",
     "ScanResult",
     "classify_hidden_codepoint",
     "clean_hidden_characters",
+    "extract_tag_payload",
     "scan_dict",
     "scan_hidden_characters",
     "scan_human_report",
     "scan_machine_line",
+    "Guard",
+    "GuardReceipt",
+    "HiddenTextRefused",
+    "inspect",
+    "protect",
+    "receipt_dict",
     "ScoreDirection",
     "sha256_bytes",
     "sha256_file",

@@ -39,6 +39,14 @@ SCAN_CATEGORIES = (
     CATEGORY_NONCHARACTER,
     CATEGORY_SURROGATE,
 )
+SECURITY_SCAN_CATEGORIES = (
+    CATEGORY_BIDI_CONTROL,
+    CATEGORY_ZERO_WIDTH,
+    CATEGORY_TAG,
+    CATEGORY_CONTROL,
+    CATEGORY_NONCHARACTER,
+    CATEGORY_SURROGATE,
+)
 
 CATEGORY_DESCRIPTIONS = {
     CATEGORY_BIDI_CONTROL: "bidirectional override/isolate (Trojan Source reordering)",
@@ -229,6 +237,17 @@ def scan_hidden_characters(text: str, *, max_findings: int = DEFAULT_MAX_FINDING
         truncated=truncated,
         fuckmark_carriers=carriers,
     )
+
+
+def extract_tag_payload(text: str) -> str:
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    pieces: list[str] = []
+    for character in text:
+        code = ord(character)
+        if 0xE0020 <= code <= 0xE007E:
+            pieces.append(chr(code - 0xE0000))
+    return "".join(pieces)
 
 
 def clean_hidden_characters(
