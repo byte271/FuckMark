@@ -136,6 +136,38 @@ printf 'if (x != \u202eadmin\u202c) {\n' | .venv/bin/fuckmark --scan
 
 Whitespace tab, newline, carriage return, and space are never flagged, and ordinary combining accents (`Mn`) are left alone. `--clean` strips emoji zero-width joiners and variation selectors as well, so pass a category subset to `clean_hidden_characters(...)` in Python if you need to keep emoji sequences intact.
 
+## Guard a repository (CI, pre-commit, editors)
+
+`fuckmark lint` scans files and directories and exits non-zero on findings, so you can block hidden Unicode before it lands. It catches [Trojan Source](https://trojansource.codes/) bidi overrides (CVE-2021-42574), zero-width characters, and Unicode tag smuggling by default.
+
+```text
+fuckmark lint .            # scan the tree; exit 1 on findings
+fuckmark lint --json .     # machine-readable report
+fuckmark lint --fix .      # strip findings in place
+```
+
+Drop-in **GitHub Action**:
+
+```yaml
+- uses: actions/checkout@v4
+- uses: actions/setup-python@v5
+  with:
+    python-version: "3.12"
+- uses: byte271/FuckMark@main
+```
+
+Drop-in **pre-commit** hook:
+
+```yaml
+repos:
+  - repo: https://github.com/byte271/FuckMark
+    rev: v0.4.1
+    hooks:
+      - id: fuckmark
+```
+
+Binary, non-UTF-8, oversized, and vendored/VCS paths are skipped; `--exclude GLOB`, `--select`, and `--max-bytes` tune the run. Full reference: [`docs/lint.md`](docs/lint.md).
+
 ## What it guarantees
 
 `VISIBLE(original) == VISIBLE(transformed)` under approved-carrier projection. FuckMark inserts U+034F or U+FE00, a C0/C1 control, U+20DD, a cycling U+13430-U+13438 format control, and a cycling U+FFF9-U+FFFB annotation control after eligible letter and emoji grapheme clusters. It does not contract, paraphrase, homoglyph, or add spaces. Transformation selection does not use detectors or watermark keys.

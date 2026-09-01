@@ -1,0 +1,14 @@
+- id: fuckmark
+  name: FuckMark hidden-Unicode scan
+  description: "Fail on hidden or malicious Unicode: Trojan Source bidi overrides, zero-width characters, and tag smuggling."
+  entry: fuckmark lint
+  language: python
+  types: [text]
+  pass_filenames: true
+- id: fuckmark-fix
+  name: FuckMark hidden-Unicode fix
+  description: "Strip hidden or malicious Unicode in place, keeping the visible text."
+  entry: fuckmark lint --fix
+  language: python
+  types: [text]
+  pass_filenames: true
