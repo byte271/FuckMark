@@ -11,7 +11,7 @@ from typing import TextIO
 
 from .cycle8.letter_mix import LETTER_MIX_MECHANISM_ID, apply_letter_alternating_mix
 from .cycle8.unicode_meta import is_default_ignorable_v1
-from .hashing import sha256_file, sha256_json, sha256_text
+from .hashing import sha256_json, sha256_lf_file, sha256_text
 from .product.detect import detect_fuckmark_insertions
 from .product.scan import scan_hidden_characters
 from .product.visible_projection import project_visible_v1
@@ -275,7 +275,7 @@ def sealed_detector_track() -> dict[str, object]:
     return {
         "id": "cycle8-gate-v2-confirmation-scorecard-v1",
         "path": SEALED_DETECTOR_SCORECARD_PATH,
-        "file_sha256": sha256_file(path),
+        "file_sha256": sha256_lf_file(path),
         "scorecard_hash": payload["scorecard_hash"],
         "expected_scorecard_hash": SEALED_DETECTOR_SCORECARD_HASH,
         "identity_watermarked_detected": payload["identity_watermarked_detected"],
@@ -358,15 +358,6 @@ def compare_freeze(freeze: dict[str, object], live: dict[str, object]) -> list[d
         if freeze.get(key) != live.get(key):
             mismatches.append({"id": f"freeze/{key}", "expected": freeze.get(key), "actual": live.get(key)})
     return mismatches
-    expected = {item["id"]: item["expect"] for item in vectors["cells"]}
-    mismatches: list[dict[str, object]] = []
-    for cell in cells:
-        key = f"{cell.fixture_id}/{cell.attack_id}"
-        want = expected.get(key)
-        got = cell_expect(cell)
-        if want != got:
-            mismatches.append({"id": key, "expected": want, "actual": got})
-    return mismatches
 
 
 def summary_dict(cells: Sequence[RobustnessCell], mismatches: Sequence[dict[str, object]]) -> dict[str, object]:
@@ -418,12 +409,12 @@ def freeze_bindings() -> dict[str, object]:
     vectors = load_vectors()
     return {
         "algorithm_version": ROBUSTNESS_ALGORITHM_VERSION,
-        "protocol_sha256": sha256_file(PROTOCOL_PATH),
-        "vectors_file_sha256": sha256_file(VECTORS_PATH),
+        "protocol_sha256": sha256_lf_file(PROTOCOL_PATH),
+        "vectors_file_sha256": sha256_lf_file(VECTORS_PATH),
         "vectors_canonical_sha256": sha256_json(vectors),
         "sealed_detector_scorecard_path": SEALED_DETECTOR_SCORECARD_PATH,
         "sealed_detector_scorecard_hash": SEALED_DETECTOR_SCORECARD_HASH,
-        "sealed_detector_scorecard_file_sha256": sha256_file(SCORECARD_FILE_PATH),
+        "sealed_detector_scorecard_file_sha256": sha256_lf_file(SCORECARD_FILE_PATH),
     }
 
 

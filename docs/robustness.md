@@ -12,7 +12,11 @@ Protocol: [`specs/fuckmark-robustness-bench-v1.protocol.md`](../specs/fuckmark-r
 Vectors (sources as codepoint arrays only):
 [`specs/fuckmark-robustness-bench-v1.vectors.json`](../specs/fuckmark-robustness-bench-v1.vectors.json).
 Freeze hashes: [`specs/fuckmark-robustness-bench-v1.freeze.json`](../specs/fuckmark-robustness-bench-v1.freeze.json).
-Installed wheels load byte-identical copies from `fuckmark/robustness_data/`. Before exit 0 the CLI recomputes those hashes, including the scorecard *file* SHA-256, so editing the scorecard while leaving its embedded `scorecard_hash` field alone still fails.
+Installed wheels load copies from `fuckmark/robustness_data/` that must match
+`specs/` after UTF-8 LF newline folding. Before exit 0 the CLI recomputes those
+hashes, including the scorecard *file* SHA-256, so editing the scorecard while
+leaving its embedded `scorecard_hash` field alone still fails. CRLF checkouts
+(Windows `core.autocrlf`) are folded to LF before hashing.
 
 ## Command line
 

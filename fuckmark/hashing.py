@@ -36,6 +36,13 @@ def sha256_file(path: str | Path, chunk_size: int = 1024 * 1024) -> str:
     return digest.hexdigest()
 
 
+def sha256_lf_file(path: str | Path) -> str:
+    if not isinstance(path, (str, Path)):
+        raise TypeError("path must be a string or Path")
+    data = Path(path).read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    return sha256_bytes(data)
+
+
 def sha256_json(value: Any) -> str:
     return sha256_bytes(canonical_json_bytes(value))
 

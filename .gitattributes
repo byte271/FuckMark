@@ -1,0 +1,5 @@
+fuckmark/robustness_data/** text eol=lf
+specs/fuckmark-robustness-bench-v1.protocol.md text eol=lf
+specs/fuckmark-robustness-bench-v1.vectors.json text eol=lf
+specs/fuckmark-robustness-bench-v1.freeze.json text eol=lf
+specs/cycle8/fuckmark-cycle8-gate-v2-confirmation-scorecard-v1.json text eol=lf

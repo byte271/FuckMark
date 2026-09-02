@@ -9,7 +9,7 @@ from fuckmark.cycle8.gate_v2 import (
     CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_HASH,
     CYCLE8_GATE_V2_CONFIRMATION_SCORECARD_PATH,
 )
-from fuckmark.hashing import sha256_file, sha256_json
+from fuckmark.hashing import sha256_json, sha256_lf_file
 from fuckmark.robustness import (
     ATTACK_IDS,
     FREEZE_PATH,
@@ -59,8 +59,8 @@ def test_robustness_freeze_binds_protocol_vectors_and_scorecard() -> None:
     live = freeze_bindings()
     assert freeze["algorithm_version"] == ROBUSTNESS_ALGORITHM_VERSION
     assert freeze["protocol_id"] == "fuckmark-robustness-bench-v1"
-    assert freeze["protocol_sha256"] == sha256_file(PROTOCOL_PATH) == live["protocol_sha256"]
-    assert freeze["vectors_file_sha256"] == sha256_file(VECTORS_PATH) == live["vectors_file_sha256"]
+    assert freeze["protocol_sha256"] == sha256_lf_file(PROTOCOL_PATH) == live["protocol_sha256"]
+    assert freeze["vectors_file_sha256"] == sha256_lf_file(VECTORS_PATH) == live["vectors_file_sha256"]
     assert freeze["vectors_canonical_sha256"] == sha256_json(payload) == live["vectors_canonical_sha256"]
     assert freeze["sealed_detector_scorecard_path"] == SEALED_DETECTOR_SCORECARD_PATH
     assert freeze["sealed_detector_scorecard_hash"] == SEALED_DETECTOR_SCORECARD_HASH
@@ -81,8 +81,19 @@ def test_packaged_robustness_artifacts_match_specs() -> None:
     for public, packaged in pairs:
         assert packaged.is_file(), packaged
         assert packaged.parent == PACKAGE_DATA_DIR
-        assert packaged.read_bytes() == public.read_bytes(), packaged.name
+        assert sha256_lf_file(packaged) == sha256_lf_file(public), packaged.name
     assert PROTOCOL_PATH.resolve() != (ROOT / "specs" / "fuckmark-robustness-bench-v1.protocol.md").resolve()
+
+
+def test_freeze_file_hashes_fold_crlf(tmp_path: Path) -> None:
+    from fuckmark.hashing import sha256_file
+
+    freeze = load_freeze()
+    lf = PROTOCOL_PATH.read_bytes().replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    crlf_path = tmp_path / "protocol.md"
+    crlf_path.write_bytes(lf.replace(b"\n", b"\r\n"))
+    assert sha256_lf_file(crlf_path) == freeze["protocol_sha256"]
+    assert sha256_file(crlf_path) != freeze["protocol_sha256"]
 
 
 def test_sealed_scorecard_constants_match_gate_v2() -> None:
