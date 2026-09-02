@@ -68,6 +68,8 @@ fuckmark --clean --file suspect.txt -o clean.txt
 fuckmark lint src/
 fuckmark guard --json < messages.json
 fuckmark normalize --receipt < notes.txt
+fuckmark clipboard scan
+fuckmark clipboard watch --clean
 fuckmark web
 fuckmark --text "I don’t agree." --status
 ```
@@ -140,6 +142,20 @@ fuckmark guard --refuse --receipt --json < messages.json
 ```
 
 `--json` walks every string. `--refuse` exits 1 and writes nothing when hidden Unicode is present. `--report` scans without changing the payload. `--receipt` writes the JSON receipt to stderr. Python: `protect()`, `inspect()`, `Guard`, `HiddenTextRefused`. Reference: [`guard.md`](guard.md).
+
+### `fuckmark clipboard`
+
+Scan, strip, or poll the OS clipboard for hidden Unicode (Trojan Source bidi, zero-width, tag smuggling). Default categories match `fuckmark lint`. Real emoji ZWJ sequences (both neighbors emoji) and info-level variation selectors are kept. Reference: [`clipboard.md`](clipboard.md).
+
+```text
+fuckmark clipboard scan
+fuckmark clipboard scan --json
+fuckmark clipboard clean
+fuckmark clipboard watch --clean
+fuckmark clipboard watch --once --exit-on-find
+```
+
+`scan` reads once. `clean` rewrites the clipboard in place when findings exist. `watch` polls (default 0.5s) and warns when the clipboard contents change to a hidden payload. `--select security|all|CATS` chooses categories. Exit status for this subcommand: `0` clean, `1` findings (including after a successful clean), `2` usage, `3` clipboard tool missing or failed.
 
 ### `fuckmark web`
 

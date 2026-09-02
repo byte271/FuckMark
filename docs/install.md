@@ -114,6 +114,6 @@ python -m pytest
 
 If the command is not found, use the venv path from the install step, or open a new terminal so PATH updates load.
 
-On Linux, clipboard copy needs `wl-copy`, `xclip`, `xsel`, or `clip.exe`. Stream `--copy` still prints the text if copy fails (exit 3). The paste UI does not print the payload; pipe text if you need stdout.
+On Linux, clipboard copy needs `wl-copy`, `xclip`, `xsel`, or `clip.exe`. Stream `--copy` still prints the text if copy fails (exit 3). The paste UI does not print the payload; pipe text if you need stdout. `fuckmark clipboard` also needs a matching read tool (`wl-paste`, `xclip -o`, or `xsel`).
 
 Website: [mark.q1z.org](https://mark.q1z.org). Controlled copy: [`website.md`](website.md).

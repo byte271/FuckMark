@@ -183,6 +183,18 @@ The [`editors/vscode`](editors/vscode) extension reveals hidden Unicode inline a
 
 The [`editors/browser`](editors/browser) extension reveals hidden Unicode on the page you are reading. Load it unpacked from `chrome://extensions` (Developer mode). The popup scans pasted text or the current tab, **Reveal** paints `U+XXXX` badges on the page, and **Paste-safe** (off by default) strips hidden characters when you paste into a field while keeping emoji sequences. Nothing is uploaded. The popup prefers `fuckmark_scan.wasm` when it can fetch it; on-page reveal and paste-safe keep `scan.js`. Full notes: [`editors/browser/README.md`](editors/browser/README.md).
 
+## Watch the OS clipboard
+
+Copied text is a common path for Trojan Source and Unicode-tag smuggling. `fuckmark clipboard` reads the system clipboard and uses the same security category set as `fuckmark lint`. `watch` polls for changes; `--clean` rewrites the clipboard in place. Real emoji ZWJ sequences stay intact.
+
+```text
+fuckmark clipboard scan
+fuckmark clipboard clean
+fuckmark clipboard watch --clean
+```
+
+Needs a clipboard tool (`pbpaste`, `wl-paste` / `xclip` / `xsel`, or PowerShell `Get-Clipboard`). Full reference: [`docs/clipboard.md`](docs/clipboard.md).
+
 ## Guard model input (LLM prompt-injection smuggling)
 
 Hidden Unicode — especially Unicode **tag** characters — can smuggle a second instruction into a prompt that a human reviewer will not see. `protect()` strips that payload before the text reaches a model, and can decode the smuggled ASCII so you can log it. It is not a semantic jailbreak detector.
