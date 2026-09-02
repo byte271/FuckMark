@@ -52,6 +52,66 @@ function encodeCategories(categories) {
   return String(categories);
 }
 
+const SEVERITY_RANK = { info: 0, medium: 1, high: 2, critical: 3 };
+
+function codePointCount(text) {
+  let count = 0;
+  for (let offset = 0; offset < text.length; ) {
+    const cp = text.codePointAt(offset);
+    offset += cp > 0xffff ? 2 : 1;
+    count += 1;
+  }
+  return count;
+}
+
+function utf16OffsetToIndex(text, offset) {
+  let index = 0;
+  let pos = 0;
+  while (pos < offset && pos < text.length) {
+    const cp = text.codePointAt(pos);
+    pos += cp > 0xffff ? 2 : 1;
+    index += 1;
+  }
+  return index;
+}
+
+function peakSeverity(findings) {
+  let peak = "";
+  for (const finding of findings) {
+    if ((SEVERITY_RANK[finding.severity] || -1) > (SEVERITY_RANK[peak] || -1)) {
+      peak = finding.severity;
+    }
+  }
+  return peak;
+}
+
+function normalizeScanResult(source, result) {
+  const findings = (result.findings || []).map((finding) => {
+    const offset = finding.offset != null ? finding.offset : 0;
+    const length = finding.length != null ? finding.length : finding.codepoint > 0xffff ? 2 : 1;
+    const index = finding.index != null ? finding.index : utf16OffsetToIndex(source, offset);
+    return {
+      offset,
+      length,
+      index,
+      codepoint: finding.codepoint,
+      category: finding.category,
+      context: finding.context,
+      severity: finding.severity,
+      why: finding.why,
+      remedy: finding.remedy,
+    };
+  });
+  return {
+    total: result.total || 0,
+    counts: result.counts || {},
+    findings,
+    truncated: Boolean(result.truncated),
+    highest_severity: result.highest_severity || peakSeverity(findings),
+    source_length: result.source_length != null ? result.source_length : codePointCount(source),
+  };
+}
+
 function writeUtf8(memory, alloc, bytes) {
   const ptr = alloc(bytes.length);
   new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
@@ -107,7 +167,7 @@ function wrapInstance(instance, fallback) {
   function scanText(text, categories, language) {
     const source = String(text || "");
     if (fallback && hasLoneSurrogate(source)) {
-      return fallback.scanText(source, categories, language);
+      return normalizeScanResult(source, fallback.scanText(source, categories, language));
     }
     const payload = callScan(source, language || "auto", categories, -1);
     const offsets = utf16Offsets(source);
@@ -203,6 +263,7 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports.WASM_CATEGORIES = WASM_CATEGORIES;
   module.exports.hasLoneSurrogate = hasLoneSurrogate;
   module.exports.encodeCategories = encodeCategories;
+  module.exports.normalizeScanResult = normalizeScanResult;
 }
 if (typeof globalThis !== "undefined") {
   globalThis.loadFuckMarkScanWasm = loadFuckMarkScanWasm;

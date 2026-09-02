@@ -51,7 +51,7 @@ node test.js
 cc -I crates/fuckmark-scan/include \
   crates/fuckmark-scan/examples/scan_cli.c \
   -L crates/fuckmark-scan/target/release -lfuckmark_scan \
-  -Wl,-rpath,\$ORIGIN/../../crates/fuckmark-scan/target/release \
-  -o /tmp/fm-scan
-/tmp/fm-scan $'a\u202eb'
+  -Wl,-rpath,\$ORIGIN \
+  -o crates/fuckmark-scan/target/release/fm-scan
+./crates/fuckmark-scan/target/release/fm-scan $'a\u202eb'
 ```

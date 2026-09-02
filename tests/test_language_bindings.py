@@ -23,6 +23,10 @@ def test_c_header_and_binding_docs_exist() -> None:
     assert "fm_classify" in header
     assert (ROOT / "bindings" / "README.md").is_file()
     assert "FUCKMARK_SCAN_LIB" in (ROOT / "bindings" / "README.md").read_text(encoding="utf-8")
+    example = (ROOT / "bindings" / "README.md").read_text(encoding="utf-8")
+    assert "-Wl,-rpath,\\$ORIGIN" in example
+    assert "/tmp/fm-scan" not in example
+    assert "crates/fuckmark-scan/target/release/fm-scan" in example
 
 
 def test_native_library_matches_python_vectors() -> None:
@@ -78,3 +82,25 @@ def test_node_binding_assets_and_tests() -> None:
         timeout=30,
     )
     assert completed.stdout.strip() == "ok"
+
+
+def test_native_scan_reports_lone_surrogates() -> None:
+    lone = "\ud800"
+    payload = scan_text(lone)
+    assert payload["total"] == 1
+    assert payload["source_length"] == 1
+    assert payload["truncated"] is False
+    assert payload["highest_severity"]
+    assert payload["findings"][0]["index"] == 0
+    assert payload["findings"][0]["category"] == "surrogate"
+    assert payload["findings"][0]["codepoint"] == 0xD800
+    mixed = scan_text("a" + lone + "b")
+    assert mixed["total"] == 1
+    assert mixed["findings"][0]["index"] == 1
+    assert mixed["source_length"] == 3
+    cleaned, removed = clean_text(lone)
+    assert removed == 1
+    assert cleaned == ""
+    kept, unchanged = clean_text(lone, categories=[])
+    assert unchanged == 0
+    assert kept == lone

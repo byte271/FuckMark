@@ -17,6 +17,15 @@ const scan = require("./index.js");
   const lone = await scan.scanText("\uD800", null, "auto");
   assert.strictEqual(lone.total, 1);
   assert.strictEqual(lone.findings[0].category, "surrogate");
+  assert.strictEqual(lone.findings[0].index, 0);
+  assert.strictEqual(lone.findings[0].offset, 0);
+  assert.strictEqual(lone.truncated, false);
+  assert.strictEqual(lone.highest_severity, "high");
+  assert.strictEqual(lone.source_length, 1);
+  const mixed = await scan.scanText("a\uD800b", null, "auto");
+  assert.strictEqual(mixed.total, 1);
+  assert.strictEqual(mixed.findings[0].index, 1);
+  assert.strictEqual(mixed.source_length, 3);
   process.stdout.write("ok\n");
 })().catch((error) => {
   console.error(error);

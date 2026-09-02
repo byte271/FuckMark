@@ -90,6 +90,65 @@ def _read_packed_json(lib: CDLL, ptr) -> dict:
     return json.loads(payload.decode("utf-8"))
 
 
+def _contains_surrogate(text: str) -> bool:
+    return any(0xD800 <= ord(character) <= 0xDFFF for character in text)
+
+
+def _scan_via_python(
+    text: str,
+    *,
+    language: str,
+    categories: list[str] | None,
+    max_findings: int,
+) -> dict:
+    from .product.scan import SCAN_ALGORITHM_VERSION, scan_hidden_characters
+
+    cap = max(len(text), 1) if max_findings < 0 else max_findings
+    full = scan_hidden_characters(text, max_findings=cap, language=language or "auto")
+    if categories is None:
+        selected = None
+    else:
+        from .product.scan import normalize_scan_categories
+
+        selected = normalize_scan_categories(categories)
+    findings: list[dict[str, object]] = []
+    counts: dict[str, int] = {}
+    peak = ""
+    rank = {"info": 0, "medium": 1, "high": 2, "critical": 3}
+    for finding in full.findings:
+        if selected is not None and finding.category not in selected:
+            continue
+        findings.append(
+            {
+                "index": finding.index,
+                "codepoint": finding.codepoint,
+                "category": finding.category,
+                "context": finding.context,
+                "severity": finding.severity,
+                "why": finding.why,
+                "remedy": finding.remedy,
+            }
+        )
+        counts[finding.category] = counts.get(finding.category, 0) + 1
+        if rank.get(finding.severity, -1) > rank.get(peak, -1):
+            peak = finding.severity
+    return {
+        "algorithm_version": SCAN_ALGORITHM_VERSION,
+        "source_length": full.source_length,
+        "total": len(findings),
+        "truncated": full.truncated,
+        "highest_severity": peak,
+        "counts": counts,
+        "findings": findings,
+    }
+
+
+def _clean_via_python(text: str, *, categories: list[str] | None) -> tuple[str, int]:
+    from .product.scan import clean_hidden_characters
+
+    return clean_hidden_characters(text, categories=categories)
+
+
 def classify(codepoint: int) -> str | None:
     lib = load_library()
     if lib is None:
@@ -113,6 +172,13 @@ def scan_text(
 ) -> dict:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
+    if _contains_surrogate(text):
+        return _scan_via_python(
+            text,
+            language=language,
+            categories=categories,
+            max_findings=max_findings,
+        )
     lib = load_library()
     if lib is None:
         raise RuntimeError("native fuckmark-scan library is not available")
@@ -140,6 +206,8 @@ def scan_text(
 def clean_text(text: str, *, categories: list[str] | None = None) -> tuple[str, int]:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
+    if _contains_surrogate(text):
+        return _clean_via_python(text, categories=categories)
     lib = load_library()
     if lib is None:
         raise RuntimeError("native fuckmark-scan library is not available")
