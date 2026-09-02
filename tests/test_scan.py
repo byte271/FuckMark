@@ -189,6 +189,29 @@ def test_cli_rejects_conflicting_modes_and_visible() -> None:
     assert clean_visible == 1
 
 
+def test_scan_and_clean_file_accept_cesu8_surrogates(tmp_path) -> None:
+    target = tmp_path / "lone.txt"
+    target.write_bytes("ok\ud800\n".encode("utf-8", "surrogatepass"))
+    out, err = StringIO(), StringIO()
+    status = main(StringIO(""), out, error_stream=err, argv=("--scan", "--file", str(target), "-q"))
+    assert status == 0
+    assert "found=yes" in out.getvalue()
+    assert "surrogate=1" in out.getvalue()
+    clean_out, clean_err = StringIO(), StringIO()
+    clean_status = main(
+        StringIO(""),
+        clean_out,
+        error_stream=clean_err,
+        argv=("--clean", "--file", str(target)),
+    )
+    assert clean_status == 0
+    assert clean_out.getvalue() == "ok\n"
+    mix_err = StringIO()
+    mix_status = main(StringIO(""), StringIO(), error_stream=mix_err, argv=("--file", str(target)))
+    assert mix_status == 1
+    assert "UTF-8" in mix_err.getvalue()
+
+
 def test_cli_scan_status_line_on_stderr() -> None:
     out, err = StringIO(), StringIO()
     status = main(StringIO(""), out, error_stream=err, argv=("--scan", "--status", "--text", TROJAN_SOURCE))

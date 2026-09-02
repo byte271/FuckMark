@@ -26,6 +26,15 @@ def test_protect_strips_tags_and_bidi_and_keeps_visible() -> None:
     assert protect(trojan) == "if (x != admin) {"
 
 
+def test_protect_strips_lone_surrogates() -> None:
+    cleaned, receipt = inspect("\ud800admin")
+    assert cleaned == "admin"
+    assert receipt.found is True
+    assert receipt.counts["surrogate"] == 1
+    assert receipt.input_sha256 != receipt.output_sha256
+    assert protect("\ud800") == ""
+
+
 def test_protect_leaves_plain_and_keeps_emoji_variation_selector() -> None:
     assert protect("ordinary prompt") == "ordinary prompt"
     assert protect("star\ufe0f") == "star\ufe0f"

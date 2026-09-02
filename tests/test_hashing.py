@@ -17,6 +17,19 @@ def test_lf_file_hash_folds_crlf(tmp_path: Path) -> None:
     assert sha256_file(crlf) != sha256_file(lf)
 
 
+def test_text_hash_accepts_lone_surrogates() -> None:
+    lone = "\ud800"
+    assert sha256_text(lone) == sha256_bytes(lone.encode("utf-8", "surrogatepass"))
+    assert sha256_text(lone) != sha256_text("")
+
+
+def test_file_hash_matches_content_hash(tmp_path: Path) -> None:
+    path = tmp_path / "fixture.bin"
+    payload = b"abc\x00def"
+    path.write_bytes(payload)
+    assert sha256_file(path) == sha256_bytes(payload)
+
+
 def test_file_hash_rejects_non_positive_chunk_size(tmp_path: Path) -> None:
     import pytest
 

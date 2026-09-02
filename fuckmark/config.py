@@ -44,4 +44,4 @@ def canonical_json_text(value: Any) -> str:
 
 
 def canonical_json_bytes(value: Any) -> bytes:
-    return canonical_json_text(value).encode("utf-8")
+    return canonical_json_text(value).encode("utf-8", "surrogatepass")

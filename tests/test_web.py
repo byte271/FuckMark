@@ -241,3 +241,45 @@ def test_cli_web_help_documents_browser_tool() -> None:
     assert "Python API" in help_text
     assert "scan.html" in help_text
     assert "browser" in help_text.casefold() or "beginner" in help_text.casefold()
+
+
+def test_web_api_rejects_missing_content_length() -> None:
+    import socket
+
+    errors = StringIO()
+    seen: dict[str, object] = {}
+
+    def on_ready(_url: str, port: int) -> None:
+        sock = socket.create_connection(("127.0.0.1", port), timeout=2)
+        try:
+            sock.sendall(
+                b"POST /api/scan HTTP/1.1\r\n"
+                b"Host: 127.0.0.1\r\n"
+                b"Content-Type: application/json\r\n"
+                b"Connection: close\r\n"
+                b"\r\n"
+                b'{"text":"\\u202e"}'
+            )
+            payload = b""
+            while True:
+                chunk = sock.recv(4096)
+                if not chunk:
+                    break
+                payload += chunk
+        finally:
+            sock.close()
+        seen["raw"] = payload
+
+    serve_mark_web(
+        host="127.0.0.1",
+        port=0,
+        open_browser=False,
+        errors=errors,
+        serve_seconds=0.05,
+        on_ready=on_ready,
+    )
+    raw = seen["raw"]
+    assert isinstance(raw, (bytes, bytearray))
+    header = bytes(raw).split(b"\r\n", 1)[0]
+    assert b"400" in header
+    assert b"missing Content-Length" in raw or b"bad-request" in raw

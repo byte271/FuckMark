@@ -37,6 +37,15 @@ def test_nfc_composes_combining_mark() -> None:
     assert receipt.stripped == 0
 
 
+def test_normalize_strips_lone_surrogates() -> None:
+    cleaned, receipt = normalize_text("ok\ud800")
+    assert cleaned == "ok"
+    assert receipt.stripped == 1
+    assert receipt.changed is True
+    assert "strip" in receipt.steps
+    assert receipt.input_sha256 != receipt.output_sha256
+
+
 def test_skeleton_fold_maps_cyrillic_lookalike() -> None:
     assert skeleton_fold(CYRILLIC_A) == "a"
     cleaned, receipt = normalize_text(CYRILLIC_A, confusable=True, strip=False)

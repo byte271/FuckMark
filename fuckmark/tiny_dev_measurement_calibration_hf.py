@@ -11,6 +11,7 @@ from .corpus.measurement_calibration import (
     MEASUREMENT_CALIBRATION_SEEDS_PER_PROMPT,
     MEASUREMENT_CALIBRATION_SAMPLE_COUNT,
     MEASUREMENT_CALIBRATION_TOPICS_PER_DOMAIN,
+    MeasurementCalibrationCorpus,
     build_measurement_calibration_corpus,
     measurement_calibration_topics,
 )

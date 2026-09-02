@@ -353,6 +353,18 @@ def test_read_clipboard_decodes_utf8(monkeypatch) -> None:
     assert read_clipboard() == "hello" + ZWJ
 
 
+def test_decode_utf16le_ascii_without_nul_injection() -> None:
+    from fuckmark.clipboard_watch import _decode_clipboard_bytes
+
+    assert _decode_clipboard_bytes("AB".encode("utf-16-le")) == "AB"
+    assert _decode_clipboard_bytes("AB".encode("utf-16")) == "AB"
+    assert _decode_clipboard_bytes("AB".encode("utf-8")) == "AB"
+    assert _decode_clipboard_bytes("caf\u00e9".encode("utf-8")) == "caf\u00e9"
+    family = "\U0001F468\u200d\U0001F469"
+    assert _decode_clipboard_bytes(family.encode("utf-16-le")) == family
+    assert _decode_clipboard_bytes(b"") == ""
+
+
 def test_write_clipboard_wraps_cli_error(monkeypatch) -> None:
     def boom(_text: str) -> None:
         from fuckmark.cli import ClipboardUnavailableError as WriteError

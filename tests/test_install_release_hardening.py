@@ -168,3 +168,18 @@ def test_unix_path_config_quotes_custom_bin_directory() -> None:
     assert "export PATH=${quoted}" in text
     assert "fish_add_path ${quoted}" in text
     assert "$HOME/.local/bin:$PATH" not in text
+
+
+def test_github_action_does_not_interpolate_inputs_into_run_scripts() -> None:
+    action = ROOT / "action.yml"
+    text = action.read_text(encoding="utf-8")
+    scripts = _workflow_run_scripts(text)
+    assert scripts
+    for script in scripts:
+        assert "${{ inputs." not in script, script
+    assert "FUCKMARK_SELECT" in text
+    assert "FUCKMARK_FIX" in text
+    assert "FUCKMARK_JSON" in text
+    assert "FUCKMARK_ARGS" in text
+    assert "FUCKMARK_PATHS" in text
+    assert "shlex.split" in text

@@ -189,7 +189,7 @@ class _MarkHandler(http.server.SimpleHTTPRequestHandler):
         return super().end_headers()
 
     def _json_response(self, status: int, payload: dict[str, object]) -> None:
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8", "surrogatepass")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
@@ -198,7 +198,9 @@ class _MarkHandler(http.server.SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def _read_json_object(self) -> dict[str, object]:
-        raw_length = self.headers.get("Content-Length", "0")
+        if "Content-Length" not in self.headers:
+            raise ValueError("missing Content-Length")
+        raw_length = self.headers.get("Content-Length", "")
         try:
             length = int(raw_length)
         except ValueError as error:

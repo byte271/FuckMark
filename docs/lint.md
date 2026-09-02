@@ -43,7 +43,10 @@ JavaScript comments (`//`, `/* */`), `.py` gets `#` comments, `.sql` gets `--`,
 Binary files (containing NUL), non-UTF-8 files, files larger than `--max-bytes`
 (default 5,000,000), symlinks, and common vendored or VCS directories (`.git`,
 `node_modules`, `.venv`, `__pycache__`, `dist`, `build`, and similar). Add more
-with repeatable `--exclude GLOB`.
+with repeatable `--exclude GLOB`. CESU-8 / modified UTF-8 bytes that encode a
+lone surrogate (U+D800-U+DFFF) are scanned, not skipped: that is the
+`surrogate` category in the default security set. Other invalid UTF-8 is still
+skipped.
 
 ## GitHub Action
 

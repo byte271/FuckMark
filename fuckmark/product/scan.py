@@ -13,6 +13,15 @@ SCAN_ALGORITHM_VERSION = "fuckmark-hidden-scan-v1"
 SCAN_CONTACT_EMAIL = "Fhelp@q1z.org"
 DEFAULT_MAX_FINDINGS = 256
 
+
+def decode_hidden_scan_bytes(data: bytes) -> str:
+    if not isinstance(data, bytes):
+        raise TypeError("data must be bytes")
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return data.decode("utf-8", "surrogatepass")
+
 CATEGORY_BIDI_CONTROL = "bidi_control"
 CATEGORY_ZERO_WIDTH = "zero_width"
 CATEGORY_VARIATION_SELECTOR = "variation_selector"

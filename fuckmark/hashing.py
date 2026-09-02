@@ -16,7 +16,7 @@ def sha256_bytes(data: bytes) -> str:
 def sha256_text(text: str) -> str:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
-    return sha256_bytes(text.encode("utf-8"))
+    return sha256_bytes(text.encode("utf-8", "surrogatepass"))
 
 
 def sha256_file(path: str | Path, chunk_size: int = 1024 * 1024) -> str:

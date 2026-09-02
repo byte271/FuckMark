@@ -79,11 +79,35 @@ def _read_commands() -> tuple[tuple[str, ...], ...]:
 def _decode_clipboard_bytes(raw: bytes) -> str:
     if not raw:
         return ""
-    for encoding in ("utf-8", "utf-16"):
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
         try:
-            return raw.decode(encoding)
+            return raw.decode("utf-16")
+        except UnicodeDecodeError as error:
+            raise ClipboardUnavailableError("clipboard bytes were not valid UTF-8 or UTF-16") from error
+    if b"\x00" in raw and len(raw) % 2 == 0:
+        try:
+            utf16_le = raw.decode("utf-16-le")
+        except UnicodeDecodeError:
+            utf16_le = None
+        else:
+            if "\x00" not in utf16_le:
+                return utf16_le
+    try:
+        utf8_text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        utf8_text = None
+    else:
+        if "\x00" not in utf8_text:
+            return utf8_text
+    for encoding in ("utf-16", "utf-16-le"):
+        try:
+            utf16_text = raw.decode(encoding)
         except UnicodeDecodeError:
             continue
+        if "\x00" not in utf16_text or utf8_text is None:
+            return utf16_text
+    if utf8_text is not None:
+        return utf8_text
     raise ClipboardUnavailableError("clipboard bytes were not valid UTF-8 or UTF-16")
 
 

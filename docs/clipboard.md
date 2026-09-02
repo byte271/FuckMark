@@ -62,6 +62,11 @@ clipboard` for that.
 | Linux | `wl-paste`, then `xclip -o`, then `xsel` | `wl-copy`, `xclip`, `xsel`, `clip.exe` |
 | Windows | PowerShell `Get-Clipboard -Raw` | `clip` (UTF-16) |
 
+UTF-8 is tried first. If the bytes contain NULs and have even length, the
+watcher decodes UTF-16LE instead. That is what Windows PowerShell emits for
+plain ASCII without a BOM; treating it as UTF-8 would insert a `U+0000`
+control between every letter. A UTF-16 BOM (`FF FE` / `FE FF`) is honored.
+
 Install one of those tools on a desktop session. Headless CI has no clipboard;
 tests inject a fake reader and writer and never call the OS.
 
