@@ -162,3 +162,39 @@ const wasmBytes = fs.readFileSync(process.argv[4]);
     sample = (0x09, 0x61, 0x202E, 0x200B, 0x20DD, 0xE0061, 0x13430, 0xFFFD)
     for codepoint in sample:
         assert classify_hidden_codepoint(codepoint) in {None, *SCAN_CATEGORIES}
+
+
+def test_wasm_routes_lone_surrogates_through_js_fallback() -> None:
+    harness = r"""
+"use strict";
+const fs = require("fs");
+const loader = require(process.argv[2]);
+const fallback = require(process.argv[3]);
+const wasmBytes = fs.readFileSync(process.argv[4]);
+(async () => {
+  globalThis.FuckMarkScan = fallback;
+  const api = await loader.loadFuckMarkScanWasm(wasmBytes);
+  const lone = "\uD800";
+  if (!api.hasLoneSurrogate(lone)) throw new Error("expected lone surrogate");
+  const scanned = api.scanText(lone, null, "auto");
+  if (scanned.total !== 1) throw new Error("scan total " + scanned.total);
+  if (scanned.findings[0].category !== "surrogate") throw new Error("category " + scanned.findings[0].category);
+  const cleaned = api.cleanText(lone, null);
+  if (cleaned.removed !== 1) throw new Error("removed " + cleaned.removed);
+  if (cleaned.cleaned !== "") throw new Error("cleaned leftover");
+  const empty = api.scanText("a\u202Eb", [], "auto");
+  if (empty.total !== 0) throw new Error("empty categories should find nothing, got " + empty.total);
+  const emptyClean = api.cleanText("a\u202Eb", []);
+  if (emptyClean.removed !== 0 || emptyClean.cleaned !== "a\u202Eb") {
+    throw new Error("empty categories should remove nothing");
+  }
+  if (api.encodeCategories(null) !== "*") throw new Error("null categories encoding");
+  if (api.encodeCategories([]) !== "") throw new Error("empty array encoding");
+  process.stdout.write("ok");
+})().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
+"""
+    completed = _run_node_harness(harness, timeout=30)
+    assert completed.stdout.startswith("ok")

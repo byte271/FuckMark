@@ -30,6 +30,28 @@ function codepointToken(cp) {
   return "U+" + Number(cp).toString(16).toUpperCase().padStart(4, "0");
 }
 
+function hasLoneSurrogate(text) {
+  const source = String(text || "");
+  for (let index = 0; index < source.length; index += 1) {
+    const unit = source.charCodeAt(index);
+    if (unit >= 0xd800 && unit <= 0xdbff) {
+      if (index + 1 >= source.length) return true;
+      const next = source.charCodeAt(index + 1);
+      if (next < 0xdc00 || next > 0xdfff) return true;
+      index += 1;
+      continue;
+    }
+    if (unit >= 0xdc00 && unit <= 0xdfff) return true;
+  }
+  return false;
+}
+
+function encodeCategories(categories) {
+  if (categories == null) return "*";
+  if (Array.isArray(categories)) return categories.join(",");
+  return String(categories);
+}
+
 function writeUtf8(memory, alloc, bytes) {
   const ptr = alloc(bytes.length);
   new Uint8Array(memory.buffer, ptr, bytes.length).set(bytes);
@@ -52,7 +74,7 @@ function wrapInstance(instance, fallback) {
   function callScan(text, language, categories, maxFindings) {
     const textBytes = encoder.encode(String(text || ""));
     const langBytes = encoder.encode(String(language || "auto"));
-    const catBytes = encoder.encode(Array.isArray(categories) ? categories.join(",") : String(categories || ""));
+    const catBytes = encoder.encode(encodeCategories(categories));
     const textPtr = writeUtf8(memory, fm_alloc, textBytes);
     const langPtr = writeUtf8(memory, fm_alloc, langBytes);
     const catPtr = writeUtf8(memory, fm_alloc, catBytes);
@@ -73,7 +95,7 @@ function wrapInstance(instance, fallback) {
 
   function callClean(text, categories) {
     const textBytes = encoder.encode(String(text || ""));
-    const catBytes = encoder.encode(Array.isArray(categories) ? categories.join(",") : String(categories || ""));
+    const catBytes = encoder.encode(encodeCategories(categories));
     const textPtr = writeUtf8(memory, fm_alloc, textBytes);
     const catPtr = writeUtf8(memory, fm_alloc, catBytes);
     const resultPtr = fm_clean(textPtr, textBytes.length, catPtr, catBytes.length);
@@ -84,7 +106,10 @@ function wrapInstance(instance, fallback) {
 
   function scanText(text, categories, language) {
     const source = String(text || "");
-    const payload = callScan(source, language || "auto", categories || "", -1);
+    if (fallback && hasLoneSurrogate(source)) {
+      return fallback.scanText(source, categories, language);
+    }
+    const payload = callScan(source, language || "auto", categories, -1);
     const offsets = utf16Offsets(source);
     const findings = (payload.findings || []).map((finding) => {
       const offset = offsets[finding.index] || 0;
@@ -112,7 +137,11 @@ function wrapInstance(instance, fallback) {
   }
 
   function cleanText(text, categories) {
-    return callClean(text, categories || "");
+    const source = String(text || "");
+    if (fallback && hasLoneSurrogate(source)) {
+      return fallback.cleanText(source, categories);
+    }
+    return callClean(source, categories);
   }
 
   const api = Object.assign({}, fallback || {}, {
@@ -128,6 +157,8 @@ function wrapInstance(instance, fallback) {
       return cleanText(text, ["bidi_control"]);
     },
     codepointToken: (fallback && fallback.codepointToken) || codepointToken,
+    hasLoneSurrogate,
+    encodeCategories,
   });
   return api;
 }
@@ -170,6 +201,8 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports.loadFuckMarkScanWasm = loadFuckMarkScanWasm;
   module.exports.wrapInstance = wrapInstance;
   module.exports.WASM_CATEGORIES = WASM_CATEGORIES;
+  module.exports.hasLoneSurrogate = hasLoneSurrogate;
+  module.exports.encodeCategories = encodeCategories;
 }
 if (typeof globalThis !== "undefined") {
   globalThis.loadFuckMarkScanWasm = loadFuckMarkScanWasm;

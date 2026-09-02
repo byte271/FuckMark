@@ -31,6 +31,9 @@ def test_manifest_is_mv3_and_local() -> None:
     assert "clipboardRead" not in payload.get("permissions", [])
     assert payload["action"]["default_popup"] == "popup.html"
     assert payload["background"]["service_worker"] == "background.js"
+    csp = payload["content_security_policy"]["extension_pages"]
+    assert "wasm-unsafe-eval" in csp
+    assert "'self'" in csp
     scripts = payload["content_scripts"][0]["js"]
     assert scripts == ["scan.js", "page.js", "content.js"]
     for name in ("externally_connectable", "update_url", "key"):

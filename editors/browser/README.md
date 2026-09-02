@@ -3,9 +3,10 @@
 Reveal hidden Unicode on the page you are reading. The classifier is
 `fuckmark-hidden-scan-v1`. The popup prefers the WASM build
 (`fuckmark_scan.wasm`) when it can fetch it, and `scan.js` is a
-byte-for-byte copy of the VS Code port as the fallback. On-page reveal
-and paste-safe stay on `scan.js` so they stay synchronous. Nothing is
-uploaded.
+byte-for-byte copy of the VS Code port as the fallback. Extension pages
+allow `wasm-unsafe-eval` so Chromium can instantiate the module. On-page
+reveal and paste-safe stay on `scan.js` so they stay synchronous. Nothing
+is uploaded.
 
 It flags:
 

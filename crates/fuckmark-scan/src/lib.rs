@@ -305,6 +305,15 @@ fn is_bmp_vs(cp: i32) -> bool {
 
 pub fn classify_context(text: &str, index: usize, role: &str, category: &str) -> &'static str {
     let chars: Vec<char> = text.chars().collect();
+    classify_context_chars(&chars, index, role, category)
+}
+
+fn classify_context_chars(
+    chars: &[char],
+    index: usize,
+    role: &str,
+    category: &str,
+) -> &'static str {
     if index >= chars.len() {
         return "prose";
     }
@@ -449,10 +458,13 @@ fn severity_rank(severity: &str) -> i32 {
 
 fn parse_categories(raw: &str) -> Option<Vec<&'static str>> {
     let trimmed = raw.trim();
-    if trimmed.is_empty() {
+    if trimmed == "*" {
         return None;
     }
     let mut selected = Vec::new();
+    if trimmed.is_empty() {
+        return Some(selected);
+    }
     for part in trimmed.split(',') {
         let name = part.trim();
         if let Some(known) = SCAN_CATEGORIES.iter().copied().find(|item| *item == name) {
@@ -530,7 +542,7 @@ pub fn scan_text(text: &str, language: &str, categories: &str, max_findings: i32
             counts[slot as usize] += 1;
         }
         let role = roles.get(index).copied().unwrap_or("code");
-        let context = classify_context(text, index, role, category);
+        let context = classify_context_chars(&chars, index, role, category);
         let severity = score_severity(category, context);
         let (why, remedy) = explain_finding(category, context, severity);
         if severity_rank(severity) > severity_rank(peak) {
@@ -744,7 +756,7 @@ mod tests {
     #[test]
     fn bidi_in_identifier_is_critical() {
         let text: String = ['a', '\u{202E}', 'b'].into_iter().collect();
-        let result = scan_text(&text, "auto", "", -1);
+        let result = scan_text(&text, "auto", "*", -1);
         assert_eq!(result.total, 1);
         assert_eq!(result.findings[0].context, "identifier");
         assert_eq!(result.findings[0].severity, "critical");
@@ -755,7 +767,7 @@ mod tests {
         let text = "http://example.com/\u{202E}";
         let roles = source_roles(text, "auto");
         assert!(roles.iter().all(|role| *role == "code"));
-        let result = scan_text(text, "auto", "", -1);
+        let result = scan_text(text, "auto", "*", -1);
         assert_eq!(result.findings[0].context, "prose");
         assert_eq!(result.findings[0].severity, "high");
     }
@@ -763,17 +775,17 @@ mod tests {
     #[test]
     fn python_hash_comment_is_critical_bidi() {
         let text = "x = 1  # \u{202E} no";
-        let result = scan_text(text, "python", "", -1);
+        let result = scan_text(text, "python", "*", -1);
         assert_eq!(result.findings[0].context, "comment");
         assert_eq!(result.findings[0].severity, "critical");
-        let auto = scan_text(text, "auto", "", -1);
+        let auto = scan_text(text, "auto", "*", -1);
         assert_ne!(auto.findings[0].context, "comment");
     }
 
     #[test]
     fn emoji_zwj_is_info() {
         let text = "\u{1F468}\u{200D}\u{1F469}";
-        let result = scan_text(text, "auto", "", -1);
+        let result = scan_text(text, "auto", "*", -1);
         assert_eq!(result.findings[0].context, "emoji");
         assert_eq!(result.findings[0].severity, "info");
     }
@@ -784,5 +796,26 @@ mod tests {
         let (cleaned, removed) = clean_text(text, "bidi_control");
         assert_eq!(removed, 1);
         assert_eq!(cleaned, "ab\u{200B}c");
+    }
+
+    #[test]
+    fn empty_category_selection_finds_and_removes_nothing() {
+        let text = "a\u{202E}b\u{200B}c";
+        let empty = scan_text(text, "auto", "", -1);
+        assert_eq!(empty.total, 0);
+        assert!(empty.findings.is_empty());
+        let all = scan_text(text, "auto", "*", -1);
+        assert_eq!(all.total, 2);
+        let (cleaned, removed) = clean_text(text, "");
+        assert_eq!(removed, 0);
+        assert_eq!(cleaned, text);
+    }
+
+    #[test]
+    fn dense_zero_width_scan_stays_linear() {
+        let text = "\u{200B}".repeat(20_000);
+        let result = scan_text(&text, "auto", "*", -1);
+        assert_eq!(result.total, 20_000);
+        assert_eq!(result.findings.len(), 20_000);
     }
 }
