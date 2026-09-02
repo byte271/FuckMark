@@ -6,7 +6,7 @@ Prefer a browser over the CLI? After install, run `fuckmark web` to open the loc
 
 Do not pipe `https://d.q1z.org/mark` into a shell. The live website must match [`website.md`](website.md).
 
-This source tree is **0.4.1**. The last published GitHub Release wheel is **v0.4.0**. That wheel does not implement `--text` or `--file`. Do not retag v0.4.0. The v0.4.1 wheel SHA-256 is recorded after the GitHub Release exists.
+This source tree is **0.4.1**. The published GitHub Release wheel is **v0.4.1**. Do not retag v0.4.0.
 
 ## From this repository (works now)
 
@@ -42,24 +42,35 @@ py -3.12 -m venv .venv
 .venv\Scripts\fuckmark.exe --version
 ```
 
-`python3 -m pip install git+https://github.com/byte271/FuckMark.git` installs the same product from `main` after this branch merges.
+`python3 -m pip install git+https://github.com/byte271/FuckMark.git` installs the same product from `main`.
 
 ## Tagged wheel
 
-v0.4.0 wheel SHA-256 (last published GitHub Release; missing `--text` / `--file`):
+v0.4.1 wheel SHA-256 (published GitHub Release):
+
+```text
+bbea9c0c4a5f50f84f452675f65e892794229fd5a19c6b34df05ee98d4de1531  fuckmark-0.4.1-py3-none-any.whl
+```
+
+```text
+python3 -m venv .venv
+.venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.4.1/fuckmark-0.4.1-py3-none-any.whl
+```
+
+Download `SHA256SUMS.txt` from the same release and confirm the wheel digest before trusting the environment:
+
+```text
+https://github.com/byte271/FuckMark/releases/download/v0.4.1/SHA256SUMS.txt
+```
+
+The historical v0.4.0 wheel SHA-256 (missing `--text` / `--file`) is:
 
 ```text
 5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f  fuckmark-0.4.0-py3-none-any.whl
 ```
 
 ```text
-python3 -m venv .venv
-.venv/bin/python -m pip install https://github.com/byte271/FuckMark/releases/download/v0.4.0/fuckmark-0.4.0-py3-none-any.whl
-```
-
-Download `SHA256SUMS.txt` from the same release and confirm the wheel digest before trusting the environment:
-
-```text
+https://github.com/byte271/FuckMark/releases/download/v0.4.0/fuckmark-0.4.0-py3-none-any.whl
 https://github.com/byte271/FuckMark/releases/download/v0.4.0/SHA256SUMS.txt
 ```
 
@@ -73,7 +84,7 @@ That tag is not retagged.
 
 ## In-repo installer (tagged wheel + checksum)
 
-These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.4.1` once that GitHub Release exists. Until then, install from this clone as above. Override: `FUCKMARK_RELEASE_TAG=v0.4.0` for the last published wheel.
+These scripts download the GitHub Release wheel, verify `SHA256SUMS.txt`, install into a user virtualenv, and print `fuckmark --help`. They do not start the CLI, do not use sudo, and do not install Python. They default to `v0.4.1`. Override: `FUCKMARK_RELEASE_TAG=v0.4.0` for the historical wheel that does not implement `--text` / `--file`.
 
 Linux / macOS, from a clone:
 

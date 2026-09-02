@@ -97,7 +97,7 @@ That prints `FuckMark 0.4.1` for this source tree.
 
 Do not pipe `https://d.q1z.org/mark` into a shell. The supported install is a clone or a checksummed GitHub Release wheel. See [`docs/install.md`](docs/install.md) and [`docs/website.md`](docs/website.md).
 
-Last **published** wheel is still **v0.4.0** (SHA-256 `5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f`). That wheel does not implement `--text` / `--file`. Use this 0.4.1 tree or wait for the v0.4.1 GitHub Release. Do not retag v0.4.0.
+Last **published** wheel is **v0.4.1** (SHA-256 `bbea9c0c4a5f50f84f452675f65e892794229fd5a19c6b34df05ee98d4de1531`). Do not retag v0.4.0. The historical v0.4.0 wheel SHA-256 is `5a6ac62c8bb8d7ddd9e5bc9cb6cee6e3eb181ac5f397b4a6645ef86468ee932f` and does not implement `--text` / `--file`.
 
 If clipboard copy fails, pipe instead: `printf 'I do not agree.\n' | .venv/bin/fuckmark`.
 

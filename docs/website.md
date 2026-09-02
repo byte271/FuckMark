@@ -87,7 +87,7 @@ py -3.12 -m venv .venv
 .venv\Scripts\fuckmark.exe --version
 ```
 
-Tagged wheel: GitHub Release `SHA256SUMS.txt` only. Last published wheel: v0.4.0. Source tree: 0.4.1.
+Tagged wheel: GitHub Release `SHA256SUMS.txt` only. Last published wheel: v0.4.1. Source tree: 0.4.1.
 
 ## Results to show, with boundaries
 
