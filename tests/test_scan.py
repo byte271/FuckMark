@@ -319,3 +319,27 @@ def test_autofix_trojan_source_strips_only_bidi() -> None:
     assert removed == 1
     assert cleaned == "a\u200bb"
     assert "\u202e" not in cleaned
+
+
+def test_bidi_in_comment_or_string_stays_critical_beside_emoji() -> None:
+    comment = scan_hidden_characters("//\U0001F600\u202e")
+    assert comment.findings[0].category == CATEGORY_BIDI_CONTROL
+    assert comment.findings[0].context == "comment"
+    assert comment.findings[0].severity == "critical"
+    quoted = scan_hidden_characters('"\U0001F600\u202e"')
+    assert quoted.findings[0].context == "string"
+    assert quoted.findings[0].severity == "critical"
+    emoji = scan_hidden_characters("// \U0001F468\u200d\U0001F469")
+    zwj = next(item for item in emoji.findings if item.category == CATEGORY_ZERO_WIDTH)
+    assert zwj.context == "emoji"
+    assert zwj.severity == "info"
+
+
+def test_highest_severity_includes_hits_past_findings_cap() -> None:
+    text = "\u200b" * 300 + "a\u202eb"
+    result = scan_hidden_characters(text, max_findings=256)
+    assert result.truncated is True
+    assert result.total == 301
+    assert len(result.findings) == 256
+    assert result.counts[CATEGORY_BIDI_CONTROL] == 1
+    assert result.highest_severity == "critical"

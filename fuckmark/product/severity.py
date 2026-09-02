@@ -227,11 +227,13 @@ def _is_ident_char(character: str) -> bool:
     return character == "_" or character.isalnum()
 
 
-def classify_context(text: str, index: int, role: str = ROLE_CODE) -> str:
+def classify_context(text: str, index: int, role: str = ROLE_CODE, category: str = "") -> str:
     prev = text[index - 1] if index > 0 else ""
     nxt = text[index + 1] if index + 1 < len(text) else ""
     prev_cp = ord(prev) if prev else -1
     nxt_cp = ord(nxt) if nxt else -1
+    if role in {ROLE_COMMENT, ROLE_STRING} and category == "bidi_control":
+        return CONTEXT_COMMENT if role == ROLE_COMMENT else CONTEXT_STRING
     if _is_emojiish(prev_cp) or _is_emojiish(nxt_cp) or prev_cp in _VS or nxt_cp in _VS:
         return CONTEXT_EMOJI
     if role == ROLE_COMMENT:
@@ -332,7 +334,7 @@ def annotate_finding(
     category: str,
     role: str = ROLE_CODE,
 ) -> tuple[str, str, str, str]:
-    context = classify_context(text, index, role)
+    context = classify_context(text, index, role, category)
     severity = score_severity(category, context)
     why, remedy = explain_finding(category, context, severity)
     return context, severity, why, remedy

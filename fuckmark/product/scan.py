@@ -214,6 +214,7 @@ class ScanResult:
     findings: tuple[HiddenFinding, ...]
     truncated: bool
     fuckmark_carriers: int
+    highest_severity: str = ""
 
     @property
     def detected(self) -> bool:
@@ -229,12 +230,6 @@ class ScanResult:
             return ""
         first = self.findings[0]
         return f"U+{first.codepoint:04X}@{first.index}({first.category})"
-
-    @property
-    def highest_severity(self) -> str:
-        if not self.findings:
-            return ""
-        return max(self.findings, key=lambda item: _SEVERITY_RANK.get(item.severity, 0)).severity
 
     def active_categories(self) -> tuple[str, ...]:
         return tuple(name for name in SCAN_CATEGORIES if self.counts.get(name, 0) > 0)
@@ -259,6 +254,7 @@ def scan_hidden_characters(
     total = 0
     truncated = False
     carriers = 0
+    peak = ""
     for index, character in enumerate(text):
         code = ord(character)
         if code in approved:
@@ -268,8 +264,10 @@ def scan_hidden_characters(
             continue
         total += 1
         counts[category] += 1
+        context, severity, why, remedy = annotate_finding(text, index, category, roles[index])
+        if _SEVERITY_RANK.get(severity, -1) > _SEVERITY_RANK.get(peak, -1):
+            peak = severity
         if len(findings) < max_findings:
-            context, severity, why, remedy = annotate_finding(text, index, category, roles[index])
             findings.append(
                 HiddenFinding(
                     index=index,
@@ -290,6 +288,7 @@ def scan_hidden_characters(
         findings=tuple(findings),
         truncated=truncated,
         fuckmark_carriers=carriers,
+        highest_severity=peak,
     )
 
 
