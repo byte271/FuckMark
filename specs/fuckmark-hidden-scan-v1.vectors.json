@@ -140,7 +140,7 @@
           "codepoint": 8238,
           "category": "bidi_control",
           "context": "string",
-          "severity": "high"
+          "severity": "critical"
         }
       ]
     },
@@ -185,6 +185,199 @@
         99
       ],
       "expect": []
+    },
+    {
+      "id": "bidi-stretched-string",
+      "codepoints": [
+        34,
+        8238,
+        97,
+        34
+      ],
+      "expect": [
+        {
+          "index": 1,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "string",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "bidi-slash-comment",
+      "codepoints": [
+        47,
+        47,
+        32,
+        8238
+      ],
+      "expect": [
+        {
+          "index": 3,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "comment",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "bidi-block-comment",
+      "codepoints": [
+        47,
+        42,
+        32,
+        8238,
+        32,
+        42,
+        47
+      ],
+      "expect": [
+        {
+          "index": 3,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "comment",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "bidi-hash-comment",
+      "language": "python",
+      "codepoints": [
+        35,
+        32,
+        8238
+      ],
+      "expect": [
+        {
+          "index": 2,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "comment",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "hash-not-comment-in-auto",
+      "codepoints": [
+        35,
+        32,
+        8238
+      ],
+      "expect": [
+        {
+          "index": 2,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "prose",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "bidi-after-url-not-comment",
+      "codepoints": [
+        104,
+        116,
+        116,
+        112,
+        58,
+        47,
+        47,
+        8238
+      ],
+      "expect": [
+        {
+          "index": 7,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "prose",
+          "severity": "high"
+        }
+      ]
+    },
+    {
+      "id": "bidi-sql-line-comment",
+      "language": "sql",
+      "codepoints": [
+        45,
+        45,
+        32,
+        8238
+      ],
+      "expect": [
+        {
+          "index": 3,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "comment",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "bidi-html-comment",
+      "language": "html",
+      "codepoints": [
+        60,
+        33,
+        45,
+        45,
+        32,
+        8238,
+        45,
+        45,
+        62
+      ],
+      "expect": [
+        {
+          "index": 5,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "comment",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "bidi-slash-comment-beside-emoji",
+      "codepoints": [
+        47,
+        47,
+        128512,
+        8238
+      ],
+      "expect": [
+        {
+          "index": 3,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "comment",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "id": "bidi-string-beside-emoji",
+      "codepoints": [
+        34,
+        128512,
+        8238,
+        34
+      ],
+      "expect": [
+        {
+          "index": 2,
+          "codepoint": 8238,
+          "category": "bidi_control",
+          "context": "string",
+          "severity": "critical"
+        }
+      ]
     }
   ]
 }

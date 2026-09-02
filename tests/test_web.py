@@ -47,6 +47,26 @@ def test_packaged_mark_html_matches_docs_source() -> None:
     assert web_root() == mark_html_path().parent
 
 
+def test_packaged_scan_page_matches_docs_and_editor_engine() -> None:
+    docs_html = (ROOT / "docs" / "scan.html").read_text(encoding="utf-8")
+    packaged_html = (ROOT / "fuckmark" / "webui" / "scan.html").read_text(encoding="utf-8")
+    assert packaged_html == docs_html
+    canonical_js = (ROOT / "editors" / "vscode" / "scan.js").read_text(encoding="utf-8")
+    assert (ROOT / "docs" / "scan.js").read_text(encoding="utf-8") == canonical_js
+    assert (ROOT / "fuckmark" / "webui" / "scan.js").read_text(encoding="utf-8") == canonical_js
+    assert 'script src="scan.js"' in docs_html
+    assert "FuckMarkScan" in docs_html
+    assert "autofixTrojanSource" in docs_html
+    assert "DEFAULT_SECURITY_CATEGORIES" in docs_html
+    assert "fromCodePoint(0x202E)" in docs_html
+    assert "truncated" in docs_html
+    assert "bidi_control" in docs_html
+    from fuckmark.product.scan import scan_hidden_characters
+
+    assert scan_hidden_characters(docs_html, language="html").detected is False
+    assert scan_hidden_characters(canonical_js, language="javascript").detected is False
+
+
 def test_mark_html_miss_copy_is_english() -> None:
     html = mark_html_path().read_text(encoding="utf-8")
     assert "We did not detect a watermark in this text." in html
@@ -112,6 +132,11 @@ def test_fuckmark_web_serves_mark_page() -> None:
             seen["cache"] = response.headers.get("Cache-Control")
         with urlopen(f"http://127.0.0.1:{port}/", timeout=2) as response:
             seen["index"] = response.read().decode("utf-8")
+        with urlopen(f"http://127.0.0.1:{port}/scan.html", timeout=2) as response:
+            seen["scan_html"] = response.read().decode("utf-8")
+            seen["scan_cache"] = response.headers.get("Cache-Control")
+        with urlopen(f"http://127.0.0.1:{port}/scan.js", timeout=2) as response:
+            seen["scan_js"] = response.read().decode("utf-8")
         health_status, health = _get_json(f"http://127.0.0.1:{port}/api/health")
         seen["health_status"] = health_status
         seen["health"] = health
@@ -145,6 +170,7 @@ def test_fuckmark_web_serves_mark_page() -> None:
     assert "FuckMark web:" in log
     assert "Python API" in log
     assert "/api/remove-marks" in log
+    assert "/scan.html" in log
     body = str(seen["body"])
     assert "FuckMark" in body
     assert "detectFuckMark" in body
@@ -152,6 +178,11 @@ def test_fuckmark_web_serves_mark_page() -> None:
     assert "/api/remove-marks" in body
     assert "We did not detect a watermark in this text." in body
     assert "detectFuckMark" in str(seen["index"])
+    scan_html = str(seen["scan_html"])
+    assert "See the bytes." in scan_html
+    assert 'script src="scan.js"' in scan_html
+    assert "FuckMarkScan" in str(seen["scan_js"])
+    assert "no-store" in str(seen.get("scan_cache", "")).casefold()
     assert "no-store" in str(seen.get("cache", "")).casefold()
     assert seen["health_status"] == 200
     health = seen["health"]
@@ -191,4 +222,5 @@ def test_cli_web_help_documents_browser_tool() -> None:
     help_text = out.getvalue() + errors.getvalue()
     assert "fuckmark web" in help_text
     assert "Python API" in help_text
+    assert "scan.html" in help_text
     assert "browser" in help_text.casefold() or "beginner" in help_text.casefold()

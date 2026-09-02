@@ -60,29 +60,46 @@ controls and related Cf assignments.
 
 ## 4. Context (heuristic)
 
-Context is assigned to each finding from immediate neighbors. It is not a
-language parser.
+Context is assigned to each finding from a lightweight source mask plus
+immediate neighbors. It is not a full language parser.
 
+Roles (optional `language` argument to `scan_hidden_characters`; default
+`auto`):
+
+- `comment`: `//` line comments and `/* */` block comments (`auto`,
+  `javascript`, `c`, `sql`). `#` line comments (`python`). `--` line comments
+  (`sql`). `<!-- -->` (`html`). `//` after `:` is not a comment (`http://`).
+- `string`: `"`, `'`, or backtick literals, with backslash escapes.
+
+Then:
+
+- `comment` / `string` from the role mask when the category is `bidi_control`
+  (Trojan Source encodings stay on that role even next to emoji).
 - `emoji` if the previous or next scalar is emoji-ish (regional indicators
   U+1F1E6-U+1F1FF, U+1F000-U+1FAFF, U+2600-U+27BF, a small BMP emoji set,
   ZWJ, or a BMP variation selector U+FE00-U+FE0F).
+- else `comment` / `string` from the role mask.
 - else `identifier` if the previous or next scalar is `_` or alphanumeric.
-- else `string` if a naive quote tracker currently has an open `"`, `'`, or
-  backtick. The tracker flips on the current scalar before classification, so
-  a hidden character inside quotes is `string` unless a stronger context
-  applies. It does not understand escapes or nested languages.
 - else `prose`.
+
+`language` may be passed on the vector as `"language"`. Omitted means `auto`.
+Lint infers language from the file suffix. This lexer does not nest block
+comments, does not parse raw strings, and does not understand every dialect.
 
 ## 5. Severity
 
-| Category | identifier | emoji | other |
+| Category | identifier / comment / string | emoji | other |
 | --- | --- | --- | --- |
 | `tag` | critical | critical | critical |
 | `bidi_control` | critical | high | high |
-| `zero_width` | high | info | medium |
+| `zero_width` | high (identifier) / medium (comment, string) | info | medium |
 | `variation_selector` | medium | info | medium |
 | `control`, `noncharacter`, `surrogate` | high | high | high |
 | remaining flagged categories | medium | medium | medium |
+
+`bidi_control` in identifier, comment, or string is the three Trojan Source
+encodings (CVE-2021-42574): identifier reordering, commenting-out, and
+stretched-string. `autofix_trojan_source` strips only `bidi_control`.
 
 Each finding also carries a one-line `why` and `remedy`. Those strings are
 informative; conformance is category, context, and severity.
@@ -106,8 +123,9 @@ Default security categories (lint, guard, normalize strip): `bidi_control`,
 ## 7. Conformance
 
 Reconstruct each vector as `"".join(chr(cp) for cp in codepoints)` (Python
-scalars). Run `scan_hidden_characters`. For every expected finding, require
-matching `index`, `codepoint`, `category`, `context`, and `severity`, in
-order. Vectors that expect no findings must produce `detected is False`.
+scalars). Run `scan_hidden_characters` with `language` from the vector or
+`auto`. For every expected finding, require matching `index`, `codepoint`,
+`category`, `context`, and `severity`, in order. Vectors that expect no
+findings must produce `detected is False`.
 
 Do not store the reconstructed strings in the vector file.

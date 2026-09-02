@@ -8,6 +8,7 @@ const {
   codepointToken,
   scanText,
   cleanText,
+  languageFromDocumentId,
 } = require("./scan.js");
 
 let decorationType;
@@ -113,7 +114,7 @@ function refresh(editor) {
     editor.setDecorations(decorationType, []);
     return { total: 0 };
   }
-  const result = scanText(document.getText());
+  const result = scanText(document.getText(), null, languageFromDocumentId(document.languageId));
   diagnostics.set(document.uri, buildDiagnostics(document, result.findings));
   editor.setDecorations(decorationType, revealEnabled ? buildDecorations(document, result.findings) : []);
   return result;

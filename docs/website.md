@@ -11,6 +11,7 @@ Deploy these static files (repository CI cannot push them; copy after each relea
 | Repo file | Public URL |
 | --- | --- |
 | [`mark.html`](mark.html) | `https://mark.q1z.org/mark.html` (browser tool) |
+| [`scan.html`](scan.html) + [`scan.js`](scan.js) | `https://mark.q1z.org/scan.html` (hidden-Unicode reveal; deploy both files) |
 | [`rec.html`](rec.html) | gate that waits for `go.txt`, then opens `mark.html?demo=1` |
 | [`demo.html`](demo.html) | `https://mark.q1z.org/demo.html` (research / CLI samples) |
 
@@ -27,9 +28,15 @@ Local beginners can run `fuckmark web` after install. That serves the same `mark
 
 - `GET /api/health` reports `backend: "python"`
 - `POST /api/remove-marks` with `{ "text": "..." }` calls `detect_fuckmark_insertions` and `project_visible_v1`
-- Local-only extras on `fuckmark web`: `POST /api/scan`, `POST /api/guard`, `POST /api/normalize`
+- Local-only extras on `fuckmark web`: `POST /api/scan`, `POST /api/guard`, `POST /api/normalize`, and `/scan.html`
 
 The page uses that API when the local server is up. Static `https://mark.q1z.org/mark.html` and `file://` have no Python process, so those deploys keep the in-browser scan.
+
+### `scan.html` (hidden-Unicode reveal)
+
+Static, JS-first. Paste text or open a file; the page classifies hidden characters with `fuckmark-hidden-scan-v1` (`scan.js`, the same port as the editor extension). Language (`auto`, JavaScript/C-like, Python, SQL, HTML) selects comment syntax so Trojan Source commenting-out and stretched-string encodings rank `critical`. Copy uses the security category set. **Fix Trojan Source** strips only bidirectional controls.
+
+Deploy `scan.html` and `scan.js` next to each other. `file://` works. Under `fuckmark web`, an optional checkbox uses `POST /api/scan` on the local Python engine; text still does not leave the machine. Do not embed raw hidden characters in the HTML file; examples are built with `String.fromCodePoint`.
 
 ### `demo.html` (research walkthrough)
 
@@ -43,7 +50,7 @@ Keep it a static file that works from `file://` with baked CLI samples. The live
 
 If none are found, the demo offers contact at `Fhelp@q1z.org`. Do not present demo numbers as a guarantee for arbitrary user text.
 
-Homepage copy should link `mark.html` (tool) and `demo.html` (evidence) before install instructions.
+Homepage copy should link `mark.html` (tool), `scan.html` (hidden Unicode), and `demo.html` (evidence) before install instructions.
 
 ## What the product does
 

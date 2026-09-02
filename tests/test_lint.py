@@ -66,6 +66,18 @@ def test_json_report_structure(tmp_path: Path) -> None:
     assert result["locations"][0]["remedy"]
 
 
+def test_javascript_comment_context_from_suffix(tmp_path: Path) -> None:
+    (tmp_path / "note.js").write_text("// \u202e\n", encoding="utf-8")
+    code, out, err = _run(["--json", str(tmp_path)])
+    assert code == LINT_EXIT_FINDINGS
+    assert err == ""
+    report = json.loads(out)
+    location = report["results"][0]["locations"][0]
+    assert location["context"] == "comment"
+    assert location["severity"] == "critical"
+    assert location["codepoint"] == "U+202E"
+
+
 def test_fix_rewrites_files_and_then_passes(tmp_path: Path) -> None:
     target = tmp_path / "evil.js"
     target.write_text(TROJAN, encoding="utf-8")

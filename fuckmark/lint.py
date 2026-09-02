@@ -18,6 +18,7 @@ from .product.scan import (
     normalize_scan_categories,
     scan_hidden_characters,
 )
+from .product.severity import language_from_path
 
 
 LINT_ALGORITHM_VERSION = "fuckmark-lint-v1"
@@ -203,7 +204,7 @@ def _write_text_atomic(path: Path, text: str) -> bool:
 
 
 def _lint_file(path: Path, categories: frozenset[str], text: str, fix: bool) -> FileLintResult:
-    scan = scan_hidden_characters(text)
+    scan = scan_hidden_characters(text, language=language_from_path(path))
     counts = {name: scan.counts.get(name, 0) for name in scan.active_categories() if name in categories}
     total = sum(counts.values())
     first_locations = tuple(finding for finding in scan.findings if finding.category in categories)[:10]
