@@ -50,4 +50,4 @@ where = ["."]
 include = ["fuckmark*"]
 
 [tool.setuptools.package-data]
-fuckmark = ["webui/*.html", "webui/*.js", "webui/*.wasm"]
+fuckmark = ["webui/*.html", "webui/*.js", "webui/*.wasm", "robustness_data/*"]

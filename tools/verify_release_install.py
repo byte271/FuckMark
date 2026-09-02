@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import subprocess
 import sys
@@ -154,6 +155,32 @@ def _verify_artifact(artifact: Path) -> None:
             help_text = _run([str(command), "--help"], capture_output=True, env=environment).stdout
             if "fuckmark" not in help_text.casefold() or "--visible" not in help_text or ":done" not in help_text:
                 raise RuntimeError(f"installed CLI --help failed for {command.name}: {help_text!r}")
+            if "fuckmark robustness" not in help_text:
+                raise RuntimeError(f"installed CLI --help missing robustness for {command.name}: {help_text!r}")
+            try:
+                bench = _run(
+                    [str(command), "robustness", "--json", "--fixture", "digits", "--attack", "identity"],
+                    capture_output=True,
+                    env=environment,
+                )
+            except subprocess.CalledProcessError as error:
+                raise RuntimeError(
+                    f"installed CLI robustness failed for {command.name}: stdout={error.stdout!r} stderr={error.stderr!r}"
+                ) from error
+            try:
+                bench_payload = json.loads(bench.stdout)
+            except json.JSONDecodeError as error:
+                raise RuntimeError(
+                    f"installed CLI robustness JSON failed for {command.name}: stdout={bench.stdout!r}"
+                ) from error
+            if bench_payload.get("freeze_ok") is not True or bench_payload.get("sealed_detector_ok") is not True:
+                raise RuntimeError(
+                    f"installed CLI robustness integrity failed for {command.name}: {bench_payload!r}"
+                )
+            if bench_payload.get("summary", {}).get("restores_source") != 1:
+                raise RuntimeError(
+                    f"installed CLI robustness digits cell failed for {command.name}: {bench_payload!r}"
+                )
 
 
 def main() -> int:

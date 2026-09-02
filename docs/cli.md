@@ -70,6 +70,7 @@ fuckmark guard --json < messages.json
 fuckmark normalize --receipt < notes.txt
 fuckmark clipboard scan
 fuckmark clipboard watch --clean
+fuckmark robustness --json
 fuckmark web
 fuckmark --text "I don’t agree." --status
 ```
@@ -156,6 +157,18 @@ fuckmark clipboard watch --once --exit-on-find
 ```
 
 `scan` reads once. `clean` rewrites the clipboard in place when findings exist. `watch` polls (default 0.5s) and warns when the clipboard contents change to a hidden payload. `--select security|all|CATS` chooses categories. Exit status for this subcommand: `0` clean, `1` findings (including after a successful clean), `2` usage, `3` clipboard tool missing or failed.
+
+### `fuckmark robustness`
+
+Replay the public sanitizer-restore bench (`fuckmark-robustness-bench-v1`). 10 short fixtures times 18 Unicode sanitizer attacks. Does not rerun GPT-2 or SynthID; the Gate v2 confirmation scorecard is hashed as a sealed detector track. Reference: [`robustness.md`](robustness.md).
+
+```text
+fuckmark robustness
+fuckmark robustness --json
+fuckmark robustness --fixture digits --attack identity
+```
+
+Exit status for this subcommand: `0` cells match frozen vectors, `1` mix or sanitizer drift, `2` usage. A file named `robustness` is not read; use `fuckmark --file robustness`.
 
 ### `fuckmark web`
 

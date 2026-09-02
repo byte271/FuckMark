@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fuckmark.hashing import sha256_bytes, sha256_file, sha256_text
+from fuckmark.hashing import sha256_bytes, sha256_file, sha256_lf_file, sha256_text
 
 
 def test_byte_and_text_hash_match_for_utf8() -> None:
@@ -8,11 +8,13 @@ def test_byte_and_text_hash_match_for_utf8() -> None:
     assert sha256_text(text) == sha256_bytes(text.encode("utf-8"))
 
 
-def test_file_hash_matches_content_hash(tmp_path: Path) -> None:
-    path = tmp_path / "fixture.bin"
-    payload = b"abc\x00def"
-    path.write_bytes(payload)
-    assert sha256_file(path) == sha256_bytes(payload)
+def test_lf_file_hash_folds_crlf(tmp_path: Path) -> None:
+    lf = tmp_path / "lf.txt"
+    crlf = tmp_path / "crlf.txt"
+    lf.write_bytes(b"a\nb\n")
+    crlf.write_bytes(b"a\r\nb\r\n")
+    assert sha256_lf_file(lf) == sha256_lf_file(crlf) == sha256_file(lf)
+    assert sha256_file(crlf) != sha256_file(lf)
 
 
 def test_file_hash_rejects_non_positive_chunk_size(tmp_path: Path) -> None:
@@ -47,6 +49,8 @@ def test_hashing_rejects_wrong_input_types() -> None:
         sha256_bytes("abc")
     with pytest.raises(TypeError):
         sha256_text(b"abc")
+    with pytest.raises(TypeError):
+        sha256_lf_file(123)
 
 
 def test_file_hash_rejects_non_integer_chunk_size(tmp_path: Path) -> None:
