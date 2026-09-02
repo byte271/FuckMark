@@ -1,0 +1,34 @@
+{
+  "name": "@fuckmark/scan",
+  "version": "0.4.1",
+  "description": "fuckmark-hidden-scan-v1 Node binding (WASM engine with JS fallback)",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "scan_wasm.js",
+    "fuckmark_scan.wasm",
+    "scan.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test.js",
+    "sync": "node sync-assets.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/byte271/FuckMark.git",
+    "directory": "bindings/node"
+  },
+  "keywords": [
+    "unicode",
+    "trojan-source",
+    "hidden-text",
+    "wasm",
+    "security"
+  ]
+}
