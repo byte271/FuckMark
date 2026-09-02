@@ -213,6 +213,7 @@ document.addEventListener(
     const result = pageApi().cleanForPaste(text);
     if (result.removed === 0) return;
     event.preventDefault();
+    event.stopImmediatePropagation();
     insertCleaned(event.target, result.cleaned);
   },
   true

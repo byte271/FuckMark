@@ -53,6 +53,10 @@ def test_popup_and_readme_document_local_engine() -> None:
     assert "Load unpacked" in readme
     assert "fuckmark-hidden-scan-v1" in readme
     assert "never leaves" in readme
+    content = (BROWSER / "content.js").read_text(encoding="utf-8")
+    assert "stopImmediatePropagation" in content
+    background = (BROWSER / "background.js").read_text(encoding="utf-8")
+    assert "tabId" in background
 
 
 def test_page_js_paste_safe_and_emoji_keep() -> None:
@@ -74,6 +78,10 @@ if (emoji.removed !== 0) throw new Error("emoji ZWJ should be kept, removed=" + 
 if (emoji.cleaned !== man + zwj + woman) throw new Error("emoji rewritten");
 const tags = page.cleanForPaste("ok" + String.fromCodePoint(0xE0061));
 if (tags.removed !== 1) throw new Error("tag should strip");
+const grin = String.fromCodePoint(0x1F600);
+const mixed = page.cleanForPaste(grin + zwj + "admin");
+if (mixed.cleaned.includes(zwj)) throw new Error("mixed ZWJ should strip");
+if (mixed.removed < 1) throw new Error("mixed ZWJ removed");
 const scan = page.scanString("// " + rlo, "javascript");
 if (scan.findings[0].context !== "comment") throw new Error("comment context");
 if (scan.findings[0].severity !== "critical") throw new Error("comment severity");

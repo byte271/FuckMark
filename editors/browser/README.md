@@ -11,8 +11,8 @@ It flags:
 - Unicode **tag** characters (hidden text / prompt-injection smuggling)
 - C0/C1 controls, noncharacters, and lone surrogates
 
-Emoji ZWJ / variation-selector sequences stay at `info` and are **not** stripped
-by paste-safe or "Copy security-clean text".
+Emoji ZWJ sequences stay intact when **both** neighbors are emoji (or a
+variation selector). A ZWJ next to ordinary letters is stripped.
 
 ## Load it unpacked
 

@@ -5,11 +5,12 @@ const MENU_REVEAL = "fuckmark-reveal-page";
 const MENU_HIDE = "fuckmark-hide-page";
 const MENU_SCAN_SELECTION = "fuckmark-scan-selection";
 
-function setBadge(total) {
+function setBadge(total, tabId) {
   const text = total > 0 ? String(Math.min(total, 99)) : "";
   const color = total > 0 ? "#c62828" : "#666666";
-  chrome.action.setBadgeBackgroundColor({ color: color });
-  chrome.action.setBadgeText({ text: text });
+  const target = tabId == null ? {} : { tabId: tabId };
+  chrome.action.setBadgeBackgroundColor({ color: color, ...target });
+  chrome.action.setBadgeText({ text: text, ...target });
 }
 
 function sendToTab(tabId, message) {
@@ -45,12 +46,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab || tab.id == null) return;
   if (info.menuItemId === MENU_SCAN) {
     const result = await sendToTab(tab.id, { type: "scan" });
-    if (result && result.ok) setBadge(result.total);
+    if (result && result.ok) setBadge(result.total, tab.id);
     return;
   }
   if (info.menuItemId === MENU_REVEAL) {
     const result = await sendToTab(tab.id, { type: "reveal" });
-    if (result && result.ok) setBadge(result.total);
+    if (result && result.ok) setBadge(result.total, tab.id);
     return;
   }
   if (info.menuItemId === MENU_HIDE) {
@@ -63,10 +64,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || typeof message.type !== "string") return;
   if (message.type === "badge") {
-    setBadge(Number(message.total) || 0);
+    const tabId = sender.tab && sender.tab.id;
+    setBadge(Number(message.total) || 0, tabId);
     sendResponse({ ok: true });
   }
 });
