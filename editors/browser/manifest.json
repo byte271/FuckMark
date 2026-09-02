@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "FuckMark Hidden Unicode",
+  "short_name": "FuckMark",
+  "version": "0.4.1",
+  "description": "Reveal and strip hidden Unicode on the page you are reading: Trojan Source bidi overrides, zero-width characters, and tag smuggling. Optional paste-safe mode. Nothing is uploaded.",
+  "homepage_url": "https://github.com/byte271/FuckMark",
+  "permissions": ["contextMenus", "storage", "activeTab"],
+  "action": {
+    "default_title": "FuckMark: hidden Unicode",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["scan.js", "page.js", "content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}

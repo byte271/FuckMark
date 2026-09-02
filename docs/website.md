@@ -38,6 +38,8 @@ Static, JS-first. Paste text or open a file; the page classifies hidden characte
 
 Deploy `scan.html` and `scan.js` next to each other. `file://` works. Under `fuckmark web`, an optional checkbox uses `POST /api/scan` on the local Python engine; text still does not leave the machine. Do not embed raw hidden characters in the HTML file; examples are built with `String.fromCodePoint`.
 
+The Chromium extension in [`../editors/browser`](../editors/browser) is the same engine in the toolbar: scan the current page, reveal hidden characters, and optionally strip them on paste.
+
 ### `demo.html` (research walkthrough)
 
 Keep it a static file that works from `file://` with baked CLI samples. The live page must show:

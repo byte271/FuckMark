@@ -89,4 +89,6 @@ runs on text files and receives the staged filenames.
 
 The same JSON contract (`--json`) is what an editor extension consumes to render
 inline decorations. The report lists each file, per-category counts, and the
-first locations as `{index, codepoint, category}`.
+first locations as `{index, codepoint, category}`. The VS Code / Cursor
+extension lives in `editors/vscode`. The Chromium extension in `editors/browser`
+reveals hidden Unicode on ordinary web pages and can strip it on paste.

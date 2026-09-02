@@ -179,6 +179,10 @@ Binary, non-UTF-8, oversized, and vendored/VCS paths are skipped; `--exclude GLO
 
 The [`editors/vscode`](editors/vscode) extension reveals hidden Unicode inline as you read code: a red box and a visible `‹U+202E›` badge on every hidden character, hover text with why it matters, diagnostics in the Problems panel (`critical` as Error, including Trojan Source in comments and strings), a status-bar count, one-click clean, and optional clean-on-save (`fuckmark.cleanOnSave`). It is zero-dependency plain JavaScript with no build step, and its scanner is a faithful port of `fuckmark-hidden-scan-v1` — pinned to the Python engine across every Unicode codepoint by [`tests/test_vscode_scanner_parity.py`](tests/test_vscode_scanner_parity.py), so the editor and the CLI agree exactly. Load it with `code --extensionDevelopmentPath=editors/vscode` or open the folder and press `F5`.
 
+## See it in the browser (Chrome / Edge / Brave)
+
+The [`editors/browser`](editors/browser) extension reveals hidden Unicode on the page you are reading. Load it unpacked from `chrome://extensions` (Developer mode). The popup scans pasted text or the current tab, **Reveal** paints `U+XXXX` badges on the page, and **Paste-safe** (off by default) strips hidden characters when you paste into a field while keeping emoji sequences. Nothing is uploaded; the scanner is the same `scan.js` as the editor extension. Full notes: [`editors/browser/README.md`](editors/browser/README.md).
+
 ## Guard model input (LLM prompt-injection smuggling)
 
 Hidden Unicode — especially Unicode **tag** characters — can smuggle a second instruction into a prompt that a human reviewer will not see. `protect()` strips that payload before the text reaches a model, and can decode the smuggled ASCII so you can log it. It is not a semantic jailbreak detector.

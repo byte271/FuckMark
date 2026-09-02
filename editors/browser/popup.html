@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="color-scheme" content="dark" />
+<title>FuckMark</title>
+<style>
+  :root {
+    --bg: #050505;
+    --ink: #f4f4f1;
+    --mute: #8a8a86;
+    --faint: #4a4a46;
+    --line: rgba(255,255,255,0.1);
+    --critical: #ff5555;
+    --high: #ff9944;
+    --medium: #c8a800;
+    --info: #8a8a86;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    width: 380px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 13.5px/1.45 ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+  main { padding: 14px 14px 16px; }
+  h1 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+  }
+  .lead {
+    margin: 6px 0 0;
+    color: var(--mute);
+    font-size: 12.5px;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  button, .toggle {
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.04);
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    border-radius: 999px;
+    padding: 7px 10px;
+    cursor: pointer;
+  }
+  button.primary { background: #fff; color: #111; border-color: #fff; font-weight: 650; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; }
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    margin-top: 10px;
+    resize: vertical;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    color: var(--ink);
+    font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    padding: 10px;
+  }
+  .summary { margin: 10px 0 0; color: var(--mute); font-size: 12.5px; }
+  .summary strong { color: var(--ink); }
+  .hit {
+    display: inline-block;
+    padding: 0 5px;
+    margin: 0 2px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 650;
+  }
+  .sev-critical { background: rgba(255,85,85,0.18); color: var(--critical); }
+  .sev-high { background: rgba(255,153,68,0.18); color: var(--high); }
+  .sev-medium { background: rgba(200,168,0,0.16); color: var(--medium); }
+  .sev-info { background: rgba(255,255,255,0.08); color: var(--info); }
+  ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; max-height: 180px; overflow: auto; }
+  li {
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.025);
+  }
+  li header { display: flex; gap: 8px; align-items: baseline; font-size: 12px; }
+  li p { margin: 4px 0 0; color: var(--mute); font-size: 12px; }
+  .fine { margin: 10px 0 0; color: var(--faint); font-size: 11px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>See the bytes.</h1>
+  <p class="lead">Scan this page or paste text. Nothing is uploaded.</p>
+  <div class="row">
+    <button id="scanPage" type="button">Scan this page</button>
+    <button id="revealPage" type="button">Reveal</button>
+    <button id="hidePage" type="button">Hide</button>
+  </div>
+  <div class="row">
+    <label class="toggle"><input id="pasteSafe" type="checkbox" /> Paste-safe</label>
+  </div>
+  <textarea id="input" spellcheck="false" placeholder="Paste text to scan in this popup."></textarea>
+  <div class="row" id="examples"></div>
+  <div class="row">
+    <button id="copyClean" type="button">Copy security-clean text</button>
+    <button id="fixTrojan" type="button">Fix Trojan Source</button>
+  </div>
+  <p class="summary" id="summary">Paste text or scan the page.</p>
+  <ul id="findings"></ul>
+  <p class="fine">Paste-safe strips hidden Unicode on paste, and keeps ZWJ only inside real emoji sequences. Same engine as fuckmark-hidden-scan-v1.</p>
+</main>
+<script src="scan.js"></script>
+<script src="page.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

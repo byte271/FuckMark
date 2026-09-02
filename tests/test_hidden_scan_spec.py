@@ -110,6 +110,7 @@ def test_scan_js_syntax() -> None:
     copies = (
         ROOT / "docs" / "scan.js",
         ROOT / "fuckmark" / "webui" / "scan.js",
+        ROOT / "editors" / "browser" / "scan.js",
     )
     canonical = SCAN_JS.read_text(encoding="utf-8")
     for path in copies:
