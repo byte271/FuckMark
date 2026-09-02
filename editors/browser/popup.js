@@ -158,6 +158,13 @@ pasteSafe.addEventListener("change", async () => {
   } else {
     scanPage.classList.add("primary");
   }
+  if (typeof globalThis.loadFuckMarkScanWasm === "function") {
+    try {
+      await globalThis.loadFuckMarkScanWasm("fuckmark_scan.wasm");
+    } catch (_err) {
+      void _err;
+    }
+  }
   if (typeof chrome !== "undefined" && chrome.storage) {
     const stored = await chrome.storage.sync.get({ pasteSafe: false });
     pasteSafe.checked = Boolean(stored.pasteSafe);

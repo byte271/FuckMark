@@ -26,7 +26,7 @@ Opens a local page at `http://127.0.0.1:8765/mark.html`. Paste text in the brows
 `fuckmark web` also serves a local Python API. Detect and strip POST to `/api/remove-marks` and run the same engine as `fuckmark --detect`. Opening `mark.html` with `file://` or the static website has no Python process, so those paths keep the in-browser fallback.
 
 - Product paste UI source: [`docs/mark.html`](docs/mark.html) (packaged as `fuckmark/webui/mark.html`) — after deploy: [mark.q1z.org/mark.html](https://mark.q1z.org/mark.html)
-- Hidden-Unicode scan (no install): [`docs/scan.html`](docs/scan.html) — `file://` works; `fuckmark web` serves `/scan.html`; after deploy: [mark.q1z.org/scan.html](https://mark.q1z.org/scan.html)
+- Hidden-Unicode scan (no install): [`docs/scan.html`](docs/scan.html) — `file://` works; `fuckmark web` serves `/scan.html`; after deploy: [mark.q1z.org/scan.html](https://mark.q1z.org/scan.html). The page prefers a local WASM copy of the same classifier (`fuckmark_scan.wasm`) and falls back to `scan.js`.
 - Research demo: [`docs/demo.html`](docs/demo.html) — `file://` works; after deploy: [mark.q1z.org/demo.html](https://mark.q1z.org/demo.html)
 
 `mark.html` runs a local closed-set FuckMark scan, strips approved insertions when found, and on a miss shows an English no-watermark card with contact to `Fhelp@q1z.org`. Under `fuckmark web` that scan is the Python detector; the JS copy is the fallback.
@@ -181,7 +181,7 @@ The [`editors/vscode`](editors/vscode) extension reveals hidden Unicode inline a
 
 ## See it in the browser (Chrome / Edge / Brave)
 
-The [`editors/browser`](editors/browser) extension reveals hidden Unicode on the page you are reading. Load it unpacked from `chrome://extensions` (Developer mode). The popup scans pasted text or the current tab, **Reveal** paints `U+XXXX` badges on the page, and **Paste-safe** (off by default) strips hidden characters when you paste into a field while keeping emoji sequences. Nothing is uploaded; the scanner is the same `scan.js` as the editor extension. Full notes: [`editors/browser/README.md`](editors/browser/README.md).
+The [`editors/browser`](editors/browser) extension reveals hidden Unicode on the page you are reading. Load it unpacked from `chrome://extensions` (Developer mode). The popup scans pasted text or the current tab, **Reveal** paints `U+XXXX` badges on the page, and **Paste-safe** (off by default) strips hidden characters when you paste into a field while keeping emoji sequences. Nothing is uploaded. The popup prefers `fuckmark_scan.wasm` when it can fetch it; on-page reveal and paste-safe keep `scan.js`. Full notes: [`editors/browser/README.md`](editors/browser/README.md).
 
 ## Guard model input (LLM prompt-injection smuggling)
 
@@ -255,6 +255,7 @@ Frozen evidence, hashes, and protocols: [`docs/research.md`](docs/research.md). 
 ```text
 python -m pip install -e ".[dev]"
 python -m pytest
+cargo test --manifest-path crates/fuckmark-scan/Cargo.toml
 ```
 
 ## License

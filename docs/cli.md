@@ -118,7 +118,7 @@ Existing files are read as UTF-8 bytes with no newline conversion. LF, CRLF, CR,
 
 Findings include context (`identifier`, `comment`, `string`, `emoji`, `prose`) and severity (`critical`, `high`, `medium`, `info`). A bidi override in an identifier, comment, or string is `critical` (Trojan Source); a ZWJ inside an emoji cluster is `info`. Comment syntax follows `language` (`auto` treats `//` and `/* */` as comments; `python` also treats `#`; `sql` treats `--`; `html` treats `<!-- -->`). The frozen table is [`specs/fuckmark-hidden-scan-v1.protocol.md`](../specs/fuckmark-hidden-scan-v1.protocol.md).
 
-`--clean` removes every flagged category, so it reverses a FuckMark mix back to the visible text. It also removes emoji zero-width joiners and variation selectors; the Python `clean_hidden_characters(text, categories=...)` call accepts a category subset when emoji sequences must be preserved. `autofix_trojan_source` strips only `bidi_control`. The browser scan page is `docs/scan.html` (`fuckmark web` serves `/scan.html`); the API is `POST /api/scan` with optional `"language"`.
+`--clean` removes every flagged category, so it reverses a FuckMark mix back to the visible text. It also removes emoji zero-width joiners and variation selectors; the Python `clean_hidden_characters(text, categories=...)` call accepts a category subset when emoji sequences must be preserved. `autofix_trojan_source` strips only `bidi_control`. The browser scan page is `docs/scan.html` (`fuckmark web` serves `/scan.html`); it prefers the WASM engine (`fuckmark_scan.wasm`) and falls back to `scan.js`. The API is `POST /api/scan` with optional `"language"`.
 
 ### `fuckmark normalize`
 
@@ -143,7 +143,7 @@ fuckmark guard --refuse --receipt --json < messages.json
 
 ### `fuckmark web`
 
-Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health`, `POST /api/remove-marks`, `POST /api/scan`, `POST /api/guard` (sanitize text or chat messages before a model call), and `POST /api/normalize`. Hidden-Unicode reveal is `/scan.html` (same engine as `--scan`; zero-install copy at `docs/scan.html`).
+Open the local browser tool (same UI as `docs/mark.html`). Aimed at beginners who prefer a page over pipes and flags. The server also exposes a Python API: `GET /api/health`, `POST /api/remove-marks`, `POST /api/scan`, `POST /api/guard` (sanitize text or chat messages before a model call), and `POST /api/normalize`. Hidden-Unicode reveal is `/scan.html` (WASM engine with `scan.js` fallback; zero-install copy at `docs/scan.html`).
 
 ```text
 fuckmark web

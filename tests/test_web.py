@@ -55,6 +55,9 @@ def test_packaged_scan_page_matches_docs_and_editor_engine() -> None:
     assert (ROOT / "docs" / "scan.js").read_text(encoding="utf-8") == canonical_js
     assert (ROOT / "fuckmark" / "webui" / "scan.js").read_text(encoding="utf-8") == canonical_js
     assert 'script src="scan.js"' in docs_html
+    assert 'script src="scan_wasm.js"' in docs_html
+    assert "fuckmark_scan.wasm" in docs_html
+    assert "loadFuckMarkScanWasm" in docs_html
     assert "FuckMarkScan" in docs_html
     assert "autofixTrojanSource" in docs_html
     assert "DEFAULT_SECURITY_CATEGORIES" in docs_html
@@ -65,6 +68,9 @@ def test_packaged_scan_page_matches_docs_and_editor_engine() -> None:
 
     assert scan_hidden_characters(docs_html, language="html").detected is False
     assert scan_hidden_characters(canonical_js, language="javascript").detected is False
+    wasm_js = (ROOT / "docs" / "scan_wasm.js").read_text(encoding="utf-8")
+    assert wasm_js == (ROOT / "fuckmark" / "webui" / "scan_wasm.js").read_text(encoding="utf-8")
+    assert scan_hidden_characters(wasm_js, language="javascript").detected is False
 
 
 def test_mark_html_miss_copy_is_english() -> None:
@@ -137,6 +143,11 @@ def test_fuckmark_web_serves_mark_page() -> None:
             seen["scan_cache"] = response.headers.get("Cache-Control")
         with urlopen(f"http://127.0.0.1:{port}/scan.js", timeout=2) as response:
             seen["scan_js"] = response.read().decode("utf-8")
+        with urlopen(f"http://127.0.0.1:{port}/scan_wasm.js", timeout=2) as response:
+            seen["scan_wasm_js"] = response.read().decode("utf-8")
+        with urlopen(f"http://127.0.0.1:{port}/fuckmark_scan.wasm", timeout=2) as response:
+            seen["scan_wasm"] = response.read()
+            seen["scan_wasm_type"] = response.headers.get("Content-Type")
         health_status, health = _get_json(f"http://127.0.0.1:{port}/api/health")
         seen["health_status"] = health_status
         seen["health"] = health
@@ -181,7 +192,13 @@ def test_fuckmark_web_serves_mark_page() -> None:
     scan_html = str(seen["scan_html"])
     assert "See the bytes." in scan_html
     assert 'script src="scan.js"' in scan_html
+    assert 'script src="scan_wasm.js"' in scan_html
     assert "FuckMarkScan" in str(seen["scan_js"])
+    assert "loadFuckMarkScanWasm" in str(seen["scan_wasm_js"])
+    wasm_bytes = seen["scan_wasm"]
+    assert isinstance(wasm_bytes, (bytes, bytearray))
+    assert bytes(wasm_bytes[:4]) == b"\0asm"
+    assert "wasm" in str(seen.get("scan_wasm_type") or "").casefold()
     assert "no-store" in str(seen.get("scan_cache", "")).casefold()
     assert "no-store" in str(seen.get("cache", "")).casefold()
     assert seen["health_status"] == 200

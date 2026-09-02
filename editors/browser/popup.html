@@ -113,9 +113,10 @@
   </div>
   <p class="summary" id="summary">Paste text or scan the page.</p>
   <ul id="findings"></ul>
-  <p class="fine">Paste-safe strips hidden Unicode on paste, and keeps ZWJ only inside real emoji sequences. Same engine as fuckmark-hidden-scan-v1.</p>
+  <p class="fine">Paste-safe strips hidden Unicode on paste, and keeps ZWJ only inside real emoji sequences. Popup scan prefers the local WASM engine; page reveal stays on scan.js. Same table as fuckmark-hidden-scan-v1.</p>
 </main>
 <script src="scan.js"></script>
+<script src="scan_wasm.js"></script>
 <script src="page.js"></script>
 <script src="popup.js"></script>
 </body>

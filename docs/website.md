@@ -11,7 +11,7 @@ Deploy these static files (repository CI cannot push them; copy after each relea
 | Repo file | Public URL |
 | --- | --- |
 | [`mark.html`](mark.html) | `https://mark.q1z.org/mark.html` (browser tool) |
-| [`scan.html`](scan.html) + [`scan.js`](scan.js) | `https://mark.q1z.org/scan.html` (hidden-Unicode reveal; deploy both files) |
+| [`scan.html`](scan.html) + [`scan.js`](scan.js) + [`scan_wasm.js`](scan_wasm.js) + [`fuckmark_scan.wasm`](fuckmark_scan.wasm) | `https://mark.q1z.org/scan.html` (hidden-Unicode reveal; deploy all four files) |
 | [`rec.html`](rec.html) | gate that waits for `go.txt`, then opens `mark.html?demo=1` |
 | [`demo.html`](demo.html) | `https://mark.q1z.org/demo.html` (research / CLI samples) |
 
@@ -34,9 +34,9 @@ The page uses that API when the local server is up. Static `https://mark.q1z.org
 
 ### `scan.html` (hidden-Unicode reveal)
 
-Static, JS-first. Paste text or open a file; the page classifies hidden characters with `fuckmark-hidden-scan-v1` (`scan.js`, the same port as the editor extension). Language (`auto`, JavaScript/C-like, Python, SQL, HTML) selects comment syntax so Trojan Source commenting-out and stretched-string encodings rank `critical`. Copy uses the security category set. **Fix Trojan Source** strips only bidirectional controls.
+Static, JS-first, WASM when `fetch` works. Paste text or open a file; the page classifies hidden characters with `fuckmark-hidden-scan-v1`. It loads `fuckmark_scan.wasm` (same table as the Python engine) and falls back to `scan.js` (the editor port) on `file://` or if WASM cannot start. Language (`auto`, JavaScript/C-like, Python, SQL, HTML) selects comment syntax so Trojan Source commenting-out and stretched-string encodings rank `critical`. Copy uses the security category set. **Fix Trojan Source** strips only bidirectional controls.
 
-Deploy `scan.html` and `scan.js` next to each other. `file://` works. Under `fuckmark web`, an optional checkbox uses `POST /api/scan` on the local Python engine; text still does not leave the machine. Do not embed raw hidden characters in the HTML file; examples are built with `String.fromCodePoint`.
+Deploy `scan.html`, `scan.js`, `scan_wasm.js`, and `fuckmark_scan.wasm` next to each other. `file://` works with the JS engine. Under `fuckmark web`, WASM is served as `application/wasm` and an optional checkbox uses `POST /api/scan` on the local Python engine; text still does not leave the machine. Do not embed raw hidden characters in the HTML file; examples are built with `String.fromCodePoint`.
 
 The Chromium extension in [`../editors/browser`](../editors/browser) is the same engine in the toolbar: scan the current page, reveal hidden characters, and optionally strip them on paste.
 
