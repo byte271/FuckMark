@@ -59,6 +59,7 @@ Development Host. Packaging for the marketplace uses `vsce package`.
 ## Related
 
 - CLI and CI: `fuckmark lint`, the GitHub Action, and the pre-commit hook.
+- Browser: Chromium extension in `editors/browser` (popup, page reveal, paste-safe).
 - Library and web API: `fuckmark --scan` / `--clean`, `fuckmark normalize`,
   `POST /api/scan`, `POST /api/guard`, and `POST /api/normalize`.
 - Node guard: `guard.js` (`protect`, `extractTagPayload`) matches `fuckmark.protect`.
