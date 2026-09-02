@@ -19,7 +19,7 @@ FuckMark v0.4.1 is the audit-fix and five-layer mix release on top of the Gate v
 1. Merge this v0.4.1 branch to green `main`. Clone install (`python -m pip install .`) already runs the product CLI from that tree. The GitHub Release wheel URL is valid only after the next two steps.
 2. On the resulting `main` push, rerun the cross-platform package matrix. That push must **not** create tags, publish a GitHub Release, or delete branches.
 3. Create and push the immutable `v0.4.1` tag on that merge commit yourself. The workflow never runs `git tag`. Do not tag a pull-request SHA if `main` will be a squash merge. Do not retag `v0.4.0`.
-4. Publish with `workflow_dispatch` and `publish_github_release=true` on that same commit. The job refuses to run unless `v0.4.1` already exists and points at the dispatch SHA. If the GitHub Release is missing, it uploads the verified wheel and sdist. It does not delete merged branches.
+4. Publish with `workflow_dispatch` and `publish_github_release=true` on that same commit. The job refuses to run unless `v0.4.1` already exists and points at the dispatch SHA. If the GitHub Release is missing, it uploads the verified wheel, sdist, and `SHA256SUMS.txt` written by `tools/verify_release_install.py` into `dist/`. It does not delete merged branches.
 5. Record the published v0.4.1 wheel SHA-256 in README and `docs/install.md` in a follow-up commit, as was done for v0.4.0.
 6. Deploy [mark.q1z.org](https://mark.q1z.org), `https://mark.q1z.org/demo.html` from `docs/demo.html`, and `https://d.q1z.org/mark` from `docs/website.md`, including the PowerShell User-Agent response. The demo must stay static, work from `file://`, and must not run detectors on visitor paste.
 

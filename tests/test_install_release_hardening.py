@@ -55,6 +55,13 @@ def test_release_engineering_does_not_auto_tag_publish_or_delete_branches() -> N
     assert "workflow_dispatch" in text
     assert "github.event_name == 'workflow_dispatch'" in text
     assert "inputs.publish_github_release == true" in text
+    assert "python tools/verify_release_install.py dist" in text
+    assert "name: release-distributions" in text
+    assert "path: dist/" in text
+    assert 'gh release create "$RELEASE_TAG" release-dist/*' in text
+    verify = VERIFY_RELEASE_INSTALL.read_text(encoding="utf-8")
+    assert "_write_checksums(directory, artifacts)" in verify
+    assert "SHA256SUMS.txt" in verify
 
 
 def test_workflow_dispatch_inputs_are_not_interpolated_into_run_scripts() -> None:
