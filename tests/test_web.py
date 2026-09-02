@@ -59,6 +59,8 @@ def test_packaged_scan_page_matches_docs_and_editor_engine() -> None:
     assert "autofixTrojanSource" in docs_html
     assert "DEFAULT_SECURITY_CATEGORIES" in docs_html
     assert "fromCodePoint(0x202E)" in docs_html
+    assert "truncated" in docs_html
+    assert "bidi_control" in docs_html
     from fuckmark.product.scan import scan_hidden_characters
 
     assert scan_hidden_characters(docs_html, language="html").detected is False

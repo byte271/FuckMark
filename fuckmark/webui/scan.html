@@ -412,6 +412,8 @@ async function scanViaPython(text, language) {
     total: inner.total || findings.length,
     findings,
     highest: inner.highest_severity || "",
+    truncated: Boolean(inner.truncated),
+    counts: inner.counts || {},
   };
 }
 
@@ -428,6 +430,8 @@ function scanLocal(text, language) {
     total: result.total,
     findings: result.findings,
     highest,
+    truncated: false,
+    counts: result.counts || {},
   };
 }
 
@@ -465,12 +469,17 @@ function render(text, result) {
     return;
   }
   copyClean.disabled = false;
-  fixTrojan.disabled = !result.findings.some((item) => item.category === "bidi_control");
+  const bidiCount = Number((result.counts && result.counts.bidi_control) || 0);
+  const listedBidi = result.findings.some((item) => item.category === "bidi_control");
+  fixTrojan.disabled = !listedBidi && bidiCount === 0;
   if (n === 0) {
     summary.innerHTML = "No hidden characters in <strong>" + text.length + "</strong> code units.";
   } else {
     const sev = result.highest ? " Highest severity: <strong>" + result.highest + "</strong>." : "";
-    summary.innerHTML = "Found <strong>" + n + "</strong> hidden character" + (n === 1 ? "" : "s") + "." + sev;
+    const cap = result.truncated
+      ? " Showing " + result.findings.length + " of " + n + " (list capped)."
+      : "";
+    summary.innerHTML = "Found <strong>" + n + "</strong> hidden character" + (n === 1 ? "" : "s") + "." + sev + cap;
   }
   reveal.replaceChildren(...revealNodes(text, result.findings));
   findingsEl.replaceChildren(...result.findings.map(findingCard));

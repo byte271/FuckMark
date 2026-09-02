@@ -73,6 +73,8 @@ Roles (optional `language` argument to `scan_hidden_characters`; default
 
 Then:
 
+- `comment` / `string` from the role mask when the category is `bidi_control`
+  (Trojan Source encodings stay on that role even next to emoji).
 - `emoji` if the previous or next scalar is emoji-ish (regional indicators
   U+1F1E6-U+1F1FF, U+1F000-U+1FAFF, U+2600-U+27BF, a small BMP emoji set,
   ZWJ, or a BMP variation selector U+FE00-U+FE0F).
