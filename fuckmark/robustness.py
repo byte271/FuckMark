@@ -22,12 +22,46 @@ ROBUSTNESS_ALGORITHM_VERSION = "fuckmark-robustness-bench-v1"
 ROBUSTNESS_EXIT_OK = 0
 ROBUSTNESS_EXIT_MISMATCH = 1
 ROBUSTNESS_EXIT_USAGE = 2
-SPEC_DIR = Path(__file__).resolve().parents[1] / "specs"
-PROTOCOL_PATH = SPEC_DIR / "fuckmark-robustness-bench-v1.protocol.md"
-VECTORS_PATH = SPEC_DIR / "fuckmark-robustness-bench-v1.vectors.json"
-FREEZE_PATH = SPEC_DIR / "fuckmark-robustness-bench-v1.freeze.json"
+PACKAGE_DATA_DIR = Path(__file__).resolve().parent / "robustness_data"
 SEALED_DETECTOR_SCORECARD_PATH = "specs/cycle8/fuckmark-cycle8-gate-v2-confirmation-scorecard-v1.json"
 SEALED_DETECTOR_SCORECARD_HASH = "3df98598fa1f9fb3951029f105b43dfd5f3e83a9ec69fd5c160b31686b0ad6c9"
+FREEZE_BINDING_KEYS = (
+    "algorithm_version",
+    "protocol_sha256",
+    "vectors_file_sha256",
+    "vectors_canonical_sha256",
+    "sealed_detector_scorecard_path",
+    "sealed_detector_scorecard_hash",
+    "sealed_detector_scorecard_file_sha256",
+)
+
+
+def _artifact(name: str, repo_relative: str) -> Path:
+    packaged = PACKAGE_DATA_DIR / name
+    if packaged.is_file():
+        return packaged
+    repo = Path(__file__).resolve().parents[1] / repo_relative
+    if repo.is_file():
+        return repo
+    return packaged
+
+
+PROTOCOL_PATH = _artifact(
+    "fuckmark-robustness-bench-v1.protocol.md",
+    "specs/fuckmark-robustness-bench-v1.protocol.md",
+)
+VECTORS_PATH = _artifact(
+    "fuckmark-robustness-bench-v1.vectors.json",
+    "specs/fuckmark-robustness-bench-v1.vectors.json",
+)
+FREEZE_PATH = _artifact(
+    "fuckmark-robustness-bench-v1.freeze.json",
+    "specs/fuckmark-robustness-bench-v1.freeze.json",
+)
+SCORECARD_FILE_PATH = _artifact(
+    "fuckmark-cycle8-gate-v2-confirmation-scorecard-v1.json",
+    SEALED_DETECTOR_SCORECARD_PATH,
+)
 _UNICODE_SANITIZER_PATTERN = re.compile(
     "[\u00a0\u1680\u180e\u2000-\u200b\u200c\u200d\u200e\u200f\u2060\u2063\u202f\u205f\u3000"
     "\ufeff\uffa0\ufff9\ufffa\ufffb\ufe00\ufe01\ufe02\ufe03\ufe04\ufe05\ufe06\ufe07\ufe08\ufe09"
@@ -234,7 +268,9 @@ def cell_dict(cell: RobustnessCell) -> dict[str, object]:
 
 
 def sealed_detector_track() -> dict[str, object]:
-    path = Path(__file__).resolve().parents[1] / SEALED_DETECTOR_SCORECARD_PATH
+    path = SCORECARD_FILE_PATH
+    if not path.is_file():
+        raise FileNotFoundError(f"FuckMark robustness artifact is not installed: {path.name}")
     payload = json.loads(path.read_text(encoding="utf-8"))
     return {
         "id": "cycle8-gate-v2-confirmation-scorecard-v1",
@@ -293,10 +329,35 @@ def build_vectors_payload() -> dict[str, object]:
 
 
 def load_vectors() -> dict[str, object]:
+    if not VECTORS_PATH.is_file():
+        raise FileNotFoundError(f"FuckMark robustness artifact is not installed: {VECTORS_PATH.name}")
     return json.loads(VECTORS_PATH.read_text(encoding="utf-8"))
 
 
+def load_freeze() -> dict[str, object]:
+    if not FREEZE_PATH.is_file():
+        raise FileNotFoundError(f"FuckMark robustness artifact is not installed: {FREEZE_PATH.name}")
+    return json.loads(FREEZE_PATH.read_text(encoding="utf-8"))
+
+
 def compare_to_vectors(cells: Sequence[RobustnessCell], vectors: dict[str, object]) -> list[dict[str, object]]:
+    expected = {item["id"]: item["expect"] for item in vectors["cells"]}
+    mismatches: list[dict[str, object]] = []
+    for cell in cells:
+        key = f"{cell.fixture_id}/{cell.attack_id}"
+        want = expected.get(key)
+        got = cell_expect(cell)
+        if want != got:
+            mismatches.append({"id": key, "expected": want, "actual": got})
+    return mismatches
+
+
+def compare_freeze(freeze: dict[str, object], live: dict[str, object]) -> list[dict[str, object]]:
+    mismatches: list[dict[str, object]] = []
+    for key in FREEZE_BINDING_KEYS:
+        if freeze.get(key) != live.get(key):
+            mismatches.append({"id": f"freeze/{key}", "expected": freeze.get(key), "actual": live.get(key)})
+    return mismatches
     expected = {item["id"]: item["expect"] for item in vectors["cells"]}
     mismatches: list[dict[str, object]] = []
     for cell in cells:
@@ -326,23 +387,34 @@ def run_robustness_bench(
     fixtures: Sequence[str] | None = None,
     attacks: Sequence[str] | None = None,
 ) -> dict[str, object]:
+    freeze = load_freeze()
+    live_freeze = freeze_bindings()
+    freeze_mismatches = compare_freeze(freeze, live_freeze)
     cells = iter_cells(fixtures=fixtures, attacks=attacks)
     vectors = load_vectors()
-    mismatches = compare_to_vectors(cells, vectors)
+    cell_mismatches = compare_to_vectors(cells, vectors)
+    mismatches = freeze_mismatches + cell_mismatches
     sealed = sealed_detector_track()
-    sealed_ok = sealed["scorecard_hash"] == sealed["expected_scorecard_hash"]
+    sealed_ok = (
+        sealed["scorecard_hash"] == freeze.get("sealed_detector_scorecard_hash") == SEALED_DETECTOR_SCORECARD_HASH
+        and sealed["file_sha256"] == freeze.get("sealed_detector_scorecard_file_sha256")
+        and not freeze_mismatches
+    )
     return {
         "algorithm_version": ROBUSTNESS_ALGORITHM_VERSION,
         "mix_mechanism_id": LETTER_MIX_MECHANISM_ID,
         "summary": summary_dict(cells, mismatches),
         "sealed_detector_track": sealed,
         "sealed_detector_ok": sealed_ok,
+        "freeze_ok": not freeze_mismatches,
         "mismatches": mismatches,
         "cells": [cell_dict(cell) for cell in cells],
     }
 
 
 def freeze_bindings() -> dict[str, object]:
+    if not PROTOCOL_PATH.is_file():
+        raise FileNotFoundError(f"FuckMark robustness artifact is not installed: {PROTOCOL_PATH.name}")
     vectors = load_vectors()
     return {
         "algorithm_version": ROBUSTNESS_ALGORITHM_VERSION,
@@ -351,9 +423,7 @@ def freeze_bindings() -> dict[str, object]:
         "vectors_canonical_sha256": sha256_json(vectors),
         "sealed_detector_scorecard_path": SEALED_DETECTOR_SCORECARD_PATH,
         "sealed_detector_scorecard_hash": SEALED_DETECTOR_SCORECARD_HASH,
-        "sealed_detector_scorecard_file_sha256": sha256_file(
-            Path(__file__).resolve().parents[1] / SEALED_DETECTOR_SCORECARD_PATH
-        ),
+        "sealed_detector_scorecard_file_sha256": sha256_file(SCORECARD_FILE_PATH),
     }
 
 
@@ -399,6 +469,14 @@ def run_robustness_argv(argv: list[str], output: TextIO, errors: TextIO) -> int:
         return int(code) if isinstance(code, int) else ROBUSTNESS_EXIT_USAGE
     try:
         report = run_robustness_bench(fixtures=arguments.fixtures, attacks=arguments.attacks)
+    except json.JSONDecodeError as error:
+        errors.write(f"FuckMark: {error}\n")
+        errors.flush()
+        return ROBUSTNESS_EXIT_MISMATCH
+    except FileNotFoundError as error:
+        errors.write(f"FuckMark: {error}\n")
+        errors.flush()
+        return ROBUSTNESS_EXIT_MISMATCH
     except ValueError as error:
         errors.write(f"FuckMark: {error}\n")
         errors.flush()
@@ -429,5 +507,5 @@ def run_robustness_argv(argv: list[str], output: TextIO, errors: TextIO) -> int:
         if mismatches:
             for item in mismatches[:12]:
                 _emit(errors, f"  mismatch {item['id']}")
-    failed = bool(mismatches) or not report["sealed_detector_ok"]
+    failed = bool(mismatches) or not report["sealed_detector_ok"] or not report["freeze_ok"]
     return ROBUSTNESS_EXIT_MISMATCH if failed else ROBUSTNESS_EXIT_OK

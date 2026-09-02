@@ -13,11 +13,13 @@ from fuckmark.hashing import sha256_file, sha256_json
 from fuckmark.robustness import (
     ATTACK_IDS,
     FREEZE_PATH,
+    PACKAGE_DATA_DIR,
     PROTOCOL_PATH,
     ROBUSTNESS_ALGORITHM_VERSION,
     ROBUSTNESS_EXIT_MISMATCH,
     ROBUSTNESS_EXIT_OK,
     ROBUSTNESS_EXIT_USAGE,
+    SCORECARD_FILE_PATH,
     SEALED_DETECTOR_SCORECARD_HASH,
     SEALED_DETECTOR_SCORECARD_PATH,
     VECTORS_PATH,
@@ -28,6 +30,7 @@ from fuckmark.robustness import (
     fixture_ids,
     fixture_source,
     iter_cells,
+    load_freeze,
     load_vectors,
     measure_cell,
     run_robustness_argv,
@@ -65,6 +68,21 @@ def test_robustness_freeze_binds_protocol_vectors_and_scorecard() -> None:
     assert payload["algorithm_version"] == ROBUSTNESS_ALGORITHM_VERSION
     assert "fuckmark-robustness-bench-v1" in PROTOCOL_PATH.read_text(encoding="utf-8")
     assert "does **not** rerun" in PROTOCOL_PATH.read_text(encoding="utf-8")
+    assert live == freeze_bindings()
+
+
+def test_packaged_robustness_artifacts_match_specs() -> None:
+    pairs = (
+        (ROOT / "specs" / "fuckmark-robustness-bench-v1.protocol.md", PROTOCOL_PATH),
+        (ROOT / "specs" / "fuckmark-robustness-bench-v1.vectors.json", VECTORS_PATH),
+        (ROOT / "specs" / "fuckmark-robustness-bench-v1.freeze.json", FREEZE_PATH),
+        (ROOT / SEALED_DETECTOR_SCORECARD_PATH, SCORECARD_FILE_PATH),
+    )
+    for public, packaged in pairs:
+        assert packaged.is_file(), packaged
+        assert packaged.parent == PACKAGE_DATA_DIR
+        assert packaged.read_bytes() == public.read_bytes(), packaged.name
+    assert PROTOCOL_PATH.resolve() != (ROOT / "specs" / "fuckmark-robustness-bench-v1.protocol.md").resolve()
 
 
 def test_sealed_scorecard_constants_match_gate_v2() -> None:
@@ -105,6 +123,7 @@ def test_digits_restore_and_mixed_fixtures_never_restore() -> None:
     assert summary["mix_projection_equals_source"] == 180
     assert summary["mismatches"] == 0
     assert report["sealed_detector_ok"] is True
+    assert report["freeze_ok"] is True
     digits = [cell for cell in iter_cells(fixtures=("digits",))]
     assert len(digits) == 18
     assert all(cell.restores_source for cell in digits)
@@ -171,6 +190,7 @@ def test_cli_json_and_main_dispatch() -> None:
     assert payload["summary"]["restores_source"] == 1
     assert payload["summary"]["mismatches"] == 0
     assert payload["sealed_detector_ok"] is True
+    assert payload["freeze_ok"] is True
     assert payload["cells"][0]["id"] == "digits/identity"
     dispatched_out, dispatched_err = StringIO(), StringIO()
     dispatched = main(
@@ -209,12 +229,60 @@ def test_cli_usage_errors() -> None:
 
 
 def test_cli_mismatch_is_exit_one(monkeypatch) -> None:
-    monkeypatch.setattr("fuckmark.robustness.load_vectors", lambda: {"cells": []})
-    code, out, err = _run(["--json", "--fixture", "digits", "--attack", "identity"])
+    monkeypatch.setattr(
+        "fuckmark.robustness.compare_to_vectors",
+        lambda _cells, _vectors: [
+            {"id": "digits/identity", "expected": {"restores_source": False}, "actual": {"restores_source": True}}
+        ],
+    )
+    code, out, _err = _run(["--json", "--fixture", "digits", "--attack", "identity"])
     assert code == ROBUSTNESS_EXIT_MISMATCH
     payload = json.loads(out)
     assert payload["summary"]["mismatches"] == 1
-    assert "digits/identity" in err or payload["mismatches"][0]["id"] == "digits/identity"
+    assert payload["freeze_ok"] is True
+    assert payload["mismatches"][0]["id"] == "digits/identity"
+
+
+def test_cli_freeze_hash_mismatch_is_exit_one(monkeypatch) -> None:
+    freeze = load_freeze()
+
+    def drifted() -> dict:
+        payload = dict(freeze)
+        payload["vectors_file_sha256"] = "00" * 32
+        return payload
+
+    monkeypatch.setattr("fuckmark.robustness.load_freeze", drifted)
+    code, out, _err = _run(["--json", "--fixture", "digits", "--attack", "identity"])
+    assert code == ROBUSTNESS_EXIT_MISMATCH
+    payload = json.loads(out)
+    assert payload["freeze_ok"] is False
+    assert payload["sealed_detector_ok"] is False
+    assert payload["cells"][0]["expect"]["restores_source"] is True
+    assert any(item["id"] == "freeze/vectors_file_sha256" for item in payload["mismatches"])
+
+
+def test_cli_scorecard_file_hash_mismatch_is_exit_one(monkeypatch) -> None:
+    freeze = load_freeze()
+
+    def drifted() -> dict:
+        payload = dict(freeze)
+        payload["sealed_detector_scorecard_file_sha256"] = "11" * 32
+        return payload
+
+    monkeypatch.setattr("fuckmark.robustness.load_freeze", drifted)
+    code, out, _err = _run(["--json", "--fixture", "digits", "--attack", "identity"])
+    assert code == ROBUSTNESS_EXIT_MISMATCH
+    payload = json.loads(out)
+    assert payload["freeze_ok"] is False
+    assert payload["sealed_detector_ok"] is False
+    assert any(item["id"] == "freeze/sealed_detector_scorecard_file_sha256" for item in payload["mismatches"])
+
+
+def test_cli_missing_artifact_is_exit_one(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr("fuckmark.robustness.FREEZE_PATH", tmp_path / "missing-freeze.json")
+    code, _out, err = _run(["--json", "--fixture", "digits", "--attack", "identity"])
+    assert code == ROBUSTNESS_EXIT_MISMATCH
+    assert "not installed" in err
 
 
 def test_cli_help_mentions_robustness_bench(capsys) -> None:

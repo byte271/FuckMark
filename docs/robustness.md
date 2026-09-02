@@ -12,6 +12,7 @@ Protocol: [`specs/fuckmark-robustness-bench-v1.protocol.md`](../specs/fuckmark-r
 Vectors (sources as codepoint arrays only):
 [`specs/fuckmark-robustness-bench-v1.vectors.json`](../specs/fuckmark-robustness-bench-v1.vectors.json).
 Freeze hashes: [`specs/fuckmark-robustness-bench-v1.freeze.json`](../specs/fuckmark-robustness-bench-v1.freeze.json).
+Installed wheels load byte-identical copies from `fuckmark/robustness_data/`. Before exit 0 the CLI recomputes those hashes, including the scorecard *file* SHA-256, so editing the scorecard while leaving its embedded `scorecard_hash` field alone still fails.
 
 ## Command line
 
@@ -68,8 +69,8 @@ Sealed detector track (hashed, not rerun): Gate v2 confirmation identity
 
 | Status | Meaning |
 | ---: | ---: |
-| 0 | Selected cells match the frozen vectors and the sealed scorecard hash still matches. |
-| 1 | Mix or sanitizer drift, or the sealed scorecard hash no longer matches. |
+| 0 | Selected cells match the frozen vectors, freeze hashes match the loaded artifacts, and the sealed scorecard hash still matches. |
+| 1 | Mix, sanitizer, or freeze-hash drift, or a packaged artifact is missing. |
 | 2 | Usage (unknown `--fixture` / `--attack`, or argparse). |
 
 ## Python
