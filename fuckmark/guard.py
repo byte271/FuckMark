@@ -7,6 +7,7 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, TextIO
 
+from .config import json_utf8_text
 from .hashing import sha256_json, sha256_text
 from .product.domain import PRODUCT_MAX_INPUT_CHARS
 from .product.scan import (
@@ -401,18 +402,18 @@ def run_guard_argv(argv: list[str], stdin: TextIO, output: TextIO, errors: TextI
             errors.write(_human_summary(receipt) + "\n")
             errors.flush()
         if arguments.receipt_output:
-            _emit(errors, json.dumps(receipt_dict(receipt), ensure_ascii=False, indent=2) + "\n")
+            _emit(errors, json_utf8_text(receipt_dict(receipt), indent=2) + "\n")
         return GUARD_EXIT_FINDINGS
     if arguments.json_mode:
-        rendered = json.dumps(cleaned, ensure_ascii=False, indent=2) + "\n"
+        rendered = json_utf8_text(cleaned, indent=2) + "\n"
     else:
-        rendered = cleaned if isinstance(cleaned, str) else json.dumps(cleaned, ensure_ascii=False)
+        rendered = cleaned if isinstance(cleaned, str) else json_utf8_text(cleaned)
     _emit(output, rendered)
     if not arguments.quiet:
         errors.write(_human_summary(receipt) + "\n")
         errors.flush()
     if arguments.receipt_output:
-        _emit(errors, json.dumps(receipt_dict(receipt), ensure_ascii=False, indent=2) + "\n")
+        _emit(errors, json_utf8_text(receipt_dict(receipt), indent=2) + "\n")
     return GUARD_EXIT_OK
 
 

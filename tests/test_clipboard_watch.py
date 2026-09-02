@@ -356,13 +356,45 @@ def test_read_clipboard_decodes_utf8(monkeypatch) -> None:
 def test_decode_utf16le_ascii_without_nul_injection() -> None:
     from fuckmark.clipboard_watch import _decode_clipboard_bytes
 
-    assert _decode_clipboard_bytes("AB".encode("utf-16-le")) == "AB"
+    utf16_ascii = "AB".encode("utf-16-le")
+    assert _decode_clipboard_bytes(utf16_ascii) == "A\x00B\x00"
+    assert _decode_clipboard_bytes(utf16_ascii, utf16_le_without_bom=True) == "AB"
     assert _decode_clipboard_bytes("AB".encode("utf-16")) == "AB"
     assert _decode_clipboard_bytes("AB".encode("utf-8")) == "AB"
     assert _decode_clipboard_bytes("caf\u00e9".encode("utf-8")) == "caf\u00e9"
+    assert _decode_clipboard_bytes(b"A\x00") == "A\x00"
     family = "\U0001F468\u200d\U0001F469"
     assert _decode_clipboard_bytes(family.encode("utf-16-le")) == family
     assert _decode_clipboard_bytes(b"") == ""
+
+
+def test_linux_utf8_clipboard_keeps_nul_controls(monkeypatch) -> None:
+    monkeypatch.setattr("fuckmark.clipboard_watch._read_commands", lambda: (("wl-paste",),))
+    monkeypatch.setattr("fuckmark.clipboard_watch.shutil.which", lambda _name: "/bin/wl-paste")
+
+    def fake_run(_command, **_kwargs):
+        completed = type("Completed", (), {})()
+        completed.stdout = b"A\x00"
+        return completed
+
+    monkeypatch.setattr("fuckmark.clipboard_watch.subprocess.run", fake_run)
+    assert read_clipboard() == "A\x00"
+
+
+def test_powershell_utf16le_ascii_is_not_read_as_nuls(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "fuckmark.clipboard_watch._read_commands",
+        lambda: (("powershell", "-NoProfile", "-Command", "Get-Clipboard -Raw"),),
+    )
+    monkeypatch.setattr("fuckmark.clipboard_watch.shutil.which", lambda _name: "/bin/powershell")
+
+    def fake_run(_command, **_kwargs):
+        completed = type("Completed", (), {})()
+        completed.stdout = "AB".encode("utf-16-le")
+        return completed
+
+    monkeypatch.setattr("fuckmark.clipboard_watch.subprocess.run", fake_run)
+    assert read_clipboard() == "AB"
 
 
 def test_write_clipboard_wraps_cli_error(monkeypatch) -> None:

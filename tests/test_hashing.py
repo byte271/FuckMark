@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from fuckmark.hashing import sha256_bytes, sha256_file, sha256_lf_file, sha256_text
@@ -21,6 +22,22 @@ def test_text_hash_accepts_lone_surrogates() -> None:
     lone = "\ud800"
     assert sha256_text(lone) == sha256_bytes(lone.encode("utf-8", "surrogatepass"))
     assert sha256_text(lone) != sha256_text("")
+
+
+def test_json_utf8_escapes_lone_surrogates() -> None:
+    from fuckmark.config import canonical_json_bytes, json_utf8_bytes, json_utf8_text
+
+    lone = "\ud800"
+    dumped = json_utf8_text({"text": lone})
+    encoded = json_utf8_bytes({"text": lone})
+    assert "\\ud800" in dumped
+    assert encoded == dumped.encode("utf-8")
+    encoded.decode("utf-8")
+    assert b"\xed\xa0\x80" not in encoded
+    assert json.loads(encoded) == {"text": lone}
+    canonical = canonical_json_bytes({"text": lone})
+    canonical.decode("utf-8")
+    assert b"\xed\xa0\x80" not in canonical
 
 
 def test_file_hash_matches_content_hash(tmp_path: Path) -> None:

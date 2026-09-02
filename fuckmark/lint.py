@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import tempfile
 from dataclasses import dataclass
@@ -9,6 +8,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import TextIO
 
+from .config import json_utf8_text
 from .product.scan import (
     CATEGORY_DESCRIPTIONS,
     SCAN_CATEGORIES,
@@ -359,7 +359,7 @@ def run_lint_argv(argv: list[str], output: TextIO, errors: TextIO) -> int:
 
     if arguments.json_output:
         report = _json_report(results, categories, scanned, skipped, arguments.fix)
-        _emit(output, json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+        _emit(output, json_utf8_text(report, indent=2) + "\n")
     else:
         _human_report(
             output,

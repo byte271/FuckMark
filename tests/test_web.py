@@ -283,3 +283,58 @@ def test_web_api_rejects_missing_content_length() -> None:
     header = bytes(raw).split(b"\r\n", 1)[0]
     assert b"400" in header
     assert b"missing Content-Length" in raw or b"bad-request" in raw
+
+
+def test_web_json_escapes_lone_surrogates_as_valid_utf8() -> None:
+    errors = StringIO()
+    seen: dict[str, object] = {}
+
+    def on_ready(_url: str, port: int) -> None:
+        encoded = json.dumps({"text": "\ud800", "on_findings": "report"}).encode("utf-8")
+        request = Request(
+            f"http://127.0.0.1:{port}/api/guard",
+            data=encoded,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            method="POST",
+        )
+        with urlopen(request, timeout=5) as response:
+            raw = response.read()
+            seen["raw"] = raw
+            seen["status"] = response.status
+            seen["payload"] = json.loads(raw.decode("utf-8"))
+        miss_body = json.dumps({"text": "plain\ud800"}).encode("utf-8")
+        miss_request = Request(
+            f"http://127.0.0.1:{port}/api/remove-marks",
+            data=miss_body,
+            headers={"Content-Type": "application/json; charset=utf-8"},
+            method="POST",
+        )
+        with urlopen(miss_request, timeout=5) as response:
+            miss_raw = response.read()
+            seen["miss_raw"] = miss_raw
+            seen["miss"] = json.loads(miss_raw.decode("utf-8"))
+
+    serve_mark_web(
+        host="127.0.0.1",
+        port=0,
+        open_browser=False,
+        errors=errors,
+        serve_seconds=0.05,
+        on_ready=on_ready,
+    )
+    raw = seen["raw"]
+    assert isinstance(raw, (bytes, bytearray))
+    assert b"\xed\xa0\x80" not in raw
+    raw.decode("utf-8")
+    payload = seen["payload"]
+    assert isinstance(payload, dict)
+    assert payload["ok"] is True
+    assert payload["value"] == "\ud800"
+    miss_raw = seen["miss_raw"]
+    assert isinstance(miss_raw, (bytes, bytearray))
+    assert b"\xed\xa0\x80" not in miss_raw
+    miss_raw.decode("utf-8")
+    miss = seen["miss"]
+    assert isinstance(miss, dict)
+    assert miss["ok"] is False
+    assert miss["text"] == "plain\ud800"

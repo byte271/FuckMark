@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import json
 import shutil
 import subprocess
 import sys
@@ -11,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TextIO
 
+from .config import json_utf8_text
 from .product.scan import (
     SCAN_CATEGORIES,
     SECURITY_SCAN_CATEGORIES,
@@ -76,7 +76,7 @@ def _read_commands() -> tuple[tuple[str, ...], ...]:
     )
 
 
-def _decode_clipboard_bytes(raw: bytes) -> str:
+def _decode_clipboard_bytes(raw: bytes, *, utf16_le_without_bom: bool = False) -> str:
     if not raw:
         return ""
     if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
@@ -84,7 +84,11 @@ def _decode_clipboard_bytes(raw: bytes) -> str:
             return raw.decode("utf-16")
         except UnicodeDecodeError as error:
             raise ClipboardUnavailableError("clipboard bytes were not valid UTF-8 or UTF-16") from error
-    if b"\x00" in raw and len(raw) % 2 == 0:
+    try:
+        utf8_text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        utf8_text = None
+    if utf16_le_without_bom and b"\x00" in raw and len(raw) % 2 == 0:
         try:
             utf16_le = raw.decode("utf-16-le")
         except UnicodeDecodeError:
@@ -92,22 +96,13 @@ def _decode_clipboard_bytes(raw: bytes) -> str:
         else:
             if "\x00" not in utf16_le:
                 return utf16_le
-    try:
-        utf8_text = raw.decode("utf-8")
-    except UnicodeDecodeError:
-        utf8_text = None
-    else:
-        if "\x00" not in utf8_text:
-            return utf8_text
-    for encoding in ("utf-16", "utf-16-le"):
-        try:
-            utf16_text = raw.decode(encoding)
-        except UnicodeDecodeError:
-            continue
-        if "\x00" not in utf16_text or utf8_text is None:
-            return utf16_text
     if utf8_text is not None:
         return utf8_text
+    for encoding in ("utf-16", "utf-16-le"):
+        try:
+            return raw.decode(encoding)
+        except UnicodeDecodeError:
+            continue
     raise ClipboardUnavailableError("clipboard bytes were not valid UTF-8 or UTF-16")
 
 
@@ -124,7 +119,11 @@ def read_clipboard() -> str:
                 capture_output=True,
                 timeout=10,
             )
-            return _decode_clipboard_bytes(completed.stdout)
+            name = executable.replace("\\", "/").rsplit("/", 1)[-1].casefold()
+            return _decode_clipboard_bytes(
+                completed.stdout,
+                utf16_le_without_bom=name in {"powershell", "powershell.exe"},
+            )
         except (OSError, subprocess.CalledProcessError, subprocess.TimeoutExpired, UnicodeError) as error:
             failures.append(f"{executable}:{type(error).__name__}")
     detail = ", ".join(failures) if failures else "no supported clipboard read command found"
@@ -343,7 +342,7 @@ def _report_alert(
         "scan": scan_dict(alert.result),
     }
     if json_mode:
-        _emit(output, json.dumps(payload, ensure_ascii=False))
+        _emit(output, json_utf8_text(payload))
         return
     if quiet:
         _emit(output, scan_machine_line(alert.result).rstrip("\n"))

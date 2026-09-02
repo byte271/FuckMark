@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import json
 import unicodedata
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, TextIO
 
+from ..config import json_utf8_text
 from ..hashing import sha256_json, sha256_text
 from .domain import PRODUCT_MAX_INPUT_CHARS
 from .scan import (
@@ -248,7 +248,7 @@ def run_normalize_argv(argv: list[str], stdin: TextIO, output: TextIO, errors: T
             errors.write("FuckMark normalize: already canonical; nothing changed.\n")
         errors.flush()
     if arguments.receipt_output:
-        _emit(errors, json.dumps(normalize_receipt_dict(receipt), ensure_ascii=False, indent=2) + "\n")
+        _emit(errors, json_utf8_text(normalize_receipt_dict(receipt), indent=2) + "\n")
     return NORMALIZE_EXIT_OK
 
 
