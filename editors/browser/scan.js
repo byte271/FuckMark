@@ -333,10 +333,13 @@ function sourceRoles(text, language) {
   return roles;
 }
 
-function classifyContext(text, offset, role) {
+function classifyContext(text, offset, role, category) {
   const length = text.codePointAt(offset) > 0xffff ? 2 : 1;
   const prev = neighborBefore(text, offset);
   const next = neighborAfter(text, offset, length);
+  if ((role === "comment" || role === "string") && category === CATEGORY_BIDI_CONTROL) {
+    return role;
+  }
   if (
     isEmojiish(prev.cp) ||
     isEmojiish(next.cp) ||
@@ -450,7 +453,7 @@ function scanText(text, categories, language) {
     if (category !== null && (selected === null || selected.has(category))) {
       total += 1;
       counts[category] = (counts[category] || 0) + 1;
-      const context = classifyContext(text, offset, roles[offset] || "code");
+      const context = classifyContext(text, offset, roles[offset] || "code", category);
       const severity = scoreSeverity(category, context);
       const explained = explainFinding(category, context, severity);
       findings.push({
