@@ -28,6 +28,7 @@ from .product.detect import (
 )
 from .product.scan import (
     clean_hidden_characters,
+    decode_hidden_scan_bytes,
     scan_hidden_characters,
     scan_human_report,
     scan_machine_line,
@@ -382,12 +383,12 @@ def _looks_like_missing_file(value: str) -> bool:
     return re.fullmatch(r"\.[A-Za-z][A-Za-z0-9]{0,11}", suffix) is not None
 
 
-def _load_source_argument(value: str) -> str:
+def _load_source_argument(value: str, *, allow_surrogates: bool = False) -> str:
     expanded = Path(value).expanduser()
     if expanded.is_dir():
         raise ValueError(f"{value} is a directory. Pass a UTF-8 text file or --text.")
     if expanded.is_file():
-        return _read_file(str(expanded))
+        return _read_file(str(expanded), allow_surrogates=allow_surrogates)
     if _looks_like_missing_file(value):
         raise ValueError(
             f"file not found: {value}. Pass an existing UTF-8 file with --file, or a literal string with --text."
@@ -467,7 +468,12 @@ def _styled(text: str, code: str, *, enabled: bool) -> str:
     return f"{code}{text}{_ANSI_RESET}" if enabled else text
 
 
-def _decode_utf8_bytes(data: bytes, origin: str) -> str:
+def _decode_utf8_bytes(data: bytes, origin: str, *, allow_surrogates: bool = False) -> str:
+    if allow_surrogates:
+        try:
+            return decode_hidden_scan_bytes(data)
+        except UnicodeDecodeError as error:
+            raise ValueError(f"{origin} is not valid UTF-8. Only UTF-8 is supported.") from error
     try:
         text = data.decode("utf-8")
     except UnicodeDecodeError as error:
@@ -477,19 +483,19 @@ def _decode_utf8_bytes(data: bytes, origin: str) -> str:
     return text
 
 
-def _read_file(path_value: str) -> str:
+def _read_file(path_value: str, *, allow_surrogates: bool = False) -> str:
     path = Path(path_value).expanduser()
     try:
         data = path.read_bytes()
     except OSError as error:
         raise ValueError(f"cannot read {path_value!r}: {error}") from error
-    return _decode_utf8_bytes(data, path_value)
+    return _decode_utf8_bytes(data, path_value, allow_surrogates=allow_surrogates)
 
 
-def _read_stream_text(source: TextIO) -> str:
+def _read_stream_text(source: TextIO, *, allow_surrogates: bool = False) -> str:
     buffer = getattr(source, "buffer", None)
     if buffer is not None:
-        return _decode_utf8_bytes(buffer.read(), "input")
+        return _decode_utf8_bytes(buffer.read(), "input", allow_surrogates=allow_surrogates)
     text = source.read()
     if any(0xD800 <= ord(character) <= 0xDFFF for character in text):
         raise ValueError("input is not valid UTF-8. Only UTF-8 is supported.")
@@ -544,7 +550,7 @@ def _write_stdout_utf8(output_stream: TextIO, text: str) -> None:
                 output_stream.flush()
             except UnicodeError:
                 pass
-            buffer.write(text.encode("utf-8"))
+            buffer.write(text.encode("utf-8", "surrogatepass"))
             buffer.flush()
             return
         output_stream.write(text)
@@ -1036,6 +1042,7 @@ def _run(
     )
     interactive = (not wants_stdin) and (not literal_or_file) and _is_tty(source)
     color = _is_tty(errors) and not arguments.no_color and "NO_COLOR" not in os.environ
+    allow_surrogates = bool(arguments.detect_mode or arguments.scan_mode or arguments.clean_mode)
 
     try:
         if text_literal is not None:
@@ -1046,9 +1053,9 @@ def _run(
                 raise ValueError(f"{file_explicit} is a directory. Pass a UTF-8 text file.")
             if not expanded.is_file():
                 raise ValueError(f"file not found: {file_explicit}")
-            text = _read_file(str(expanded))
+            text = _read_file(str(expanded), allow_surrogates=allow_surrogates)
         elif literal_or_file:
-            text = _load_source_argument(str(source_arg))
+            text = _load_source_argument(str(source_arg), allow_surrogates=allow_surrogates)
         elif interactive:
             captured = read_interactive_text(source, errors, color=color)
             if captured is None:
@@ -1057,7 +1064,7 @@ def _run(
                 return _error(errors, "no input. Paste or type text, then :done.")
             text = "\n".join(captured)
         else:
-            text = _read_stream_text(source)
+            text = _read_stream_text(source, allow_surrogates=allow_surrogates)
     except UnicodeError:
         return _error(errors, "input is not valid UTF-8. Only UTF-8 is supported.")
     except (OSError, ValueError) as error:

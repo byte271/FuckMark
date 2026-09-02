@@ -153,3 +153,31 @@ def test_lint_help_returns_zero() -> None:
     out, err = StringIO(), StringIO()
     code = main(StringIO(""), out, error_stream=err, argv=("lint", "--help"))
     assert code == LINT_EXIT_OK
+
+
+def test_cesu8_lone_surrogate_files_are_findings_not_skipped(tmp_path: Path) -> None:
+    target = tmp_path / "lone.txt"
+    target.write_bytes("ok\ud800\n".encode("utf-8", "surrogatepass"))
+    code, out, err = _run(["--json", str(target)])
+    assert code == LINT_EXIT_FINDINGS
+    assert "skipped" not in err or "0 skipped" in err
+    report = json.loads(out)
+    assert report["files_skipped"] == 0
+    assert report["files_with_findings"] == 1
+    assert report["results"][0]["counts"]["surrogate"] == 1
+    assert report["results"][0]["locations"][0]["codepoint"] == "U+D800"
+
+
+def test_fix_strips_surrogates_and_keeps_unselected(tmp_path: Path) -> None:
+    target = tmp_path / "mixed.txt"
+    target.write_bytes("\u202e\ud800".encode("utf-8", "surrogatepass"))
+    code, _out, err = _run(["--fix", str(target)])
+    assert code == LINT_EXIT_FINDINGS
+    assert "fixed 1 file" in err
+    assert target.read_bytes() == b""
+    again = tmp_path / "partial.txt"
+    again.write_bytes("\u202e\ud800".encode("utf-8", "surrogatepass"))
+    partial, _o2, _e2 = _run(["--fix", "--select", "bidi_control", str(again)])
+    assert partial == LINT_EXIT_FINDINGS
+    leftover = again.read_bytes().decode("utf-8", "surrogatepass")
+    assert leftover == "\ud800"

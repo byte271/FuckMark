@@ -128,6 +128,13 @@ def test_measurement_calibration_corpus_builds_with_frozen_split() -> None:
     assert len(text) > 0
 
 
+def test_measurement_calibration_builder_return_type_is_importable() -> None:
+    from typing import get_type_hints
+
+    hints = get_type_hints(build_real_measurement_calibration_corpus)
+    assert hints["return"].__name__ == "MeasurementCalibrationCorpus"
+
+
 def test_measurement_calibration_rejects_wrong_sample_count() -> None:
     backend = FakeCalibrationBackend()
     prompts = build_measurement_calibration_prompt_records()

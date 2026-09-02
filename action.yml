@@ -35,20 +35,29 @@ runs:
       run: python3 -m pip install --disable-pip-version-check --quiet "${{ github.action_path }}"
     - name: Scan for hidden Unicode
       shell: bash
+      env:
+        FUCKMARK_SELECT: ${{ inputs.select }}
+        FUCKMARK_FIX: ${{ inputs.fix }}
+        FUCKMARK_JSON: ${{ inputs.json }}
+        FUCKMARK_ARGS: ${{ inputs.args }}
+        FUCKMARK_PATHS: ${{ inputs.paths }}
       run: |
         set -euo pipefail
-        cmd=(fuckmark lint --select "${{ inputs.select }}")
-        if [ "${{ inputs.fix }}" = "true" ]; then
-          cmd+=(--fix)
-        fi
-        if [ "${{ inputs.json }}" = "true" ]; then
-          cmd+=(--json)
-        fi
-        if [ -n "${{ inputs.args }}" ]; then
-          # shellcheck disable=SC2206
-          cmd+=(${{ inputs.args }})
-        fi
-        # shellcheck disable=SC2206
-        cmd+=(${{ inputs.paths }})
-        printf 'Running:'; printf ' %q' "${cmd[@]}"; printf '\n'
-        "${cmd[@]}"
+        python3 - <<'PY'
+        import os
+        import shlex
+        import subprocess
+
+        cmd = ["fuckmark", "lint", "--select", os.environ.get("FUCKMARK_SELECT", "")]
+        if os.environ.get("FUCKMARK_FIX", "").strip().casefold() == "true":
+            cmd.append("--fix")
+        if os.environ.get("FUCKMARK_JSON", "").strip().casefold() == "true":
+            cmd.append("--json")
+        extra = os.environ.get("FUCKMARK_ARGS", "").strip()
+        if extra:
+            cmd.extend(shlex.split(extra))
+        paths = os.environ.get("FUCKMARK_PATHS", "").strip()
+        cmd.extend(shlex.split(paths) if paths else ["."])
+        print("Running:", " ".join(shlex.quote(part) for part in cmd), flush=True)
+        raise SystemExit(subprocess.call(cmd))
+        PY

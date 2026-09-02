@@ -38,9 +38,27 @@ def canonicalize(value: Any) -> Any:
     raise TypeError(f"Unsupported canonical JSON value type: {type(value).__name__}")
 
 
+def _escape_json_lone_surrogates(text: str) -> str:
+    if not any(0xD800 <= ord(character) <= 0xDFFF for character in text):
+        return text
+    return "".join(
+        f"\\u{ord(character):04x}" if 0xD800 <= ord(character) <= 0xDFFF else character
+        for character in text
+    )
+
+
+def json_utf8_text(value: Any, *, indent: int | None = None) -> str:
+    return _escape_json_lone_surrogates(json.dumps(value, ensure_ascii=False, indent=indent))
+
+
+def json_utf8_bytes(value: Any, *, indent: int | None = None) -> bytes:
+    return json_utf8_text(value, indent=indent).encode("utf-8")
+
+
 def canonical_json_text(value: Any) -> str:
     normalized = canonicalize(value)
-    return json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    dumped = json.dumps(normalized, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return _escape_json_lone_surrogates(dumped)
 
 
 def canonical_json_bytes(value: Any) -> bytes:

@@ -1,15 +1,20 @@
 from __future__ import annotations
 
 import argparse
-import json
 import unicodedata
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any, TextIO
 
+from ..config import json_utf8_text
 from ..hashing import sha256_json, sha256_text
 from .domain import PRODUCT_MAX_INPUT_CHARS
-from .scan import SECURITY_SCAN_CATEGORIES, clean_hidden_characters, normalize_scan_categories
+from .scan import (
+    SECURITY_SCAN_CATEGORIES,
+    clean_hidden_characters,
+    decode_hidden_scan_bytes,
+    normalize_scan_categories,
+)
 
 
 NORMALIZE_ALGORITHM_VERSION = "fuckmark-normalize-v1"
@@ -180,13 +185,13 @@ def _load_plain(source: str | None, stdin: TextIO) -> str:
     if source in (None, "-", ""):
         buffer = getattr(stdin, "buffer", None)
         if buffer is not None:
-            return buffer.read().decode("utf-8")
+            return decode_hidden_scan_bytes(buffer.read())
         return stdin.read()
     from pathlib import Path
 
     path = Path(source).expanduser()
     if path.is_file():
-        return path.read_text(encoding="utf-8")
+        return decode_hidden_scan_bytes(path.read_bytes())
     return source
 
 
@@ -197,7 +202,7 @@ def _emit(stream: TextIO, text: str) -> None:
             stream.flush()
         except (OSError, ValueError, UnicodeError):
             pass
-        buffer.write(text.encode("utf-8"))
+        buffer.write(text.encode("utf-8", "surrogatepass"))
         buffer.flush()
         return
     stream.write(text)
@@ -243,7 +248,7 @@ def run_normalize_argv(argv: list[str], stdin: TextIO, output: TextIO, errors: T
             errors.write("FuckMark normalize: already canonical; nothing changed.\n")
         errors.flush()
     if arguments.receipt_output:
-        _emit(errors, json.dumps(normalize_receipt_dict(receipt), ensure_ascii=False, indent=2) + "\n")
+        _emit(errors, json_utf8_text(normalize_receipt_dict(receipt), indent=2) + "\n")
     return NORMALIZE_EXIT_OK
 
 

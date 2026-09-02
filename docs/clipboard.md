@@ -62,6 +62,13 @@ clipboard` for that.
 | Linux | `wl-paste`, then `xclip -o`, then `xsel` | `wl-copy`, `xclip`, `xsel`, `clip.exe` |
 | Windows | PowerShell `Get-Clipboard -Raw` | `clip` (UTF-16) |
 
+UTF-8 is tried first. A UTF-16 BOM (`FF FE` / `FE FF`) is honored on every
+platform. BOM-less UTF-16LE is used only for PowerShell `Get-Clipboard` (Windows):
+that tool emits UTF-16LE for plain ASCII without a BOM, and treating it as UTF-8
+would insert a `U+0000` control between every letter. `pbpaste`, `wl-paste`,
+`xclip`, and `xsel` stay UTF-8, so a real NUL on Linux or macOS stays in the
+`control` category.
+
 Install one of those tools on a desktop session. Headless CI has no clipboard;
 tests inject a fake reader and writer and never call the OS.
 

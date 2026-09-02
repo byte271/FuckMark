@@ -7,11 +7,13 @@ from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, TextIO
 
+from .config import json_utf8_text
 from .hashing import sha256_json, sha256_text
 from .product.domain import PRODUCT_MAX_INPUT_CHARS
 from .product.scan import (
     SECURITY_SCAN_CATEGORIES,
     clean_hidden_characters,
+    decode_hidden_scan_bytes,
     extract_tag_payload,
     normalize_scan_categories,
     scan_hidden_characters,
@@ -312,13 +314,13 @@ def _load_plain(source: str | None, stdin: TextIO) -> str:
     if source in (None, "-", ""):
         buffer = getattr(stdin, "buffer", None)
         if buffer is not None:
-            return buffer.read().decode("utf-8")
+            return decode_hidden_scan_bytes(buffer.read())
         return stdin.read()
     from pathlib import Path
 
     path = Path(source).expanduser()
     if path.is_file():
-        return path.read_text(encoding="utf-8")
+        return decode_hidden_scan_bytes(path.read_bytes())
     return source
 
 
@@ -329,7 +331,7 @@ def _emit(stream: TextIO, text: str) -> None:
             stream.flush()
         except (OSError, ValueError, UnicodeError):
             pass
-        buffer.write(text.encode("utf-8"))
+        buffer.write(text.encode("utf-8", "surrogatepass"))
         buffer.flush()
         return
     stream.write(text)
@@ -400,18 +402,18 @@ def run_guard_argv(argv: list[str], stdin: TextIO, output: TextIO, errors: TextI
             errors.write(_human_summary(receipt) + "\n")
             errors.flush()
         if arguments.receipt_output:
-            _emit(errors, json.dumps(receipt_dict(receipt), ensure_ascii=False, indent=2) + "\n")
+            _emit(errors, json_utf8_text(receipt_dict(receipt), indent=2) + "\n")
         return GUARD_EXIT_FINDINGS
     if arguments.json_mode:
-        rendered = json.dumps(cleaned, ensure_ascii=False, indent=2) + "\n"
+        rendered = json_utf8_text(cleaned, indent=2) + "\n"
     else:
-        rendered = cleaned if isinstance(cleaned, str) else json.dumps(cleaned, ensure_ascii=False)
+        rendered = cleaned if isinstance(cleaned, str) else json_utf8_text(cleaned)
     _emit(output, rendered)
     if not arguments.quiet:
         errors.write(_human_summary(receipt) + "\n")
         errors.flush()
     if arguments.receipt_output:
-        _emit(errors, json.dumps(receipt_dict(receipt), ensure_ascii=False, indent=2) + "\n")
+        _emit(errors, json_utf8_text(receipt_dict(receipt), indent=2) + "\n")
     return GUARD_EXIT_OK
 
 

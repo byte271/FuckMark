@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import tempfile
 from dataclasses import dataclass
@@ -9,12 +8,14 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import TextIO
 
+from .config import json_utf8_text
 from .product.scan import (
     CATEGORY_DESCRIPTIONS,
     SCAN_CATEGORIES,
     SECURITY_SCAN_CATEGORIES,
     HiddenFinding,
     clean_hidden_characters,
+    decode_hidden_scan_bytes,
     normalize_scan_categories,
     scan_hidden_characters,
 )
@@ -162,20 +163,18 @@ def _iter_candidate_files(paths: list[str], exclude_globs: tuple[str, ...]) -> l
 
 def _read_text_file(path: Path, max_bytes: int) -> str | None:
     try:
-        if path.stat().st_size > max_bytes:
-            return None
-        data = path.read_bytes()
+        with path.open("rb") as handle:
+            data = handle.read(max_bytes + 1)
     except OSError:
+        return None
+    if len(data) > max_bytes:
         return None
     if b"\x00" in data:
         return None
     try:
-        text = data.decode("utf-8")
+        return decode_hidden_scan_bytes(data)
     except UnicodeDecodeError:
         return None
-    if any(0xD800 <= ord(character) <= 0xDFFF for character in text):
-        return None
-    return text
 
 
 def _write_text_atomic(path: Path, text: str) -> bool:
@@ -183,16 +182,14 @@ def _write_text_atomic(path: Path, text: str) -> bool:
     temporary: Path | None = None
     try:
         with tempfile.NamedTemporaryFile(
-            mode="w",
-            encoding="utf-8",
-            newline="",
+            mode="wb",
             dir=parent,
             prefix=f".{path.name}.",
             suffix=".tmp",
             delete=False,
         ) as handle:
             temporary = Path(handle.name)
-            handle.write(text)
+            handle.write(text.encode("utf-8", "surrogatepass"))
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temporary, path)
@@ -231,7 +228,7 @@ def _emit(output: TextIO, text: str) -> None:
             output.flush()
         except (OSError, ValueError, UnicodeError):
             pass
-        buffer.write(text.encode("utf-8"))
+        buffer.write(text.encode("utf-8", "surrogatepass"))
         buffer.flush()
         return
     output.write(text)
@@ -362,7 +359,7 @@ def run_lint_argv(argv: list[str], output: TextIO, errors: TextIO) -> int:
 
     if arguments.json_output:
         report = _json_report(results, categories, scanned, skipped, arguments.fix)
-        _emit(output, json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+        _emit(output, json_utf8_text(report, indent=2) + "\n")
     else:
         _human_report(
             output,
