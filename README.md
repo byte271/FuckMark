@@ -250,6 +250,16 @@ Eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji clusters 
 
 Frozen evidence, hashes, and protocols: [`docs/research.md`](docs/research.md). Product contract: [`docs/product-contract.md`](docs/product-contract.md). CLI: [`docs/cli.md`](docs/cli.md). Limits matrix: [`docs/limits.md`](docs/limits.md). Demo: [`docs/demo.html`](docs/demo.html).
 
+## Language bindings (Rust scan ABI)
+
+The hidden-scan classifier also ships as a small Rust crate with a C ABI, an optional Python native loader (`fuckmark.native_scan`), and a Node package (`bindings/node`). Overview: [`bindings/README.md`](bindings/README.md).
+
+```text
+./crates/fuckmark-scan/build-native.sh
+python -c "from fuckmark.native_scan import scan_text; print(scan_text('a\u202eb')['total'])"
+cd bindings/node && node sync-assets.js && node test.js
+```
+
 ## Development
 
 ```text

@@ -180,9 +180,27 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - name: Test crate and build wasm32
         run: |
           cargo test --manifest-path crates/fuckmark-scan/Cargo.toml
           cargo build --release --target wasm32-unknown-unknown --manifest-path crates/fuckmark-scan/Cargo.toml
           test -f crates/fuckmark-scan/target/wasm32-unknown-unknown/release/fuckmark_scan.wasm
+
+      - name: Build host library and language bindings
+        run: |
+          ./crates/fuckmark-scan/build-native.sh
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pytest -q tests/test_language_bindings.py tests/test_scan_wasm.py
 
