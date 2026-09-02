@@ -288,7 +288,9 @@
       <div class="reveal" id="reveal" aria-live="polite"></div>
       <ul class="findings" id="findings"></ul>
       <p class="fine">
-        Scanning is <code>fuckmark-hidden-scan-v1</code>. Copy uses the security category set
+        Scanning is <code>fuckmark-hidden-scan-v1</code>. The page prefers the local WASM engine
+        (<code>fuckmark_scan.wasm</code>) and keeps <code>scan.js</code> as the <code>file://</code>
+        fallback. Copy uses the security category set
         (<code>bidi_control</code>, <code>zero_width</code>, <code>tag</code>, <code>control</code>,
         <code>noncharacter</code>, <code>surrogate</code>). Fix Trojan Source strips only
         bidirectional controls. Nothing is uploaded from a static page or <code>file://</code>.
@@ -298,6 +300,7 @@
     </div>
   </main>
 <script src="scan.js"></script>
+<script src="scan_wasm.js"></script>
 <script>
 "use strict";
 
@@ -343,6 +346,7 @@ const fixTrojan = document.getElementById("fixTrojan");
 const examplesEl = document.getElementById("examples");
 
 let pythonReady = false;
+let wasmReady = false;
 let scanTimer = 0;
 
 function scanApi() {
@@ -426,11 +430,11 @@ function scanLocal(text, language) {
     if ((rank[finding.severity] || 0) > (rank[highest] || 0)) highest = finding.severity;
   }
   return {
-    engine: "browser",
+    engine: (api && api.engine === "wasm") || wasmReady ? "wasm" : "browser",
     total: result.total,
     findings: result.findings,
-    highest,
-    truncated: false,
+    highest: result.highest_severity || highest,
+    truncated: Boolean(result.truncated),
     counts: result.counts || {},
   };
 }
@@ -458,7 +462,7 @@ async function scanNow() {
 
 function render(text, result) {
   const n = result.total;
-  const engine = result.engine === "python" ? "Python" : "browser";
+  const engine = result.engine === "python" ? "Python" : result.engine === "wasm" ? "wasm" : "browser";
   engineBadge.innerHTML = "Engine: <b>" + engine + "</b>";
   if (!text) {
     summary.textContent = "Paste text to scan.";
@@ -591,6 +595,14 @@ fixTrojan.addEventListener("click", async () => {
   pythonReady = await probePython();
   if (pythonReady) {
     pythonRow.hidden = false;
+  }
+  if (typeof globalThis.loadFuckMarkScanWasm === "function") {
+    try {
+      await globalThis.loadFuckMarkScanWasm("fuckmark_scan.wasm");
+      wasmReady = scanApi() && scanApi().engine === "wasm";
+    } catch (_err) {
+      wasmReady = false;
+    }
   }
   const params = new URLSearchParams(location.search);
   const demo = params.get("demo");

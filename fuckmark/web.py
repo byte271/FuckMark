@@ -171,6 +171,11 @@ def _web_parser() -> argparse.ArgumentParser:
 
 
 class _MarkHandler(http.server.SimpleHTTPRequestHandler):
+    extensions_map = {
+        **http.server.SimpleHTTPRequestHandler.extensions_map,
+        ".wasm": "application/wasm",
+    }
+
     def log_message(self, format: str, *args) -> None:
         return
 

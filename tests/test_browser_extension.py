@@ -17,6 +17,11 @@ MANIFEST = BROWSER / "manifest.json"
 
 def test_browser_scan_js_matches_vscode_engine() -> None:
     assert (BROWSER / "scan.js").read_text(encoding="utf-8") == VSCODE_SCAN.read_text(encoding="utf-8")
+    wasm_js = (ROOT / "editors" / "wasm" / "scan_wasm.js").read_text(encoding="utf-8")
+    assert (BROWSER / "scan_wasm.js").read_text(encoding="utf-8") == wasm_js
+    wasm = (ROOT / "editors" / "wasm" / "fuckmark_scan.wasm").read_bytes()
+    assert (BROWSER / "fuckmark_scan.wasm").read_bytes() == wasm
+    assert wasm[:4] == b"\0asm"
 
 
 def test_manifest_is_mv3_and_local() -> None:
@@ -26,6 +31,9 @@ def test_manifest_is_mv3_and_local() -> None:
     assert "clipboardRead" not in payload.get("permissions", [])
     assert payload["action"]["default_popup"] == "popup.html"
     assert payload["background"]["service_worker"] == "background.js"
+    csp = payload["content_security_policy"]["extension_pages"]
+    assert "wasm-unsafe-eval" in csp
+    assert "'self'" in csp
     scripts = payload["content_scripts"][0]["js"]
     assert scripts == ["scan.js", "page.js", "content.js"]
     for name in ("externally_connectable", "update_url", "key"):
@@ -47,6 +55,7 @@ def test_popup_and_readme_document_local_engine() -> None:
     popup = (BROWSER / "popup.html").read_text(encoding="utf-8")
     readme = (BROWSER / "README.md").read_text(encoding="utf-8")
     assert 'script src="scan.js"' in popup
+    assert 'script src="scan_wasm.js"' in popup
     assert 'script src="page.js"' in popup
     assert "Paste-safe" in popup
     assert "fromCodePoint(0x202E)" in (BROWSER / "popup.js").read_text(encoding="utf-8")

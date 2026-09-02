@@ -6,6 +6,9 @@
   "description": "Reveal and strip hidden Unicode on the page you are reading: Trojan Source bidi overrides, zero-width characters, and tag smuggling. Optional paste-safe mode. Nothing is uploaded.",
   "homepage_url": "https://github.com/byte271/FuckMark",
   "permissions": ["contextMenus", "storage", "activeTab"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
   "action": {
     "default_title": "FuckMark: hidden Unicode",
     "default_popup": "popup.html"
