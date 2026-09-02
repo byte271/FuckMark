@@ -1,6 +1,6 @@
 # Research archive
 
-This directory's user manuals are [`install.md`](install.md), [`cli.md`](cli.md), [`limits.md`](limits.md), [`website.md`](website.md), and the no-install [`demo.html`](demo.html). The demo uses fixed samples and frozen scores; it is not a live detector.
+This directory's user manuals are [`install.md`](install.md), [`cli.md`](cli.md), [`limits.md`](limits.md), [`website.md`](website.md), the public sanitizer-restore bench [`robustness.md`](robustness.md), and the no-install [`demo.html`](demo.html). The demo uses fixed samples and frozen scores; it is not a live detector.
 
 Frozen scientific records are not the user manual. They stay in the repository so the product claims can be audited.
 
@@ -15,6 +15,7 @@ Frozen scientific records are not the user manual. They stay in the repository s
 
 ## Evidence index
 
+- Public sanitizer-restore bench (`fuckmark-robustness-bench-v1`, model-free, does not rerun detectors): [`robustness.md`](robustness.md), [`specs/fuckmark-robustness-bench-v1.protocol.md`](../specs/fuckmark-robustness-bench-v1.protocol.md)
 - Gate v2 confirmation: [`evidence/cycle8-gate-v2-confirmation-2026-08-27/README.md`](../evidence/cycle8-gate-v2-confirmation-2026-08-27/README.md)
 - DeepMind 30-key transfer: [`evidence/cycle8-mix-deepmind-transfer-2026-08-27/README.md`](../evidence/cycle8-mix-deepmind-transfer-2026-08-27/README.md)
 - DistilGPT2 n=16: [`evidence/cycle8-mix-distilgpt2-1090000-n16-2026-08-27/README.md`](../evidence/cycle8-mix-distilgpt2-1090000-n16-2026-08-27/README.md)

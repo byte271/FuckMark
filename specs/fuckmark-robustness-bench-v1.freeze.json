@@ -1,0 +1,12 @@
+{
+  "algorithm_version": "fuckmark-robustness-bench-v1",
+  "freeze_record_version": "fuckmark-robustness-bench-v1-freeze-v1",
+  "frozen_at_utc": "2026-09-02T03:30:00+00:00",
+  "protocol_id": "fuckmark-robustness-bench-v1",
+  "protocol_sha256": "9808da06fce59d952c98464dcdd0f0df45968b363b57d00307c01ed794813cbe",
+  "vectors_file_sha256": "c84fdb3f4ab0a0582b9bfc6254af1f7957d88682d01e0abb40922cf17643aa3c",
+  "vectors_canonical_sha256": "ceb7a7e0ac5608740ddf4271994315b28c4b052d20e68dba4e0a45c2e8ed8ba1",
+  "sealed_detector_scorecard_path": "specs/cycle8/fuckmark-cycle8-gate-v2-confirmation-scorecard-v1.json",
+  "sealed_detector_scorecard_hash": "3df98598fa1f9fb3951029f105b43dfd5f3e83a9ec69fd5c160b31686b0ad6c9",
+  "sealed_detector_scorecard_file_sha256": "818fe948cd126c83fe8508847b581ebe5778073555752974fbb7e99ebfa8e6fa"
+}

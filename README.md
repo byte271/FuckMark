@@ -195,6 +195,17 @@ fuckmark clipboard watch --clean
 
 Needs a clipboard tool (`pbpaste`, `wl-paste` / `xclip` / `xsel`, or PowerShell `Get-Clipboard`). Full reference: [`docs/clipboard.md`](docs/clipboard.md).
 
+## Replay the sanitizer-restore bench
+
+`fuckmark robustness` is the public, hashed restore grid for the live mix. It does not rerun GPT-2 or SynthID. Detector numbers stay on the sealed Gate v2 scorecard. Mixed letter/emoji fixtures in the v1 catalog do not restore after the listed Unicode sanitizers; `digits` has no eligible site, so mix is a no-op.
+
+```text
+fuckmark robustness
+fuckmark robustness --json
+```
+
+Full reference: [`docs/robustness.md`](docs/robustness.md). Protocol and freeze: [`specs/fuckmark-robustness-bench-v1.protocol.md`](specs/fuckmark-robustness-bench-v1.protocol.md).
+
 ## Guard model input (LLM prompt-injection smuggling)
 
 Hidden Unicode — especially Unicode **tag** characters — can smuggle a second instruction into a prompt that a human reviewer will not see. `protect()` strips that payload before the text reaches a model, and can decode the smuggled ASCII so you can log it. It is not a semantic jailbreak detector.
@@ -260,7 +271,7 @@ Eligible Latin, Greek, Cyrillic, Han, Kana, Hangul syllable, and emoji clusters 
 
 ## Research
 
-Frozen evidence, hashes, and protocols: [`docs/research.md`](docs/research.md). Product contract: [`docs/product-contract.md`](docs/product-contract.md). CLI: [`docs/cli.md`](docs/cli.md). Limits matrix: [`docs/limits.md`](docs/limits.md). Demo: [`docs/demo.html`](docs/demo.html).
+Frozen evidence, hashes, and protocols: [`docs/research.md`](docs/research.md). Public sanitizer-restore bench: [`docs/robustness.md`](docs/robustness.md). Product contract: [`docs/product-contract.md`](docs/product-contract.md). CLI: [`docs/cli.md`](docs/cli.md). Limits matrix: [`docs/limits.md`](docs/limits.md). Demo: [`docs/demo.html`](docs/demo.html).
 
 ## Language bindings (Rust scan ABI)
 
