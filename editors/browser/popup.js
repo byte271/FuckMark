@@ -155,6 +155,8 @@ pasteSafe.addEventListener("change", async () => {
     scanPage.disabled = true;
     revealPage.disabled = true;
     hidePage.disabled = true;
+  } else {
+    scanPage.classList.add("primary");
   }
   if (typeof chrome !== "undefined" && chrome.storage) {
     const stored = await chrome.storage.sync.get({ pasteSafe: false });
