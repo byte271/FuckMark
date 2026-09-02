@@ -119,6 +119,46 @@ def test_snapshot_digest_changes_with_hidden_payload() -> None:
     assert len(visible.digest) == 64
 
 
+def test_snapshot_and_watch_accept_lone_surrogates() -> None:
+    lone = "\ud800"
+    snap = snapshot_text(lone)
+    assert len(snap.digest) == 64
+    assert snap.digest != snapshot_text("").digest
+    alert = evaluate_clipboard_text(lone)
+    assert alert.result.detected is True
+    assert alert.result.counts["surrogate"] == 1
+    assert alert.cleaned == ""
+    writes: list[str] = []
+    code = watch_clipboard(once=True, clean=True, reader=lambda: lone, writer=writes.append)
+    assert code == CLIPBOARD_EXIT_FINDINGS
+    assert writes == [""]
+
+
+def test_linux_clipboard_read_keeps_wl_paste_newlines(monkeypatch) -> None:
+    monkeypatch.setattr("fuckmark.clipboard_watch.sys.platform", "linux")
+    from fuckmark.clipboard_watch import _read_commands
+
+    commands = _read_commands()
+    assert commands[0] == ("wl-paste",)
+    assert all(command != ("wl-paste", "--no-newline") for command in commands)
+
+
+def test_watch_clean_does_not_overwrite_newer_clipboard() -> None:
+    texts = ["a" + ZWJ, "fresh"]
+    idx = {"i": 0}
+    writes: list[str] = []
+
+    def reader() -> str:
+        i = min(idx["i"], len(texts) - 1)
+        idx["i"] += 1
+        return texts[i]
+
+    code = watch_clipboard(once=True, clean=True, reader=reader, writer=writes.append)
+    assert writes == []
+    assert code == CLIPBOARD_EXIT_OK
+    assert idx["i"] >= 2
+
+
 def test_watch_once_clean_and_findings() -> None:
     assert watch_clipboard(once=True, reader=lambda: "hello") == CLIPBOARD_EXIT_OK
     assert watch_clipboard(once=True, reader=lambda: "a" + ZWJ) == CLIPBOARD_EXIT_FINDINGS

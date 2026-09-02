@@ -30,6 +30,8 @@ seconds (default 0.5) and warns only when the clipboard *contents change* to a
 payload that still has findings. Identical text is not re-alerted. `--once`
 exits after the first poll. `--exit-on-find` exits when the first hidden
 payload appears. `--max-seconds` stops a watch loop even if nothing was found.
+`--clean` re-reads the clipboard immediately before rewriting it, so a newer
+copy made during the alert is left alone.
 
 `--select security` is the default. `--select all` includes variation
 selectors, enclosing marks, format controls, and private-use. Pass an explicit

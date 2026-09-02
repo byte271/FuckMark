@@ -52,7 +52,7 @@ class ClipboardUnavailableError(RuntimeError):
 
 
 def _digest(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return hashlib.sha256(text.encode("utf-8", "surrogatepass")).hexdigest()
 
 
 def snapshot_text(text: str) -> ClipboardSnapshot:
@@ -70,7 +70,6 @@ def _read_commands() -> tuple[tuple[str, ...], ...]:
             ("powershell.exe", "-NoProfile", "-Command", "Get-Clipboard -Raw"),
         )
     return (
-        ("wl-paste", "--no-newline"),
         ("wl-paste",),
         ("xclip", "-selection", "clipboard", "-o"),
         ("xsel", "--clipboard", "--output"),
@@ -229,6 +228,10 @@ def watch_clipboard(
                 if on_alert is not None:
                     on_alert(alert, snap)
                 if clean and alert.removed:
+                    latest = snapshot_text(read())
+                    if latest.digest != snap.digest:
+                        last_digest = ""
+                        continue
                     write(alert.cleaned)
                     last_digest = snapshot_text(alert.cleaned).digest
                     if on_clean is not None:
