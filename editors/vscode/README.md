@@ -17,8 +17,9 @@ It flags the classes that read as ordinary text but are not:
 - **Inline reveal:** every hidden character gets a red box and a visible
   `‹U+202E›` badge, even when the character itself paints nothing.
 - **Problems panel:** each hit is a diagnostic. `critical` (Trojan Source in
-  an identifier, tag smuggling) is an Error; `high` and other security classes
-  are warnings; the rest are info. Hover text states why the character matters.
+  an identifier, comment, or string; tag smuggling) is an Error; `high` and
+  other security classes are warnings; the rest are info. Hover text states why
+  the character matters. Comment syntax follows the editor language id.
 - **Status bar:** a live hidden-character count. Click it to clean the file.
 - **Commands** (Command Palette):
   - `FuckMark: Clean hidden Unicode in file`

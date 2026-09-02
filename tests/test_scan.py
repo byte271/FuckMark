@@ -13,6 +13,7 @@ from fuckmark.product.scan import (
     CATEGORY_VARIATION_SELECTOR,
     CATEGORY_ZERO_WIDTH,
     SCAN_CATEGORIES,
+    autofix_trojan_source,
     classify_hidden_codepoint,
     clean_hidden_characters,
     scan_dict,
@@ -20,6 +21,7 @@ from fuckmark.product.scan import (
     scan_human_report,
     scan_machine_line,
 )
+from fuckmark.product.severity import language_from_path, source_roles
 from fuckmark.web import scan_payload, serve_mark_web
 
 
@@ -209,6 +211,7 @@ def test_web_scan_payload_and_endpoint() -> None:
     assert payload["cleaned"] == "Hello from the scanner."
     assert int(payload["removed"]) > 0
     assert payload["scan"]["found"] is True
+    assert payload["language"] == "auto"
 
     seen: dict[str, object] = {}
 
@@ -233,6 +236,32 @@ def test_web_scan_payload_and_endpoint() -> None:
     assert clean_data["reason"] == "clean"
     assert clean_data["scan"]["found"] is False
 
+    def on_ready_language(url: str, port: int) -> None:
+        py_status, py_data = _post_json(
+            f"http://127.0.0.1:{port}/api/scan",
+            {"text": "# \u202e", "language": "python"},
+        )
+        seen["py_status"] = py_status
+        seen["py_data"] = py_data
+        auto_status, auto_data = _post_json(
+            f"http://127.0.0.1:{port}/api/scan",
+            {"text": "# \u202e"},
+        )
+        seen["auto_status"] = auto_status
+        seen["auto_data"] = auto_data
+
+    serve_mark_web(host="127.0.0.1", port=0, open_browser=False, serve_seconds=0.05, on_ready=on_ready_language)
+    assert seen["py_status"] == 200
+    py_data = seen["py_data"]
+    assert isinstance(py_data, dict)
+    assert py_data["language"] == "python"
+    assert py_data["scan"]["findings"][0]["context"] == "comment"
+    assert py_data["scan"]["findings"][0]["severity"] == "critical"
+    auto_data = seen["auto_data"]
+    assert isinstance(auto_data, dict)
+    assert auto_data["language"] == "auto"
+    assert auto_data["scan"]["findings"][0]["context"] == "prose"
+
 
 def test_severity_is_context_aware() -> None:
     ident = scan_hidden_characters("a\u202eb")
@@ -252,4 +281,41 @@ def test_severity_is_context_aware() -> None:
 
     quoted = scan_hidden_characters('"\u202e"')
     assert quoted.findings[0].context == "string"
-    assert quoted.findings[0].severity == "high"
+    assert quoted.findings[0].severity == "critical"
+
+    comment = scan_hidden_characters("// \u202e")
+    assert comment.findings[0].context == "comment"
+    assert comment.findings[0].severity == "critical"
+
+
+def test_language_from_path_maps_suffixes() -> None:
+    assert language_from_path("app.js") == "javascript"
+    assert language_from_path("mod.py") == "python"
+    assert language_from_path("q.sql") == "sql"
+    assert language_from_path("page.html") == "html"
+    assert language_from_path("notes.txt") == "auto"
+
+
+def test_hash_comment_is_language_aware() -> None:
+    python = scan_hidden_characters("# \u202e", language="python")
+    assert python.findings[0].context == "comment"
+    assert python.findings[0].severity == "critical"
+    auto = scan_hidden_characters("# \u202e")
+    assert auto.findings[0].context == "prose"
+    assert auto.findings[0].severity == "high"
+
+
+def test_url_double_slash_is_not_a_comment() -> None:
+    roles = source_roles("http://x")
+    assert all(role == "code" for role in roles)
+    result = scan_hidden_characters("http://\u202e")
+    assert result.findings[0].context == "prose"
+    assert result.findings[0].severity == "high"
+
+
+def test_autofix_trojan_source_strips_only_bidi() -> None:
+    text = "a\u202e\u200bb"
+    cleaned, removed = autofix_trojan_source(text)
+    assert removed == 1
+    assert cleaned == "a\u200bb"
+    assert "\u202e" not in cleaned

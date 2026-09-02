@@ -34,7 +34,9 @@ Pass `--select all` to include `variation_selector`, `enclosing_mark`,
 `line_separator`, `deprecated`, `format`, and `private_use`, or pass an explicit
 comma-separated subset. See [`cli.md`](cli.md) for the full category list.
 JSON locations include `context`, `severity`, `why`, and `remedy` from
-`fuckmark-hidden-scan-v1`.
+`fuckmark-hidden-scan-v1`. Context uses the file suffix: `.js`/`.ts` get
+JavaScript comments (`//`, `/* */`), `.py` gets `#` comments, `.sql` gets `--`,
+`.html` gets `<!-- -->`. A bidi override in a comment or string is `critical`.
 
 ### What is skipped
 

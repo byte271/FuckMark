@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 
 from .._validation import require_int
-from .severity import annotate_finding, advance_string_state
+from .severity import annotate_finding, normalize_language, source_roles
 from .visible_projection import product_approved_carriers_v1
 
 
@@ -48,6 +48,7 @@ SECURITY_SCAN_CATEGORIES = (
     CATEGORY_NONCHARACTER,
     CATEGORY_SURROGATE,
 )
+TROJAN_SOURCE_CATEGORIES = (CATEGORY_BIDI_CONTROL,)
 
 CATEGORY_DESCRIPTIONS = {
     CATEGORY_BIDI_CONTROL: "bidirectional override/isolate (Trojan Source reordering)",
@@ -239,21 +240,26 @@ class ScanResult:
         return tuple(name for name in SCAN_CATEGORIES if self.counts.get(name, 0) > 0)
 
 
-def scan_hidden_characters(text: str, *, max_findings: int = DEFAULT_MAX_FINDINGS) -> ScanResult:
+def scan_hidden_characters(
+    text: str,
+    *,
+    max_findings: int = DEFAULT_MAX_FINDINGS,
+    language: str | None = None,
+) -> ScanResult:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     require_int("max_findings", max_findings)
     if max_findings < 0:
         raise ValueError("max_findings must not be negative")
+    lang = normalize_language(language)
+    roles = source_roles(text, lang)
     approved = product_approved_carriers_v1()
     counts = {name: 0 for name in SCAN_CATEGORIES}
     findings: list[HiddenFinding] = []
     total = 0
     truncated = False
     carriers = 0
-    in_string = ""
     for index, character in enumerate(text):
-        in_string = advance_string_state(in_string, character)
         code = ord(character)
         if code in approved:
             carriers += 1
@@ -263,7 +269,7 @@ def scan_hidden_characters(text: str, *, max_findings: int = DEFAULT_MAX_FINDING
         total += 1
         counts[category] += 1
         if len(findings) < max_findings:
-            context, severity, why, remedy = annotate_finding(text, index, category, bool(in_string))
+            context, severity, why, remedy = annotate_finding(text, index, category, roles[index])
             findings.append(
                 HiddenFinding(
                     index=index,
@@ -315,6 +321,10 @@ def clean_hidden_characters(
             continue
         kept.append(character)
     return "".join(kept), removed
+
+
+def autofix_trojan_source(text: str) -> tuple[str, int]:
+    return clean_hidden_characters(text, categories=TROJAN_SOURCE_CATEGORIES)
 
 
 def scan_machine_line(result: ScanResult) -> str:

@@ -38,7 +38,7 @@ def test_hidden_scan_vectors_replay_on_python_engine() -> None:
     payload = _load_vectors()
     for vector in payload["vectors"]:
         text = "".join(chr(code) for code in vector["codepoints"])
-        result = scan_hidden_characters(text)
+        result = scan_hidden_characters(text, language=vector.get("language"))
         expected = vector["expect"]
         assert len(result.findings) == len(expected), vector["id"]
         for finding, want in zip(result.findings, expected, strict=True):
@@ -62,7 +62,7 @@ const scan = require(process.argv[2]);
 const payload = JSON.parse(require("fs").readFileSync(0, "utf8"));
 const out = payload.vectors.map((vector) => {
   const text = String.fromCodePoint(...vector.codepoints);
-  const result = scan.scanText(text);
+  const result = scan.scanText(text, null, vector.language || "auto");
   return result.findings.map((finding) => ({
     codepoint: finding.codepoint,
     category: finding.category,
@@ -107,3 +107,11 @@ def test_scan_js_syntax() -> None:
     subprocess.run([node, "--check", str(SCAN_JS)], check=True, timeout=15)
     extension = ROOT / "editors" / "vscode" / "extension.js"
     subprocess.run([node, "--check", str(extension)], check=True, timeout=15)
+    copies = (
+        ROOT / "docs" / "scan.js",
+        ROOT / "fuckmark" / "webui" / "scan.js",
+    )
+    canonical = SCAN_JS.read_text(encoding="utf-8")
+    for path in copies:
+        assert path.read_text(encoding="utf-8") == canonical
+        subprocess.run([node, "--check", str(path)], check=True, timeout=15)

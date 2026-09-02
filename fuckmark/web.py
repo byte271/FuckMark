@@ -19,6 +19,7 @@ from .product.detect import DETECT_CONTACT_EMAIL, detect_fuckmark_insertions
 from .product.domain import PRODUCT_MAX_INPUT_CHARS
 from .product.normalize import normalize_payload
 from .product.scan import clean_hidden_characters, scan_dict, scan_hidden_characters
+from .product.severity import normalize_language
 from .product.visible_projection import product_approved_carriers_v1, project_visible_v1
 
 
@@ -103,7 +104,7 @@ def remove_marks_payload(text: str) -> dict[str, object]:
     }
 
 
-def scan_payload(text: str) -> dict[str, object]:
+def scan_payload(text: str, *, language: str | None = None) -> dict[str, object]:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     if len(text) > PRODUCT_MAX_INPUT_CHARS:
@@ -114,12 +115,13 @@ def scan_payload(text: str) -> dict[str, object]:
             "max": PRODUCT_MAX_INPUT_CHARS,
             "contact": DETECT_CONTACT_EMAIL,
         }
-    result = scan_hidden_characters(text)
+    result = scan_hidden_characters(text, language=language)
     cleaned, removed = clean_hidden_characters(text)
     return {
         "ok": True,
         "reason": "found" if result.detected else "clean",
         "backend": "python",
+        "language": normalize_language(language),
         "scan": scan_dict(result),
         "cleaned": cleaned,
         "removed": removed,
@@ -144,7 +146,8 @@ def _web_parser() -> argparse.ArgumentParser:
         prog="fuckmark web",
         description=(
             "Open the FuckMark browser tool locally. "
-            "Serves mark.html and a Python API for detect/strip. "
+            "Serves mark.html, the hidden-Unicode scan page at /scan.html, "
+            "and a Python API for detect/strip/scan/guard/normalize. "
             "For beginners who prefer a page over the CLI."
         ),
     )
@@ -265,7 +268,10 @@ class _MarkHandler(http.server.SimpleHTTPRequestHandler):
                 text = payload.get("text", "")
                 if not isinstance(text, str):
                     raise ValueError("text must be a string")
-                result = scan_payload(text)
+                language = payload.get("language", None)
+                if language is not None and not isinstance(language, str):
+                    raise ValueError("language must be a string")
+                result = scan_payload(text, language=language)
                 status = 200 if result.get("reason") != "too-large" else 413
                 self._json_response(status, result)
             except ValueError as error:
@@ -340,6 +346,7 @@ def serve_mark_web(
             errors.write(
                 "FuckMark web: Python API at /api/health, /api/remove-marks, /api/scan, /api/guard, /api/normalize\n"
             )
+            errors.write("FuckMark web: hidden-Unicode scan UI at /scan.html\n")
             errors.write("FuckMark web: press Ctrl+C to stop.\n")
             errors.flush()
         if on_ready is not None:

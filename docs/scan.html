@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>FuckMark — Hidden Unicode scan</title>
+<meta name="color-scheme" content="dark" />
+<meta name="description" content="Reveal hidden Unicode in the browser: Trojan Source bidi overrides, zero-width characters, and tag smuggling. Nothing is uploaded." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #050505;
+    --ink: #f4f4f1;
+    --mute: #8a8a86;
+    --faint: #4a4a46;
+    --line: rgba(255,255,255,0.1);
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+    --font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --serif: "Instrument Serif", ui-serif, Georgia, serif;
+    --critical: #ff5555;
+    --high: #ff9944;
+    --medium: #c8a800;
+    --info: #8a8a86;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  .glow {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(820px 460px at 50% 16%, rgba(255,255,255,0.075), transparent 62%),
+      radial-gradient(900px 560px at 50% 110%, rgba(255,255,255,0.03), transparent 55%);
+  }
+  .noise {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0.03; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .stage {
+    position: relative; z-index: 2;
+    min-height: 100%;
+    display: grid;
+    place-items: start center;
+    padding: 48px 24px 80px;
+  }
+  .card { width: min(720px, 100%); margin-top: min(5vh, 48px); }
+  nav {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin-bottom: 28px;
+  }
+  nav a { color: var(--mute); text-decoration: none; }
+  nav a:hover { color: var(--ink); }
+  nav a.here { color: var(--ink); }
+  h1 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(40px, 8vw, 58px);
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
+  .lead {
+    margin: 14px 0 0;
+    max-width: 46ch;
+    color: var(--mute);
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 28px;
+  }
+  label.ctl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  select, .file {
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    color: var(--ink);
+    font: inherit;
+    font-size: 13px;
+    padding: 0 12px;
+  }
+  select:focus { outline: none; border-color: rgba(255,255,255,0.3); }
+  .file { display: inline-flex; align-items: center; cursor: pointer; }
+  .file input { display: none; }
+  .badge {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--faint);
+    letter-spacing: 0.02em;
+  }
+  .badge b { color: var(--mute); font-weight: 500; }
+  textarea {
+    width: 100%;
+    min-height: 170px;
+    resize: vertical;
+    margin-top: 14px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    color: var(--ink);
+    font: inherit;
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 18px;
+    outline: none;
+  }
+  textarea:focus {
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.035);
+  }
+  textarea::placeholder { color: var(--faint); }
+  .examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .examples button, .actions button {
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    color: var(--mute);
+    font: inherit;
+    font-size: 12.5px;
+    border-radius: 999px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  .examples button:hover, .actions button:hover { color: var(--ink); border-color: rgba(255,255,255,0.28); }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .actions button.primary {
+    background: #fff;
+    color: #0a0a0a;
+    border-color: #fff;
+    font-weight: 600;
+  }
+  .actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .summary {
+    margin-top: 22px;
+    font-size: 14.5px;
+    color: var(--mute);
+  }
+  .summary strong { color: var(--ink); font-weight: 600; }
+  .reveal {
+    margin-top: 14px;
+    padding: 16px 18px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.025);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 48px;
+  }
+  .hit {
+    display: inline-block;
+    padding: 0 4px;
+    margin: 0 1px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    vertical-align: 1px;
+  }
+  .sev-critical { background: rgba(255,85,85,0.18); color: var(--critical); }
+  .sev-high { background: rgba(255,153,68,0.18); color: var(--high); }
+  .sev-medium { background: rgba(200,168,0,0.16); color: var(--medium); }
+  .sev-info { background: rgba(255,255,255,0.08); color: var(--info); }
+  .findings {
+    list-style: none;
+    margin: 18px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .finding {
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.025);
+  }
+  .finding header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: baseline;
+    font-size: 12.5px;
+  }
+  .finding .code { font-variant-numeric: tabular-nums; color: var(--ink); font-weight: 600; }
+  .finding p { margin: 8px 0 0; color: var(--mute); font-size: 13.5px; line-height: 1.45; }
+  .finding .remedy { color: var(--faint); }
+  .fine {
+    margin-top: 28px;
+    color: var(--faint);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .fine a { color: var(--mute); }
+  .engine {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--faint);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .engine input { accent-color: #fff; }
+  noscript p { color: var(--high); }
+</style>
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="noise" aria-hidden="true"></div>
+  <main class="stage">
+    <div class="card">
+      <nav>
+        <a href="mark.html">Remove marks</a>
+        <a class="here" href="scan.html">Hidden scan</a>
+        <a href="demo.html">Demo</a>
+      </nav>
+      <h1>See the bytes.</h1>
+      <p class="lead">Paste source or a prompt. This page reveals Trojan Source bidi overrides, zero-width characters, and Unicode tag smuggling without sending the text anywhere.</p>
+      <noscript><p>JavaScript is required. The scanner runs in this page.</p></noscript>
+
+      <div class="toolbar">
+        <label class="ctl">Language
+          <select id="language" aria-label="Source language">
+            <option value="auto">auto</option>
+            <option value="javascript">JavaScript / C-like</option>
+            <option value="python">Python / hash comments</option>
+            <option value="sql">SQL</option>
+            <option value="html">HTML</option>
+          </select>
+        </label>
+        <label class="file">Open file
+          <input id="file" type="file" />
+        </label>
+        <label class="engine" id="pythonRow" hidden>
+          <input id="usePython" type="checkbox" />
+          Use local Python engine
+        </label>
+        <span class="badge" id="engineBadge">Engine: <b>browser</b></span>
+      </div>
+
+      <textarea id="input" spellcheck="false" placeholder="Paste text. Hidden characters stay invisible here; the reveal below names them."></textarea>
+
+      <div class="examples" id="examples"></div>
+      <div class="actions">
+        <button class="primary" id="copyClean" type="button">Copy security-clean text</button>
+        <button id="fixTrojan" type="button">Fix Trojan Source</button>
+      </div>
+
+      <p class="summary" id="summary">Paste text to scan.</p>
+      <div class="reveal" id="reveal" aria-live="polite"></div>
+      <ul class="findings" id="findings"></ul>
+      <p class="fine">
+        Scanning is <code>fuckmark-hidden-scan-v1</code>. Copy uses the security category set
+        (<code>bidi_control</code>, <code>zero_width</code>, <code>tag</code>, <code>control</code>,
+        <code>noncharacter</code>, <code>surrogate</code>). Fix Trojan Source strips only
+        bidirectional controls. Nothing is uploaded from a static page or <code>file://</code>.
+        Under <code>fuckmark web</code> an optional local Python API can confirm the same verdicts.
+        Contact <a href="mailto:Fhelp@q1z.org">Fhelp@q1z.org</a>.
+      </p>
+    </div>
+  </main>
+<script src="scan.js"></script>
+<script>
+"use strict";
+
+const RLO = String.fromCodePoint(0x202E);
+const PDF = String.fromCodePoint(0x202C);
+const ZWSP = String.fromCodePoint(0x200B);
+const ZWJ = String.fromCodePoint(0x200D);
+const TAG_A = String.fromCodePoint(0xE0061);
+const TAG_B = String.fromCodePoint(0xE0062);
+const MAN = String.fromCodePoint(0x1F468);
+const WOMAN = String.fromCodePoint(0x1F469);
+const LEFT = "\u2039";
+const RIGHT = "\u203A";
+
+const EXAMPLES = [
+  { id: "identifier", label: "Trojan Source identifier", language: "javascript",
+    text: "if (accessLevel != " + RLO + "admin" + PDF + ") {" },
+  { id: "comment", label: "Commenting-out", language: "javascript",
+    text: "if (enabled) {\n  // " + RLO + " return;\n  grant();\n}" },
+  { id: "string", label: "Stretched string", language: "javascript",
+    text: 'const role = "' + RLO + 'admin";' },
+  { id: "python", label: "Python hash comment", language: "python",
+    text: "enabled = True  # " + RLO + " disabled" },
+  { id: "tags", label: "Tag smuggling", language: "auto",
+    text: "Approve this request." + TAG_A + TAG_B },
+  { id: "zwsp", label: "Zero-width in identifier", language: "javascript",
+    text: "access" + ZWSP + "Level" },
+  { id: "emoji", label: "Emoji ZWJ (info)", language: "auto",
+    text: MAN + ZWJ + WOMAN },
+];
+
+const input = document.getElementById("input");
+const languageEl = document.getElementById("language");
+const fileEl = document.getElementById("file");
+const usePythonEl = document.getElementById("usePython");
+const pythonRow = document.getElementById("pythonRow");
+const engineBadge = document.getElementById("engineBadge");
+const summary = document.getElementById("summary");
+const reveal = document.getElementById("reveal");
+const findingsEl = document.getElementById("findings");
+const copyClean = document.getElementById("copyClean");
+const fixTrojan = document.getElementById("fixTrojan");
+const examplesEl = document.getElementById("examples");
+
+let pythonReady = false;
+let scanTimer = 0;
+
+function scanApi() {
+  return globalThis.FuckMarkScan;
+}
+
+function codepointToken(cp) {
+  return scanApi().codepointToken(cp);
+}
+
+function scalarIndexToUtf16(text, index) {
+  let scalar = 0;
+  let offset = 0;
+  while (offset < text.length) {
+    if (scalar === index) return offset;
+    const cp = text.codePointAt(offset);
+    offset += cp > 0xffff ? 2 : 1;
+    scalar += 1;
+  }
+  return offset;
+}
+
+function parseCodepointToken(token) {
+  const raw = String(token || "").replace(/^U\+/i, "");
+  return parseInt(raw, 16);
+}
+
+async function probePython() {
+  try {
+    const response = await fetch("/api/health", { method: "GET" });
+    if (!response.ok) return false;
+    const payload = await response.json();
+    return payload && payload.ok === true && payload.backend === "python";
+  } catch (_err) {
+    return false;
+  }
+}
+
+async function scanViaPython(text, language) {
+  const response = await fetch("/api/scan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+    body: JSON.stringify({ text, language }),
+  });
+  const payload = await response.json();
+  if (!payload || payload.ok !== true) {
+    throw new Error((payload && payload.reason) || "scan-failed");
+  }
+  const inner = payload.scan || {};
+  const findings = (inner.findings || []).map((item) => {
+    const codepoint = parseCodepointToken(item.codepoint);
+    const offset = scalarIndexToUtf16(text, item.index);
+    const length = codepoint > 0xffff ? 2 : 1;
+    return {
+      offset,
+      length,
+      codepoint,
+      category: item.category,
+      context: item.context,
+      severity: item.severity,
+      why: item.why,
+      remedy: item.remedy,
+    };
+  });
+  return {
+    engine: "python",
+    total: inner.total || findings.length,
+    findings,
+    highest: inner.highest_severity || "",
+  };
+}
+
+function scanLocal(text, language) {
+  const api = scanApi();
+  const result = api.scanText(text, null, language);
+  let highest = "";
+  const rank = { info: 1, medium: 2, high: 3, critical: 4 };
+  for (const finding of result.findings) {
+    if ((rank[finding.severity] || 0) > (rank[highest] || 0)) highest = finding.severity;
+  }
+  return {
+    engine: "browser",
+    total: result.total,
+    findings: result.findings,
+    highest,
+  };
+}
+
+async function scanNow() {
+  const api = scanApi();
+  if (!api) {
+    summary.textContent = "scan.js failed to load.";
+    return;
+  }
+  const text = input.value;
+  const language = languageEl.value;
+  let result;
+  try {
+    if (pythonReady && usePythonEl.checked) {
+      result = await scanViaPython(text, language);
+    } else {
+      result = scanLocal(text, language);
+    }
+  } catch (_err) {
+    result = scanLocal(text, language);
+  }
+  render(text, result);
+}
+
+function render(text, result) {
+  const n = result.total;
+  const engine = result.engine === "python" ? "Python" : "browser";
+  engineBadge.innerHTML = "Engine: <b>" + engine + "</b>";
+  if (!text) {
+    summary.textContent = "Paste text to scan.";
+    reveal.textContent = "";
+    findingsEl.replaceChildren();
+    copyClean.disabled = true;
+    fixTrojan.disabled = true;
+    return;
+  }
+  copyClean.disabled = false;
+  fixTrojan.disabled = !result.findings.some((item) => item.category === "bidi_control");
+  if (n === 0) {
+    summary.innerHTML = "No hidden characters in <strong>" + text.length + "</strong> code units.";
+  } else {
+    const sev = result.highest ? " Highest severity: <strong>" + result.highest + "</strong>." : "";
+    summary.innerHTML = "Found <strong>" + n + "</strong> hidden character" + (n === 1 ? "" : "s") + "." + sev;
+  }
+  reveal.replaceChildren(...revealNodes(text, result.findings));
+  findingsEl.replaceChildren(...result.findings.map(findingCard));
+}
+
+function revealNodes(text, findings) {
+  const byOffset = new Map();
+  for (const finding of findings) byOffset.set(finding.offset, finding);
+  const nodes = [];
+  let offset = 0;
+  while (offset < text.length) {
+    const finding = byOffset.get(offset);
+    const cp = text.codePointAt(offset);
+    const length = cp > 0xffff ? 2 : 1;
+    if (finding) {
+      const mark = document.createElement("span");
+      mark.className = "hit sev-" + (finding.severity || "medium");
+      mark.textContent = LEFT + codepointToken(cp) + RIGHT;
+      mark.title = (finding.category || "") + " / " + (finding.context || "");
+      nodes.push(mark);
+    } else {
+      nodes.push(document.createTextNode(text.slice(offset, offset + length)));
+    }
+    offset += length;
+  }
+  if (!nodes.length) nodes.push(document.createTextNode(""));
+  return nodes;
+}
+
+function findingCard(finding) {
+  const item = document.createElement("li");
+  item.className = "finding";
+  const header = document.createElement("header");
+  const code = document.createElement("span");
+  code.className = "code";
+  code.textContent = codepointToken(finding.codepoint);
+  const sev = document.createElement("span");
+  sev.className = "hit sev-" + (finding.severity || "medium");
+  sev.textContent = finding.severity || "medium";
+  const meta = document.createElement("span");
+  meta.textContent = finding.category + " / " + finding.context;
+  header.append(code, sev, meta);
+  const why = document.createElement("p");
+  why.textContent = finding.why || "";
+  const remedy = document.createElement("p");
+  remedy.className = "remedy";
+  remedy.textContent = finding.remedy || "";
+  item.append(header, why, remedy);
+  return item;
+}
+
+async function copyText(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function queueScan() {
+  window.clearTimeout(scanTimer);
+  scanTimer = window.setTimeout(() => { scanNow(); }, 40);
+}
+
+EXAMPLES.forEach((example) => {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.textContent = example.label;
+  button.addEventListener("click", () => {
+    languageEl.value = example.language;
+    input.value = example.text;
+    queueScan();
+  });
+  examplesEl.append(button);
+});
+
+input.addEventListener("input", queueScan);
+languageEl.addEventListener("change", queueScan);
+usePythonEl.addEventListener("change", queueScan);
+fileEl.addEventListener("change", async () => {
+  const file = fileEl.files && fileEl.files[0];
+  if (!file) return;
+  const api = scanApi();
+  languageEl.value = api.languageFromPath(file.name);
+  input.value = await file.text();
+  queueScan();
+});
+
+copyClean.addEventListener("click", async () => {
+  const api = scanApi();
+  const cleaned = api.cleanText(input.value, api.DEFAULT_SECURITY_CATEGORIES).cleaned;
+  const ok = await copyText(cleaned);
+  summary.textContent = ok ? "Copied security-clean text." : "Could not copy. Select and copy the reveal instead.";
+});
+
+fixTrojan.addEventListener("click", async () => {
+  const api = scanApi();
+  const fixed = api.autofixTrojanSource(input.value);
+  input.value = fixed.cleaned;
+  const ok = await copyText(fixed.cleaned);
+  await scanNow();
+  summary.textContent = ok
+    ? "Stripped " + fixed.removed + " bidi control" + (fixed.removed === 1 ? "" : "s") + " and copied the result."
+    : "Stripped " + fixed.removed + " bidi control" + (fixed.removed === 1 ? "" : "s") + ".";
+});
+
+(async function boot() {
+  pythonReady = await probePython();
+  if (pythonReady) {
+    pythonRow.hidden = false;
+  }
+  const params = new URLSearchParams(location.search);
+  const demo = params.get("demo");
+  if (demo) {
+    const example = EXAMPLES.find((item) => item.id === demo) || EXAMPLES[0];
+    languageEl.value = example.language;
+    input.value = example.text;
+  }
+  await scanNow();
+})();
+</script>
+</body>
+</html>
