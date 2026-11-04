@@ -1,164 +1,107 @@
-from .carrier_invariants import (
-    PRODUCT_CARRIER_INVARIANT_ALGORITHM_VERSION,
-    WORD_SIGNATURE_SOURCE_RAW,
-    WORD_SIGNATURE_SOURCE_VISIBLE,
-    validate_product_carrier_invariants,
-)
-from .carriers import (
-    InvisibleCarrierAfterAsciiLetterRule,
-    InvisibleCarrierAfterWordFinalAsciiLetterRule,
-    codepoint_label,
-    rule_preserves_visible_projection,
-    space_carrier_rule,
-)
-from .contract import (
-    FROZEN_PRODUCT_CONTRACT_HASH,
-    PRODUCT_CONTRACT_PATH,
-    load_product_contract,
-    product_contract_hash,
-    product_contract_payload,
-)
-from .domain import PRODUCT_DOMAIN_ID, is_supported_product_domain_v1
-from .encodings import (
-    PRODUCT_ENCODING_POLICY_VERSION,
-    PRODUCT_TEXT_ENCODING,
-    UNSUPPORTED_PRODUCT_ENCODINGS,
-    canonical_product_encoding_name,
-    encoding_roundtrip_survives,
-    is_supported_product_encoding,
-    require_supported_product_encoding,
-)
-from .invariants import (
-    USER_VISIBLE_INVARIANT_ALGORITHM_VERSION,
-    UserVisibleInvariantReason,
-    UserVisibleInvariantReport,
-    validate_user_visible_invariants,
-)
-from .registry import PRODUCT_REGISTRY_ALGORITHM_VERSION, ProductTransformRegistry, product_transform_registry
-from .normalize import (
-    NORMALIZE_ALGORITHM_VERSION,
-    NormalizeReceipt,
-    normalize_payload,
-    normalize_receipt_dict,
-    normalize_text,
-    skeleton_fold,
-)
-from .scan import (
-    SCAN_ALGORITHM_VERSION,
-    SCAN_CATEGORIES,
-    SECURITY_SCAN_CATEGORIES,
-    TROJAN_SOURCE_CATEGORIES,
-    HiddenFinding,
-    ScanResult,
-    autofix_trojan_source,
-    classify_hidden_codepoint,
-    clean_hidden_characters,
-    extract_tag_payload,
-    scan_dict,
-    scan_hidden_characters,
-    scan_human_report,
-    scan_machine_line,
-)
-from .severity import (
-    CONTEXT_COMMENT,
-    CONTEXT_EMOJI,
-    CONTEXT_IDENTIFIER,
-    CONTEXT_PROSE,
-    CONTEXT_STRING,
-    SEVERITY_CRITICAL,
-    SEVERITY_HIGH,
-    SEVERITY_INFO,
-    SEVERITY_MEDIUM,
-    annotate_finding,
-    classify_context,
-    language_from_path,
-    normalize_language,
-    score_severity,
-    source_roles,
-)
-from .search import PRODUCT_SEARCH_ALGORITHM_VERSION, raw_codepoint_contains, visible_contains
-from .visible_projection import (
-    PRODUCT_CONTRACT_ID,
-    VISIBLE_PROJECTION_ALGORITHM_VERSION,
-    is_carrier_insertion_v1,
-    normalize_approved_carriers,
-    product_approved_carriers_v1,
-    project_visible_v1,
-)
+"""Public API, resolved on demand without importing unrelated research modules.
 
-__all__ = [
-    "InvisibleCarrierAfterAsciiLetterRule",
-    "InvisibleCarrierAfterWordFinalAsciiLetterRule",
-    "FROZEN_PRODUCT_CONTRACT_HASH",
-    "PRODUCT_CARRIER_INVARIANT_ALGORITHM_VERSION",
-    "PRODUCT_CONTRACT_ID",
-    "PRODUCT_CONTRACT_PATH",
-    "PRODUCT_DOMAIN_ID",
-    "PRODUCT_ENCODING_POLICY_VERSION",
-    "PRODUCT_REGISTRY_ALGORITHM_VERSION",
-    "PRODUCT_SEARCH_ALGORITHM_VERSION",
-    "PRODUCT_TEXT_ENCODING",
-    "SCAN_ALGORITHM_VERSION",
-    "SCAN_CATEGORIES",
-    "SECURITY_SCAN_CATEGORIES",
-    "TROJAN_SOURCE_CATEGORIES",
-    "NORMALIZE_ALGORITHM_VERSION",
-    "NormalizeReceipt",
-    "normalize_payload",
-    "normalize_receipt_dict",
-    "normalize_text",
-    "skeleton_fold",
-    "CONTEXT_COMMENT",
-    "CONTEXT_EMOJI",
-    "CONTEXT_IDENTIFIER",
-    "CONTEXT_PROSE",
-    "CONTEXT_STRING",
-    "SEVERITY_CRITICAL",
-    "SEVERITY_HIGH",
-    "SEVERITY_INFO",
-    "SEVERITY_MEDIUM",
-    "annotate_finding",
-    "classify_context",
-    "language_from_path",
-    "normalize_language",
-    "score_severity",
-    "source_roles",
-    "autofix_trojan_source",
-    "HiddenFinding",
-    "ScanResult",
-    "classify_hidden_codepoint",
-    "clean_hidden_characters",
-    "extract_tag_payload",
-    "scan_dict",
-    "scan_hidden_characters",
-    "scan_human_report",
-    "scan_machine_line",
-    "ProductTransformRegistry",
-    "UNSUPPORTED_PRODUCT_ENCODINGS",
-    "USER_VISIBLE_INVARIANT_ALGORITHM_VERSION",
-    "UserVisibleInvariantReason",
-    "UserVisibleInvariantReport",
-    "VISIBLE_PROJECTION_ALGORITHM_VERSION",
-    "canonical_product_encoding_name",
-    "codepoint_label",
-    "encoding_roundtrip_survives",
-    "is_carrier_insertion_v1",
-    "is_supported_product_domain_v1",
-    "is_supported_product_encoding",
-    "load_product_contract",
-    "normalize_approved_carriers",
-    "product_approved_carriers_v1",
-    "product_contract_hash",
-    "product_contract_payload",
-    "product_transform_registry",
-    "project_visible_v1",
-    "raw_codepoint_contains",
-    "require_supported_product_encoding",
-    "rule_preserves_visible_projection",
-    "space_carrier_rule",
-    "validate_product_carrier_invariants",
-    "validate_user_visible_invariants",
-    "visible_contains",
-    "WORD_SIGNATURE_SOURCE_RAW",
-    "WORD_SIGNATURE_SOURCE_VISIBLE",
-]
+The export order and targets preserve the pre-refactor API. Implementations
+remain in their original modules; this is an import-boundary change only.
+"""
+
+from importlib import import_module as _import_module
+
+
+# None denotes metadata defined in this module, not a deferred import.
+_EXPORTS: dict[str, str | None] = {
+    "InvisibleCarrierAfterAsciiLetterRule": ".carriers",
+    "InvisibleCarrierAfterWordFinalAsciiLetterRule": ".carriers",
+    "FROZEN_PRODUCT_CONTRACT_HASH": ".contract",
+    "PRODUCT_CARRIER_INVARIANT_ALGORITHM_VERSION": ".carrier_invariants",
+    "PRODUCT_CONTRACT_ID": ".visible_projection",
+    "PRODUCT_CONTRACT_PATH": ".contract",
+    "PRODUCT_DOMAIN_ID": ".domain",
+    "PRODUCT_ENCODING_POLICY_VERSION": ".encodings",
+    "PRODUCT_REGISTRY_ALGORITHM_VERSION": ".registry",
+    "PRODUCT_SEARCH_ALGORITHM_VERSION": ".search",
+    "PRODUCT_TEXT_ENCODING": ".encodings",
+    "SCAN_ALGORITHM_VERSION": ".scan",
+    "SCAN_CATEGORIES": ".scan",
+    "SECURITY_SCAN_CATEGORIES": ".scan",
+    "TROJAN_SOURCE_CATEGORIES": ".scan",
+    "NORMALIZE_ALGORITHM_VERSION": ".normalize",
+    "NormalizeReceipt": ".normalize",
+    "normalize_payload": ".normalize",
+    "normalize_receipt_dict": ".normalize",
+    "normalize_text": ".normalize",
+    "skeleton_fold": ".normalize",
+    "CONTEXT_COMMENT": ".severity",
+    "CONTEXT_EMOJI": ".severity",
+    "CONTEXT_IDENTIFIER": ".severity",
+    "CONTEXT_PROSE": ".severity",
+    "CONTEXT_STRING": ".severity",
+    "SEVERITY_CRITICAL": ".severity",
+    "SEVERITY_HIGH": ".severity",
+    "SEVERITY_INFO": ".severity",
+    "SEVERITY_MEDIUM": ".severity",
+    "annotate_finding": ".severity",
+    "classify_context": ".severity",
+    "language_from_path": ".severity",
+    "normalize_language": ".severity",
+    "score_severity": ".severity",
+    "source_roles": ".severity",
+    "autofix_trojan_source": ".scan",
+    "HiddenFinding": ".scan",
+    "ScanResult": ".scan",
+    "classify_hidden_codepoint": ".scan",
+    "clean_hidden_characters": ".scan",
+    "extract_tag_payload": ".scan",
+    "scan_dict": ".scan",
+    "scan_hidden_characters": ".scan",
+    "scan_human_report": ".scan",
+    "scan_machine_line": ".scan",
+    "ProductTransformRegistry": ".registry",
+    "UNSUPPORTED_PRODUCT_ENCODINGS": ".encodings",
+    "USER_VISIBLE_INVARIANT_ALGORITHM_VERSION": ".invariants",
+    "UserVisibleInvariantReason": ".invariants",
+    "UserVisibleInvariantReport": ".invariants",
+    "VISIBLE_PROJECTION_ALGORITHM_VERSION": ".visible_projection",
+    "canonical_product_encoding_name": ".encodings",
+    "codepoint_label": ".carriers",
+    "encoding_roundtrip_survives": ".encodings",
+    "is_carrier_insertion_v1": ".visible_projection",
+    "is_supported_product_domain_v1": ".domain",
+    "is_supported_product_encoding": ".encodings",
+    "load_product_contract": ".contract",
+    "normalize_approved_carriers": ".visible_projection",
+    "product_approved_carriers_v1": ".visible_projection",
+    "product_contract_hash": ".contract",
+    "product_contract_payload": ".contract",
+    "product_transform_registry": ".registry",
+    "project_visible_v1": ".visible_projection",
+    "raw_codepoint_contains": ".search",
+    "require_supported_product_encoding": ".encodings",
+    "rule_preserves_visible_projection": ".carriers",
+    "space_carrier_rule": ".carriers",
+    "validate_product_carrier_invariants": ".carrier_invariants",
+    "validate_user_visible_invariants": ".invariants",
+    "visible_contains": ".search",
+    "WORD_SIGNATURE_SOURCE_RAW": ".carrier_invariants",
+    "WORD_SIGNATURE_SOURCE_VISIBLE": ".carrier_invariants",
+}
+
+__all__ = list(_EXPORTS)
+
+# A reload must not retain objects cached by a previous module execution.
+for _export_name in _EXPORTS:
+    globals().pop(_export_name, None)
+del _export_name
+
+
+
+def __getattr__(name: str) -> object:
+    source = _EXPORTS.get(name)
+    if source is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    value = getattr(_import_module(source, __name__), name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(_EXPORTS))
