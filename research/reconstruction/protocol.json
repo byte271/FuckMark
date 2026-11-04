@@ -1,0 +1,15 @@
+{
+  "protocol_id": "reconstruction-geometry-sanity-v1",
+  "status": "development mechanism test, not confirmatory efficacy evaluation",
+  "algorithm": "boundary-aware-reconstruction-v1",
+  "seed": 27112401,
+  "samples": 128,
+  "exhaustive_reference_samples": 24,
+  "watermark_detectors": [],
+  "tokenizers": ["NFKC-casefold-regex-words", "NFKC-casefold-regex-words-and-punctuation"],
+  "objective": "lexicographic minimum: worst source-normalized shared-window count, sum across views, word edit cost, candidate path",
+  "denominator": "fixed source window count, never output length",
+  "constraints": ["ordered reporting frames preserved", "numeric literals exact", "no new invisible characters", "fixed edit budget", "bounded search fails closed"],
+  "comparators": ["unchanged input", "full-output one-coordinate greedy using identical alternatives and budget", "exhaustive enumeration on the first 24 fixtures"],
+  "claims_forbidden": ["LLM watermark removed", "SynthID defeated", "general semantic equivalence", "global novelty", "optimality outside the supplied candidate lattice"]
+}
