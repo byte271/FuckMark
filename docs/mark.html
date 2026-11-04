@@ -189,7 +189,9 @@
       opacity 780ms var(--ease),
       filter 900ms var(--ease),
       transform 900ms var(--ease),
-      margin-top 900ms var(--ease);
+      margin-top 900ms var(--ease),
+      visibility 0s linear 900ms;
+    visibility: hidden;
     pointer-events: none;
     text-align: left;
   }
@@ -200,6 +202,8 @@
     transform: translateY(0);
     margin-top: 28px;
     pointer-events: auto;
+    visibility: visible;
+    transition-delay: 0s;
   }
   .after-inner { overflow: hidden; min-height: 0; }
 
@@ -547,16 +551,20 @@
     pointer-events: none;
     transform: translateY(-10px) scale(0.98);
     filter: blur(6px);
+    visibility: hidden;
     transition:
       opacity 640ms var(--ease),
       transform 640ms var(--ease),
-      filter 640ms var(--ease);
+      filter 640ms var(--ease),
+      visibility 0s linear 640ms;
   }
   .sheet.on {
     opacity: 1;
     pointer-events: auto;
     transform: none;
     filter: blur(0);
+    visibility: visible;
+    transition-delay: 0s;
   }
   .sheet p {
     margin: 0;
