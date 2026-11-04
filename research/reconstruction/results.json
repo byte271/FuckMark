@@ -1,0 +1,53 @@
+{
+  "baseline": "full-text one-coordinate greedy over the identical alternatives and edit budget; not the historical FuckMark scheduler",
+  "benchmark_id": "reconstruction-geometry-sanity-v1",
+  "corpus_kind": "synthetic controlled-grammar reports, NOT LLM-generated watermarked text",
+  "generation_uses_watermark": false,
+  "legacy_control": {
+    "control": "exact deletion of the known legacy FuckMark carriers, not an arbitrary real-world detector preprocessing chain",
+    "legacy_mean_worst_source_window_retention_after_inverse": 1.0,
+    "legacy_source_restored": 128,
+    "new_mean_worst_source_window_retention_after_inverse": 0.5987639730959657,
+    "new_plain_text_survives_nfkc_and_known_carrier_deletion": 128,
+    "samples": 128,
+    "watermark_detector_run": false,
+    "watermark_removal_verified": false
+  },
+  "measurement_kind": "source-window retention proxy, NOT watermark detection",
+  "prior_frozen_corpora_used": false,
+  "rows_sha256": "36d173f4e1521f74a963754c917724eaf4e5ba37b62201feb662a5510f495736",
+  "samples": 128,
+  "seed": 27112401,
+  "selection_detector_queries": 0,
+  "summary": {
+    "changed": 128,
+    "exact_search_better_worst_retention_than_greedy": 51,
+    "exact_search_tied_worst_retention_with_greedy": 77,
+    "exhaustive_comparisons_passed": 24,
+    "max_states_evaluated": 424,
+    "mean_retention_per_view": [
+      0.5987639730959657,
+      0.43107998031983885,
+      0.46604335608243086
+    ],
+    "mean_worst_retention_greedy": 0.6205182054543072,
+    "mean_worst_retention_joint": 0.5987639730959657,
+    "ordered_frame_checks_passed": 128,
+    "total_states_pruned": 4184,
+    "unchanged": 0
+  },
+  "verification": {
+    "github_ci": "not_claimed",
+    "legacy_runtime_tests_passed": 70,
+    "new_tests_passed": 102,
+    "real_llm_evaluation": "not_run: no model/tokenizer artifacts locally and outbound DNS unavailable",
+    "runtime": "CPython 3.13.5 Linux",
+    "total_passed": 172
+  },
+  "views": [
+    "normalized-word-3",
+    "normalized-word-5",
+    "normalized-token-5"
+  ],
+  "watermark_detector_run": false
+}
