@@ -1,13 +1,6 @@
-"""Public API, resolved on demand without importing unrelated research modules.
-
-The export order and targets preserve the pre-refactor API. Implementations
-remain in their original modules; this is an import-boundary change only.
-"""
-
 from importlib import import_module as _import_module
 
 
-# None denotes metadata defined in this module, not a deferred import.
 _EXPORTS: dict[str, str | None] = {
     "TASK29_FIDELITY_READINESS_ALGORITHM_VERSION": ".transforms",
     "FidelityReadinessStatus": ".transforms",
@@ -252,7 +245,6 @@ _EXPORTS: dict[str, str | None] = {
 
 __all__ = list(_EXPORTS)
 
-# A reload must not retain objects cached by a previous module execution.
 for _export_name in _EXPORTS:
     globals().pop(_export_name, None)
 del _export_name

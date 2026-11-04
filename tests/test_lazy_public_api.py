@@ -1,9 +1,3 @@
-"""Cold-process import boundaries and compatibility with the pre-refactor API.
-
-The digests were derived from the import statements and ordered __all__ lists at
-09c8cbf184e37e2e934e133b74a5db9af67b4f97. They pin export *targets*, not merely
-names. No model, detector threshold, or frozen experiment is changed here.
-"""
 from __future__ import annotations
 
 import json
